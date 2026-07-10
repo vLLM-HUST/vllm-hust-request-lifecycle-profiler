@@ -60,8 +60,9 @@ pressure, streaming backpressure, and cleanup stalls.
    internal decode root cause.
 2. **Controlled client-visible slow-stream diagnosis** (`existing-server-probe`
    plus `derived-artifact`): run `make npu6-existing-server-slow-stream-trace-smoke`
-   followed by `make npu6-slow-stream-trace-diagnosis`. Current evidence at
-   parent commit `6cdbdc9` uses a streaming-proxy span model with
+   followed by `make npu6-slow-stream-trace-diagnosis`. Current probe evidence
+   at parent commit `6cdbdc9` and diagnosis evidence at parent commit
+   `1a0f814` use a streaming-proxy span model with
    `per_chunk_read_delay_ms=80`, 64 output tokens, 1 warmup, and 4 measured
    requests. All measured requests succeed; TTFT p95 is 81.14 ms but latency
    p95 is 5208.20 ms. Diagnosis attributes 4/4 measured requests to
