@@ -59,10 +59,16 @@ Current live trace evidence:
   ms, p95 85.76 ms, and p99 86.65 ms. This removes the first-request warmup
   outlier from the measured summary and gives a stable baseline for later
   enabled/disabled overhead comparisons.
+- `.benchmarks/results/npu6_existing_server_trace_overhead_smoke/` is the
+  matched no-trace/trace client-probe overhead suite. Each mode sent 12 measured
+  streaming requests with 12/12 success. Trace mode emitted 117 client-observed
+  lifecycle events. Relative to no-trace, trace mode changed TTFT p95 by
+  +4.07 ms and latency p95 by +4.03 ms. This supports a narrow proxy-overhead
+  claim for client-side event construction only.
 - Boundary: these are client-observed events (`received`, local tokenization,
   HTTP send, first streamed chunk, stream done, cleanup). They are not yet
-  internal vLLM scheduler/KV/preemption events and must not be used as internal
-  runtime-overhead evidence.
+  internal vLLM scheduler/KV/preemption events and the matched overhead suite
+  must not be used as internal runtime-hook or memory-overhead evidence.
 
 Next step:
 instrument internal vLLM-HUST lifecycle hooks under the same trace schema so

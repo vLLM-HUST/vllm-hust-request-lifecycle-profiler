@@ -1,0 +1,66 @@
+{
+  "comparison": {
+    "deltas": {
+      "event_count_delta": 117,
+      "latency_p50_delta_ms": -1.0224163997918367,
+      "latency_p95_delta_ms": 4.03479291126132,
+      "ttft_p50_delta_ms": -0.7731954101473093,
+      "ttft_p95_delta_ms": 4.067261028103516
+    },
+    "modes": [
+      {
+        "error_count": 0,
+        "event_count": 0,
+        "latency_p50_ms": 180.15199434012175,
+        "latency_p95_ms": 183.3006644854322,
+        "mode": "no-trace",
+        "output_dir": ".benchmarks/results/npu6_existing_server_trace_overhead_smoke/no-trace",
+        "request_count": 12,
+        "success_count": 12,
+        "ttft_p50_ms": 81.76264632493258,
+        "ttft_p95_ms": 85.56072188075632
+      },
+      {
+        "error_count": 0,
+        "event_count": 117,
+        "latency_p50_ms": 179.1295779403299,
+        "latency_p95_ms": 187.33545739669353,
+        "mode": "trace",
+        "output_dir": ".benchmarks/results/npu6_existing_server_trace_overhead_smoke/trace",
+        "request_count": 12,
+        "success_count": 12,
+        "ttft_p50_ms": 80.98945091478527,
+        "ttft_p95_ms": 89.62798290885983
+      }
+    ]
+  },
+  "metadata": {
+    "api_key_env": "VLLM_HUST_API_KEY",
+    "api_key_present": true,
+    "claim_boundary": "Matched existing-server client-probe overhead suite. It compares the same workload with lifecycle event construction disabled and enabled in the probe process. This is not internal runtime hook overhead and must not be reported as vLLM scheduler/KV tracing cost.",
+    "command": [
+      "run_existing_server_trace_overhead_suite.py",
+      "--endpoint",
+      "http://127.0.0.1:18168",
+      "--model",
+      "codex-qwen2.5-7b-npu6",
+      "--api-key-env",
+      "VLLM_HUST_API_KEY",
+      "--warmup-requests",
+      "1",
+      "--repeat-count",
+      "3",
+      "--max-requests",
+      "4",
+      "--output-dir",
+      ".benchmarks/results/npu6_existing_server_trace_overhead_smoke"
+    ],
+    "evidence_label": "existing-server-probe",
+    "modes": [
+      "no-trace",
+      "trace"
+    ],
+    "result_valid_for_speedup_claims": false,
+    "timestamp_utc": "2026-07-10T19:30:55.486368+00:00"
+  }
+}

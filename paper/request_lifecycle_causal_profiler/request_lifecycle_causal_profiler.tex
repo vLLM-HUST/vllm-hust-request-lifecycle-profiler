@@ -18,7 +18,8 @@ controlled fault injection. The current artifact contains the trace schema,
 attribution skeleton, deterministic synthetic fault-injection harness, tests,
 NPU6 preflight contract, warmup-controlled client-observed trace probe,
 experiment plan, and claim ledger. It does not yet claim internal vLLM
-scheduler/KV tracing, measured diagnosis accuracy, or trace overhead.
+scheduler/KV tracing, measured diagnosis accuracy, or internal runtime tracing
+overhead.
 \end{abstract}
 
 \keywords{LLM serving, observability, profiling, causal diagnosis}
@@ -57,7 +58,9 @@ backpressure, and cleanup.
 The evaluation will compare the profiler against raw logs, simple stage timers,
 manual diagnosis, and profiler reports with causal rules disabled. Metrics
 include attribution accuracy, false positives, false negatives, tracing
-overhead, event coverage, and root-cause diagnosis time.
+overhead, event coverage, and root-cause diagnosis time. Until internal runtime
+hooks are integrated, overhead measurements are limited to the client-probe
+event-construction path.
 
 \section{Current Evidence Boundary}
 
@@ -71,6 +74,11 @@ warmup-controlled existing-server probe records one warmup request plus 12
 measured streaming requests on the managed NPU6 endpoint. All measured requests
 succeed, and the probe emits 117 client-observed lifecycle events across nine
 stage names. Table~\ref{tab:npu6-trace} summarizes the generated paper asset.
+A matched proxy-overhead suite then replays the same 12-request shape with
+client-side event construction disabled and enabled. Trace mode emits 117
+events and changes TTFT p95 by +4.07\,ms relative to no-trace
+(Table~\ref{tab:npu6-overhead}). This is evidence about the probe process, not
+internal runtime hook overhead.
 
 \begin{table}[t]
 \centering
@@ -80,14 +88,24 @@ client-observed proxy evidence, not yet an internal runtime scheduler/KV trace.}
 \input{tables/generated/npu6_trace_probe_summary.tex}
 \end{table}
 
+\begin{table}[t]
+\centering
+\caption{Matched no-trace/trace client-probe overhead smoke on NPU6. This is
+existing-server proxy evidence and does not measure internal runtime hook
+overhead or memory cost.}
+\label{tab:npu6-overhead}
+\input{tables/generated/npu6_trace_overhead.tex}
+\end{table}
+
 \section{Claim Boundary}
 
 The current evidence supports trace schema feasibility, synthetic attribution
-coverage, and live client-observed lifecycle export. It does not yet support
-claims about diagnosis accuracy on live faults, profiler overhead, internal
-queue/KV attribution, or root-cause time improvement. Those claims require
-paired NPU6 runs with and without profiler instrumentation, plus controlled
-runtime fault injection with known ground truth.
+coverage, live client-observed lifecycle export, and a narrow client-probe
+event-construction overhead smoke. It does not yet support claims about
+diagnosis accuracy on live faults, internal queue/KV attribution, internal
+runtime hook overhead, memory overhead, or root-cause time improvement. Those
+claims require paired NPU6 runs with and without runtime instrumentation, plus
+controlled runtime fault injection with known ground truth.
 
 \bibliographystyle{ACM-Reference-Format}
 \bibliography{references}

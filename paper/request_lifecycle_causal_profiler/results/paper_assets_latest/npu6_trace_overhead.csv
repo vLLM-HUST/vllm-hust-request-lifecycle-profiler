@@ -1,0 +1,3 @@
+mode,request_count,success_count,error_count,event_count,ttft_p50_ms,ttft_p95_ms,latency_p50_ms,latency_p95_ms,ttft_p95_delta_ms_vs_no_trace,latency_p95_delta_ms_vs_no_trace,result_dir
+no-trace,12,12,0,0,81.76264632493258,85.56072188075632,180.15199434012175,183.3006644854322,0.0,0.0,npu6_existing_server_trace_overhead_smoke
+trace,12,12,0,117,80.98945091478527,89.62798290885983,179.1295779403299,187.33545739669353,4.067261028103516,4.03479291126132,npu6_existing_server_trace_overhead_smoke

@@ -1,0 +1,263 @@
+{
+  "events": [],
+  "metadata": {
+    "api_key_env": "VLLM_HUST_API_KEY",
+    "api_key_present": true,
+    "case_id": "shared_scenario_multi_turn_knowledge_service",
+    "command": [
+      "run_existing_server_trace_overhead_suite.py",
+      "--endpoint",
+      "http://127.0.0.1:18168",
+      "--model",
+      "codex-qwen2.5-7b-npu6",
+      "--api-key-env",
+      "VLLM_HUST_API_KEY",
+      "--warmup-requests",
+      "1",
+      "--repeat-count",
+      "3",
+      "--max-requests",
+      "4",
+      "--output-dir",
+      ".benchmarks/results/npu6_existing_server_trace_overhead_smoke"
+    ],
+    "endpoint": "http://127.0.0.1:18168",
+    "evidence_label": "existing-server-probe",
+    "max_requests": 4,
+    "model": "codex-qwen2.5-7b-npu6",
+    "observer_mode": "no-trace",
+    "repeat_count": 3,
+    "repo": {
+      "branch": "main",
+      "commit": "801cde82bbd772ca2bb8f935e6c765b33902f60e",
+      "dirty": false,
+      "dirty_excluding_output_dir": false,
+      "dirty_exclusion_dir": ".benchmarks/results/npu6_existing_server_trace_overhead_smoke",
+      "path": "/home/shuhao/vllm-request-lifecycle-profiler-plugin"
+    },
+    "result_valid_for_speedup_claims": false,
+    "timestamp_utc": "2026-07-10T19:30:52.961566+00:00",
+    "trace_boundary": "Client-observed lifecycle proxy trace. It records request preparation, HTTP send, first streamed chunk, stream completion, and cleanup from the probe process; it is not yet an internal vLLM scheduler/KV trace.",
+    "trace_export_path": ".benchmarks/results/npu6_existing_server_trace_overhead_smoke/no-trace_trace.jsonl",
+    "warmup_requests": 1,
+    "workload_source": {
+      "commit": "76e24c85bcab76ecfabb831c9444002b6efffd58",
+      "dirty": false,
+      "path": "third_party/llm-serving-workloads"
+    }
+  },
+  "records": [
+    {
+      "case_index": 0,
+      "error": "",
+      "first_token_ms": 80.14293620362878,
+      "latency_ms": 178.20157716050744,
+      "ok": true,
+      "phase": "measured",
+      "repeat": 0,
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat0::0",
+      "status": 200,
+      "stream_byte_count": 2099,
+      "stream_chunk_count": 8
+    },
+    {
+      "case_index": 1,
+      "error": "",
+      "first_token_ms": 87.55436399951577,
+      "latency_ms": 185.20440300926566,
+      "ok": true,
+      "phase": "measured",
+      "repeat": 0,
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat0::1",
+      "status": 200,
+      "stream_byte_count": 2109,
+      "stream_chunk_count": 8
+    },
+    {
+      "case_index": 2,
+      "error": "",
+      "first_token_ms": 82.82328303903341,
+      "latency_ms": 180.93894515186548,
+      "ok": true,
+      "phase": "measured",
+      "repeat": 0,
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat0::2",
+      "status": 200,
+      "stream_byte_count": 2120,
+      "stream_chunk_count": 8
+    },
+    {
+      "case_index": 3,
+      "error": "",
+      "first_token_ms": 83.11883499845862,
+      "latency_ms": 181.24672630801797,
+      "ok": true,
+      "phase": "measured",
+      "repeat": 0,
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat0::3",
+      "status": 200,
+      "stream_byte_count": 2103,
+      "stream_chunk_count": 8
+    },
+    {
+      "case_index": 0,
+      "error": "",
+      "first_token_ms": 83.92956014722586,
+      "latency_ms": 181.74306023865938,
+      "ok": true,
+      "phase": "measured",
+      "repeat": 1,
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat1::0",
+      "status": 200,
+      "stream_byte_count": 2099,
+      "stream_chunk_count": 8
+    },
+    {
+      "case_index": 1,
+      "error": "",
+      "first_token_ms": 82.37555995583534,
+      "latency_ms": 179.68475725501776,
+      "ok": true,
+      "phase": "measured",
+      "repeat": 1,
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat1::1",
+      "status": 200,
+      "stream_byte_count": 2109,
+      "stream_chunk_count": 8
+    },
+    {
+      "case_index": 2,
+      "error": "",
+      "first_token_ms": 81.65887510403991,
+      "latency_ms": 180.0295589491725,
+      "ok": true,
+      "phase": "measured",
+      "repeat": 1,
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat1::2",
+      "status": 200,
+      "stream_byte_count": 2120,
+      "stream_chunk_count": 8
+    },
+    {
+      "case_index": 3,
+      "error": "",
+      "first_token_ms": 81.82055689394474,
+      "latency_ms": 180.274429731071,
+      "ok": true,
+      "phase": "measured",
+      "repeat": 1,
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat1::3",
+      "status": 200,
+      "stream_byte_count": 2103,
+      "stream_chunk_count": 8
+    },
+    {
+      "case_index": 0,
+      "error": "",
+      "first_token_ms": 81.30272291600704,
+      "latency_ms": 180.75454281643033,
+      "ok": true,
+      "phase": "measured",
+      "repeat": 2,
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat2::0",
+      "status": 200,
+      "stream_byte_count": 2099,
+      "stream_chunk_count": 8
+    },
+    {
+      "case_index": 1,
+      "error": "",
+      "first_token_ms": 81.70473575592041,
+      "latency_ms": 179.97625889256597,
+      "ok": true,
+      "phase": "measured",
+      "repeat": 2,
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat2::1",
+      "status": 200,
+      "stream_byte_count": 2109,
+      "stream_chunk_count": 8
+    },
+    {
+      "case_index": 2,
+      "error": "",
+      "first_token_ms": 81.42863400280476,
+      "latency_ms": 179.7122173011303,
+      "ok": true,
+      "phase": "measured",
+      "repeat": 2,
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat2::2",
+      "status": 200,
+      "stream_byte_count": 2120,
+      "stream_chunk_count": 8
+    },
+    {
+      "case_index": 3,
+      "error": "",
+      "first_token_ms": 81.62748580798507,
+      "latency_ms": 179.9514377489686,
+      "ok": true,
+      "phase": "measured",
+      "repeat": 2,
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat2::3",
+      "status": 200,
+      "stream_byte_count": 2103,
+      "stream_chunk_count": 8
+    }
+  ],
+  "summary": {
+    "error_count": 0,
+    "event_count": 0,
+    "first_token_ms": {
+      "count": 12,
+      "max": 87.55436399951577,
+      "min": 80.14293620362878,
+      "p50": 81.76264632493258,
+      "p95": 85.56072188075632,
+      "p99": 87.1556355757639
+    },
+    "latency_ms": {
+      "count": 12,
+      "max": 185.20440300926566,
+      "min": 178.20157716050744,
+      "p50": 180.15199434012175,
+      "p95": 183.3006644854322,
+      "p99": 184.82365530449897
+    },
+    "observer_mode": "no-trace",
+    "request_count": 12,
+    "success_count": 12,
+    "warmup_first_token_ms": {
+      "count": 1,
+      "max": 98.11024088412523,
+      "min": 98.11024088412523,
+      "p50": 98.11024088412523,
+      "p95": 98.11024088412523,
+      "p99": 98.11024088412523
+    },
+    "warmup_latency_ms": {
+      "count": 1,
+      "max": 196.0441917181015,
+      "min": 196.0441917181015,
+      "p50": 196.0441917181015,
+      "p95": 196.0441917181015,
+      "p99": 196.0441917181015
+    },
+    "warmup_request_count": 1,
+    "warmup_success_count": 1
+  },
+  "warmup_records": [
+    {
+      "case_index": 0,
+      "error": "",
+      "first_token_ms": 98.11024088412523,
+      "latency_ms": 196.0441917181015,
+      "ok": true,
+      "phase": "warmup",
+      "repeat": 0,
+      "request_id": "shared_scenario_multi_turn_knowledge_service::warmup::0",
+      "status": 200,
+      "stream_byte_count": 2099,
+      "stream_chunk_count": 8
+    }
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "api_key_env": "VLLM_HUST_API_KEY",
+  "api_key_present": true,
+  "claim_boundary": "Matched existing-server client-probe overhead suite. It compares the same workload with lifecycle event construction disabled and enabled in the probe process. This is not internal runtime hook overhead and must not be reported as vLLM scheduler/KV tracing cost.",
+  "command": [
+    "run_existing_server_trace_overhead_suite.py",
+    "--endpoint",
+    "http://127.0.0.1:18168",
+    "--model",
+    "codex-qwen2.5-7b-npu6",
+    "--api-key-env",
+    "VLLM_HUST_API_KEY",
+    "--warmup-requests",
+    "1",
+    "--repeat-count",
+    "3",
+    "--max-requests",
+    "4",
+    "--output-dir",
+    ".benchmarks/results/npu6_existing_server_trace_overhead_smoke"
+  ],
+  "evidence_label": "existing-server-probe",
+  "modes": [
+    "no-trace",
+    "trace"
+  ],
+  "result_valid_for_speedup_claims": false,
+  "timestamp_utc": "2026-07-10T19:30:55.486368+00:00"
+}

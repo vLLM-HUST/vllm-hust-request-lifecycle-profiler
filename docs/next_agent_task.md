@@ -44,7 +44,12 @@ pressure, streaming backpressure, and cleanup stalls.
    `.benchmarks/results/npu6_existing_server_trace_probe_repeated_smoke/`
    has 1 warmup request plus 12/12 successful measured requests, with measured
    TTFT p50/p95/p99 at 83.43/85.76/86.65 ms. `.benchmarks/results/npu6_trace_probe_preflight/`
-   is READY. This is not yet an internal vLLM scheduler/KV trace.
+   is READY. The matched overhead suite
+   `.benchmarks/results/npu6_existing_server_trace_overhead_smoke/` compares
+   no-trace and client-proxy trace modes on the same 12-request shape: both
+   modes succeed 12/12, trace mode emits 117 events, and TTFT p95 changes by
+   +4.07 ms. This is not yet an internal vLLM scheduler/KV trace or internal
+   runtime-hook overhead result.
 1. **Trace schema coverage** (`derived-artifact`): map every shared workload
    phase to required lifecycle events and mark missing hooks explicitly.
 2. **Internal runtime trace hooks** (`real-online` only after repo-launched
@@ -81,9 +86,11 @@ timers, not merely that traces can be collected.
 Immediate next step: integrate internal vLLM hooks so the same trace schema
 records scheduler admission, queue wait, KV pressure, prefill, decode,
 streaming, and cleanup from inside the runtime. Then run paired
-profiler-disabled/profiler-enabled NPU6 suites using the same warmup-controlled
-workload shape, followed by one controlled fault at a time. Keep
-client-observed proxy trace results separate from internal runtime trace claims.
+runtime-hook-disabled/runtime-hook-enabled NPU6 suites using the same
+warmup-controlled workload shape, memory snapshots, and the no-trace/trace
+client-probe comparison as a sanity bound. Follow with one controlled fault at a
+time. Keep client-observed proxy trace results separate from internal runtime
+trace claims.
 
 ## Paper Update Requirement
 

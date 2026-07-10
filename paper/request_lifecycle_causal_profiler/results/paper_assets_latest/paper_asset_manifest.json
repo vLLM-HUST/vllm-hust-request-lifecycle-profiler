@@ -25,6 +25,18 @@
       "kind": "figure",
       "path": "figures/generated/npu6_trace_probe_summary.svg",
       "rows": 1
+    },
+    {
+      "evidence_label": "derived-artifact",
+      "kind": "csv",
+      "path": "results/paper_assets_latest/npu6_trace_overhead.csv",
+      "rows": 2
+    },
+    {
+      "evidence_label": "derived-artifact",
+      "kind": "table",
+      "path": "tables/generated/npu6_trace_overhead.tex",
+      "rows": 2
     }
   ],
   "files": [
