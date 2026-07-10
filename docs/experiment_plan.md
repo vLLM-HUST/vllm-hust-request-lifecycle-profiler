@@ -34,13 +34,28 @@ visible with no `npu-smi` process owner, but no project-defined existing-server
 endpoint, model identity, request client, or trace export hook was available.
 This is a blocked/invalid probe directory and must not support paper claims.
 
-Readiness preflight:
+Readiness preflight and first trace probe:
 `.benchmarks/preflight_npu6_trace_probe.py` now defines the repo-local
 read-only preflight. It verifies endpoint authentication, `/v1/models`, model
 path, Ascend runtime root, NPU6 process ownership, trace export schema, and the
 pinned workload submodule commit. If a runtime trace hook is missing, the
 preflight records the missing hook as `trace_export_invalid:*` rather than
 claiming an online measurement.
+
+Current live trace evidence:
+
+- `.benchmarks/results/npu6_existing_server_trace_probe_smoke/` is an
+  `existing-server-probe` client-observed lifecycle proxy trace. It sent 4
+  streaming requests to the managed NPU6 endpoint, all succeeded, and emitted
+  36 JSONL lifecycle events to
+  `/tmp/codex-vllm-request-lifecycle-profiler-npu6-trace.jsonl`.
+- `.benchmarks/results/npu6_trace_probe_preflight/` now contains `READY.txt`;
+  the trace export schema check passed with 36 records and no missing required
+  fields.
+- Boundary: these are client-observed events (`received`, local tokenization,
+  HTTP send, first streamed chunk, stream done, cleanup). They are not yet
+  internal vLLM scheduler/KV/preemption events and must not be used as internal
+  runtime-overhead evidence.
 
 ## Phase 2: Controlled Fault Injection
 

@@ -37,15 +37,17 @@ pressure, streaming backpressure, and cleanup stalls.
 ## Required Experiment Ladder
 
 0. **Current live-service readiness** (`existing-server-probe`): the managed
-   baseline is running on NPU6 at `http://127.0.0.1:18168`; endpoint auth,
-   model path, and NPU6 process checks pass. The current preflight remains
-   blocked only because
-   `/tmp/codex-vllm-request-lifecycle-profiler-npu6-trace.jsonl` is not being
-   emitted. This is the mechanism-integration gap to fix.
+   baseline is running on NPU6 at `http://127.0.0.1:18168`. The client-observed
+   trace probe `.benchmarks/results/npu6_existing_server_trace_probe_smoke/`
+   emits `/tmp/codex-vllm-request-lifecycle-profiler-npu6-trace.jsonl`, and
+   `.benchmarks/results/npu6_trace_probe_preflight/` is READY. This is not yet
+   an internal vLLM scheduler/KV trace.
 1. **Trace schema coverage** (`derived-artifact`): map every shared workload
    phase to required lifecycle events and mark missing hooks explicitly.
 2. **Existing-server trace probe** (`existing-server-probe`): collect timelines
-   on NPU6 without changing runtime behavior and report overhead.
+   on NPU6 without changing runtime behavior. The first client-observed proxy
+   trace exists; next add warmup-controlled repetitions and then internal vLLM
+   hooks for scheduler/KV stages.
 3. **Controlled fault injection** (`real-online` when launched by this repo,
    otherwise `existing-server-probe`): long-prompt surge, decode-heavy batch,
    slow streaming client, KV-pressure boundary, and cleanup stall.
@@ -71,10 +73,11 @@ serving behavior on shared workloads. A publishable result needs to show why
 causal lifecycle evidence changes optimization decisions compared with ordinary
 timers, not merely that traces can be collected.
 
-Immediate next step: wire the lifecycle trace exporter into the managed vLLM
-runtime so `VLLM_RLP_TRACE_EXPORT_PATH` is written for normal `/v1/completions`
-or chat requests. Once the file appears, rerun `make npu6-trace-preflight` and
-then run the controlled fault matrix on the same endpoint.
+Immediate next step: add warmup/repetition support to
+`make npu6-existing-server-trace-probe`, then integrate internal vLLM hooks so
+the same trace schema records scheduler admission, KV pressure, prefill, decode,
+streaming, and cleanup from inside the runtime. Keep client-observed proxy
+trace results separate from internal runtime trace claims.
 
 ## Paper Update Requirement
 

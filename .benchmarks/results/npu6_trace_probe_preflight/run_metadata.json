@@ -8,9 +8,6 @@
     "ok": true,
     "path": "/usr/local/Ascend"
   },
-  "blockers": [
-    "trace_export_invalid:trace_export_path_not_found"
-  ],
   "command": ".benchmarks/preflight_npu6_trace_probe.py --endpoint http://127.0.0.1:18168 --model-path /data/shared_models/Qwen2.5-7B-Instruct --trace-export-path /tmp/codex-vllm-request-lifecycle-profiler-npu6-trace.jsonl --api-token-env VLLM_HUST_API_KEY --output-dir .benchmarks/results/npu6_trace_probe_preflight",
   "conda_env": "vllm-request-lifecycle-profiler-exp",
   "endpoint": "http://127.0.0.1:18168",
@@ -21,7 +18,7 @@
     "json": {
       "data": [
         {
-          "created": 1783703601,
+          "created": 1783705578,
           "id": "codex-qwen2.5-7b-npu6",
           "max_model_len": 4096,
           "object": "model",
@@ -35,9 +32,9 @@
               "allow_sampling": true,
               "allow_search_indices": false,
               "allow_view": true,
-              "created": 1783703601,
+              "created": 1783705578,
               "group": null,
-              "id": "modelperm-820bdac6ab922edd",
+              "id": "modelperm-9742ed2d7356d98c",
               "is_blocking": false,
               "object": "model_permission",
               "organization": "*"
@@ -62,34 +59,35 @@
         "chip": "0",
         "npu": "6",
         "pid": "1152907",
-        "process_memory_mb": "46355",
+        "process_memory_mb": "46841",
         "process_name": "VLLMEngineCor"
       }
     ]
   },
   "output_dir": ".benchmarks/results/npu6_trace_probe_preflight",
   "parent_branch": "main",
-  "parent_commit": "6200f475f4d2551abd3c01608ebc0f09049f9519",
+  "parent_commit": "8291ae16f8ec2096610f2743d00ff64cb6dff5b6",
   "parent_dirty": true,
-  "preflight_passed": false,
+  "preflight_passed": true,
   "result_valid_for_paper_claims": false,
-  "timestamp_utc": "2026-07-10T17:13:21.513808+00:00",
+  "timestamp_utc": "2026-07-10T17:46:18.627474+00:00",
   "trace_export": {
-    "error": "trace_export_path_not_found",
-    "ok": false,
+    "missing_rows": [],
+    "ok": true,
     "optional_fields": [
       "engine_request_id",
       "metadata",
       "sequence_id",
       "trace_id"
     ],
-    "parent_exists": true,
     "path": "/tmp/codex-vllm-request-lifecycle-profiler-npu6-trace.jsonl",
+    "record_count_checked": 36,
     "required_fields": [
       "request_id",
       "stage",
       "timestamp_ms"
-    ]
+    ],
+    "timestamp_unit": "milliseconds"
   },
   "trace_export_path": "/tmp/codex-vllm-request-lifecycle-profiler-npu6-trace.jsonl",
   "workload_source": {
