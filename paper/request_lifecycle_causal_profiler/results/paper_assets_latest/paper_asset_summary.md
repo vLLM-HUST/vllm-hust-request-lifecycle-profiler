@@ -26,6 +26,8 @@
 
 ## Derived Paper Assets
 
+- `results/paper_assets_latest/synthetic_fault_injection.csv` (csv, derived-artifact)
+- `tables/generated/synthetic_fault_injection.tex` (table, derived-artifact)
 - `results/paper_assets_latest/npu6_trace_probe_summary.csv` (csv, derived-artifact)
 - `tables/generated/npu6_trace_probe_summary.tex` (table, derived-artifact)
 - `figures/generated/npu6_trace_probe_summary.svg` (figure, derived-artifact)

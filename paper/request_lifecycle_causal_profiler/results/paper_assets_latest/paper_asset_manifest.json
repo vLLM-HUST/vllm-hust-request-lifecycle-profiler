@@ -11,6 +11,18 @@
     {
       "evidence_label": "derived-artifact",
       "kind": "csv",
+      "path": "results/paper_assets_latest/synthetic_fault_injection.csv",
+      "rows": 1
+    },
+    {
+      "evidence_label": "derived-artifact",
+      "kind": "table",
+      "path": "tables/generated/synthetic_fault_injection.tex",
+      "rows": 1
+    },
+    {
+      "evidence_label": "derived-artifact",
+      "kind": "csv",
       "path": "results/paper_assets_latest/npu6_trace_probe_summary.csv",
       "rows": 1
     },

@@ -67,7 +67,9 @@ event-construction path.
 No-NPU trace tests and a deterministic synthetic fault-injection matrix are
 currently supported as \texttt{simulation/model} evidence. The latest synthetic
 matrix reports seven of seven correct attributions with zero false positives,
-zero false negatives, and zero missing-event rate.
+zero false negatives, and zero missing-event rate
+(Table~\ref{tab:synthetic-faults}). This validates the deterministic span and
+attribution logic under known ground truth before interpreting live traces.
 
 The live NPU6 evidence is narrower. The repo-local preflight is READY, and a
 warmup-controlled existing-server probe records one warmup request plus 12
@@ -124,6 +126,15 @@ attribution, internal runtime hook overhead, memory overhead, or root-cause time
 improvement. Those claims require paired NPU6 runs with and without runtime
 instrumentation, plus controlled runtime fault injection with known ground
 truth.
+
+\begin{table}[t]
+\centering
+\caption{Synthetic lifecycle fault-injection matrix with known ground truth.
+This is simulation/model evidence for attribution logic, not a live diagnosis
+accuracy claim.}
+\label{tab:synthetic-faults}
+\input{tables/generated/synthetic_fault_injection.tex}
+\end{table}
 
 \bibliographystyle{ACM-Reference-Format}
 \bibliography{references}

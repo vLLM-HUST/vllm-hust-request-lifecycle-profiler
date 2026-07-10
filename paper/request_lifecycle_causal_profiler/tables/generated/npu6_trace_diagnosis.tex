@@ -4,7 +4,11 @@
 \toprule
 Span & p95 ms & Dominant & Events & Missing \\
 \midrule
-Prefill-proxy & 85.50 & 12/12 decode & 117 & 0.00 \\
-Decode-proxy & 98.75 & 12/12 decode & 117 & 0.00 \\
+Tokenization & 0.09 & - & 117 & 0.00 \\
+Queueing & 0.19 & - & 117 & 0.00 \\
+Prefill-proxy & 85.50 & - & 117 & 0.00 \\
+Decode-proxy & 98.75 & 12/12 & 117 & 0.00 \\
+Streaming & 0.00 & - & 117 & 0.00 \\
+Cleanup & 0.01 & - & 117 & 0.00 \\
 \bottomrule
 \end{tabular}

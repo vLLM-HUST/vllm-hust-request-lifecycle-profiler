@@ -1,0 +1,2 @@
+scenario_count,correct_count,accuracy,false_positive_count,false_negative_count,max_missing_event_rate,evidence_label,parent_commit,result_dir,scenario_names
+7,7,1.0,0,0,0.0,simulation/model,765c6e8fab649b2aa1ff0506042d07228df0c22d,synthetic_fault_injection_env,"tokenizer_slow_path,queue_surge,prefill_long_prompt,decode_heavy_output,kv_pressure_boundary,streaming_backpressure,cleanup_stall"
