@@ -28,3 +28,14 @@ def test_event_matches_preflight_trace_schema() -> None:
     assert event["stage"] == "first_token"
     assert event["timestamp_ms"] == 12.5
     assert event["metadata"]["observer"] == "client_probe"
+
+
+def test_numeric_summary_reports_tail_percentiles() -> None:
+    module = _load_probe_module()
+    summary = module._numeric_summary([1.0, 2.0, 3.0, 100.0])
+    assert summary["count"] == 4
+    assert summary["min"] == 1.0
+    assert summary["p50"] == 2.5
+    assert summary["p95"] > 80.0
+    assert summary["p99"] > summary["p95"]
+    assert summary["max"] == 100.0

@@ -244,6 +244,8 @@ def _metadata(args: argparse.Namespace) -> dict[str, Any]:
         "trace_export_path": str(args.trace_export_path),
         "case_id": args.case_id,
         "max_requests": args.max_requests,
+        "warmup_requests": args.warmup_requests,
+        "repeat_count": args.repeat_count,
         "repo": {
             "path": str(REPO_ROOT),
             "branch": _git(["branch", "--show-current"]),
@@ -266,9 +268,12 @@ def run_probe(args: argparse.Namespace) -> dict[str, Any]:
         raise SystemExit(f"missing API token env: {args.api_key_env}")
     tokenizer = WhitespaceTokenizer()
     rows = generate_case_requests(args.case_id, seed=args.seed)[: args.max_requests]
-    records = []
-    events = []
-    for index, row in enumerate(rows):
+    warmup_rows = rows[: args.warmup_requests]
+    records: list[dict[str, Any]] = []
+    warmup_records: list[dict[str, Any]] = []
+    events: list[dict[str, Any]] = []
+
+    def run_one(*, row: Any, request_id: str, phase: str, repeat: int, index: int) -> dict[str, Any]:
         result = _stream_completion(
             endpoint=args.endpoint,
             api_key=api_key,
@@ -276,24 +281,65 @@ def run_probe(args: argparse.Namespace) -> dict[str, Any]:
             prompt=str(row.prompt),
             max_tokens=min(int(row.output_len), args.request_max_tokens),
             timeout_s=args.timeout_s,
-            request_id=f"{args.case_id}::{index}",
+            request_id=request_id,
             tokenizer=tokenizer,
         )
         events.extend(result.pop("events"))
-        records.append(result)
+        result.update(
+            {
+                "phase": phase,
+                "repeat": repeat,
+                "case_index": index,
+            }
+        )
+        return result
+
+    for index, row in enumerate(warmup_rows):
+        warmup_records.append(
+            run_one(
+                row=row,
+                request_id=f"{args.case_id}::warmup::{index}",
+                phase="warmup",
+                repeat=0,
+                index=index,
+            )
+        )
+
+    for repeat in range(args.repeat_count):
+        for index, row in enumerate(rows):
+            records.append(
+                run_one(
+                    row=row,
+                    request_id=f"{args.case_id}::repeat{repeat}::{index}",
+                    phase="measured",
+                    repeat=repeat,
+                    index=index,
+                )
+            )
+
     success = [record for record in records if record["ok"]]
+    warmup_success = [record for record in warmup_records if record["ok"]]
     first_tokens = [float(record["first_token_ms"]) for record in success if record["first_token_ms"] is not None]
     latencies = [float(record["latency_ms"]) for record in success]
+    warmup_first_tokens = [
+        float(record["first_token_ms"]) for record in warmup_success if record["first_token_ms"] is not None
+    ]
+    warmup_latencies = [float(record["latency_ms"]) for record in warmup_success]
     return {
         "metadata": _metadata(args),
         "summary": {
+            "warmup_request_count": len(warmup_records),
+            "warmup_success_count": len(warmup_success),
             "request_count": len(records),
             "success_count": len(success),
             "error_count": len(records) - len(success),
             "event_count": len(events),
+            "warmup_first_token_ms": _numeric_summary(warmup_first_tokens),
+            "warmup_latency_ms": _numeric_summary(warmup_latencies),
             "first_token_ms": _numeric_summary(first_tokens),
             "latency_ms": _numeric_summary(latencies),
         },
+        "warmup_records": warmup_records,
         "records": records,
         "events": events,
     }
@@ -301,12 +347,24 @@ def run_probe(args: argparse.Namespace) -> dict[str, Any]:
 
 def _numeric_summary(values: list[float]) -> dict[str, float | int | None]:
     if not values:
-        return {"count": 0, "min": None, "p50": None, "max": None}
+        return {"count": 0, "min": None, "p50": None, "p95": None, "p99": None, "max": None}
     ordered = sorted(values)
+
+    def percentile(p: float) -> float:
+        if len(ordered) == 1:
+            return ordered[0]
+        rank = (len(ordered) - 1) * p
+        lower = int(rank)
+        upper = min(lower + 1, len(ordered) - 1)
+        weight = rank - lower
+        return ordered[lower] * (1.0 - weight) + ordered[upper] * weight
+
     return {
         "count": len(values),
         "min": ordered[0],
-        "p50": ordered[len(ordered) // 2],
+        "p50": percentile(0.50),
+        "p95": percentile(0.95),
+        "p99": percentile(0.99),
         "max": ordered[-1],
     }
 
@@ -338,6 +396,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--api-key-env", default="VLLM_HUST_API_KEY")
     parser.add_argument("--case-id", default="shared_scenario_multi_turn_knowledge_service")
     parser.add_argument("--max-requests", type=int, default=4)
+    parser.add_argument("--warmup-requests", type=int, default=0)
+    parser.add_argument("--repeat-count", type=int, default=1)
     parser.add_argument("--request-max-tokens", type=int, default=8)
     parser.add_argument("--seed", type=int, default=7)
     parser.add_argument("--timeout-s", type=float, default=60.0)
