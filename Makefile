@@ -10,6 +10,8 @@ SHARED_ENV_SCRIPT ?= /home/shuhao/llm-optimizations/scripts/bootstrap_shared_env
 SHARED_PROFILE ?= vllm-research
 SHARED_ENV_NAME ?= $(CONDA_ENV)
 WORKLOAD_REPO ?= $(abspath $(CURDIR)/third_party/llm-serving-workloads)
+DEV_HUB ?= /home/shuhao/vllm-hust-dev-hub
+MANAGED_ENV_FILE ?= $(abspath $(CURDIR)/.benchmarks/profiles/npu6_vllm_hust_trace.env)
 
 PACKAGE_IMPORT := vllm_request_lifecycle_profiler
 BENCH_DIR := .benchmarks
@@ -17,7 +19,7 @@ PAPER_DIR := paper/request_lifecycle_causal_profiler
 
 .DEFAULT_GOAL := help
 
-.PHONY: help bootstrap-shared-env install-dev smoke test shared-workloads-smoke shared-workloads-test synthetic-fault-injection npu6-trace-preflight lint format build bench paper paper-assets paper-pdf paper-clean clean
+.PHONY: help bootstrap-shared-env install-dev smoke test shared-workloads-smoke shared-workloads-test synthetic-fault-injection npu6-trace-preflight managed-install managed-start managed-restart managed-stop managed-status managed-health managed-logs managed-foreground lint format build bench paper paper-assets paper-pdf paper-clean clean
 
 help:
 	@printf '%s\n' \
@@ -31,6 +33,9 @@ help:
 		'  make shared-workloads-test  Run unit tests plus the shared workload compatibility sweep' \
 		'  make synthetic-fault-injection Run no-NPU controlled lifecycle attribution checks' \
 		'  make npu6-trace-preflight Run read-only NPU6 existing-server trace preflight' \
+		'  make managed-start Start the NPU6 baseline through vLLM-HUST dev-hub using the repo profile' \
+		'  make managed-stop  Stop the managed NPU6 baseline service' \
+		'  make managed-health Check managed service /health through dev-hub' \
 		'  make lint         Run ruff checks' \
 		'  make format       Run ruff formatting' \
 		'  make build        Build sdist and wheel artifacts' \
@@ -77,7 +82,35 @@ synthetic-fault-injection:
 
 npu6-trace-preflight:
 	PYTHONPATH=src $(PYTHON) .benchmarks/preflight_npu6_trace_probe.py \
+		--endpoint http://127.0.0.1:18168 \
+		--model-path /data/shared_models/Qwen2.5-7B-Instruct \
+		--trace-export-path /tmp/codex-vllm-request-lifecycle-profiler-npu6-trace.jsonl \
+		--api-token-env VLLM_HUST_API_KEY \
 		--output-dir .benchmarks/results/npu6_trace_probe_preflight
+
+managed-install:
+	VLLM_ENGINE_ENV_FILE='$(MANAGED_ENV_FILE)' '$(DEV_HUB)'/manage.sh install
+
+managed-start:
+	VLLM_ENGINE_ENV_FILE='$(MANAGED_ENV_FILE)' '$(DEV_HUB)'/manage.sh start
+
+managed-restart:
+	VLLM_ENGINE_ENV_FILE='$(MANAGED_ENV_FILE)' '$(DEV_HUB)'/manage.sh restart
+
+managed-stop:
+	VLLM_ENGINE_ENV_FILE='$(MANAGED_ENV_FILE)' '$(DEV_HUB)'/manage.sh stop
+
+managed-status:
+	VLLM_ENGINE_ENV_FILE='$(MANAGED_ENV_FILE)' '$(DEV_HUB)'/manage.sh status
+
+managed-health:
+	VLLM_ENGINE_ENV_FILE='$(MANAGED_ENV_FILE)' '$(DEV_HUB)'/manage.sh health
+
+managed-logs:
+	VLLM_ENGINE_ENV_FILE='$(MANAGED_ENV_FILE)' '$(DEV_HUB)'/manage.sh logs
+
+managed-foreground:
+	VLLM_ENGINE_ENV_FILE='$(MANAGED_ENV_FILE)' '$(DEV_HUB)'/manage.sh foreground
 
 lint:
 	$(RUFF) check .

@@ -16,3 +16,15 @@ Use `preflight_npu6_trace_probe.py` before an existing-server probe. It checks
 the endpoint, authentication, model path, Ascend runtime root, NPU6 ownership,
 trace export schema, and pinned workload submodule metadata without launching or
 killing any service.
+
+The repo also provides a non-secret vLLM-HUST dev-hub profile at
+`profiles/npu6_vllm_hust_trace.env`. Use:
+
+```bash
+make managed-start
+make managed-health
+make npu6-trace-preflight
+```
+
+The preflight is readiness evidence only until real workload requests and trace
+exports are collected.

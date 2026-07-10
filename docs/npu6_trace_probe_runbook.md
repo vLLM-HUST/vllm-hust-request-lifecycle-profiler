@@ -29,17 +29,30 @@ export VLLM_RLP_ASCEND_RUNTIME_ROOT=/usr/local/Ascend/ascend-toolkit/latest
 # export VLLM_RLP_API_TOKEN=...  # only if the local endpoint requires it
 ```
 
-## Server Launch Requirements
+## Managed Server Launch
 
-The serving process must be bound to NPU6. For a repo-launched future run, use
-the runtime's supported binding knob, typically:
+The preferred launch path is the vLLM-HUST dev-hub manager with this
+repository's non-secret profile:
 
 ```bash
-export ASCEND_RT_VISIBLE_DEVICES=6
+cd /home/shuhao/vllm-request-lifecycle-profiler-plugin
+export VLLM_HUST_API_KEY='<secret from your local secret store>'
+make managed-start
+make managed-health
+```
+
+The profile is `.benchmarks/profiles/npu6_vllm_hust_trace.env`. It binds
+`VLLM_ENGINE_NPU_DEVICES=6`, `ASCEND_RT_VISIBLE_DEVICES=6`, port `18168`, and
+the default 7B model. Equivalent explicit command:
+
+```bash
+VLLM_ENGINE_ENV_FILE=$PWD/.benchmarks/profiles/npu6_vllm_hust_trace.env \
+  /home/shuhao/vllm-hust-dev-hub/manage.sh start
 ```
 
 Do not use another NPU. If NPU6 is occupied by unrelated work, record a blocked
-run and stop.
+run and stop. `make managed-stop`, `make managed-status`, and
+`make managed-logs` use the same profile.
 
 ## Read-Only Preflight
 
@@ -47,7 +60,17 @@ Run:
 
 ```bash
 PYTHONPATH=src python3 .benchmarks/preflight_npu6_trace_probe.py \
+  --endpoint http://127.0.0.1:18168 \
+  --model-path /data/shared_models/Qwen2.5-7B-Instruct \
+  --trace-export-path /tmp/codex-vllm-request-lifecycle-profiler-npu6-trace.jsonl \
+  --api-token-env VLLM_HUST_API_KEY \
   --output-dir .benchmarks/results/npu6_trace_probe_preflight
+```
+
+or:
+
+```bash
+make npu6-trace-preflight
 ```
 
 The script checks:
