@@ -39,3 +39,9 @@ def test_numeric_summary_reports_tail_percentiles() -> None:
     assert summary["p95"] > 80.0
     assert summary["p99"] > summary["p95"]
     assert summary["max"] == 100.0
+
+
+def test_parse_args_supports_no_trace_mode() -> None:
+    module = _load_probe_module()
+    args = module.parse_args(["--observer-mode", "no-trace"])
+    assert args.observer_mode == "no-trace"

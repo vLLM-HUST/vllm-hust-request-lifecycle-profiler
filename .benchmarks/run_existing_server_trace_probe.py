@@ -74,33 +74,37 @@ def _stream_completion(
     timeout_s: float,
     request_id: str,
     tokenizer: WhitespaceTokenizer,
+    collect_events: bool,
 ) -> dict[str, Any]:
     start = time.perf_counter()
-    events: list[dict[str, Any]] = [
-        _event(
-            request_id=request_id,
-            stage=LifecycleStage.RECEIVED,
-            timestamp_ms=0.0,
-            metadata={"observer": "client_probe"},
+    events: list[dict[str, Any]] = []
+    if collect_events:
+        events.append(
+            _event(
+                request_id=request_id,
+                stage=LifecycleStage.RECEIVED,
+                timestamp_ms=0.0,
+                metadata={"observer": "client_probe"},
+            )
         )
-    ]
     prompt_tokens = len(tokenizer.encode(prompt, add_special_tokens=False))
-    events.append(
-        _event(
-            request_id=request_id,
-            stage=LifecycleStage.TOKENIZED,
-            timestamp_ms=_now_ms(start),
-            metadata={"observer": "client_probe", "prompt_tokens_proxy": prompt_tokens},
+    if collect_events:
+        events.append(
+            _event(
+                request_id=request_id,
+                stage=LifecycleStage.TOKENIZED,
+                timestamp_ms=_now_ms(start),
+                metadata={"observer": "client_probe", "prompt_tokens_proxy": prompt_tokens},
+            )
         )
-    )
-    events.append(
-        _event(
-            request_id=request_id,
-            stage=LifecycleStage.QUEUED,
-            timestamp_ms=_now_ms(start),
-            metadata={"observer": "client_probe", "meaning": "request_ready_to_send"},
+        events.append(
+            _event(
+                request_id=request_id,
+                stage=LifecycleStage.QUEUED,
+                timestamp_ms=_now_ms(start),
+                metadata={"observer": "client_probe", "meaning": "request_ready_to_send"},
+            )
         )
-    )
     payload = json.dumps(
         {
             "model": model,
@@ -120,19 +124,21 @@ def _stream_completion(
         },
         method="POST",
     )
-    events.append(
-        _event(
-            request_id=request_id,
-            stage=LifecycleStage.SCHEDULED,
-            timestamp_ms=_now_ms(start),
-            metadata={"observer": "client_probe", "meaning": "http_request_sent"},
+    if collect_events:
+        events.append(
+            _event(
+                request_id=request_id,
+                stage=LifecycleStage.SCHEDULED,
+                timestamp_ms=_now_ms(start),
+                metadata={"observer": "client_probe", "meaning": "http_request_sent"},
+            )
         )
-    )
     chunk_count = 0
     byte_count = 0
     status: int | None = None
     error = ""
     first_token_seen = False
+    first_token_ms: float | None = None
     try:
         with urlopen(request, timeout=timeout_s) as response:
             status = response.status
@@ -149,29 +155,31 @@ def _stream_completion(
                     if not first_token_seen:
                         first_token_seen = True
                         ts = _now_ms(start)
-                        events.append(
-                            _event(
-                                request_id=request_id,
-                                stage=LifecycleStage.PREFILL_DONE,
-                                timestamp_ms=ts,
-                                metadata={"observer": "client_probe", "meaning": "first_stream_chunk"},
+                        first_token_ms = ts
+                        if collect_events:
+                            events.append(
+                                _event(
+                                    request_id=request_id,
+                                    stage=LifecycleStage.PREFILL_DONE,
+                                    timestamp_ms=ts,
+                                    metadata={"observer": "client_probe", "meaning": "first_stream_chunk"},
+                                )
                             )
-                        )
-                        events.append(
-                            _event(
-                                request_id=request_id,
-                                stage=LifecycleStage.FIRST_TOKEN,
-                                timestamp_ms=ts,
-                                metadata={"observer": "client_probe"},
+                            events.append(
+                                _event(
+                                    request_id=request_id,
+                                    stage=LifecycleStage.FIRST_TOKEN,
+                                    timestamp_ms=ts,
+                                    metadata={"observer": "client_probe"},
+                                )
                             )
-                        )
     except HTTPError as exc:
         status = exc.code
         error = f"http_{exc.code}"
     except (TimeoutError, URLError, OSError) as exc:
         error = type(exc).__name__
     end_ms = _now_ms(start)
-    if not first_token_seen:
+    if not first_token_seen and collect_events:
         events.append(
             _event(
                 request_id=request_id,
@@ -188,40 +196,39 @@ def _stream_completion(
                 metadata={"observer": "client_probe", "missing_first_token": True},
             )
         )
-    events.append(
-        _event(
-            request_id=request_id,
-            stage=LifecycleStage.DECODE_DONE,
-            timestamp_ms=end_ms,
-            metadata={"observer": "client_probe", "stream_chunk_count": chunk_count},
+    if collect_events:
+        events.append(
+            _event(
+                request_id=request_id,
+                stage=LifecycleStage.DECODE_DONE,
+                timestamp_ms=end_ms,
+                metadata={"observer": "client_probe", "stream_chunk_count": chunk_count},
+            )
         )
-    )
-    events.append(
-        _event(
-            request_id=request_id,
-            stage=LifecycleStage.STREAM_DONE,
-            timestamp_ms=end_ms,
-            metadata={"observer": "client_probe", "stream_byte_count": byte_count},
+        events.append(
+            _event(
+                request_id=request_id,
+                stage=LifecycleStage.STREAM_DONE,
+                timestamp_ms=end_ms,
+                metadata={"observer": "client_probe", "stream_byte_count": byte_count},
+            )
         )
-    )
-    events.append(
-        _event(
-            request_id=request_id,
-            stage=LifecycleStage.CLEANUP_DONE,
-            timestamp_ms=_now_ms(start),
-            metadata={"observer": "client_probe"},
+        events.append(
+            _event(
+                request_id=request_id,
+                stage=LifecycleStage.CLEANUP_DONE,
+                timestamp_ms=_now_ms(start),
+                metadata={"observer": "client_probe"},
+            )
         )
-    )
+    latency_ms = events[-1]["timestamp_ms"] if events else end_ms
     return {
         "request_id": request_id,
         "ok": bool(status and 200 <= status < 300 and not error),
         "status": status,
         "error": error,
-        "latency_ms": events[-1]["timestamp_ms"],
-        "first_token_ms": next(
-            (event["timestamp_ms"] for event in events if event["stage"] == LifecycleStage.FIRST_TOKEN.value),
-            None,
-        ),
+        "latency_ms": latency_ms,
+        "first_token_ms": first_token_ms,
         "stream_chunk_count": chunk_count,
         "stream_byte_count": byte_count,
         "events": events,
@@ -246,6 +253,7 @@ def _metadata(args: argparse.Namespace) -> dict[str, Any]:
         "max_requests": args.max_requests,
         "warmup_requests": args.warmup_requests,
         "repeat_count": args.repeat_count,
+        "observer_mode": args.observer_mode,
         "repo": {
             "path": str(REPO_ROOT),
             "branch": _git(["branch", "--show-current"]),
@@ -267,6 +275,7 @@ def run_probe(args: argparse.Namespace) -> dict[str, Any]:
     if not api_key:
         raise SystemExit(f"missing API token env: {args.api_key_env}")
     tokenizer = WhitespaceTokenizer()
+    collect_events = args.observer_mode == "trace"
     rows = generate_case_requests(args.case_id, seed=args.seed)[: args.max_requests]
     warmup_rows = rows[: args.warmup_requests]
     records: list[dict[str, Any]] = []
@@ -283,6 +292,7 @@ def run_probe(args: argparse.Namespace) -> dict[str, Any]:
             timeout_s=args.timeout_s,
             request_id=request_id,
             tokenizer=tokenizer,
+            collect_events=collect_events,
         )
         events.extend(result.pop("events"))
         result.update(
@@ -334,6 +344,7 @@ def run_probe(args: argparse.Namespace) -> dict[str, Any]:
             "success_count": len(success),
             "error_count": len(records) - len(success),
             "event_count": len(events),
+            "observer_mode": args.observer_mode,
             "warmup_first_token_ms": _numeric_summary(warmup_first_tokens),
             "warmup_latency_ms": _numeric_summary(warmup_latencies),
             "first_token_ms": _numeric_summary(first_tokens),
@@ -371,10 +382,11 @@ def _numeric_summary(values: list[float]) -> dict[str, float | int | None]:
 
 def write_outputs(args: argparse.Namespace, result: dict[str, Any]) -> None:
     args.output_dir.mkdir(parents=True, exist_ok=True)
-    args.trace_export_path.parent.mkdir(parents=True, exist_ok=True)
-    with args.trace_export_path.open("w", encoding="utf-8") as handle:
-        for event in result["events"]:
-            handle.write(json.dumps(event, sort_keys=True) + "\n")
+    if args.observer_mode == "trace":
+        args.trace_export_path.parent.mkdir(parents=True, exist_ok=True)
+        with args.trace_export_path.open("w", encoding="utf-8") as handle:
+            for event in result["events"]:
+                handle.write(json.dumps(event, sort_keys=True) + "\n")
     (args.output_dir / "run_metadata.json").write_text(
         json.dumps(result["metadata"], indent=2, sort_keys=True) + "\n",
         encoding="utf-8",
@@ -389,7 +401,7 @@ def write_outputs(args: argparse.Namespace, result: dict[str, Any]) -> None:
     )
 
 
-def parse_args() -> argparse.Namespace:
+def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Run an existing-server client-observed lifecycle trace probe.")
     parser.add_argument("--endpoint", default=os.environ.get("VLLM_RLP_ENDPOINT", "http://127.0.0.1:18168"))
     parser.add_argument("--model", default=os.environ.get("VLLM_ENGINE_SERVED_MODEL_NAME", "codex-qwen2.5-7b-npu6"))
@@ -399,15 +411,16 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--warmup-requests", type=int, default=0)
     parser.add_argument("--repeat-count", type=int, default=1)
     parser.add_argument("--request-max-tokens", type=int, default=8)
+    parser.add_argument("--observer-mode", choices=("trace", "no-trace"), default="trace")
     parser.add_argument("--seed", type=int, default=7)
     parser.add_argument("--timeout-s", type=float, default=60.0)
     parser.add_argument("--trace-export-path", type=Path, default=DEFAULT_TRACE_EXPORT)
     parser.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT_DIR)
-    return parser.parse_args()
+    return parser.parse_args(argv)
 
 
-def main() -> None:
-    args = parse_args()
+def main(argv: list[str] | None = None) -> None:
+    args = parse_args(argv)
     result = run_probe(args)
     write_outputs(args, result)
     print(json.dumps({"output_dir": str(args.output_dir), **result["summary"]}, sort_keys=True))

@@ -19,7 +19,7 @@ PAPER_DIR := paper/request_lifecycle_causal_profiler
 
 .DEFAULT_GOAL := help
 
-.PHONY: help bootstrap-shared-env install-dev smoke test shared-workloads-smoke shared-workloads-test synthetic-fault-injection npu6-trace-preflight npu6-existing-server-trace-probe npu6-existing-server-trace-suite-smoke managed-install managed-start managed-restart managed-stop managed-status managed-health managed-logs managed-foreground lint format build bench paper paper-assets paper-pdf paper-clean clean
+.PHONY: help bootstrap-shared-env install-dev smoke test shared-workloads-smoke shared-workloads-test synthetic-fault-injection npu6-trace-preflight npu6-existing-server-trace-probe npu6-existing-server-trace-suite-smoke npu6-existing-server-trace-overhead-smoke managed-install managed-start managed-restart managed-stop managed-status managed-health managed-logs managed-foreground lint format build bench paper paper-assets paper-pdf paper-clean clean
 
 help:
 	@printf '%s\n' \
@@ -35,6 +35,7 @@ help:
 		'  make npu6-trace-preflight Run read-only NPU6 existing-server trace preflight' \
 		'  make npu6-existing-server-trace-probe Run client-observed lifecycle trace probe on NPU6' \
 		'  make npu6-existing-server-trace-suite-smoke Run warmup-controlled repeated trace suite on NPU6' \
+		'  make npu6-existing-server-trace-overhead-smoke Run matched no-trace/trace client-probe overhead suite on NPU6' \
 		'  make managed-start Start the NPU6 baseline through vLLM-HUST dev-hub using the repo profile' \
 		'  make managed-stop  Stop the managed NPU6 baseline service' \
 		'  make managed-health Check managed service /health through dev-hub' \
@@ -108,6 +109,16 @@ npu6-existing-server-trace-suite-smoke:
 		--max-requests 4 \
 		--trace-export-path /tmp/codex-vllm-request-lifecycle-profiler-npu6-trace.jsonl \
 		--output-dir .benchmarks/results/npu6_existing_server_trace_probe_repeated_smoke
+
+npu6-existing-server-trace-overhead-smoke:
+	PYTHONPATH=src $(PYTHON) .benchmarks/run_existing_server_trace_overhead_suite.py \
+		--endpoint http://127.0.0.1:18168 \
+		--model codex-qwen2.5-7b-npu6 \
+		--api-key-env VLLM_HUST_API_KEY \
+		--warmup-requests 1 \
+		--repeat-count 3 \
+		--max-requests 4 \
+		--output-dir .benchmarks/results/npu6_existing_server_trace_overhead_smoke
 
 managed-install:
 	VLLM_ENGINE_ENV_FILE='$(MANAGED_ENV_FILE)' '$(DEV_HUB)'/manage.sh install
