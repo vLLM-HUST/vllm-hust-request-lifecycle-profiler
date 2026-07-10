@@ -15,8 +15,9 @@ symptoms. This draft studies request lifecycle profiling: representing each
 request as an ordered timeline across tokenization, queueing, prefill, decode,
 streaming, and cleanup, then attributing the dominant bottleneck under
 controlled fault injection. The current artifact contains the trace schema,
-attribution skeleton, tests, experiment plan, and claim ledger. It does not yet
-claim measured diagnosis accuracy on live traces.
+attribution skeleton, deterministic synthetic fault-injection harness, tests,
+experiment plan, and claim ledger. It does not yet claim measured diagnosis
+accuracy or trace overhead on live traces.
 \end{abstract}
 
 \keywords{LLM serving, observability, profiling, causal diagnosis}
@@ -38,9 +39,11 @@ explicit rule set that can be validated by injected-fault ground truth.
 
 \section{Design Scope}
 
-The first implementation provides trace primitives and deterministic attribution
-logic. NPU6 runs should begin as existing-server probes before any runtime
-policy uses profiler output.
+The first implementation provides trace primitives, schema coverage checks, and
+deterministic attribution logic. The no-NPU harness covers tokenizer delay,
+queueing, prefill, decode, KV pressure, streaming backpressure, and cleanup
+stalls with known ground truth. NPU6 runs should begin as existing-server probes
+before any runtime policy uses profiler output.
 
 \section{Evaluation Plan}
 
@@ -51,12 +54,14 @@ overhead, event coverage, and time-to-root-cause.
 
 \section{Current Evidence Boundary}
 
-Only no-NPU trace and attribution tests are currently supported. Live diagnosis
-claims require manifest-backed NPU6 probes and controlled fault-injection
-results.
+No-NPU trace tests and a deterministic synthetic fault-injection matrix are
+currently supported as \texttt{simulation/model} evidence. The latest synthetic
+matrix reports seven of seven correct attributions with zero false positives,
+zero false negatives, and zero missing-event rate. Live diagnosis, overhead, and
+time-to-root-cause claims still require manifest-backed NPU6 probes and
+controlled fault-injection results.
 
 \bibliographystyle{ACM-Reference-Format}
 \bibliography{references}
 
 \end{document}
-

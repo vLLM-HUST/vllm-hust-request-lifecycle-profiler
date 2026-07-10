@@ -1,0 +1,14 @@
+BLOCKED: NPU6 existing-server trace probe was not run.
+
+Reason:
+- NPU6 was visible and `npu-smi info` reported no running processes on NPU6.
+- The project conda environment `vllm-request-lifecycle-profiler-exp` was created
+  from `vllm-hust-dev` and this repository plus the workload submodule were
+  installed there.
+- The repository does not yet define an existing-server probe endpoint, model
+  identity, request client, or trace export hook for the local
+  `vllm_auth_proxy.py` listener on 127.0.0.1:18080.
+
+This directory is invalid for paper claims. It only records why trace overhead,
+live missing-event rate, and live NPU6 attribution accuracy were not measured in
+this pass. Do not treat the synthetic fault-injection result as an online probe.

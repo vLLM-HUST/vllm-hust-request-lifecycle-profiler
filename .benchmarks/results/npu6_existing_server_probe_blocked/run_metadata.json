@@ -1,0 +1,21 @@
+{
+  "blocked_reason": "No project-defined existing-server probe endpoint, model identity, request client, or trace export hook was available for the local 127.0.0.1:18080 listener.",
+  "conda_env": "vllm-request-lifecycle-profiler-exp",
+  "evidence_label": "existing-server-probe",
+  "hardware": "Ascend 910B2",
+  "npu6_status": "visible_no_running_processes_reported_by_npu_smi",
+  "npu_id": 6,
+  "parent_branch": "main",
+  "parent_commit": "765c6e8fab649b2aa1ff0506042d07228df0c22d",
+  "parent_dirty": true,
+  "result_valid_for_paper_claims": false,
+  "runtime": "not_launched_or_probed",
+  "timestamp_local": "2026-07-11 Asia/Shanghai",
+  "trace_overhead": "not_measured",
+  "workload_source": {
+    "branch": "main",
+    "commit": "76e24c85bcab76ecfabb831c9444002b6efffd58",
+    "dirty": false,
+    "path": "third_party/llm-serving-workloads"
+  }
+}

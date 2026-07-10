@@ -1,0 +1,21 @@
+{
+  "command": ".benchmarks/run_synthetic_fault_injection.py --output-dir .benchmarks/results/synthetic_fault_injection",
+  "conda_env": "base",
+  "evidence_label": "simulation/model",
+  "fault_model": "deterministic_synthetic_lifecycle_spans",
+  "hardware": "not_used",
+  "model": "synthetic_fault_injection",
+  "npu_id": null,
+  "output_dir": ".benchmarks/results/synthetic_fault_injection",
+  "parent_branch": "main",
+  "parent_commit": "765c6e8fab649b2aa1ff0506042d07228df0c22d",
+  "parent_dirty": true,
+  "runtime": "no_serving_runtime",
+  "timestamp_utc": "2026-07-10T16:42:59.701547+00:00",
+  "workload_source": {
+    "branch": "main",
+    "commit": "76e24c85bcab76ecfabb831c9444002b6efffd58",
+    "dirty": false,
+    "path": "/home/shuhao/vllm-request-lifecycle-profiler-plugin/third_party/llm-serving-workloads"
+  }
+}

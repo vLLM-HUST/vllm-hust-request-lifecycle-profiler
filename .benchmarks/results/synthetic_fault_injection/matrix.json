@@ -1,0 +1,72 @@
+{
+  "accuracy": 1.0,
+  "correct_count": 7,
+  "false_negative_count": 0,
+  "false_positive_count": 0,
+  "rows": [
+    {
+      "correct": true,
+      "duration_ms": 80.0,
+      "expected": "tokenization",
+      "missing_event_rate": 0.0,
+      "observed": "tokenization",
+      "scenario": "tokenizer_slow_path",
+      "span": "tokenization"
+    },
+    {
+      "correct": true,
+      "duration_ms": 95.0,
+      "expected": "queueing",
+      "missing_event_rate": 0.0,
+      "observed": "queueing",
+      "scenario": "queue_surge",
+      "span": "queueing"
+    },
+    {
+      "correct": true,
+      "duration_ms": 120.0,
+      "expected": "prefill",
+      "missing_event_rate": 0.0,
+      "observed": "prefill",
+      "scenario": "prefill_long_prompt",
+      "span": "prefill"
+    },
+    {
+      "correct": true,
+      "duration_ms": 140.0,
+      "expected": "decode",
+      "missing_event_rate": 0.0,
+      "observed": "decode",
+      "scenario": "decode_heavy_output",
+      "span": "decode"
+    },
+    {
+      "correct": true,
+      "duration_ms": 90.0,
+      "expected": "kv_pressure",
+      "missing_event_rate": 0.0,
+      "observed": "kv_pressure",
+      "scenario": "kv_pressure_boundary",
+      "span": "prefill"
+    },
+    {
+      "correct": true,
+      "duration_ms": 110.0,
+      "expected": "streaming",
+      "missing_event_rate": 0.0,
+      "observed": "streaming",
+      "scenario": "streaming_backpressure",
+      "span": "streaming"
+    },
+    {
+      "correct": true,
+      "duration_ms": 100.0,
+      "expected": "cleanup",
+      "missing_event_rate": 0.0,
+      "observed": "cleanup",
+      "scenario": "cleanup_stall",
+      "span": "cleanup"
+    }
+  ],
+  "scenario_count": 7
+}
