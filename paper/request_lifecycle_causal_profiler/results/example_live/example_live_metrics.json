@@ -1,0 +1,8 @@
+{
+  "note": "Placeholder live-serving result file for the template paper-assets pipeline.",
+  "replace_me": true,
+  "metrics": {
+    "request_throughput_rps": 0,
+    "p95_e2e_latency_ms": 0
+  }
+}

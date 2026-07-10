@@ -1,0 +1,2133 @@
+{
+  "seed": 7,
+  "skipped_case_count": 2,
+  "skipped_cases": [
+    {
+      "case_id": "shared_synthetic_shared_prefix_microbenchmark",
+      "dataset_name": "generated-shared-prefix",
+      "label": "Synthetic workload: shared-prefix micro-benchmark",
+      "reason": "non_repo_local_boundary_case"
+    },
+    {
+      "case_id": "shared_public_sharegpt_boundary",
+      "dataset_name": "sharegpt",
+      "label": "Public boundary: ShareGPT conversation mix",
+      "reason": "non_repo_local_boundary_case"
+    }
+  ],
+  "supported_case_count": 23,
+  "supported_cases": [
+    {
+      "case_id": "shared_session_affine_multi_turn",
+      "dataset_name": "session-affine-multi-turn",
+      "dp_size": 8,
+      "label": "Shared workload: session-affine multi-turn",
+      "mean_output_len": 96,
+      "mean_prompt_len": 868,
+      "summary": {
+        "anchor_home_rank_histogram": {
+          "0": 2,
+          "1": 2,
+          "2": 2,
+          "3": 2,
+          "4": 2,
+          "5": 2,
+          "6": 2,
+          "7": 2
+        },
+        "anchor_rank_coverage": 8,
+        "anchor_strategy": "Each session has an explicit home rank, but multiple sessions share tenant-level memory blocks; that creates exact continuation anchors within a session and partial anchor overlap across homes.",
+        "deployment_story": "A tenant-facing knowledge service keeps short rolling summaries per user session, while several sessions share tenant memory and deployment scaffolds across the fleet.",
+        "end_to_end_gain_boundary": "End-to-end gains are not implied by workload metadata and require downstream system measurements.",
+        "family_label": "session-affine multi-turn",
+        "locality_activation_rationale": "Cache-retaining policies benefit when a session stays warm on its home worker, remote-placement-sensitive policies pay for movement, and topology-aware policies can trade home retention against queue pressure when multiple tenant-sharing sessions overlap.",
+        "observed_overlap_semantics": [],
+        "primary_anchor_count": 16,
+        "primary_anchor_kind": "session",
+        "realized_reuse_boundary": "Observed overlap metadata identifies potential continuity or shared structure only; realized runtime reuse must be measured downstream.",
+        "request_count": 64,
+        "sample_anchor_preview": [
+          {
+            "home_rank": 7,
+            "primary_anchor_id": "session::0",
+            "secondary_anchor_ids": [
+              "tenant::3",
+              "pair::3",
+              "window::0"
+            ],
+            "turn_index": 0
+          },
+          {
+            "home_rank": 0,
+            "primary_anchor_id": "session::1",
+            "secondary_anchor_ids": [
+              "tenant::0",
+              "pair::0",
+              "window::0"
+            ],
+            "turn_index": 0
+          },
+          {
+            "home_rank": 1,
+            "primary_anchor_id": "session::2",
+            "secondary_anchor_ids": [
+              "tenant::0",
+              "pair::0",
+              "window::0"
+            ],
+            "turn_index": 0
+          },
+          {
+            "home_rank": 2,
+            "primary_anchor_id": "session::3",
+            "secondary_anchor_ids": [
+              "tenant::1",
+              "pair::1",
+              "window::0"
+            ],
+            "turn_index": 0
+          }
+        ],
+        "scenario_tags": [],
+        "secondary_anchor_count": 9,
+        "secondary_anchor_kind": "tenant_memory",
+        "secondary_anchor_preview": [
+          "pair::0",
+          "pair::1",
+          "pair::2",
+          "pair::3",
+          "tenant::0",
+          "tenant::1",
+          "tenant::2",
+          "tenant::3"
+        ],
+        "truthfulness_boundary": "This workload exposes scenario semantics and overlap carriers only; it does not claim realized reuse or end-to-end improvement.",
+        "workload_family": "session-affine-multi-turn"
+      }
+    },
+    {
+      "case_id": "shared_session_affine_bursty",
+      "dataset_name": "session-affine-bursty",
+      "dp_size": 8,
+      "label": "Shared workload: session-affine bursty regime",
+      "mean_output_len": 128,
+      "mean_prompt_len": 930,
+      "summary": {
+        "anchor_home_rank_histogram": {
+          "0": 2,
+          "1": 2,
+          "2": 2,
+          "3": 2,
+          "4": 2,
+          "5": 2,
+          "6": 2,
+          "7": 2
+        },
+        "anchor_rank_coverage": 8,
+        "anchor_strategy": "Sessions are clustered into pair-local tenants; each burst revisits the same small tenant cluster for multiple rounds, so exact session anchors and pair-local shared memory both stay hot on a short horizon.",
+        "deployment_story": "A tenant-facing service receives short follow-up bursts from a few active sessions at a time, and each tenant keeps pair-scoped memory that is revisited again after only a small gap.",
+        "end_to_end_gain_boundary": "End-to-end gains are not implied by workload metadata and require downstream system measurements.",
+        "family_label": "session-affine bursty regime",
+        "locality_activation_rationale": "This regime is future-value-heavy rather than instant-cost-heavy: immediate global-best dispatch can conflict with keeping a pair-local continuation corridor warm across the next few requests.",
+        "observed_overlap_semantics": [],
+        "primary_anchor_count": 16,
+        "primary_anchor_kind": "session",
+        "realized_reuse_boundary": "Observed overlap metadata identifies potential continuity or shared structure only; realized runtime reuse must be measured downstream.",
+        "request_count": 64,
+        "sample_anchor_preview": [
+          {
+            "home_rank": 6,
+            "primary_anchor_id": "session::0",
+            "secondary_anchor_ids": [
+              "tenant::0",
+              "pair::3",
+              "burst::0"
+            ],
+            "turn_index": 0
+          },
+          {
+            "home_rank": 7,
+            "primary_anchor_id": "session::1",
+            "secondary_anchor_ids": [
+              "tenant::0",
+              "pair::3",
+              "burst::0"
+            ],
+            "turn_index": 0
+          },
+          {
+            "home_rank": 6,
+            "primary_anchor_id": "session::2",
+            "secondary_anchor_ids": [
+              "tenant::0",
+              "pair::3",
+              "burst::0"
+            ],
+            "turn_index": 0
+          },
+          {
+            "home_rank": 7,
+            "primary_anchor_id": "session::3",
+            "secondary_anchor_ids": [
+              "tenant::0",
+              "pair::3",
+              "burst::0"
+            ],
+            "turn_index": 0
+          }
+        ],
+        "scenario_tags": [],
+        "secondary_anchor_count": 14,
+        "secondary_anchor_kind": "pair_tenant_memory",
+        "secondary_anchor_preview": [
+          "burst::0",
+          "burst::1",
+          "burst::2",
+          "burst::3",
+          "burst::4",
+          "burst::5",
+          "pair::0",
+          "pair::1"
+        ],
+        "truthfulness_boundary": "This workload exposes scenario semantics and overlap carriers only; it does not claim realized reuse or end-to-end improvement.",
+        "workload_family": "session-affine-bursty"
+      }
+    },
+    {
+      "case_id": "shared_rag_followup",
+      "dataset_name": "rag-followup",
+      "dp_size": 8,
+      "label": "Shared workload: RAG follow-up",
+      "mean_output_len": 48,
+      "mean_prompt_len": 2623,
+      "summary": {
+        "anchor_home_rank_histogram": {
+          "0": 2,
+          "1": 2,
+          "2": 2,
+          "3": 2,
+          "4": 2,
+          "5": 2,
+          "6": 2,
+          "7": 2
+        },
+        "anchor_rank_coverage": 8,
+        "anchor_strategy": "Each follow-up thread keeps a home rank, while adjacent threads share part of their retrieved-document bundle; the workload mixes exact thread-local anchors with cross-home partial evidence overlap.",
+        "deployment_story": "A retrieval-backed assistant serves follow-up questions over overlapping document bundles, so related query threads reuse some retrieved chunks but not the entire continuation state.",
+        "end_to_end_gain_boundary": "End-to-end gains are not implied by workload metadata and require downstream system measurements.",
+        "family_label": "RAG follow-up",
+        "locality_activation_rationale": "Thread-local continuation and cross-thread document overlap coexist, making this a useful boundary case between exact reuse and partial similarity.",
+        "observed_overlap_semantics": [],
+        "primary_anchor_count": 16,
+        "primary_anchor_kind": "retrieval_thread",
+        "realized_reuse_boundary": "Observed overlap metadata identifies potential continuity or shared structure only; realized runtime reuse must be measured downstream.",
+        "request_count": 64,
+        "sample_anchor_preview": [
+          {
+            "home_rank": 7,
+            "primary_anchor_id": "rag-thread::0",
+            "secondary_anchor_ids": [
+              "collection::0::doc::0",
+              "collection::0::doc::1",
+              "collection::0::doc::2"
+            ],
+            "turn_index": 0
+          },
+          {
+            "home_rank": 0,
+            "primary_anchor_id": "rag-thread::1",
+            "secondary_anchor_ids": [
+              "collection::1::doc::3",
+              "collection::1::doc::4",
+              "collection::1::doc::5"
+            ],
+            "turn_index": 0
+          },
+          {
+            "home_rank": 1,
+            "primary_anchor_id": "rag-thread::2",
+            "secondary_anchor_ids": [
+              "collection::2::doc::6",
+              "collection::2::doc::7",
+              "collection::2::doc::8"
+            ],
+            "turn_index": 0
+          },
+          {
+            "home_rank": 2,
+            "primary_anchor_id": "rag-thread::3",
+            "secondary_anchor_ids": [
+              "collection::3::doc::9",
+              "collection::3::doc::10",
+              "collection::3::doc::11"
+            ],
+            "turn_index": 0
+          }
+        ],
+        "scenario_tags": [],
+        "secondary_anchor_count": 64,
+        "secondary_anchor_kind": "document_bundle",
+        "secondary_anchor_preview": [
+          "collection::0::doc::0",
+          "collection::0::doc::1",
+          "collection::0::doc::12",
+          "collection::0::doc::13",
+          "collection::0::doc::14",
+          "collection::0::doc::15",
+          "collection::0::doc::16",
+          "collection::0::doc::17"
+        ],
+        "truthfulness_boundary": "This workload exposes scenario semantics and overlap carriers only; it does not claim realized reuse or end-to-end improvement.",
+        "workload_family": "rag-followup"
+      }
+    },
+    {
+      "case_id": "shared_long_context_doc_analysis",
+      "dataset_name": "long-context-doc-analysis",
+      "dp_size": 8,
+      "label": "Shared workload: long-context document analysis",
+      "mean_output_len": 64,
+      "mean_prompt_len": 4442,
+      "summary": {
+        "anchor_home_rank_histogram": {
+          "0": 2,
+          "1": 2,
+          "2": 2,
+          "3": 1,
+          "4": 1,
+          "5": 1,
+          "6": 1,
+          "7": 2
+        },
+        "anchor_rank_coverage": 8,
+        "anchor_strategy": "Each document case keeps its own home rank and exact continuation anchor, while related cases share template sections, appendix packs, and citation-style reference bundles; that mixes long exact case state with structured partial overlap across homes.",
+        "deployment_story": "A document-analysis assistant reviews long reports, specs, and policy packets where analysts revisit the same case across several turns while many cases still share common section packs, appendices, and review templates.",
+        "end_to_end_gain_boundary": "End-to-end gains are not implied by workload metadata and require downstream system measurements.",
+        "family_label": "long-context document analysis",
+        "locality_activation_rationale": "Long prompts amplify state residency and restore costs, while shared section packs create partial overlap across different cases; this is a mainstream boundary between long-context continuation and cross-case structural reuse.",
+        "observed_overlap_semantics": [],
+        "primary_anchor_count": 12,
+        "primary_anchor_kind": "document_case",
+        "realized_reuse_boundary": "Observed overlap metadata identifies potential continuity or shared structure only; realized runtime reuse must be measured downstream.",
+        "request_count": 48,
+        "sample_anchor_preview": [
+          {
+            "home_rank": 7,
+            "primary_anchor_id": "document-case::0",
+            "secondary_anchor_ids": [
+              "section-pack::0",
+              "section-pack::0::shared::0",
+              "section-pack::0::shared::1"
+            ],
+            "turn_index": 0
+          },
+          {
+            "home_rank": 0,
+            "primary_anchor_id": "document-case::1",
+            "secondary_anchor_ids": [
+              "section-pack::1",
+              "section-pack::1::shared::0",
+              "section-pack::1::shared::1"
+            ],
+            "turn_index": 0
+          },
+          {
+            "home_rank": 1,
+            "primary_anchor_id": "document-case::2",
+            "secondary_anchor_ids": [
+              "section-pack::2",
+              "section-pack::2::shared::0",
+              "section-pack::2::shared::1"
+            ],
+            "turn_index": 0
+          },
+          {
+            "home_rank": 2,
+            "primary_anchor_id": "document-case::3",
+            "secondary_anchor_ids": [
+              "section-pack::3",
+              "section-pack::3::shared::0",
+              "section-pack::3::shared::1"
+            ],
+            "turn_index": 0
+          }
+        ],
+        "scenario_tags": [],
+        "secondary_anchor_count": 36,
+        "secondary_anchor_kind": "section_pack",
+        "secondary_anchor_preview": [
+          "review-window::0::0",
+          "review-window::0::1",
+          "review-window::10::0",
+          "review-window::10::1",
+          "review-window::11::0",
+          "review-window::11::1",
+          "review-window::1::0",
+          "review-window::1::1"
+        ],
+        "truthfulness_boundary": "This workload exposes scenario semantics and overlap carriers only; it does not claim realized reuse or end-to-end improvement.",
+        "workload_family": "long-context-doc-analysis"
+      }
+    },
+    {
+      "case_id": "shared_tool_scaffold_agent",
+      "dataset_name": "tool-scaffold-agent",
+      "dp_size": 8,
+      "label": "Shared workload: tool-scaffold agent program",
+      "mean_output_len": 160,
+      "mean_prompt_len": 932,
+      "summary": {
+        "anchor_home_rank_histogram": {
+          "0": 2,
+          "1": 2,
+          "2": 2,
+          "3": 2,
+          "4": 2,
+          "5": 2,
+          "6": 2,
+          "7": 2
+        },
+        "anchor_rank_coverage": 8,
+        "anchor_strategy": "Each agent run keeps a home rank, but different runs reuse the same tool-schema scaffold and plan skeleton families; that yields long structured prefixes without collapsing all anchors onto one home.",
+        "deployment_story": "A controller-side agent repeatedly executes tool plans with a shared tool schema, plan scaffold, and short execution transcript.",
+        "end_to_end_gain_boundary": "End-to-end gains are not implied by workload metadata and require downstream system measurements.",
+        "family_label": "tool-scaffold agent program",
+        "locality_activation_rationale": "Structured tool scaffolds create sticky continuation state, but concurrent agent runs still compete for capacity.",
+        "observed_overlap_semantics": [],
+        "primary_anchor_count": 16,
+        "primary_anchor_kind": "agent_run",
+        "realized_reuse_boundary": "Observed overlap metadata identifies potential continuity or shared structure only; realized runtime reuse must be measured downstream.",
+        "request_count": 64,
+        "sample_anchor_preview": [
+          {
+            "home_rank": 7,
+            "primary_anchor_id": "agent-run::0",
+            "secondary_anchor_ids": [
+              "toolpack::0",
+              "toolpack::0::tool::0",
+              "toolpack::0::tool::1"
+            ],
+            "turn_index": 0
+          },
+          {
+            "home_rank": 0,
+            "primary_anchor_id": "agent-run::1",
+            "secondary_anchor_ids": [
+              "toolpack::1",
+              "toolpack::1::tool::0",
+              "toolpack::1::tool::1"
+            ],
+            "turn_index": 0
+          },
+          {
+            "home_rank": 1,
+            "primary_anchor_id": "agent-run::2",
+            "secondary_anchor_ids": [
+              "toolpack::2",
+              "toolpack::2::tool::0",
+              "toolpack::2::tool::1"
+            ],
+            "turn_index": 0
+          },
+          {
+            "home_rank": 2,
+            "primary_anchor_id": "agent-run::3",
+            "secondary_anchor_ids": [
+              "toolpack::3",
+              "toolpack::3::tool::0",
+              "toolpack::3::tool::1"
+            ],
+            "turn_index": 0
+          }
+        ],
+        "scenario_tags": [],
+        "secondary_anchor_count": 28,
+        "secondary_anchor_kind": "tool_scaffold",
+        "secondary_anchor_preview": [
+          "toolpack::0",
+          "toolpack::0::tool::0",
+          "toolpack::0::tool::1",
+          "toolpack::0::tool::2",
+          "toolpack::0::tool::3",
+          "toolpack::0::tool::4",
+          "toolpack::0::tool::5",
+          "toolpack::1"
+        ],
+        "truthfulness_boundary": "This workload exposes scenario semantics and overlap carriers only; it does not claim realized reuse or end-to-end improvement.",
+        "workload_family": "tool-scaffold-agent"
+      }
+    },
+    {
+      "case_id": "shared_repo_aware_coding_assistant",
+      "dataset_name": "repo-aware-coding-assistant",
+      "dp_size": 8,
+      "label": "Shared workload: repo-aware coding assistant",
+      "mean_output_len": 128,
+      "mean_prompt_len": 1268,
+      "summary": {
+        "anchor_home_rank_histogram": {
+          "0": 2,
+          "1": 2,
+          "2": 2,
+          "3": 2,
+          "4": 2,
+          "5": 2,
+          "6": 2,
+          "7": 2
+        },
+        "anchor_rank_coverage": 8,
+        "anchor_strategy": "Each coding thread keeps a stable home rank and exact continuation anchor, while different threads partially reuse repo-level context such as active file windows, retrieved code snippets, symbol families, and workspace guidance packs across homes.",
+        "deployment_story": "A developer-facing coding assistant serves iterative edit, debug, and explanation turns over a shared repository, where sessions revisit the same files, retrieved snippets, symbols, and workspace guidance over a short horizon.",
+        "end_to_end_gain_boundary": "End-to-end gains are not implied by workload metadata and require downstream system measurements.",
+        "family_label": "repo-aware coding assistant",
+        "locality_activation_rationale": "Repo-aware assistants combine exact thread continuation with overlapping repository context and mixed edit-vs-explain turns, making them a useful industry-facing case for reuse-sensitive serving beyond generic chat or one-shot generation.",
+        "observed_overlap_semantics": [],
+        "primary_anchor_count": 16,
+        "primary_anchor_kind": "coding_thread",
+        "realized_reuse_boundary": "Observed overlap metadata identifies potential continuity or shared structure only; realized runtime reuse must be measured downstream.",
+        "request_count": 64,
+        "sample_anchor_preview": [
+          {
+            "home_rank": 7,
+            "primary_anchor_id": "coding-thread::0",
+            "secondary_anchor_ids": [
+              "repo::0",
+              "repo::0::file::1",
+              "repo::0::file::2"
+            ],
+            "turn_index": 0
+          },
+          {
+            "home_rank": 0,
+            "primary_anchor_id": "coding-thread::1",
+            "secondary_anchor_ids": [
+              "repo::1",
+              "repo::1::file::2",
+              "repo::1::file::3"
+            ],
+            "turn_index": 0
+          },
+          {
+            "home_rank": 1,
+            "primary_anchor_id": "coding-thread::2",
+            "secondary_anchor_ids": [
+              "repo::2",
+              "repo::2::file::3",
+              "repo::2::file::4"
+            ],
+            "turn_index": 0
+          },
+          {
+            "home_rank": 2,
+            "primary_anchor_id": "coding-thread::3",
+            "secondary_anchor_ids": [
+              "repo::3",
+              "repo::3::file::4",
+              "repo::3::file::5"
+            ],
+            "turn_index": 0
+          }
+        ],
+        "scenario_tags": [],
+        "secondary_anchor_count": 76,
+        "secondary_anchor_kind": "repo_context",
+        "secondary_anchor_preview": [
+          "repo::0",
+          "repo::0::file::0",
+          "repo::0::file::1",
+          "repo::0::file::2",
+          "repo::0::file::3",
+          "repo::0::file::4",
+          "repo::0::file::5",
+          "repo::0::snippet::10"
+        ],
+        "truthfulness_boundary": "This workload exposes scenario semantics and overlap carriers only; it does not claim realized reuse or end-to-end improvement.",
+        "workload_family": "repo-aware-coding-assistant"
+      }
+    },
+    {
+      "case_id": "shared_experiment_planning_assistant",
+      "dataset_name": "experiment-planning-assistant",
+      "dp_size": 8,
+      "label": "Shared workload: experiment-planning assistant",
+      "mean_output_len": 192,
+      "mean_prompt_len": 1216,
+      "summary": {
+        "anchor_home_rank_histogram": {
+          "0": 2,
+          "1": 2,
+          "2": 2,
+          "3": 2,
+          "4": 2,
+          "5": 2,
+          "6": 2,
+          "7": 2
+        },
+        "anchor_rank_coverage": 8,
+        "anchor_strategy": "Each planning branch keeps its own home rank and exact continuation anchor, while sibling branches under the same campaign share protocol packs, instrument dependencies, and observation summaries that create structured partial overlap across homes.",
+        "deployment_story": "A scientific planning assistant explores several candidate experiment branches under one campaign, reusing shared protocol constraints, instrument packs, and interim observations across sibling branches.",
+        "end_to_end_gain_boundary": "End-to-end gains are not implied by workload metadata and require downstream system measurements.",
+        "family_label": "experiment-planning assistant",
+        "locality_activation_rationale": "This family centers branching, dependency, reuse opportunity, and request interdependence rather than flat chat throughput.",
+        "observed_overlap_semantics": [],
+        "primary_anchor_count": 16,
+        "primary_anchor_kind": "experiment_branch",
+        "realized_reuse_boundary": "Observed overlap metadata identifies potential continuity or shared structure only; realized runtime reuse must be measured downstream.",
+        "request_count": 64,
+        "sample_anchor_preview": [
+          {
+            "home_rank": 7,
+            "primary_anchor_id": "experiment-branch::0",
+            "secondary_anchor_ids": [
+              "campaign::0",
+              "protocol-pack::3",
+              "protocol-pack::3::tool::0"
+            ],
+            "turn_index": 0
+          },
+          {
+            "home_rank": 0,
+            "primary_anchor_id": "experiment-branch::1",
+            "secondary_anchor_ids": [
+              "campaign::0",
+              "protocol-pack::3",
+              "protocol-pack::3::tool::0"
+            ],
+            "turn_index": 0
+          },
+          {
+            "home_rank": 1,
+            "primary_anchor_id": "experiment-branch::2",
+            "secondary_anchor_ids": [
+              "campaign::0",
+              "protocol-pack::3",
+              "protocol-pack::3::tool::0"
+            ],
+            "turn_index": 0
+          },
+          {
+            "home_rank": 2,
+            "primary_anchor_id": "experiment-branch::3",
+            "secondary_anchor_ids": [
+              "campaign::1",
+              "protocol-pack::0",
+              "protocol-pack::0::tool::0"
+            ],
+            "turn_index": 0
+          }
+        ],
+        "scenario_tags": [],
+        "secondary_anchor_count": 45,
+        "secondary_anchor_kind": "campaign_protocol",
+        "secondary_anchor_preview": [
+          "campaign::0",
+          "campaign::1",
+          "campaign::2",
+          "campaign::3",
+          "campaign::4",
+          "campaign::5",
+          "experiment-branch::0",
+          "experiment-branch::1"
+        ],
+        "truthfulness_boundary": "This workload exposes scenario semantics and overlap carriers only; it does not claim realized reuse or end-to-end improvement.",
+        "workload_family": "experiment-planning-assistant"
+      }
+    },
+    {
+      "case_id": "shared_simulation_analysis_verification",
+      "dataset_name": "simulation-analysis-verification",
+      "dp_size": 8,
+      "label": "Shared workload: simulation-analysis-verification pipeline",
+      "mean_output_len": 128,
+      "mean_prompt_len": 1095,
+      "summary": {
+        "anchor_home_rank_histogram": {
+          "0": 2,
+          "1": 2,
+          "2": 2,
+          "3": 2,
+          "4": 2,
+          "5": 2,
+          "6": 2,
+          "7": 2
+        },
+        "anchor_rank_coverage": 8,
+        "anchor_strategy": "Each pipeline run keeps a stable home rank and exact continuation state across simulation, analysis, and verifier turns, while different runs share scenario templates, tool packs, and rubric families that create structured partial overlap across homes.",
+        "deployment_story": "A workflow service runs repeated simulation, analysis, and verification loops for related jobs, reusing scenario templates, evaluator rubrics, and interim findings across iterations.",
+        "end_to_end_gain_boundary": "End-to-end gains are not implied by workload metadata and require downstream system measurements.",
+        "family_label": "simulation-analysis-verification pipeline",
+        "locality_activation_rationale": "Verifier-loop workloads combine long-lived per-run state with recurring template and rubric reuse, making them a good fit for runtime studies that care about multi-step tool chains, revision pressure, and tail-sensitive continuation placement.",
+        "observed_overlap_semantics": [],
+        "primary_anchor_count": 16,
+        "primary_anchor_kind": "pipeline_run",
+        "realized_reuse_boundary": "Observed overlap metadata identifies potential continuity or shared structure only; realized runtime reuse must be measured downstream.",
+        "request_count": 64,
+        "sample_anchor_preview": [
+          {
+            "home_rank": 7,
+            "primary_anchor_id": "pipeline-run::0",
+            "secondary_anchor_ids": [
+              "template::0",
+              "rubric::1",
+              "template::0::tool::0"
+            ],
+            "turn_index": 0
+          },
+          {
+            "home_rank": 0,
+            "primary_anchor_id": "pipeline-run::1",
+            "secondary_anchor_ids": [
+              "template::1",
+              "rubric::2",
+              "template::1::tool::0"
+            ],
+            "turn_index": 0
+          },
+          {
+            "home_rank": 1,
+            "primary_anchor_id": "pipeline-run::2",
+            "secondary_anchor_ids": [
+              "template::2",
+              "rubric::0",
+              "template::2::tool::0"
+            ],
+            "turn_index": 0
+          },
+          {
+            "home_rank": 2,
+            "primary_anchor_id": "pipeline-run::3",
+            "secondary_anchor_ids": [
+              "template::3",
+              "rubric::1",
+              "template::3::tool::0"
+            ],
+            "turn_index": 0
+          }
+        ],
+        "scenario_tags": [],
+        "secondary_anchor_count": 35,
+        "secondary_anchor_kind": "verification_rubric",
+        "secondary_anchor_preview": [
+          "pipeline-run::0",
+          "pipeline-run::1",
+          "pipeline-run::10",
+          "pipeline-run::11",
+          "pipeline-run::2",
+          "pipeline-run::3",
+          "pipeline-run::4",
+          "pipeline-run::5"
+        ],
+        "truthfulness_boundary": "This workload exposes scenario semantics and overlap carriers only; it does not claim realized reuse or end-to-end improvement.",
+        "workload_family": "simulation-analysis-verification"
+      }
+    },
+    {
+      "case_id": "shared_async_document_pipeline",
+      "dataset_name": "async-document-pipeline",
+      "dp_size": 8,
+      "label": "Shared workload: async document pipeline",
+      "mean_output_len": 96,
+      "mean_prompt_len": 932,
+      "summary": {
+        "anchor_home_rank_histogram": {
+          "0": 3,
+          "1": 3,
+          "2": 3,
+          "3": 2,
+          "4": 2,
+          "5": 2,
+          "6": 2,
+          "7": 3
+        },
+        "anchor_rank_coverage": 8,
+        "anchor_strategy": "Each processing job keeps a stable home rank and queue-local manifest, while adjacent jobs under the same tenant reuse extraction templates, schema bundles, and partially overlapping document collections.",
+        "deployment_story": "A back-office document service drains asynchronous queues for extraction, summarization, and schema filling, so multiple jobs share template packs, compliance checklists, and collection-local document context.",
+        "end_to_end_gain_boundary": "End-to-end gains are not implied by workload metadata and require downstream system measurements.",
+        "family_label": "async document pipeline",
+        "locality_activation_rationale": "Per-request latency is softer than in chat serving, but queue-local template reuse and collection overlap still make state retention, batching, and cache residency important for end-to-end throughput.",
+        "observed_overlap_semantics": [],
+        "primary_anchor_count": 20,
+        "primary_anchor_kind": "batch_job",
+        "realized_reuse_boundary": "Observed overlap metadata identifies potential continuity or shared structure only; realized runtime reuse must be measured downstream.",
+        "request_count": 80,
+        "sample_anchor_preview": [
+          {
+            "home_rank": 7,
+            "primary_anchor_id": "batch-job::0",
+            "secondary_anchor_ids": [
+              "tenant::0",
+              "queue::0",
+              "template-pack::2"
+            ],
+            "turn_index": 0
+          },
+          {
+            "home_rank": 0,
+            "primary_anchor_id": "batch-job::1",
+            "secondary_anchor_ids": [
+              "tenant::0",
+              "queue::0",
+              "template-pack::2"
+            ],
+            "turn_index": 0
+          },
+          {
+            "home_rank": 1,
+            "primary_anchor_id": "batch-job::2",
+            "secondary_anchor_ids": [
+              "tenant::0",
+              "queue::0",
+              "template-pack::2"
+            ],
+            "turn_index": 0
+          },
+          {
+            "home_rank": 2,
+            "primary_anchor_id": "batch-job::3",
+            "secondary_anchor_ids": [
+              "tenant::0",
+              "queue::0",
+              "template-pack::2"
+            ],
+            "turn_index": 0
+          }
+        ],
+        "scenario_tags": [],
+        "secondary_anchor_count": 35,
+        "secondary_anchor_kind": "template_bundle",
+        "secondary_anchor_preview": [
+          "collection::0",
+          "collection::1",
+          "collection::10",
+          "collection::11",
+          "collection::12",
+          "collection::13",
+          "collection::14",
+          "collection::15"
+        ],
+        "truthfulness_boundary": "This workload exposes scenario semantics and overlap carriers only; it does not claim realized reuse or end-to-end improvement.",
+        "workload_family": "async-document-pipeline"
+      }
+    },
+    {
+      "case_id": "shared_realtime_voice_assistant",
+      "dataset_name": "realtime-voice-assistant",
+      "dp_size": 8,
+      "label": "Shared workload: realtime voice assistant proxy",
+      "mean_output_len": 72,
+      "mean_prompt_len": 1128,
+      "summary": {
+        "anchor_home_rank_histogram": {
+          "0": 2,
+          "1": 2,
+          "2": 2,
+          "3": 2,
+          "4": 2,
+          "5": 2,
+          "6": 2,
+          "7": 2
+        },
+        "anchor_rank_coverage": 8,
+        "anchor_strategy": "Each live voice session keeps a stable home rank and exact continuation anchor, while related sessions share device-surface grounding packs, acoustic normalization context, and skill families that create structured partial overlap across homes.",
+        "deployment_story": "A realtime assistant handles spoken follow-ups over recurring device and screen surfaces, reusing transcript state, grounding packs, and shared skill schemas across active sessions.",
+        "end_to_end_gain_boundary": "End-to-end gains are not implied by workload metadata and require downstream system measurements.",
+        "family_label": "realtime voice assistant proxy",
+        "locality_activation_rationale": "Voice workloads combine short-gap continuation, tail-sensitive latency, and recurring grounding or skill state. This repository models that surface through a text-carried multimodal proxy rather than raw audio or image tensors.",
+        "observed_overlap_semantics": [],
+        "primary_anchor_count": 16,
+        "primary_anchor_kind": "voice_session",
+        "realized_reuse_boundary": "Observed overlap metadata identifies potential continuity or shared structure only; realized runtime reuse must be measured downstream.",
+        "request_count": 64,
+        "sample_anchor_preview": [
+          {
+            "home_rank": 7,
+            "primary_anchor_id": "voice-session::0",
+            "secondary_anchor_ids": [
+              "grounding-pack::1",
+              "skill-pack::3",
+              "device-profile::0"
+            ],
+            "turn_index": 0
+          },
+          {
+            "home_rank": 0,
+            "primary_anchor_id": "voice-session::1",
+            "secondary_anchor_ids": [
+              "grounding-pack::1",
+              "skill-pack::0",
+              "device-profile::1"
+            ],
+            "turn_index": 0
+          },
+          {
+            "home_rank": 1,
+            "primary_anchor_id": "voice-session::2",
+            "secondary_anchor_ids": [
+              "grounding-pack::1",
+              "skill-pack::1",
+              "device-profile::2"
+            ],
+            "turn_index": 0
+          },
+          {
+            "home_rank": 2,
+            "primary_anchor_id": "voice-session::3",
+            "secondary_anchor_ids": [
+              "grounding-pack::2",
+              "skill-pack::2",
+              "device-profile::3"
+            ],
+            "turn_index": 0
+          }
+        ],
+        "scenario_tags": [],
+        "secondary_anchor_count": 16,
+        "secondary_anchor_kind": "grounding_pack",
+        "secondary_anchor_preview": [
+          "device-profile::0",
+          "device-profile::1",
+          "device-profile::2",
+          "device-profile::3",
+          "device-profile::4",
+          "device-profile::5",
+          "grounding-pack::0",
+          "grounding-pack::1"
+        ],
+        "truthfulness_boundary": "This workload exposes scenario semantics and overlap carriers only; it does not claim realized reuse or end-to-end improvement.",
+        "workload_family": "realtime-voice-assistant"
+      }
+    },
+    {
+      "case_id": "shared_session_continuation_maintenance",
+      "dataset_name": "session-continuation-maintenance",
+      "dp_size": 8,
+      "label": "Shared workload: session continuation with maintenance",
+      "mean_output_len": 112,
+      "mean_prompt_len": 928,
+      "summary": {
+        "anchor_home_rank_histogram": {
+          "0": 2,
+          "1": 2,
+          "2": 2,
+          "3": 2,
+          "4": 2,
+          "5": 2,
+          "6": 2,
+          "7": 2
+        },
+        "anchor_rank_coverage": 8,
+        "anchor_strategy": "Each session keeps an exact continuation anchor plus maintenance-window markers, while groups of sessions share tenant and service scaffolds that remain visible across restart or drain boundaries.",
+        "deployment_story": "A long-lived assistant fleet serves recurring user sessions while workers periodically drain for rolling maintenance, so sessions revisit prior summaries and resume on a fresh worker with the same tenant scaffold.",
+        "end_to_end_gain_boundary": "End-to-end gains are not implied by workload metadata and require downstream system measurements.",
+        "family_label": "session continuation with maintenance",
+        "locality_activation_rationale": "This family emphasizes session-affine continuity under planned disruption: preserving warm continuation state can matter, but the workload only exposes continuity semantics and overlap carriers rather than any runtime handoff mechanism.",
+        "observed_overlap_semantics": [
+          "exact_session_continuation",
+          "maintenance_resume_marker",
+          "tenant_scaffold_overlap"
+        ],
+        "primary_anchor_count": 16,
+        "primary_anchor_kind": "session_continuation",
+        "realized_reuse_boundary": "Observed overlap metadata identifies potential continuity or shared structure only; realized runtime reuse must be measured downstream.",
+        "request_count": 80,
+        "sample_anchor_preview": [
+          {
+            "home_rank": 7,
+            "primary_anchor_id": "session-continuation::0",
+            "secondary_anchor_ids": [
+              "tenant::0",
+              "service-scaffold::0",
+              "maintenance-window::0"
+            ],
+            "turn_index": 0
+          },
+          {
+            "home_rank": 0,
+            "primary_anchor_id": "session-continuation::1",
+            "secondary_anchor_ids": [
+              "tenant::1",
+              "service-scaffold::1",
+              "maintenance-window::0"
+            ],
+            "turn_index": 0
+          },
+          {
+            "home_rank": 1,
+            "primary_anchor_id": "session-continuation::2",
+            "secondary_anchor_ids": [
+              "tenant::2",
+              "service-scaffold::2",
+              "maintenance-window::0"
+            ],
+            "turn_index": 0
+          },
+          {
+            "home_rank": 2,
+            "primary_anchor_id": "session-continuation::3",
+            "secondary_anchor_ids": [
+              "tenant::3",
+              "service-scaffold::3",
+              "maintenance-window::0"
+            ],
+            "turn_index": 0
+          }
+        ],
+        "scenario_tags": [
+          "continuity",
+          "maintenance",
+          "session-affine",
+          "state-management"
+        ],
+        "secondary_anchor_count": 14,
+        "secondary_anchor_kind": "maintenance_window",
+        "secondary_anchor_preview": [
+          "maintenance-window::0",
+          "maintenance-window::1",
+          "service-scaffold::0",
+          "service-scaffold::1",
+          "service-scaffold::2",
+          "service-scaffold::3",
+          "tenant::0",
+          "tenant::1"
+        ],
+        "truthfulness_boundary": "This workload exposes scenario semantics and overlap carriers only; it does not claim realized reuse or end-to-end improvement.",
+        "workload_family": "session-continuation-maintenance"
+      }
+    },
+    {
+      "case_id": "shared_shared_prefix_multi_tenant_assistant",
+      "dataset_name": "shared-prefix-multi-tenant-assistant",
+      "dp_size": 8,
+      "label": "Shared workload: shared-prefix multi-tenant assistant",
+      "mean_output_len": 130.667,
+      "mean_prompt_len": 1424,
+      "summary": {
+        "anchor_home_rank_histogram": {
+          "0": 3,
+          "1": 2,
+          "2": 2,
+          "3": 2,
+          "4": 2,
+          "5": 2,
+          "6": 2,
+          "7": 3
+        },
+        "anchor_rank_coverage": 8,
+        "anchor_strategy": "Requests are grouped by tenant stream, but many tenants share one scaffold family and prompt-prefix template; the workload therefore combines exact stream-local continuation with large observed shared prefixes across tenant boundaries.",
+        "deployment_story": "A hosted assistant platform serves many tenants that share a long system scaffold, product guide, and compliance framing, while request tails differ in urgency, tenant context, and decode length.",
+        "end_to_end_gain_boundary": "End-to-end gains are not implied by workload metadata and require downstream system measurements.",
+        "family_label": "shared-prefix multi-tenant assistant",
+        "locality_activation_rationale": "Shared scaffolds amplify the importance of prefix-aware state management, while mixed tail shapes keep the workload tail-sensitive without embedding any scheduler or admission logic.",
+        "observed_overlap_semantics": [
+          "shared_system_scaffold",
+          "tail_sensitive_request_mix",
+          "tenant_policy_pack_overlap"
+        ],
+        "primary_anchor_count": 18,
+        "primary_anchor_kind": "tenant_stream",
+        "realized_reuse_boundary": "Observed overlap metadata identifies potential continuity or shared structure only; realized runtime reuse must be measured downstream.",
+        "request_count": 72,
+        "sample_anchor_preview": [
+          {
+            "home_rank": 7,
+            "primary_anchor_id": "tenant-stream::0",
+            "secondary_anchor_ids": [
+              "tenant::0",
+              "shared-scaffold::3",
+              "tail-class::interactive"
+            ],
+            "turn_index": 0
+          },
+          {
+            "home_rank": 0,
+            "primary_anchor_id": "tenant-stream::1",
+            "secondary_anchor_ids": [
+              "tenant::1",
+              "shared-scaffold::0",
+              "tail-class::balanced"
+            ],
+            "turn_index": 0
+          },
+          {
+            "home_rank": 1,
+            "primary_anchor_id": "tenant-stream::2",
+            "secondary_anchor_ids": [
+              "tenant::2",
+              "shared-scaffold::1",
+              "tail-class::long_decode"
+            ],
+            "turn_index": 0
+          },
+          {
+            "home_rank": 2,
+            "primary_anchor_id": "tenant-stream::3",
+            "secondary_anchor_ids": [
+              "tenant::3",
+              "shared-scaffold::2",
+              "tail-class::interactive"
+            ],
+            "turn_index": 0
+          }
+        ],
+        "scenario_tags": [
+          "multi-tenant",
+          "prefix-sharing",
+          "state-management",
+          "tail-sensitive"
+        ],
+        "secondary_anchor_count": 16,
+        "secondary_anchor_kind": "shared_scaffold",
+        "secondary_anchor_preview": [
+          "shared-scaffold::0",
+          "shared-scaffold::1",
+          "shared-scaffold::2",
+          "shared-scaffold::3",
+          "tail-class::balanced",
+          "tail-class::interactive",
+          "tail-class::long_decode",
+          "tenant::0"
+        ],
+        "truthfulness_boundary": "This workload exposes scenario semantics and overlap carriers only; it does not claim realized reuse or end-to-end improvement.",
+        "workload_family": "shared-prefix-multi-tenant-assistant"
+      }
+    },
+    {
+      "case_id": "shared_dynamic_rag_corpus_update",
+      "dataset_name": "dynamic-rag-corpus-update",
+      "dp_size": 8,
+      "label": "Shared workload: dynamic RAG corpus update",
+      "mean_output_len": 72,
+      "mean_prompt_len": 2974,
+      "summary": {
+        "anchor_home_rank_histogram": {
+          "0": 2,
+          "1": 2,
+          "2": 2,
+          "3": 2,
+          "4": 2,
+          "5": 2,
+          "6": 2,
+          "7": 2
+        },
+        "anchor_rank_coverage": 8,
+        "anchor_strategy": "Each retrieval thread keeps an exact conversational anchor, while adjacent threads share stable document bundles, version manifests, and update deltas that make overlap dependent on corpus epoch.",
+        "deployment_story": "A retrieval-augmented assistant serves follow-up questions while its backing corpus receives rolling updates, patch notes, and partial re-indexes over time.",
+        "end_to_end_gain_boundary": "End-to-end gains are not implied by workload metadata and require downstream system measurements.",
+        "family_label": "dynamic RAG corpus update",
+        "locality_activation_rationale": "State-management studies can use this family to separate stable retrieval overlap from evolving-corpus invalidation pressure without implying any particular caching or freshness policy.",
+        "observed_overlap_semantics": [
+          "corpus_epoch_transition",
+          "retrieval_bundle_drift",
+          "stable_document_overlap"
+        ],
+        "primary_anchor_count": 16,
+        "primary_anchor_kind": "retrieval_thread",
+        "realized_reuse_boundary": "Observed overlap metadata identifies potential continuity or shared structure only; realized runtime reuse must be measured downstream.",
+        "request_count": 64,
+        "sample_anchor_preview": [
+          {
+            "home_rank": 7,
+            "primary_anchor_id": "dynamic-rag-thread::0",
+            "secondary_anchor_ids": [
+              "corpus-shard::3",
+              "corpus-epoch::0",
+              "corpus-shard::3::stable-doc::0"
+            ],
+            "turn_index": 0
+          },
+          {
+            "home_rank": 0,
+            "primary_anchor_id": "dynamic-rag-thread::1",
+            "secondary_anchor_ids": [
+              "corpus-shard::0",
+              "corpus-epoch::0",
+              "corpus-shard::0::stable-doc::2"
+            ],
+            "turn_index": 0
+          },
+          {
+            "home_rank": 1,
+            "primary_anchor_id": "dynamic-rag-thread::2",
+            "secondary_anchor_ids": [
+              "corpus-shard::1",
+              "corpus-epoch::0",
+              "corpus-shard::1::stable-doc::4"
+            ],
+            "turn_index": 0
+          },
+          {
+            "home_rank": 2,
+            "primary_anchor_id": "dynamic-rag-thread::3",
+            "secondary_anchor_ids": [
+              "corpus-shard::2",
+              "corpus-epoch::0",
+              "corpus-shard::2::stable-doc::6"
+            ],
+            "turn_index": 0
+          }
+        ],
+        "scenario_tags": [
+          "corpus-update",
+          "rag",
+          "retrieval",
+          "state-management"
+        ],
+        "secondary_anchor_count": 54,
+        "secondary_anchor_kind": "corpus_epoch",
+        "secondary_anchor_preview": [
+          "corpus-epoch::0",
+          "corpus-epoch::1",
+          "corpus-shard::0",
+          "corpus-shard::0::epoch::0::delta-doc::0",
+          "corpus-shard::0::epoch::0::delta-doc::1",
+          "corpus-shard::0::epoch::1::delta-doc::0",
+          "corpus-shard::0::epoch::1::delta-doc::1",
+          "corpus-shard::0::stable-doc::10"
+        ],
+        "truthfulness_boundary": "This workload exposes scenario semantics and overlap carriers only; it does not claim realized reuse or end-to-end improvement.",
+        "workload_family": "dynamic-rag-corpus-update"
+      }
+    },
+    {
+      "case_id": "shared_memory_write_then_reuse",
+      "dataset_name": "memory-write-then-reuse",
+      "dp_size": 8,
+      "label": "Shared workload: memory write then reuse",
+      "mean_output_len": 96,
+      "mean_prompt_len": 816,
+      "summary": {
+        "anchor_home_rank_histogram": {
+          "0": 2,
+          "1": 2,
+          "2": 2,
+          "3": 2,
+          "4": 2,
+          "5": 2,
+          "6": 2,
+          "7": 2
+        },
+        "anchor_rank_coverage": 8,
+        "anchor_strategy": "Each memory session keeps an exact continuation anchor, while write events create named memory entries that later requests retrieve through shared namespace and topic cues.",
+        "deployment_story": "An assistant writes user-scoped and workspace-scoped memory notes online, then later retrieves and reuses those notes in related follow-up turns.",
+        "end_to_end_gain_boundary": "End-to-end gains are not implied by workload metadata and require downstream system measurements.",
+        "family_label": "memory write then reuse",
+        "locality_activation_rationale": "The family exposes the temporal gap between state creation and later reuse opportunities, which is useful for memory-oriented serving studies without asserting that any runtime persisted or reused the state.",
+        "observed_overlap_semantics": [
+          "memory_entry_write_then_read",
+          "namespace_overlap",
+          "retrieval_revisit_window"
+        ],
+        "primary_anchor_count": 16,
+        "primary_anchor_kind": "memory_session",
+        "realized_reuse_boundary": "Observed overlap metadata identifies potential continuity or shared structure only; realized runtime reuse must be measured downstream.",
+        "request_count": 64,
+        "sample_anchor_preview": [
+          {
+            "home_rank": 7,
+            "primary_anchor_id": "memory-session::0",
+            "secondary_anchor_ids": [
+              "memory-namespace::0",
+              "memory-entry::0::0::0",
+              "memory-phase::write"
+            ],
+            "turn_index": 0
+          },
+          {
+            "home_rank": 0,
+            "primary_anchor_id": "memory-session::1",
+            "secondary_anchor_ids": [
+              "memory-namespace::1",
+              "memory-entry::1::1::0",
+              "memory-phase::write"
+            ],
+            "turn_index": 0
+          },
+          {
+            "home_rank": 1,
+            "primary_anchor_id": "memory-session::2",
+            "secondary_anchor_ids": [
+              "memory-namespace::2",
+              "memory-entry::2::2::0",
+              "memory-phase::write"
+            ],
+            "turn_index": 0
+          },
+          {
+            "home_rank": 2,
+            "primary_anchor_id": "memory-session::3",
+            "secondary_anchor_ids": [
+              "memory-namespace::3",
+              "memory-entry::3::3::0",
+              "memory-phase::write"
+            ],
+            "turn_index": 0
+          }
+        ],
+        "scenario_tags": [
+          "continuation",
+          "memory-retrieval",
+          "memory-write",
+          "state-management"
+        ],
+        "secondary_anchor_count": 38,
+        "secondary_anchor_kind": "memory_namespace",
+        "secondary_anchor_preview": [
+          "memory-entry::0::0::0",
+          "memory-entry::0::0::1",
+          "memory-entry::0::12::0",
+          "memory-entry::0::12::1",
+          "memory-entry::0::4::0",
+          "memory-entry::0::4::1",
+          "memory-entry::0::8::0",
+          "memory-entry::0::8::1"
+        ],
+        "truthfulness_boundary": "This workload exposes scenario semantics and overlap carriers only; it does not claim realized reuse or end-to-end improvement.",
+        "workload_family": "memory-write-then-reuse"
+      }
+    },
+    {
+      "case_id": "shared_preemption_resume_long_decode",
+      "dataset_name": "preemption-resume-long-decode",
+      "dp_size": 8,
+      "label": "Shared workload: preemption resume long decode",
+      "mean_output_len": 236,
+      "mean_prompt_len": 1536,
+      "summary": {
+        "anchor_home_rank_histogram": {
+          "0": 2,
+          "1": 2,
+          "2": 2,
+          "3": 1,
+          "4": 1,
+          "5": 1,
+          "6": 1,
+          "7": 2
+        },
+        "anchor_rank_coverage": 8,
+        "anchor_strategy": "Each decode job keeps an exact job-local continuation anchor plus explicit checkpoint and resume-window markers, while related jobs may share long instruction scaffolds and deadline classes.",
+        "deployment_story": "A long-generation service intermittently preempts decode-heavy jobs because of maintenance windows, higher-priority work, or rolling capacity shifts, then resumes them later.",
+        "end_to_end_gain_boundary": "End-to-end gains are not implied by workload metadata and require downstream system measurements.",
+        "family_label": "preemption resume long decode",
+        "locality_activation_rationale": "This family stresses long-lived decode continuity under interruption, but the workload remains policy-neutral by describing only checkpoints, resumes, and shared scaffolds rather than a concrete preemption algorithm.",
+        "observed_overlap_semantics": [
+          "decode_checkpoint_continuation",
+          "resume_window_marker",
+          "shared_instruction_scaffold"
+        ],
+        "primary_anchor_count": 12,
+        "primary_anchor_kind": "long_decode_job",
+        "realized_reuse_boundary": "Observed overlap metadata identifies potential continuity or shared structure only; realized runtime reuse must be measured downstream.",
+        "request_count": 48,
+        "sample_anchor_preview": [
+          {
+            "home_rank": 7,
+            "primary_anchor_id": "long-decode-job::0",
+            "secondary_anchor_ids": [
+              "resume-checkpoint::0::0",
+              "instruction-pack::0",
+              "priority-class::0"
+            ],
+            "turn_index": 0
+          },
+          {
+            "home_rank": 0,
+            "primary_anchor_id": "long-decode-job::1",
+            "secondary_anchor_ids": [
+              "resume-checkpoint::1::0",
+              "instruction-pack::1",
+              "priority-class::1"
+            ],
+            "turn_index": 0
+          },
+          {
+            "home_rank": 1,
+            "primary_anchor_id": "long-decode-job::2",
+            "secondary_anchor_ids": [
+              "resume-checkpoint::2::0",
+              "instruction-pack::2",
+              "priority-class::2"
+            ],
+            "turn_index": 0
+          },
+          {
+            "home_rank": 2,
+            "primary_anchor_id": "long-decode-job::3",
+            "secondary_anchor_ids": [
+              "resume-checkpoint::3::0",
+              "instruction-pack::3",
+              "priority-class::0"
+            ],
+            "turn_index": 0
+          }
+        ],
+        "scenario_tags": [
+          "long-decode",
+          "preemption",
+          "resume",
+          "state-management"
+        ],
+        "secondary_anchor_count": 33,
+        "secondary_anchor_kind": "resume_checkpoint",
+        "secondary_anchor_preview": [
+          "instruction-pack::0",
+          "instruction-pack::1",
+          "instruction-pack::2",
+          "instruction-pack::3",
+          "priority-class::0",
+          "priority-class::1",
+          "priority-class::2",
+          "resume-checkpoint::0::0"
+        ],
+        "truthfulness_boundary": "This workload exposes scenario semantics and overlap carriers only; it does not claim realized reuse or end-to-end improvement.",
+        "workload_family": "preemption-resume-long-decode"
+      }
+    },
+    {
+      "case_id": "shared_scenario_multi_turn_knowledge_service",
+      "dataset_name": "session-affine-multi-turn",
+      "dp_size": 8,
+      "label": "Scenario: multi-turn knowledge service",
+      "mean_output_len": 64,
+      "mean_prompt_len": 633,
+      "summary": {
+        "anchor_home_rank_histogram": {
+          "0": 1,
+          "1": 1,
+          "2": 1,
+          "3": 1,
+          "4": 1,
+          "5": 1,
+          "6": 1,
+          "7": 1
+        },
+        "anchor_rank_coverage": 8,
+        "anchor_strategy": "Each session has an explicit home rank, but multiple sessions share tenant-level memory blocks; that creates exact continuation anchors within a session and partial anchor overlap across homes.",
+        "deployment_story": "A tenant-facing knowledge service keeps short rolling summaries per user session, while several sessions share tenant memory and deployment scaffolds across the fleet.",
+        "end_to_end_gain_boundary": "End-to-end gains are not implied by workload metadata and require downstream system measurements.",
+        "family_label": "session-affine multi-turn",
+        "locality_activation_rationale": "Cache-retaining policies benefit when a session stays warm on its home worker, remote-placement-sensitive policies pay for movement, and topology-aware policies can trade home retention against queue pressure when multiple tenant-sharing sessions overlap.",
+        "observed_overlap_semantics": [],
+        "primary_anchor_count": 8,
+        "primary_anchor_kind": "session",
+        "realized_reuse_boundary": "Observed overlap metadata identifies potential continuity or shared structure only; realized runtime reuse must be measured downstream.",
+        "request_count": 32,
+        "sample_anchor_preview": [
+          {
+            "home_rank": 7,
+            "primary_anchor_id": "session::0",
+            "secondary_anchor_ids": [
+              "tenant::3",
+              "pair::3",
+              "window::0"
+            ],
+            "turn_index": 0
+          },
+          {
+            "home_rank": 0,
+            "primary_anchor_id": "session::1",
+            "secondary_anchor_ids": [
+              "tenant::0",
+              "pair::0",
+              "window::0"
+            ],
+            "turn_index": 0
+          },
+          {
+            "home_rank": 1,
+            "primary_anchor_id": "session::2",
+            "secondary_anchor_ids": [
+              "tenant::0",
+              "pair::0",
+              "window::0"
+            ],
+            "turn_index": 0
+          },
+          {
+            "home_rank": 2,
+            "primary_anchor_id": "session::3",
+            "secondary_anchor_ids": [
+              "tenant::1",
+              "pair::1",
+              "window::0"
+            ],
+            "turn_index": 0
+          }
+        ],
+        "scenario_tags": [],
+        "secondary_anchor_count": 9,
+        "secondary_anchor_kind": "tenant_memory",
+        "secondary_anchor_preview": [
+          "pair::0",
+          "pair::1",
+          "pair::2",
+          "pair::3",
+          "tenant::0",
+          "tenant::1",
+          "tenant::2",
+          "tenant::3"
+        ],
+        "truthfulness_boundary": "This workload exposes scenario semantics and overlap carriers only; it does not claim realized reuse or end-to-end improvement.",
+        "workload_family": "session-affine-multi-turn"
+      }
+    },
+    {
+      "case_id": "shared_scenario_rag_followup_long_context",
+      "dataset_name": "rag-followup",
+      "dp_size": 8,
+      "label": "Scenario: RAG follow-up long context",
+      "mean_output_len": 32,
+      "mean_prompt_len": 1792,
+      "summary": {
+        "anchor_home_rank_histogram": {
+          "0": 1,
+          "1": 1,
+          "2": 1,
+          "3": 1,
+          "4": 1,
+          "5": 1,
+          "6": 1,
+          "7": 1
+        },
+        "anchor_rank_coverage": 8,
+        "anchor_strategy": "Each follow-up thread keeps a home rank, while adjacent threads share part of their retrieved-document bundle; the workload mixes exact thread-local anchors with cross-home partial evidence overlap.",
+        "deployment_story": "A retrieval-backed assistant serves follow-up questions over overlapping document bundles, so related query threads reuse some retrieved chunks but not the entire continuation state.",
+        "end_to_end_gain_boundary": "End-to-end gains are not implied by workload metadata and require downstream system measurements.",
+        "family_label": "RAG follow-up",
+        "locality_activation_rationale": "Thread-local continuation and cross-thread document overlap coexist, making this a useful boundary case between exact reuse and partial similarity.",
+        "observed_overlap_semantics": [],
+        "primary_anchor_count": 8,
+        "primary_anchor_kind": "retrieval_thread",
+        "realized_reuse_boundary": "Observed overlap metadata identifies potential continuity or shared structure only; realized runtime reuse must be measured downstream.",
+        "request_count": 32,
+        "sample_anchor_preview": [
+          {
+            "home_rank": 7,
+            "primary_anchor_id": "rag-thread::0",
+            "secondary_anchor_ids": [
+              "collection::0::doc::0",
+              "collection::0::doc::1",
+              "collection::0::doc::2"
+            ],
+            "turn_index": 0
+          },
+          {
+            "home_rank": 0,
+            "primary_anchor_id": "rag-thread::1",
+            "secondary_anchor_ids": [
+              "collection::1::doc::2",
+              "collection::1::doc::3",
+              "collection::1::doc::4"
+            ],
+            "turn_index": 0
+          },
+          {
+            "home_rank": 1,
+            "primary_anchor_id": "rag-thread::2",
+            "secondary_anchor_ids": [
+              "collection::2::doc::4",
+              "collection::2::doc::5",
+              "collection::2::doc::6"
+            ],
+            "turn_index": 0
+          },
+          {
+            "home_rank": 2,
+            "primary_anchor_id": "rag-thread::3",
+            "secondary_anchor_ids": [
+              "collection::3::doc::6",
+              "collection::3::doc::7",
+              "collection::3::doc::8"
+            ],
+            "turn_index": 0
+          }
+        ],
+        "scenario_tags": [],
+        "secondary_anchor_count": 32,
+        "secondary_anchor_kind": "document_bundle",
+        "secondary_anchor_preview": [
+          "collection::0::doc::0",
+          "collection::0::doc::1",
+          "collection::0::doc::10",
+          "collection::0::doc::11",
+          "collection::0::doc::2",
+          "collection::0::doc::3",
+          "collection::0::doc::8",
+          "collection::0::doc::9"
+        ],
+        "truthfulness_boundary": "This workload exposes scenario semantics and overlap carriers only; it does not claim realized reuse or end-to-end improvement.",
+        "workload_family": "rag-followup"
+      }
+    },
+    {
+      "case_id": "shared_scenario_structured_agent_decode",
+      "dataset_name": "tool-scaffold-agent",
+      "dp_size": 8,
+      "label": "Scenario: structured agent decode",
+      "mean_output_len": 128,
+      "mean_prompt_len": 419,
+      "summary": {
+        "anchor_home_rank_histogram": {
+          "0": 1,
+          "1": 1,
+          "2": 1,
+          "3": 1,
+          "4": 1,
+          "5": 1,
+          "6": 1,
+          "7": 1
+        },
+        "anchor_rank_coverage": 8,
+        "anchor_strategy": "Each agent run keeps a home rank, but different runs reuse the same tool-schema scaffold and plan skeleton families; that yields long structured prefixes without collapsing all anchors onto one home.",
+        "deployment_story": "A controller-side agent repeatedly executes tool plans with a shared tool schema, plan scaffold, and short execution transcript.",
+        "end_to_end_gain_boundary": "End-to-end gains are not implied by workload metadata and require downstream system measurements.",
+        "family_label": "tool-scaffold agent program",
+        "locality_activation_rationale": "Structured tool scaffolds create sticky continuation state, but concurrent agent runs still compete for capacity.",
+        "observed_overlap_semantics": [],
+        "primary_anchor_count": 8,
+        "primary_anchor_kind": "agent_run",
+        "realized_reuse_boundary": "Observed overlap metadata identifies potential continuity or shared structure only; realized runtime reuse must be measured downstream.",
+        "request_count": 32,
+        "sample_anchor_preview": [
+          {
+            "home_rank": 7,
+            "primary_anchor_id": "agent-run::0",
+            "secondary_anchor_ids": [
+              "toolpack::0",
+              "toolpack::0::tool::0",
+              "toolpack::0::tool::1"
+            ],
+            "turn_index": 0
+          },
+          {
+            "home_rank": 0,
+            "primary_anchor_id": "agent-run::1",
+            "secondary_anchor_ids": [
+              "toolpack::1",
+              "toolpack::1::tool::0",
+              "toolpack::1::tool::1"
+            ],
+            "turn_index": 0
+          },
+          {
+            "home_rank": 1,
+            "primary_anchor_id": "agent-run::2",
+            "secondary_anchor_ids": [
+              "toolpack::2",
+              "toolpack::2::tool::0",
+              "toolpack::2::tool::1"
+            ],
+            "turn_index": 0
+          },
+          {
+            "home_rank": 2,
+            "primary_anchor_id": "agent-run::3",
+            "secondary_anchor_ids": [
+              "toolpack::3",
+              "toolpack::3::tool::0",
+              "toolpack::3::tool::1"
+            ],
+            "turn_index": 0
+          }
+        ],
+        "scenario_tags": [],
+        "secondary_anchor_count": 20,
+        "secondary_anchor_kind": "tool_scaffold",
+        "secondary_anchor_preview": [
+          "toolpack::0",
+          "toolpack::0::tool::0",
+          "toolpack::0::tool::1",
+          "toolpack::0::tool::2",
+          "toolpack::0::tool::3",
+          "toolpack::1",
+          "toolpack::1::tool::0",
+          "toolpack::1::tool::1"
+        ],
+        "truthfulness_boundary": "This workload exposes scenario semantics and overlap carriers only; it does not claim realized reuse or end-to-end improvement.",
+        "workload_family": "tool-scaffold-agent"
+      }
+    },
+    {
+      "case_id": "session_continuation_with_maintenance",
+      "dataset_name": "session-continuation-maintenance",
+      "dp_size": 8,
+      "label": "Scenario: session continuation with maintenance",
+      "mean_output_len": 112,
+      "mean_prompt_len": 928,
+      "summary": {
+        "anchor_home_rank_histogram": {
+          "0": 1,
+          "1": 1,
+          "2": 1,
+          "3": 1,
+          "4": 1,
+          "5": 1,
+          "6": 1,
+          "7": 1
+        },
+        "anchor_rank_coverage": 8,
+        "anchor_strategy": "Each session keeps an exact continuation anchor plus maintenance-window markers, while groups of sessions share tenant and service scaffolds that remain visible across restart or drain boundaries.",
+        "deployment_story": "A long-lived assistant fleet serves recurring user sessions while workers periodically drain for rolling maintenance, so sessions revisit prior summaries and resume on a fresh worker with the same tenant scaffold.",
+        "end_to_end_gain_boundary": "End-to-end gains are not implied by workload metadata and require downstream system measurements.",
+        "family_label": "session continuation with maintenance",
+        "locality_activation_rationale": "This family emphasizes session-affine continuity under planned disruption: preserving warm continuation state can matter, but the workload only exposes continuity semantics and overlap carriers rather than any runtime handoff mechanism.",
+        "observed_overlap_semantics": [
+          "exact_session_continuation",
+          "maintenance_resume_marker",
+          "tenant_scaffold_overlap"
+        ],
+        "primary_anchor_count": 8,
+        "primary_anchor_kind": "session_continuation",
+        "realized_reuse_boundary": "Observed overlap metadata identifies potential continuity or shared structure only; realized runtime reuse must be measured downstream.",
+        "request_count": 40,
+        "sample_anchor_preview": [
+          {
+            "home_rank": 7,
+            "primary_anchor_id": "session-continuation::0",
+            "secondary_anchor_ids": [
+              "tenant::0",
+              "service-scaffold::0",
+              "maintenance-window::0"
+            ],
+            "turn_index": 0
+          },
+          {
+            "home_rank": 0,
+            "primary_anchor_id": "session-continuation::1",
+            "secondary_anchor_ids": [
+              "tenant::1",
+              "service-scaffold::1",
+              "maintenance-window::0"
+            ],
+            "turn_index": 0
+          },
+          {
+            "home_rank": 1,
+            "primary_anchor_id": "session-continuation::2",
+            "secondary_anchor_ids": [
+              "tenant::2",
+              "service-scaffold::2",
+              "maintenance-window::0"
+            ],
+            "turn_index": 0
+          },
+          {
+            "home_rank": 2,
+            "primary_anchor_id": "session-continuation::3",
+            "secondary_anchor_ids": [
+              "tenant::3",
+              "service-scaffold::3",
+              "maintenance-window::0"
+            ],
+            "turn_index": 0
+          }
+        ],
+        "scenario_tags": [
+          "continuity",
+          "maintenance",
+          "session-affine",
+          "state-management"
+        ],
+        "secondary_anchor_count": 11,
+        "secondary_anchor_kind": "maintenance_window",
+        "secondary_anchor_preview": [
+          "maintenance-window::0",
+          "maintenance-window::1",
+          "maintenance-window::2",
+          "service-scaffold::0",
+          "service-scaffold::1",
+          "service-scaffold::2",
+          "service-scaffold::3",
+          "tenant::0"
+        ],
+        "truthfulness_boundary": "This workload exposes scenario semantics and overlap carriers only; it does not claim realized reuse or end-to-end improvement.",
+        "workload_family": "session-continuation-maintenance"
+      }
+    },
+    {
+      "case_id": "shared_prefix_multi_tenant_assistant",
+      "dataset_name": "shared-prefix-multi-tenant-assistant",
+      "dp_size": 8,
+      "label": "Scenario: shared-prefix multi-tenant assistant",
+      "mean_output_len": 129,
+      "mean_prompt_len": 1637,
+      "summary": {
+        "anchor_home_rank_histogram": {
+          "0": 2,
+          "1": 1,
+          "2": 1,
+          "3": 1,
+          "4": 1,
+          "5": 1,
+          "6": 1,
+          "7": 2
+        },
+        "anchor_rank_coverage": 8,
+        "anchor_strategy": "Requests are grouped by tenant stream, but many tenants share one scaffold family and prompt-prefix template; the workload therefore combines exact stream-local continuation with large observed shared prefixes across tenant boundaries.",
+        "deployment_story": "A hosted assistant platform serves many tenants that share a long system scaffold, product guide, and compliance framing, while request tails differ in urgency, tenant context, and decode length.",
+        "end_to_end_gain_boundary": "End-to-end gains are not implied by workload metadata and require downstream system measurements.",
+        "family_label": "shared-prefix multi-tenant assistant",
+        "locality_activation_rationale": "Shared scaffolds amplify the importance of prefix-aware state management, while mixed tail shapes keep the workload tail-sensitive without embedding any scheduler or admission logic.",
+        "observed_overlap_semantics": [
+          "shared_system_scaffold",
+          "tail_sensitive_request_mix",
+          "tenant_policy_pack_overlap"
+        ],
+        "primary_anchor_count": 10,
+        "primary_anchor_kind": "tenant_stream",
+        "realized_reuse_boundary": "Observed overlap metadata identifies potential continuity or shared structure only; realized runtime reuse must be measured downstream.",
+        "request_count": 40,
+        "sample_anchor_preview": [
+          {
+            "home_rank": 7,
+            "primary_anchor_id": "tenant-stream::0",
+            "secondary_anchor_ids": [
+              "tenant::0",
+              "shared-scaffold::3",
+              "tail-class::interactive"
+            ],
+            "turn_index": 0
+          },
+          {
+            "home_rank": 0,
+            "primary_anchor_id": "tenant-stream::1",
+            "secondary_anchor_ids": [
+              "tenant::1",
+              "shared-scaffold::0",
+              "tail-class::balanced"
+            ],
+            "turn_index": 0
+          },
+          {
+            "home_rank": 1,
+            "primary_anchor_id": "tenant-stream::2",
+            "secondary_anchor_ids": [
+              "tenant::2",
+              "shared-scaffold::1",
+              "tail-class::long_decode"
+            ],
+            "turn_index": 0
+          },
+          {
+            "home_rank": 2,
+            "primary_anchor_id": "tenant-stream::3",
+            "secondary_anchor_ids": [
+              "tenant::3",
+              "shared-scaffold::2",
+              "tail-class::interactive"
+            ],
+            "turn_index": 0
+          }
+        ],
+        "scenario_tags": [
+          "multi-tenant",
+          "prefix-sharing",
+          "state-management",
+          "tail-sensitive"
+        ],
+        "secondary_anchor_count": 12,
+        "secondary_anchor_kind": "shared_scaffold",
+        "secondary_anchor_preview": [
+          "shared-scaffold::0",
+          "shared-scaffold::1",
+          "shared-scaffold::2",
+          "shared-scaffold::3",
+          "tail-class::balanced",
+          "tail-class::interactive",
+          "tail-class::long_decode",
+          "tenant::0"
+        ],
+        "truthfulness_boundary": "This workload exposes scenario semantics and overlap carriers only; it does not claim realized reuse or end-to-end improvement.",
+        "workload_family": "shared-prefix-multi-tenant-assistant"
+      }
+    },
+    {
+      "case_id": "dynamic_rag_corpus_update",
+      "dataset_name": "dynamic-rag-corpus-update",
+      "dp_size": 8,
+      "label": "Scenario: dynamic RAG corpus update",
+      "mean_output_len": 72,
+      "mean_prompt_len": 2974,
+      "summary": {
+        "anchor_home_rank_histogram": {
+          "0": 1,
+          "1": 1,
+          "2": 1,
+          "3": 1,
+          "4": 1,
+          "5": 1,
+          "6": 1,
+          "7": 1
+        },
+        "anchor_rank_coverage": 8,
+        "anchor_strategy": "Each retrieval thread keeps an exact conversational anchor, while adjacent threads share stable document bundles, version manifests, and update deltas that make overlap dependent on corpus epoch.",
+        "deployment_story": "A retrieval-augmented assistant serves follow-up questions while its backing corpus receives rolling updates, patch notes, and partial re-indexes over time.",
+        "end_to_end_gain_boundary": "End-to-end gains are not implied by workload metadata and require downstream system measurements.",
+        "family_label": "dynamic RAG corpus update",
+        "locality_activation_rationale": "State-management studies can use this family to separate stable retrieval overlap from evolving-corpus invalidation pressure without implying any particular caching or freshness policy.",
+        "observed_overlap_semantics": [
+          "corpus_epoch_transition",
+          "retrieval_bundle_drift",
+          "stable_document_overlap"
+        ],
+        "primary_anchor_count": 8,
+        "primary_anchor_kind": "retrieval_thread",
+        "realized_reuse_boundary": "Observed overlap metadata identifies potential continuity or shared structure only; realized runtime reuse must be measured downstream.",
+        "request_count": 32,
+        "sample_anchor_preview": [
+          {
+            "home_rank": 7,
+            "primary_anchor_id": "dynamic-rag-thread::0",
+            "secondary_anchor_ids": [
+              "corpus-shard::3",
+              "corpus-epoch::0",
+              "corpus-shard::3::stable-doc::0"
+            ],
+            "turn_index": 0
+          },
+          {
+            "home_rank": 0,
+            "primary_anchor_id": "dynamic-rag-thread::1",
+            "secondary_anchor_ids": [
+              "corpus-shard::0",
+              "corpus-epoch::0",
+              "corpus-shard::0::stable-doc::2"
+            ],
+            "turn_index": 0
+          },
+          {
+            "home_rank": 1,
+            "primary_anchor_id": "dynamic-rag-thread::2",
+            "secondary_anchor_ids": [
+              "corpus-shard::1",
+              "corpus-epoch::0",
+              "corpus-shard::1::stable-doc::4"
+            ],
+            "turn_index": 0
+          },
+          {
+            "home_rank": 2,
+            "primary_anchor_id": "dynamic-rag-thread::3",
+            "secondary_anchor_ids": [
+              "corpus-shard::2",
+              "corpus-epoch::0",
+              "corpus-shard::2::stable-doc::6"
+            ],
+            "turn_index": 0
+          }
+        ],
+        "scenario_tags": [
+          "corpus-update",
+          "rag",
+          "retrieval",
+          "state-management"
+        ],
+        "secondary_anchor_count": 38,
+        "secondary_anchor_kind": "corpus_epoch",
+        "secondary_anchor_preview": [
+          "corpus-epoch::0",
+          "corpus-epoch::1",
+          "corpus-shard::0",
+          "corpus-shard::0::epoch::0::delta-doc::0",
+          "corpus-shard::0::epoch::0::delta-doc::1",
+          "corpus-shard::0::epoch::1::delta-doc::0",
+          "corpus-shard::0::epoch::1::delta-doc::1",
+          "corpus-shard::0::stable-doc::10"
+        ],
+        "truthfulness_boundary": "This workload exposes scenario semantics and overlap carriers only; it does not claim realized reuse or end-to-end improvement.",
+        "workload_family": "dynamic-rag-corpus-update"
+      }
+    },
+    {
+      "case_id": "memory_write_then_reuse",
+      "dataset_name": "memory-write-then-reuse",
+      "dp_size": 8,
+      "label": "Scenario: memory write then reuse",
+      "mean_output_len": 96,
+      "mean_prompt_len": 816,
+      "summary": {
+        "anchor_home_rank_histogram": {
+          "0": 1,
+          "1": 1,
+          "2": 1,
+          "3": 1,
+          "4": 1,
+          "5": 1,
+          "6": 1,
+          "7": 1
+        },
+        "anchor_rank_coverage": 8,
+        "anchor_strategy": "Each memory session keeps an exact continuation anchor, while write events create named memory entries that later requests retrieve through shared namespace and topic cues.",
+        "deployment_story": "An assistant writes user-scoped and workspace-scoped memory notes online, then later retrieves and reuses those notes in related follow-up turns.",
+        "end_to_end_gain_boundary": "End-to-end gains are not implied by workload metadata and require downstream system measurements.",
+        "family_label": "memory write then reuse",
+        "locality_activation_rationale": "The family exposes the temporal gap between state creation and later reuse opportunities, which is useful for memory-oriented serving studies without asserting that any runtime persisted or reused the state.",
+        "observed_overlap_semantics": [
+          "memory_entry_write_then_read",
+          "namespace_overlap",
+          "retrieval_revisit_window"
+        ],
+        "primary_anchor_count": 8,
+        "primary_anchor_kind": "memory_session",
+        "realized_reuse_boundary": "Observed overlap metadata identifies potential continuity or shared structure only; realized runtime reuse must be measured downstream.",
+        "request_count": 32,
+        "sample_anchor_preview": [
+          {
+            "home_rank": 7,
+            "primary_anchor_id": "memory-session::0",
+            "secondary_anchor_ids": [
+              "memory-namespace::0",
+              "memory-entry::0::0::0",
+              "memory-phase::write"
+            ],
+            "turn_index": 0
+          },
+          {
+            "home_rank": 0,
+            "primary_anchor_id": "memory-session::1",
+            "secondary_anchor_ids": [
+              "memory-namespace::1",
+              "memory-entry::1::1::0",
+              "memory-phase::write"
+            ],
+            "turn_index": 0
+          },
+          {
+            "home_rank": 1,
+            "primary_anchor_id": "memory-session::2",
+            "secondary_anchor_ids": [
+              "memory-namespace::2",
+              "memory-entry::2::2::0",
+              "memory-phase::write"
+            ],
+            "turn_index": 0
+          },
+          {
+            "home_rank": 2,
+            "primary_anchor_id": "memory-session::3",
+            "secondary_anchor_ids": [
+              "memory-namespace::3",
+              "memory-entry::3::3::0",
+              "memory-phase::write"
+            ],
+            "turn_index": 0
+          }
+        ],
+        "scenario_tags": [
+          "continuation",
+          "memory-retrieval",
+          "memory-write",
+          "state-management"
+        ],
+        "secondary_anchor_count": 22,
+        "secondary_anchor_kind": "memory_namespace",
+        "secondary_anchor_preview": [
+          "memory-entry::0::0::0",
+          "memory-entry::0::0::1",
+          "memory-entry::0::4::0",
+          "memory-entry::0::4::1",
+          "memory-entry::1::1::0",
+          "memory-entry::1::1::1",
+          "memory-entry::1::5::0",
+          "memory-entry::1::5::1"
+        ],
+        "truthfulness_boundary": "This workload exposes scenario semantics and overlap carriers only; it does not claim realized reuse or end-to-end improvement.",
+        "workload_family": "memory-write-then-reuse"
+      }
+    },
+    {
+      "case_id": "preemption_resume_long_decode",
+      "dataset_name": "preemption-resume-long-decode",
+      "dp_size": 8,
+      "label": "Scenario: preemption resume long decode",
+      "mean_output_len": 236,
+      "mean_prompt_len": 1536,
+      "summary": {
+        "anchor_home_rank_histogram": {
+          "0": 1,
+          "1": 1,
+          "2": 1,
+          "3": 1,
+          "4": 1,
+          "7": 1
+        },
+        "anchor_rank_coverage": 6,
+        "anchor_strategy": "Each decode job keeps an exact job-local continuation anchor plus explicit checkpoint and resume-window markers, while related jobs may share long instruction scaffolds and deadline classes.",
+        "deployment_story": "A long-generation service intermittently preempts decode-heavy jobs because of maintenance windows, higher-priority work, or rolling capacity shifts, then resumes them later.",
+        "end_to_end_gain_boundary": "End-to-end gains are not implied by workload metadata and require downstream system measurements.",
+        "family_label": "preemption resume long decode",
+        "locality_activation_rationale": "This family stresses long-lived decode continuity under interruption, but the workload remains policy-neutral by describing only checkpoints, resumes, and shared scaffolds rather than a concrete preemption algorithm.",
+        "observed_overlap_semantics": [
+          "decode_checkpoint_continuation",
+          "resume_window_marker",
+          "shared_instruction_scaffold"
+        ],
+        "primary_anchor_count": 6,
+        "primary_anchor_kind": "long_decode_job",
+        "realized_reuse_boundary": "Observed overlap metadata identifies potential continuity or shared structure only; realized runtime reuse must be measured downstream.",
+        "request_count": 24,
+        "sample_anchor_preview": [
+          {
+            "home_rank": 7,
+            "primary_anchor_id": "long-decode-job::0",
+            "secondary_anchor_ids": [
+              "resume-checkpoint::0::0",
+              "instruction-pack::0",
+              "priority-class::0"
+            ],
+            "turn_index": 0
+          },
+          {
+            "home_rank": 0,
+            "primary_anchor_id": "long-decode-job::1",
+            "secondary_anchor_ids": [
+              "resume-checkpoint::1::0",
+              "instruction-pack::1",
+              "priority-class::1"
+            ],
+            "turn_index": 0
+          },
+          {
+            "home_rank": 1,
+            "primary_anchor_id": "long-decode-job::2",
+            "secondary_anchor_ids": [
+              "resume-checkpoint::2::0",
+              "instruction-pack::2",
+              "priority-class::2"
+            ],
+            "turn_index": 0
+          },
+          {
+            "home_rank": 2,
+            "primary_anchor_id": "long-decode-job::3",
+            "secondary_anchor_ids": [
+              "resume-checkpoint::3::0",
+              "instruction-pack::3",
+              "priority-class::0"
+            ],
+            "turn_index": 0
+          }
+        ],
+        "scenario_tags": [
+          "long-decode",
+          "preemption",
+          "resume",
+          "state-management"
+        ],
+        "secondary_anchor_count": 21,
+        "secondary_anchor_kind": "resume_checkpoint",
+        "secondary_anchor_preview": [
+          "instruction-pack::0",
+          "instruction-pack::1",
+          "instruction-pack::2",
+          "instruction-pack::3",
+          "priority-class::0",
+          "priority-class::1",
+          "priority-class::2",
+          "resume-checkpoint::0::0"
+        ],
+        "truthfulness_boundary": "This workload exposes scenario semantics and overlap carriers only; it does not claim realized reuse or end-to-end improvement.",
+        "workload_family": "preemption-resume-long-decode"
+      }
+    }
+  ]
+}

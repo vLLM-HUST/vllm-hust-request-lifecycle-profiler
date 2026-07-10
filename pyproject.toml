@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools>=77.0.3,<81.0.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "vllm-request-lifecycle-profiler-plugin"
+version = "0.1.0"
+description = "Causal request lifecycle tracing and bottleneck attribution for LLM serving"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = []
+authors = [{name = "Shuhao Prototype"}]
+
+[project.scripts]
+vllm-request-lifecycle-profiler-serve = "vllm_request_lifecycle_profiler.launcher:main"
+vllm-request-lifecycle-profiler-shared-workloads-smoke = "vllm_request_lifecycle_profiler.shared_workloads:main"
+
+[project.entry-points."vllm.general_plugins"]
+request_lifecycle_profiler = "vllm_request_lifecycle_profiler.plugin:register_plugin"
+
+[project.optional-dependencies]
+dev = ["build>=1.2", "pytest>=8.0", "ruff>=0.11"]
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
