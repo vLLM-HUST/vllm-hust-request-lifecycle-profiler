@@ -1,0 +1,45 @@
+{
+  "api_key_env": "VLLM_HUST_API_KEY",
+  "api_key_present": true,
+  "case_id": "shared_scenario_multi_turn_knowledge_service",
+  "command": [
+    "run_existing_server_trace_probe.py",
+    "--endpoint",
+    "http://127.0.0.1:18168",
+    "--model",
+    "codex-qwen2.5-7b-npu6",
+    "--api-key-env",
+    "VLLM_HUST_API_KEY",
+    "--warmup-requests",
+    "1",
+    "--repeat-count",
+    "3",
+    "--max-requests",
+    "4",
+    "--trace-export-path",
+    "/tmp/codex-vllm-request-lifecycle-profiler-npu6-trace.jsonl",
+    "--output-dir",
+    ".benchmarks/results/npu6_existing_server_trace_probe_repeated_smoke"
+  ],
+  "endpoint": "http://127.0.0.1:18168",
+  "evidence_label": "existing-server-probe",
+  "max_requests": 4,
+  "model": "codex-qwen2.5-7b-npu6",
+  "repeat_count": 3,
+  "repo": {
+    "branch": "main",
+    "commit": "7d4c65e516ea560cafe5d669e254d81f02680afd",
+    "dirty": false,
+    "path": "/home/shuhao/vllm-request-lifecycle-profiler-plugin"
+  },
+  "result_valid_for_speedup_claims": false,
+  "timestamp_utc": "2026-07-10T17:52:57.505231+00:00",
+  "trace_boundary": "Client-observed lifecycle proxy trace. It records request preparation, HTTP send, first streamed chunk, stream completion, and cleanup from the probe process; it is not yet an internal vLLM scheduler/KV trace.",
+  "trace_export_path": "/tmp/codex-vllm-request-lifecycle-profiler-npu6-trace.jsonl",
+  "warmup_requests": 1,
+  "workload_source": {
+    "commit": "76e24c85bcab76ecfabb831c9444002b6efffd58",
+    "dirty": false,
+    "path": "third_party/llm-serving-workloads"
+  }
+}

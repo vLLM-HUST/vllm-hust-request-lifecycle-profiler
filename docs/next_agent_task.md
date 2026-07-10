@@ -39,15 +39,20 @@ pressure, streaming backpressure, and cleanup stalls.
 0. **Current live-service readiness** (`existing-server-probe`): the managed
    baseline is running on NPU6 at `http://127.0.0.1:18168`. The client-observed
    trace probe `.benchmarks/results/npu6_existing_server_trace_probe_smoke/`
-   emits `/tmp/codex-vllm-request-lifecycle-profiler-npu6-trace.jsonl`, and
-   `.benchmarks/results/npu6_trace_probe_preflight/` is READY. This is not yet
-   an internal vLLM scheduler/KV trace.
+   emits `/tmp/codex-vllm-request-lifecycle-profiler-npu6-trace.jsonl`.
+   The warmup-controlled repeated suite
+   `.benchmarks/results/npu6_existing_server_trace_probe_repeated_smoke/`
+   has 1 warmup request plus 12/12 successful measured requests, with measured
+   TTFT p50/p95/p99 at 83.43/85.76/86.65 ms. `.benchmarks/results/npu6_trace_probe_preflight/`
+   is READY. This is not yet an internal vLLM scheduler/KV trace.
 1. **Trace schema coverage** (`derived-artifact`): map every shared workload
    phase to required lifecycle events and mark missing hooks explicitly.
-2. **Existing-server trace probe** (`existing-server-probe`): collect timelines
-   on NPU6 without changing runtime behavior. The first client-observed proxy
-   trace exists; next add warmup-controlled repetitions and then internal vLLM
-   hooks for scheduler/KV stages.
+2. **Internal runtime trace hooks** (`real-online` only after repo-launched
+   runtime hook instrumentation is active): keep the client-observed proxy
+   events as correlation anchors, but add internal vLLM-HUST hooks for
+   scheduler admission, queue wait, prefill completion, decode-step progress,
+   KV pressure, stream backpressure, and cleanup. Write those internal events
+   into the same JSONL schema.
 3. **Controlled fault injection** (`real-online` when launched by this repo,
    otherwise `existing-server-probe`): long-prompt surge, decode-heavy batch,
    slow streaming client, KV-pressure boundary, and cleanup stall.
@@ -73,11 +78,12 @@ serving behavior on shared workloads. A publishable result needs to show why
 causal lifecycle evidence changes optimization decisions compared with ordinary
 timers, not merely that traces can be collected.
 
-Immediate next step: add warmup/repetition support to
-`make npu6-existing-server-trace-probe`, then integrate internal vLLM hooks so
-the same trace schema records scheduler admission, KV pressure, prefill, decode,
-streaming, and cleanup from inside the runtime. Keep client-observed proxy
-trace results separate from internal runtime trace claims.
+Immediate next step: integrate internal vLLM hooks so the same trace schema
+records scheduler admission, queue wait, KV pressure, prefill, decode,
+streaming, and cleanup from inside the runtime. Then run paired
+profiler-disabled/profiler-enabled NPU6 suites using the same warmup-controlled
+workload shape, followed by one controlled fault at a time. Keep
+client-observed proxy trace results separate from internal runtime trace claims.
 
 ## Paper Update Requirement
 

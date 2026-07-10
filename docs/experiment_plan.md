@@ -52,10 +52,24 @@ Current live trace evidence:
 - `.benchmarks/results/npu6_trace_probe_preflight/` now contains `READY.txt`;
   the trace export schema check passed with 36 records and no missing required
   fields.
+- `.benchmarks/results/npu6_existing_server_trace_probe_repeated_smoke/`
+  upgrades the probe to a warmup-controlled repeated suite. It sent 1 warmup
+  request plus 12 measured streaming requests to the managed NPU6 endpoint,
+  all measured requests succeeded, and the measured TTFT summary was p50 83.43
+  ms, p95 85.76 ms, and p99 86.65 ms. This removes the first-request warmup
+  outlier from the measured summary and gives a stable baseline for later
+  enabled/disabled overhead comparisons.
 - Boundary: these are client-observed events (`received`, local tokenization,
   HTTP send, first streamed chunk, stream done, cleanup). They are not yet
   internal vLLM scheduler/KV/preemption events and must not be used as internal
   runtime-overhead evidence.
+
+Next step:
+instrument internal vLLM-HUST lifecycle hooks under the same trace schema so
+the NPU6 traces contain scheduler admission, prefill completion, decode-step
+progress, KV pressure, stream backpressure, and cleanup events from inside the
+runtime. Keep the client proxy events as correlation anchors, not as substitutes
+for internal runtime spans.
 
 ## Phase 2: Controlled Fault Injection
 

@@ -18,7 +18,7 @@
     "json": {
       "data": [
         {
-          "created": 1783705578,
+          "created": 1783705997,
           "id": "codex-qwen2.5-7b-npu6",
           "max_model_len": 4096,
           "object": "model",
@@ -32,9 +32,9 @@
               "allow_sampling": true,
               "allow_search_indices": false,
               "allow_view": true,
-              "created": 1783705578,
+              "created": 1783705997,
               "group": null,
-              "id": "modelperm-9742ed2d7356d98c",
+              "id": "modelperm-bd87e7433bf59f15",
               "is_blocking": false,
               "object": "model_permission",
               "organization": "*"
@@ -59,18 +59,18 @@
         "chip": "0",
         "npu": "6",
         "pid": "1152907",
-        "process_memory_mb": "46841",
+        "process_memory_mb": "46843",
         "process_name": "VLLMEngineCor"
       }
     ]
   },
   "output_dir": ".benchmarks/results/npu6_trace_probe_preflight",
   "parent_branch": "main",
-  "parent_commit": "8291ae16f8ec2096610f2743d00ff64cb6dff5b6",
+  "parent_commit": "7d4c65e516ea560cafe5d669e254d81f02680afd",
   "parent_dirty": true,
   "preflight_passed": true,
   "result_valid_for_paper_claims": false,
-  "timestamp_utc": "2026-07-10T17:46:18.627474+00:00",
+  "timestamp_utc": "2026-07-10T17:53:17.734330+00:00",
   "trace_export": {
     "missing_rows": [],
     "ok": true,
@@ -81,7 +81,7 @@
       "trace_id"
     ],
     "path": "/tmp/codex-vllm-request-lifecycle-profiler-npu6-trace.jsonl",
-    "record_count_checked": 36,
+    "record_count_checked": 117,
     "required_fields": [
       "request_id",
       "stage",
