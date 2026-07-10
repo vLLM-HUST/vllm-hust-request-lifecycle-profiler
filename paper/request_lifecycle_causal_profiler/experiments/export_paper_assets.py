@@ -48,7 +48,10 @@ def iter_result_files(
         for path in results_dir.rglob("*")
         if path.is_file()
         and path.resolve() not in excluded_paths
-        and not any(path_is_within(path.resolve(), excluded_dir) for excluded_dir in excluded_dirs)
+        and not any(
+            path_is_within(path.resolve(), excluded_dir)
+            for excluded_dir in excluded_dirs
+        )
         and not any(
             path_is_within(path.relative_to(results_dir), excluded_relative_dir)
             for excluded_relative_dir in excluded_relative_dirs
@@ -197,7 +200,7 @@ def write_trace_probe_summary_svg(path: Path, row: dict[str, object]) -> None:
     svg = [
         f'<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" viewBox="0 0 {width} {height}">',
         '<rect width="100%" height="100%" fill="white"/>',
-        '<style>text{font-family:Arial,Helvetica,sans-serif;font-size:13px;fill:#111827}.axis{stroke:#374151;stroke-width:1.2}.grid{stroke:#e5e7eb;stroke-width:1}.bar{fill:#2563eb}.meta{fill:#4b5563}</style>',
+        "<style>text{font-family:Arial,Helvetica,sans-serif;font-size:13px;fill:#111827}.axis{stroke:#374151;stroke-width:1.2}.grid{stroke:#e5e7eb;stroke-width:1}.bar{fill:#2563eb}.meta{fill:#4b5563}</style>",
         f'<text x="{width / 2}" y="24" text-anchor="middle" font-weight="700">Warmup-controlled NPU6 client-observed trace probe</text>',
         f'<line class="axis" x1="{left}" y1="{top}" x2="{left}" y2="{top + plot_h}"/>',
         f'<line class="axis" x1="{left}" y1="{top + plot_h}" x2="{width - 42}" y2="{top + plot_h}"/>',
@@ -223,8 +226,8 @@ def write_trace_probe_summary_svg(path: Path, row: dict[str, object]) -> None:
         )
     svg.append(
         f'<text class="meta" x="{width / 2}" y="{height - 20}" text-anchor="middle">'
-        f'{row["request_count"]} measured requests, {row["event_count"]} lifecycle events, '
-        f'{row["error_count"]} errors</text>'
+        f"{row['request_count']} measured requests, {row['event_count']} lifecycle events, "
+        f"{row['error_count']} errors</text>"
     )
     svg.append("</svg>")
     path.write_text("\n".join(svg) + "\n", encoding="utf-8")
@@ -247,9 +250,24 @@ def generate_trace_probe_assets(
     write_trace_probe_summary_table(table_path, row)
     write_trace_probe_summary_svg(figure_path, row)
     return [
-        {"kind": "csv", "path": csv_path.as_posix(), "rows": 1, "evidence_label": "derived-artifact"},
-        {"kind": "table", "path": table_path.as_posix(), "rows": 1, "evidence_label": "derived-artifact"},
-        {"kind": "figure", "path": figure_path.as_posix(), "rows": 1, "evidence_label": "derived-artifact"},
+        {
+            "kind": "csv",
+            "path": csv_path.as_posix(),
+            "rows": 1,
+            "evidence_label": "derived-artifact",
+        },
+        {
+            "kind": "table",
+            "path": table_path.as_posix(),
+            "rows": 1,
+            "evidence_label": "derived-artifact",
+        },
+        {
+            "kind": "figure",
+            "path": figure_path.as_posix(),
+            "rows": 1,
+            "evidence_label": "derived-artifact",
+        },
     ]
 
 
@@ -332,8 +350,127 @@ def generate_trace_overhead_assets(
     write_trace_overhead_csv(csv_path, rows)
     write_trace_overhead_table(table_path, rows)
     return [
-        {"kind": "csv", "path": csv_path.as_posix(), "rows": len(rows), "evidence_label": "derived-artifact"},
-        {"kind": "table", "path": table_path.as_posix(), "rows": len(rows), "evidence_label": "derived-artifact"},
+        {
+            "kind": "csv",
+            "path": csv_path.as_posix(),
+            "rows": len(rows),
+            "evidence_label": "derived-artifact",
+        },
+        {
+            "kind": "table",
+            "path": table_path.as_posix(),
+            "rows": len(rows),
+            "evidence_label": "derived-artifact",
+        },
+    ]
+
+
+def _trace_diagnosis_row(repo_root: Path) -> dict[str, object] | None:
+    result_dir_name = "npu6_trace_diagnosis"
+    result_dir = repo_root / ".benchmarks" / "results" / result_dir_name
+    summary = _load_json(result_dir / "summary.json")
+    metadata = _load_json(result_dir / "run_metadata.json")
+    if summary is None or metadata is None:
+        return None
+    spans = summary["measured_span_duration_ms"]
+    dominant_counts = summary["dominant_bottleneck_counts"]
+    dominant = str(summary.get("dominant_bottleneck", "unknown"))
+    dominant_count = int(dominant_counts.get(dominant, 0))
+    return {
+        "result_dir": result_dir_name,
+        "evidence_label": metadata["evidence_label"],
+        "parent_commit": metadata["repo"]["commit"],
+        "measured_request_count": summary["measured_request_count"],
+        "event_count": summary["event_count"],
+        "dominant_bottleneck": dominant,
+        "dominant_count": dominant_count,
+        "tokenization_p95_ms": spans["tokenization"]["p95"],
+        "queueing_p95_ms": spans["queueing"]["p95"],
+        "prefill_p95_ms": spans["prefill"]["p95"],
+        "decode_p95_ms": spans["decode"]["p95"],
+        "streaming_p95_ms": spans["streaming"]["p95"],
+        "cleanup_p95_ms": spans["cleanup"]["p95"],
+        "missing_event_rate_p95": summary["missing_event_rate"]["p95"],
+        "claim_boundary": summary["claim_boundary"],
+    }
+
+
+def write_trace_diagnosis_csv(path: Path, row: dict[str, object]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    fieldnames = [
+        "measured_request_count",
+        "event_count",
+        "dominant_bottleneck",
+        "dominant_count",
+        "tokenization_p95_ms",
+        "queueing_p95_ms",
+        "prefill_p95_ms",
+        "decode_p95_ms",
+        "streaming_p95_ms",
+        "cleanup_p95_ms",
+        "missing_event_rate_p95",
+        "evidence_label",
+        "parent_commit",
+        "result_dir",
+        "claim_boundary",
+    ]
+    with path.open("w", newline="", encoding="utf-8") as handle:
+        writer = csv.DictWriter(handle, fieldnames=fieldnames)
+        writer.writeheader()
+        writer.writerow({field: row.get(field, "") for field in fieldnames})
+
+
+def write_trace_diagnosis_table(path: Path, row: dict[str, object]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    lines = [
+        "% Auto-generated by experiments/export_paper_assets.py. Do not edit by hand.",
+        "\\small",
+        "\\begin{tabular}{lrrrr}",
+        "\\toprule",
+        "Span & p95 ms & Dominant & Events & Missing \\\\",
+        "\\midrule",
+        (
+            f"Prefill-proxy & {float(row['prefill_p95_ms']):.2f} & "
+            f"{row['dominant_count']}/{row['measured_request_count']} {latex_escape(str(row['dominant_bottleneck']))} & "
+            f"{row['event_count']} & {float(row['missing_event_rate_p95']):.2f} \\\\"
+        ),
+        (
+            f"Decode-proxy & {float(row['decode_p95_ms']):.2f} & "
+            f"{row['dominant_count']}/{row['measured_request_count']} {latex_escape(str(row['dominant_bottleneck']))} & "
+            f"{row['event_count']} & {float(row['missing_event_rate_p95']):.2f} \\\\"
+        ),
+        "\\bottomrule",
+        "\\end{tabular}",
+    ]
+    path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+
+def generate_trace_diagnosis_assets(
+    *,
+    repo_root: Path,
+    output_dir: Path,
+    table_dir: Path,
+) -> list[dict[str, object]]:
+    row = _trace_diagnosis_row(repo_root)
+    if row is None:
+        return []
+    csv_path = output_dir / "npu6_trace_diagnosis.csv"
+    table_path = table_dir / "npu6_trace_diagnosis.tex"
+    write_trace_diagnosis_csv(csv_path, row)
+    write_trace_diagnosis_table(table_path, row)
+    return [
+        {
+            "kind": "csv",
+            "path": csv_path.as_posix(),
+            "rows": 1,
+            "evidence_label": "derived-artifact",
+        },
+        {
+            "kind": "table",
+            "path": table_path.as_posix(),
+            "rows": 1,
+            "evidence_label": "derived-artifact",
+        },
     ]
 
 
@@ -366,13 +503,15 @@ def write_markdown(
     else:
         lines.append("| `(none)` | 0 |")
 
-    lines.extend([
-        "",
-        "## Files By Extension",
-        "",
-        "| Extension | Count |",
-        "| --- | ---: |",
-    ])
+    lines.extend(
+        [
+            "",
+            "## Files By Extension",
+            "",
+            "| Extension | Count |",
+            "| --- | ---: |",
+        ]
+    )
     if counts:
         for suffix, count in sorted(counts.items()):
             lines.append(f"| `{suffix}` | {count} |")
@@ -396,7 +535,9 @@ def write_markdown(
     if derived_assets:
         lines.extend(["", "## Derived Paper Assets", ""])
         for asset in derived_assets:
-            lines.append(f"- `{asset['path']}` ({asset['kind']}, {asset['evidence_label']})")
+            lines.append(
+                f"- `{asset['path']}` ({asset['kind']}, {asset['evidence_label']})"
+            )
 
     path.write_text("\n".join(lines) + "\n")
 
@@ -432,24 +573,32 @@ def write_tex(
             lines.append(f"{latex_escape(suffix)} & {count} \\\\")
         lines.extend(["\\bottomrule", "\\end{tabular}", "\\end{center}"])
     else:
-        lines.append("No result files have been exported yet, so there are no derived paper assets to summarize.")
+        lines.append(
+            "No result files have been exported yet, so there are no derived paper assets to summarize."
+        )
 
     if source_counts:
         lines.extend(["", "\\paragraph{Source Breakdown}", "\\begin{itemize}"])
         for source_name, count in sorted(source_counts.items()):
-            lines.append(f"\\item \\texttt{{{latex_escape(source_name)}}}: {count} file(s)")
+            lines.append(
+                f"\\item \\texttt{{{latex_escape(source_name)}}}: {count} file(s)"
+            )
         lines.append("\\end{itemize}")
 
     if staged_figures:
         lines.extend(["", "\\paragraph{Staged Figures}", "\\begin{itemize}"])
         for relative_path in staged_figures:
-            lines.append(f"\\item \\texttt{{figures/generated/{latex_escape(relative_path)}}}")
+            lines.append(
+                f"\\item \\texttt{{figures/generated/{latex_escape(relative_path)}}}"
+            )
         lines.append("\\end{itemize}")
 
     if derived_assets:
         lines.extend(["", "\\paragraph{Derived Assets}", "\\begin{itemize}"])
         for asset in derived_assets:
-            lines.append(f"\\item \\texttt{{{latex_escape(str(asset['path']))}}} ({latex_escape(str(asset['kind']))})")
+            lines.append(
+                f"\\item \\texttt{{{latex_escape(str(asset['path']))}}} ({latex_escape(str(asset['kind']))})"
+            )
         lines.append("\\end{itemize}")
 
     path.write_text("\n".join(lines) + "\n")
@@ -516,7 +665,9 @@ def main() -> None:
     manifest_json = Path(args.manifest_json)
     summary_markdown = Path(args.summary_markdown)
     summary_tex = Path(args.summary_tex)
-    resolved_live_results_dir = live_results_dir.resolve() if live_results_dir is not None else None
+    resolved_live_results_dir = (
+        live_results_dir.resolve() if live_results_dir is not None else None
+    )
     resolved_output_dir = output_dir.resolve()
     excluded_paths = {
         manifest_json.resolve(),
@@ -534,7 +685,11 @@ def main() -> None:
         excluded_paths=excluded_paths,
         excluded_dirs={
             resolved_output_dir,
-            *( {resolved_live_results_dir} if resolved_live_results_dir is not None else set() ),
+            *(
+                {resolved_live_results_dir}
+                if resolved_live_results_dir is not None
+                else set()
+            ),
         },
         excluded_relative_dirs={
             Path("example_live"),
@@ -548,7 +703,9 @@ def main() -> None:
         excluded_relative_dirs=set(),
     )
     counts: Counter[str] = Counter(record["suffix"] for record in source_records)
-    source_counts: dict[str, int] = dict(sorted(Counter(record["source"] for record in source_records).items()))
+    source_counts: dict[str, int] = dict(
+        sorted(Counter(record["source"] for record in source_records).items())
+    )
     files = [
         {
             "source": record["source"],
@@ -565,7 +722,11 @@ def main() -> None:
     figure_dir.mkdir(parents=True, exist_ok=True)
     staged_figures.extend(
         stage_figures(
-            [Path(record["path"]) for record in source_records if record["source"] == "results"],
+            [
+                Path(record["path"])
+                for record in source_records
+                if record["source"] == "results"
+            ],
             source_dir=results_dir,
             source_label="results",
             generated_figures_dir=figure_dir,
@@ -574,27 +735,41 @@ def main() -> None:
     if live_results_dir is not None:
         staged_figures.extend(
             stage_figures(
-                [Path(record["path"]) for record in source_records if record["source"] == "live_results"],
+                [
+                    Path(record["path"])
+                    for record in source_records
+                    if record["source"] == "live_results"
+                ],
                 source_dir=live_results_dir,
                 source_label="live_results",
                 generated_figures_dir=figure_dir,
             )
         )
 
-    derived_assets = generate_trace_probe_assets(
-        repo_root=repo_root,
-        output_dir=output_dir,
-        figure_dir=figure_dir,
-        table_dir=table_dir,
-    ) + generate_trace_overhead_assets(
-        repo_root=repo_root,
-        output_dir=output_dir,
-        table_dir=table_dir,
+    derived_assets = (
+        generate_trace_probe_assets(
+            repo_root=repo_root,
+            output_dir=output_dir,
+            figure_dir=figure_dir,
+            table_dir=table_dir,
+        )
+        + generate_trace_diagnosis_assets(
+            repo_root=repo_root,
+            output_dir=output_dir,
+            table_dir=table_dir,
+        )
+        + generate_trace_overhead_assets(
+            repo_root=repo_root,
+            output_dir=output_dir,
+            table_dir=table_dir,
+        )
     )
 
     manifest = {
         "results_dir": results_dir.as_posix(),
-        "live_results_dir": live_results_dir.as_posix() if live_results_dir is not None else None,
+        "live_results_dir": live_results_dir.as_posix()
+        if live_results_dir is not None
+        else None,
         "output_dir": output_dir.as_posix(),
         "total_files": len(files),
         "counts_by_source": source_counts,

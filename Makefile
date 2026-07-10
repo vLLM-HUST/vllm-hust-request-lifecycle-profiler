@@ -19,7 +19,7 @@ PAPER_DIR := paper/request_lifecycle_causal_profiler
 
 .DEFAULT_GOAL := help
 
-.PHONY: help bootstrap-shared-env install-dev smoke test shared-workloads-smoke shared-workloads-test synthetic-fault-injection npu6-trace-preflight npu6-existing-server-trace-probe npu6-existing-server-trace-suite-smoke npu6-existing-server-trace-overhead-smoke managed-install managed-start managed-restart managed-stop managed-status managed-health managed-logs managed-foreground lint format build bench paper paper-assets paper-pdf paper-clean clean
+.PHONY: help bootstrap-shared-env install-dev smoke test shared-workloads-smoke shared-workloads-test synthetic-fault-injection trace-diagnosis npu6-trace-preflight npu6-existing-server-trace-probe npu6-existing-server-trace-suite-smoke npu6-existing-server-trace-overhead-smoke managed-install managed-start managed-restart managed-stop managed-status managed-health managed-logs managed-foreground lint format build bench paper paper-assets paper-pdf paper-clean clean
 
 help:
 	@printf '%s\n' \
@@ -32,6 +32,7 @@ help:
 		'  make shared-workloads-smoke Run the repo-local shared workload compatibility sweep' \
 		'  make shared-workloads-test  Run unit tests plus the shared workload compatibility sweep' \
 		'  make synthetic-fault-injection Run no-NPU controlled lifecycle attribution checks' \
+		'  make trace-diagnosis Derive client-visible stage diagnosis from checked-in NPU6 trace probe' \
 		'  make npu6-trace-preflight Run read-only NPU6 existing-server trace preflight' \
 		'  make npu6-existing-server-trace-probe Run client-observed lifecycle trace probe on NPU6' \
 		'  make npu6-existing-server-trace-suite-smoke Run warmup-controlled repeated trace suite on NPU6' \
@@ -82,6 +83,11 @@ shared-workloads-test: test shared-workloads-smoke
 synthetic-fault-injection:
 	PYTHONPATH=src $(PYTHON) .benchmarks/run_synthetic_fault_injection.py \
 		--output-dir .benchmarks/results/synthetic_fault_injection
+
+trace-diagnosis:
+	PYTHONPATH=src $(PYTHON) .benchmarks/analyze_trace_diagnosis.py \
+		--input-probe-results .benchmarks/results/npu6_existing_server_trace_probe_repeated_smoke/probe_results.json \
+		--output-dir .benchmarks/results/npu6_trace_diagnosis
 
 npu6-trace-preflight:
 	ASCEND_HOME_PATH=/usr/local/Ascend PYTHONPATH=src $(PYTHON) .benchmarks/preflight_npu6_trace_probe.py \
