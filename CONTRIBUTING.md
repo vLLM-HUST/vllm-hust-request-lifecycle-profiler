@@ -1,35 +1,23 @@
 # Contributing
 
-## Upstream Safety Rule
+This repository is the parent artifact for the request lifecycle causal profiler
+research line.
 
-- This template must not encourage direct edits to `/home/shuhao/reference-repos/vllm`.
-- If a derived plugin eventually needs upstream-local changes, that derived repository should vendor or clone vLLM inside itself and patch there.
+## Rules
 
-## Expected Workflow
+1. Use `vllm-request-lifecycle-profiler-exp` for project work. Do not install
+   overlays into the shared `vllm-hust-dev` environment.
+2. Use `llm-serving-workloads` as the default shared workload source.
+3. Keep repo-local workloads only for controlled fault-injection cases.
+4. Label every result as `real-online`, `existing-server-probe`, `replay`,
+   `simulation/model`, `projected-profile`, or `derived-artifact`.
+5. Do not claim runtime speedup from profiler-only instrumentation.
+6. If a runtime submodule is added later, create feature branches named
+   `feature/request-lifecycle-profiler-<purpose>`.
 
-1. Keep the template minimal.
-2. Keep example logic under `src/`.
-3. Update `README.md` if the recommended plugin boundary changes.
-4. Record structure or workflow changes in this repository's `CHANGELOG.md` only.
-5. Do not record template-repo changes in `/home/shuhao/sagellm/CHANGELOG.md`.
-
-## Unified Local Commands
-
-```bash
-make install-dev
-make smoke
-make test
-make lint
-make format
-make build
-make bench
-make paper
-make paper-assets
-make paper-pdf
-```
-
-## Testing
+## Test
 
 ```bash
-make test
+PYTHONPATH=src pytest -q
 ```
+

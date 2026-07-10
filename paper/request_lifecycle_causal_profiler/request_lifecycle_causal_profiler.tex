@@ -1,118 +1,62 @@
-\documentclass[conference]{IEEEtran}
+\documentclass[sigconf,screen,nonacm]{acmart}
 
-\usepackage[T1]{fontenc}
-\usepackage{cite}
-\usepackage{amsmath,amssymb,amsfonts}
-\usepackage{array}
-\usepackage{booktabs}
-\usepackage{graphicx}
-\usepackage{textcomp}
-\usepackage{xcolor}
+\title{Causal Request Lifecycle Profiling for LLM Serving}
+
+\author{Anonymous Authors}
+\affiliation{\institution{Anonymous Institution}\country{}}
+\email{anonymous@example.com}
 
 \begin{document}
 
-\title{Standalone vLLM Plugin Artifact Template: A Paper Scaffold for Out-of-Tree LLM Serving Optimizations}
+\begin{abstract}
+LLM serving slowdowns are often diagnosed from aggregate latency and scattered
+logs, making it difficult to distinguish causal bottlenecks from correlated
+symptoms. This draft studies request lifecycle profiling: representing each
+request as an ordered timeline across tokenization, queueing, prefill, decode,
+streaming, and cleanup, then attributing the dominant bottleneck under
+controlled fault injection. The current artifact contains the trace schema,
+attribution skeleton, tests, experiment plan, and claim ledger. It does not yet
+claim measured diagnosis accuracy on live traces.
+\end{abstract}
 
-\author{\IEEEauthorblockN{Anonymous Authors}}
+\keywords{LLM serving, observability, profiling, causal diagnosis}
 
 \maketitle
 
-\begin{abstract}
-This repository is not a finished optimization artifact. It is a reusable template for building standalone vLLM plugin repositories that can evolve into measured systems papers without first restructuring their project layout. The template therefore makes a bounded contribution. First, it defines the artifact boundary for out-of-tree vLLM plugin work: package code, tests, benchmark entrypoints, and paper assets live in one standalone repository while the shared upstream checkout remains clean. Second, it provides a minimal paper scaffold that derived repositories can compile immediately with a repo-local tectonic workflow. Third, it states the evidence boundary that future derived repositories must satisfy before claiming end-to-end gains. This draft is thus a paper scaffold and repository contract, not a claim-bearing optimization result.
-\end{abstract}
+\section{Problem}
 
-\begin{IEEEkeywords}
-LLM serving, vLLM, plugin architecture, artifact scaffold, systems paper template
-\end{IEEEkeywords}
+Aggregate TTFT and TPOT report symptoms, not causes. A request may be slow
+because of queueing, prefill saturation, KV allocation, decode jitter, slow
+streaming, or cleanup stalls. We study whether lifecycle traces can become
+auditable causal evidence for optimization work.
 
-\section{Introduction}
+\section{Key Idea}
 
-Research repositories for LLM inference systems often begin as thin runtime hooks and only later accumulate tests, benchmarks, figures, and paper text. That path is convenient in the short term, but it creates avoidable friction once the work becomes a real artifact. Teams then need to retrofit project structure, unify build conventions, and explain where measured evidence actually lives.
+Each request emits ordered lifecycle events. The profiler converts complete
+event pairs into stage spans and attributes the dominant bottleneck using an
+explicit rule set that can be validated by injected-fault ground truth.
 
-This template addresses that problem for standalone vLLM plugin lines. Instead of starting from an empty package and growing ad hoc, a derived repository starts with the minimum structure needed for both engineering and paper-facing work: package code under \texttt{src/}, tests under \texttt{tests/}, workload-aware benchmark entrypoints under \texttt{.benchmarks/}, and a paper workspace under \texttt{paper/}.
+\section{Design Scope}
 
-The goal is not to claim that every optimization should remain out of tree forever. Some ideas will eventually need deeper runtime convergence in a vendored or forked vLLM carrier. The contribution of this template is narrower: it gives each new research line a clean, inspectable starting point before such boundary crossings become necessary.
+The first implementation provides trace primitives and deterministic attribution
+logic. NPU6 runs should begin as existing-server probes before any runtime
+policy uses profiler output.
 
-\section{Artifact Boundary}
+\section{Evaluation Plan}
 
-The template assumes the following repository contract.
+The evaluation will compare the profiler against raw logs, simple stage timers,
+manual diagnosis, and profiler reports with causal rules disabled. Metrics
+include attribution accuracy, false positives, false negatives, tracing
+overhead, event coverage, and time-to-root-cause.
 
-\begin{itemize}
-\item \textbf{Standalone package boundary:} plugin code is published as a normal Python package and loaded through the official vLLM general plugin entrypoint.
-\item \textbf{Upstream safety boundary:} the shared reference vLLM checkout remains untouched; if deeper changes become necessary, the derived repository vendors or clones its own carrier.
-\item \textbf{Workload boundary:} reusable workload definitions belong in the sibling \texttt{llm-serving-workloads} repository rather than being copied into each plugin artifact.
-\item \textbf{Paper boundary:} manuscript sources, bibliography, and build workflow live beside the code so the repository can become a paper artifact without reorganization.
-\end{itemize}
+\section{Current Evidence Boundary}
 
-These boundaries are intentionally conservative. They make it easier to see what a derived repository actually implemented, what it only measured, and what still depends on future runtime integration.
+Only no-NPU trace and attribution tests are currently supported. Live diagnosis
+claims require manifest-backed NPU6 probes and controlled fault-injection
+results.
 
-\section{Why A Paper Scaffold Belongs In The Template}
-
-Templates often stop at package layout. That is not enough for this workspace. Many repositories here are not only code artifacts; they are also paper artifacts or paper candidates. A useful template should therefore carry the minimum paper machinery that mature repositories eventually converge on.
-
-In practice, that means three concrete pieces:
-
-\begin{itemize}
-\item a compilable \LaTeX{} draft,
-\item a local \texttt{tectonic}-based Makefile, and
-\item a starter bibliography file.
-\end{itemize}
-
-Without these pieces, every new repository recreates the same paper plumbing by hand. With them, a new repository can focus on replacing placeholder text with a real problem statement, design, evaluation plan, and measured evidence.
-
-\section{Paper Workspace Convention}
-
-The paper scaffold also standardizes a minimal internal layout:
-
-\begin{itemize}
-\item \textbf{experiments/}: paper-only export or plotting helpers,
-\item \textbf{results/}: raw or intermediate outputs consumed by the paper build,
-\item \textbf{figures/}: stable figure paths used by the manuscript, and
-\item \textbf{tables/}: hand-written or generated table snippets.
-\end{itemize}
-
-This convention is intentionally lightweight, but it matches the direction taken by the more mature repositories in the workspace. A derived repository can replace the generic export script with its real figure or table pipeline while keeping the same artifact layout and the same build contract.
-
-\section{Artifact Snapshot From Results}
-
-The template's \texttt{paper-assets} target refreshes a small paper-facing summary from the files currently present under \texttt{results/}. The summary below is generated automatically when available.
-
-\IfFileExists{tables/generated/results_summary.tex}{\input{tables/generated/results_summary.tex}}{No generated results summary is available yet. Run \texttt{make paper-assets} after adding files under \texttt{results/}.}
-
-\section{Evidence Contract For Derived Repositories}
-
-This template should not encourage premature performance claims. A derived repository should distinguish at least three evidence layers.
-
-\subsection{Structure Only}
-
-At the weakest layer, the repository only proves that the package boundary, test layout, benchmark entrypoints, and paper scaffold exist. This is sufficient for a template, but not for an optimization claim.
-
-\subsection{Mechanism Validation}
-
-The next layer validates that a concrete optimization mechanism works at the intended boundary. Typical evidence includes unit tests, local workload compatibility checks, and narrow runtime probes.
-
-\subsection{End-to-End Serving Benefit}
-
-The strongest layer demonstrates user-visible serving impact under realistic workloads, such as throughput, latency, or memory-efficiency gains. Only this layer justifies broad systems claims. Existing LLM serving systems such as Orca, vLLM, and SGLang show why these end-to-end measurements matter~\cite{orca2022,vllm2023,sglang2024}.
-
-\section{How To Use This Scaffold}
-
-When a new plugin line is created from this template, the paper scaffold should be adapted immediately rather than left generic forever.
-
-\begin{enumerate}
-\item Rename the paper subdirectory to the actual topic name.
-\item Replace this placeholder manuscript with the repository's real problem framing and artifact boundary.
-\item Extend the bibliography with topic-specific citations.
-\item Add figures, tables, and experiment references only when measured artifacts exist.
-\end{enumerate}
-
-This workflow keeps the paper path honest: the repository always has a buildable manuscript, but the text remains explicit about whether the work is a template, a draft mechanism, or a claim-bearing systems artifact.
-
-\section{Conclusion}
-
-The general plugin template should scaffold not only package code but also paper work. The additions in this repository turn \texttt{paper/} from a placeholder into a minimal, compilable artifact skeleton with a local tectonic build path. Derived repositories can now inherit a cleaner starting point for both implementation and eventual paper packaging.
-
-\bibliographystyle{IEEEtran}
+\bibliographystyle{ACM-Reference-Format}
 \bibliography{references}
 
 \end{document}
+

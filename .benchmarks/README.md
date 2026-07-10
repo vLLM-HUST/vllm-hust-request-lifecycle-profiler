@@ -1,12 +1,14 @@
-# Benchmark Workspace
+# Benchmarks
 
-This directory is the template home for workload-driven benchmark and smoke-test
-entrypoints.
+Benchmark and probe entrypoints for request lifecycle causal profiling.
 
-Derived repositories should keep reproducible shared-workload harnesses here,
-not in the repository root.
+## Expected Flow
 
-The checked-in `run_shared_workloads_smoke.py` script is intentionally minimal:
-it validates that a template-derived repository can consume the full repo-local
-shared workload suite from `llm-serving-workloads` without keeping a local copy
-of those workload definitions.
+1. Validate trace schema and attribution rules without hardware.
+2. Run NPU6 existing-server probes that collect lifecycle timelines.
+3. Run controlled fault-injection experiments to measure attribution accuracy.
+
+All run directories must include `run_metadata.json` and an evidence label.
+Profiler-only evidence should be framed as diagnosis or artifact evidence, not
+runtime optimization.
+
