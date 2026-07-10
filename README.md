@@ -11,6 +11,10 @@ Start with:
   evidence path, and NPU binding;
 - [TOP_TIER_PUSH_PLAN.md](TOP_TIER_PUSH_PLAN.md) for the first 72-hour ASPLOS
   push plan;
+- [docs/research_logic.md](docs/research_logic.md) for the seven-step research
+  framing;
+- [docs/experiment_plan.md](docs/experiment_plan.md) and
+  [docs/claim_ledger.md](docs/claim_ledger.md) for evidence gates;
 - `llm-serving-workloads` as the shared workload source.
 
 Do not install project overlays into the shared `vllm-hust-dev` environment.
