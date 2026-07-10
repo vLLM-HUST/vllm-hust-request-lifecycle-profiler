@@ -77,6 +77,16 @@ Current live trace evidence:
   HTTP send, first streamed chunk, stream done, cleanup). They are not yet
   internal vLLM scheduler/KV/preemption events and the matched overhead suite
   must not be used as internal runtime-hook or memory-overhead evidence.
+- `.benchmarks/results/npu6_existing_server_slow_stream_trace_smoke/` adds a
+  controlled client-visible slow-stream shape. It uses the same managed NPU6
+  endpoint, `proxy_stage_mode=streaming-proxy`, `per_chunk_read_delay_ms=80`,
+  two repeated measured requests over two shared-workload rows, and a
+  64-token output cap. All 4 measured requests succeeded. TTFT p95 stayed
+  81.14 ms while latency p95 rose to 5208.20 ms. The derived artifact
+  `.benchmarks/results/npu6_slow_stream_trace_diagnosis/` attributes 4/4
+  measured requests to the `streaming` span with streaming p95 5127.09 ms and
+  missing-event-rate p95 0.0. This is client-visible backpressure evidence,
+  not internal runtime streaming or scheduler evidence.
 
 Next step:
 instrument internal vLLM-HUST lifecycle hooks under the same trace schema so

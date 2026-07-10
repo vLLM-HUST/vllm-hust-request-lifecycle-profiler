@@ -91,6 +91,15 @@ measured requests to the decode-visible span, with decode-proxy p95 of
 root cause is decode; rather, it gives a concrete hypothesis that internal
 scheduler, KV, prefill, and decode hooks must confirm or overturn.
 
+We also added a controlled client-visible slow-stream probe. The probe keeps
+TTFT low but intentionally waits 80\,ms while reading each streamed chunk and
+uses a streaming-proxy span boundary. All four measured requests succeed; TTFT
+p95 remains 81.14\,ms, while end-to-end latency p95 rises to 5208.20\,ms. The
+derived diagnosis switches from the normal decode-visible hypothesis to
+streaming for 4/4 measured requests, with streaming-span p95 of 5127.09\,ms
+(Table~\ref{tab:npu6-slow-stream}). This is a controlled client-probe
+backpressure result, not an internal runtime streaming claim.
+
 \begin{table}[t]
 \centering
 \caption{Warmup-controlled NPU6 existing-server probe. The trace is
@@ -109,6 +118,15 @@ client-visible span, not an internal scheduler/KV root cause.}
 
 \begin{table}[t]
 \centering
+\caption{Controlled client-visible slow-stream diagnosis on NPU6. The delay is
+introduced by the probe client, so the result validates proxy-stage
+discrimination rather than internal runtime backpressure attribution.}
+\label{tab:npu6-slow-stream}
+\input{tables/generated/npu6_slow_stream_trace_diagnosis.tex}
+\end{table}
+
+\begin{table}[t]
+\centering
 \caption{Matched no-trace/trace client-probe overhead smoke on NPU6. This is
 existing-server proxy evidence and does not measure internal runtime hook
 overhead or memory cost.}
@@ -120,12 +138,12 @@ overhead or memory cost.}
 
 The current evidence supports trace schema feasibility, synthetic attribution
 coverage, live client-observed lifecycle export, derived proxy-stage diagnosis,
-and a narrow client-probe event-construction overhead smoke. It does not yet
-support claims about diagnosis accuracy on live faults, internal queue/KV
-attribution, internal runtime hook overhead, memory overhead, or root-cause time
-improvement. Those claims require paired NPU6 runs with and without runtime
-instrumentation, plus controlled runtime fault injection with known ground
-truth.
+controlled client-visible slow-stream discrimination, and a narrow client-probe
+event-construction overhead smoke. It does not yet support claims about
+diagnosis accuracy on live internal faults, internal queue/KV attribution,
+internal runtime hook overhead, memory overhead, or root-cause time improvement.
+Those claims require paired NPU6 runs with and without runtime instrumentation,
+plus controlled runtime fault injection with known ground truth.
 
 \begin{table}[t]
 \centering

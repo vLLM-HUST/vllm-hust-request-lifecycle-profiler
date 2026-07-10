@@ -63,6 +63,26 @@ def _git_dirty_excluding(cwd: Path, excluded: Path) -> bool | str:
     return bool(status)
 
 
+def _git_dirty_excluding_many(cwd: Path, excluded_paths: list[Path]) -> bool | str:
+    exclude_args: list[str] = []
+    for excluded in excluded_paths:
+        try:
+            excluded_rel = excluded.resolve().relative_to(cwd.resolve())
+        except ValueError:
+            return _git_dirty(cwd)
+        exclude_args.append(f":(exclude){excluded_rel}")
+    try:
+        status = subprocess.check_output(
+            ["git", "status", "--short", "--", ".", *exclude_args],
+            cwd=cwd,
+            text=True,
+            stderr=subprocess.DEVNULL,
+        ).strip()
+    except (OSError, subprocess.CalledProcessError):
+        return "unknown"
+    return bool(status)
+
+
 def _percentile(values: list[float], percentile: float) -> float | None:
     if not values:
         return None
@@ -186,10 +206,15 @@ def write_outputs(args: argparse.Namespace, result: dict[str, Any]) -> None:
             "branch": _git(["branch", "--show-current"]),
             "commit": _git(["rev-parse", "HEAD"]),
             "dirty": _git_dirty(REPO_ROOT),
-            "dirty_excluding_output_dir": _git_dirty_excluding(
-                REPO_ROOT, args.output_dir
+            "dirty_excluding_output_dir": _git_dirty_excluding_many(
+                REPO_ROOT,
+                [args.output_dir, args.input_probe_results.parent],
             ),
             "dirty_exclusion_dir": str(args.output_dir),
+            "dirty_exclusion_dirs": [
+                str(args.output_dir),
+                str(args.input_probe_results.parent),
+            ],
         },
     }
     (args.output_dir / "run_metadata.json").write_text(

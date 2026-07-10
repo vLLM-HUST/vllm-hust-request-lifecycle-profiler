@@ -58,16 +58,27 @@ pressure, streaming backpressure, and cleanup stalls.
    client-visible `decode` span. Decode-proxy p95 is 98.75 ms and
    prefill-proxy p95 is 85.50 ms. Treat this as a stage hypothesis, not
    internal decode root cause.
-2. **Internal runtime trace hooks** (`real-online` only after repo-launched
+2. **Controlled client-visible slow-stream diagnosis** (`existing-server-probe`
+   plus `derived-artifact`): run `make npu6-existing-server-slow-stream-trace-smoke`
+   followed by `make npu6-slow-stream-trace-diagnosis`. Current evidence at
+   parent commit `6cdbdc9` uses a streaming-proxy span model with
+   `per_chunk_read_delay_ms=80`, 64 output tokens, 1 warmup, and 4 measured
+   requests. All measured requests succeed; TTFT p95 is 81.14 ms but latency
+   p95 is 5208.20 ms. Diagnosis attributes 4/4 measured requests to
+   `streaming` with streaming p95 5127.09 ms and missing-event-rate p95 0.0.
+   Treat this as proof that the proxy pipeline can distinguish a controlled
+   client-visible backpressure shape from the normal decode-visible trace, not
+   as internal runtime diagnosis.
+3. **Internal runtime trace hooks** (`real-online` only after repo-launched
    runtime hook instrumentation is active): keep the client-observed proxy
    events as correlation anchors, but add internal vLLM-HUST hooks for
    scheduler admission, queue wait, prefill completion, decode-step progress,
    KV pressure, stream backpressure, and cleanup. Write those internal events
    into the same JSONL schema.
-3. **Controlled fault injection** (`real-online` when launched by this repo,
+4. **Controlled fault injection** (`real-online` when launched by this repo,
    otherwise `existing-server-probe`): long-prompt surge, decode-heavy batch,
    slow streaming client, KV-pressure boundary, and cleanup stall.
-4. **Diagnosis baseline comparison** (`derived-artifact` plus raw traces):
+5. **Diagnosis baseline comparison** (`derived-artifact` plus raw traces):
    compare causal attribution against raw logs, simple stage timers, and rules
    disabled.
 
@@ -89,11 +100,12 @@ serving behavior on shared workloads. A publishable result needs to show why
 causal lifecycle evidence changes optimization decisions compared with ordinary
 timers, not merely that traces can be collected.
 
-Immediate next step: use the proxy diagnosis as the target for internal hook
-validation. Integrate internal vLLM hooks so the same trace schema records
-scheduler admission, queue wait, KV pressure, prefill, decode, streaming, and
-cleanup from inside the runtime, then check whether the internal spans confirm
-or overturn the proxy `decode` hypothesis. Run paired
+Immediate next step: use the normal proxy diagnosis and the slow-stream proxy
+diagnosis as two anchors for internal hook validation. Integrate internal vLLM
+hooks so the same trace schema records scheduler admission, queue wait, KV
+pressure, prefill, decode, streaming, and cleanup from inside the runtime, then
+check whether the internal spans confirm or overturn the proxy `decode` and
+client-visible `streaming` hypotheses. Run paired
 runtime-hook-disabled/runtime-hook-enabled NPU6 suites using the same
 warmup-controlled workload shape, memory snapshots, and the no-trace/trace
 client-probe comparison as a sanity bound. Follow with one controlled fault at a
