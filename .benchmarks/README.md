@@ -12,3 +12,7 @@ All run directories must include `run_metadata.json` and an evidence label.
 Profiler-only evidence should be framed as diagnosis or artifact evidence, not
 runtime optimization.
 
+Use `preflight_npu6_trace_probe.py` before an existing-server probe. It checks
+the endpoint, authentication, model path, Ascend runtime root, NPU6 ownership,
+trace export schema, and pinned workload submodule metadata without launching or
+killing any service.

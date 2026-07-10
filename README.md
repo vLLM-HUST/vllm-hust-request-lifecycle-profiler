@@ -61,6 +61,9 @@ make shared-workloads-smoke PYTHON=python3
 
 ## Next Gate
 
-Run a NPU6 existing-server probe that emits lifecycle timelines, then validate
-attribution on controlled long-prompt, decode-heavy, streaming, and KV-pressure
-faults.
+Follow `docs/npu6_trace_probe_runbook.md` and run `make npu6-trace-preflight`
+to verify the endpoint, model, NPU6 ownership, authentication, Ascend runtime
+root, and trace export schema. A passing preflight is readiness evidence only;
+the next measured gate is a NPU6 existing-server probe that emits lifecycle
+timelines, followed by controlled long-prompt, decode-heavy, streaming, and
+KV-pressure faults.

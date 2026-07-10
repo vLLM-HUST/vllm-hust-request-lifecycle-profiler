@@ -8,10 +8,10 @@
   "npu_id": null,
   "output_dir": ".benchmarks/results/synthetic_fault_injection",
   "parent_branch": "main",
-  "parent_commit": "765c6e8fab649b2aa1ff0506042d07228df0c22d",
+  "parent_commit": "2530a556c46896ed14ae0390dd4035ec288b9c2d",
   "parent_dirty": true,
   "runtime": "no_serving_runtime",
-  "timestamp_utc": "2026-07-10T16:42:59.701547+00:00",
+  "timestamp_utc": "2026-07-10T16:53:44.391614+00:00",
   "workload_source": {
     "branch": "main",
     "commit": "76e24c85bcab76ecfabb831c9444002b6efffd58",

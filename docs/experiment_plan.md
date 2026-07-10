@@ -21,6 +21,7 @@ coverage only; it does not support live NPU6 diagnosis or speedup claims.
 
 ## Phase 1: Existing-Server Probe on NPU6
 
+- Follow `docs/npu6_trace_probe_runbook.md` before probing any server.
 - Instrument baseline serving without changing runtime behavior.
 - Run shared workloads and emit per-request timelines.
 - Compare profiler reports against raw logs and simple stage timers.
@@ -32,6 +33,14 @@ Latest attempt:
 visible with no `npu-smi` process owner, but no project-defined existing-server
 endpoint, model identity, request client, or trace export hook was available.
 This is a blocked/invalid probe directory and must not support paper claims.
+
+Readiness preflight:
+`.benchmarks/preflight_npu6_trace_probe.py` now defines the repo-local
+read-only preflight. It verifies endpoint authentication, `/v1/models`, model
+path, Ascend runtime root, NPU6 process ownership, trace export schema, and the
+pinned workload submodule commit. If a runtime trace hook is missing, the
+preflight records the missing hook as `trace_export_invalid:*` rather than
+claiming an online measurement.
 
 ## Phase 2: Controlled Fault Injection
 

@@ -1,0 +1,66 @@
+{
+  "api_token_env": "VLLM_RLP_API_TOKEN",
+  "api_token_value_recorded": false,
+  "ascend_runtime_root": {
+    "checked": [],
+    "ok": false,
+    "path": null
+  },
+  "blockers": [
+    "ascend_runtime_root_missing",
+    "model_path_missing",
+    "models_endpoint_failed",
+    "trace_export_invalid:missing_trace_export_path",
+    "no_process_on_npu6"
+  ],
+  "command": ".benchmarks/preflight_npu6_trace_probe.py --output-dir .benchmarks/results/npu6_trace_probe_preflight",
+  "conda_env": "base",
+  "endpoint": "http://127.0.0.1:18080",
+  "evidence_label": "existing-server-probe",
+  "model_path": "",
+  "model_path_exists": false,
+  "models_endpoint": {
+    "error": "http_error:401",
+    "ok": false,
+    "status": 401,
+    "token_env_present": false
+  },
+  "npu_id": 6,
+  "npu_smi": {
+    "error": null,
+    "has_process_on_requested_npu": false,
+    "ok": true,
+    "processes": []
+  },
+  "output_dir": ".benchmarks/results/npu6_trace_probe_preflight",
+  "parent_branch": "main",
+  "parent_commit": "2530a556c46896ed14ae0390dd4035ec288b9c2d",
+  "parent_dirty": true,
+  "preflight_passed": false,
+  "result_valid_for_paper_claims": false,
+  "timestamp_utc": "2026-07-10T16:53:44.507661+00:00",
+  "trace_export": {
+    "error": "missing_trace_export_path",
+    "ok": false,
+    "optional_fields": [
+      "engine_request_id",
+      "metadata",
+      "sequence_id",
+      "trace_id"
+    ],
+    "path": null,
+    "required_fields": [
+      "request_id",
+      "stage",
+      "timestamp_ms"
+    ]
+  },
+  "trace_export_path": "",
+  "workload_source": {
+    "branch": "main",
+    "commit": "76e24c85bcab76ecfabb831c9444002b6efffd58",
+    "dirty": false,
+    "exists": true,
+    "path": "/home/shuhao/vllm-request-lifecycle-profiler-plugin/third_party/llm-serving-workloads"
+  }
+}

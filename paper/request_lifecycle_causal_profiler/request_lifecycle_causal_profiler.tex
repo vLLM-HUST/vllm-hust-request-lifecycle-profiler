@@ -16,8 +16,8 @@ request as an ordered timeline across tokenization, queueing, prefill, decode,
 streaming, and cleanup, then attributing the dominant bottleneck under
 controlled fault injection. The current artifact contains the trace schema,
 attribution skeleton, deterministic synthetic fault-injection harness, tests,
-experiment plan, and claim ledger. It does not yet claim measured diagnosis
-accuracy or trace overhead on live traces.
+NPU6 preflight contract, experiment plan, and claim ledger. It does not yet
+claim measured diagnosis accuracy or trace overhead on live traces.
 \end{abstract}
 
 \keywords{LLM serving, observability, profiling, causal diagnosis}
@@ -42,8 +42,11 @@ explicit rule set that can be validated by injected-fault ground truth.
 The first implementation provides trace primitives, schema coverage checks, and
 deterministic attribution logic. The no-NPU harness covers tokenizer delay,
 queueing, prefill, decode, KV pressure, streaming backpressure, and cleanup
-stalls with known ground truth. NPU6 runs should begin as existing-server probes
-before any runtime policy uses profiler output.
+stalls with known ground truth. The NPU6 preflight contract specifies the
+endpoint, model path, authentication, Ascend runtime root, device ownership, and
+trace export schema required before existing-server probes can support online
+claims. NPU6 runs should begin as existing-server probes before any runtime
+policy uses profiler output.
 
 \section{Evaluation Plan}
 
@@ -57,7 +60,9 @@ overhead, event coverage, and time-to-root-cause.
 No-NPU trace tests and a deterministic synthetic fault-injection matrix are
 currently supported as \texttt{simulation/model} evidence. The latest synthetic
 matrix reports seven of seven correct attributions with zero false positives,
-zero false negatives, and zero missing-event rate. Live diagnosis, overhead, and
+zero false negatives, and zero missing-event rate. The repository also defines a
+read-only NPU6 preflight and trace-hook schema, but that is readiness evidence
+rather than an online measurement. Live diagnosis, overhead, and
 time-to-root-cause claims still require manifest-backed NPU6 probes and
 controlled fault-injection results.
 

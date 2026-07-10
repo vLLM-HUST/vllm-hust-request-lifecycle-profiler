@@ -17,7 +17,7 @@ PAPER_DIR := paper/request_lifecycle_causal_profiler
 
 .DEFAULT_GOAL := help
 
-.PHONY: help bootstrap-shared-env install-dev smoke test shared-workloads-smoke shared-workloads-test synthetic-fault-injection lint format build bench paper paper-assets paper-pdf paper-clean clean
+.PHONY: help bootstrap-shared-env install-dev smoke test shared-workloads-smoke shared-workloads-test synthetic-fault-injection npu6-trace-preflight lint format build bench paper paper-assets paper-pdf paper-clean clean
 
 help:
 	@printf '%s\n' \
@@ -30,6 +30,7 @@ help:
 		'  make shared-workloads-smoke Run the repo-local shared workload compatibility sweep' \
 		'  make shared-workloads-test  Run unit tests plus the shared workload compatibility sweep' \
 		'  make synthetic-fault-injection Run no-NPU controlled lifecycle attribution checks' \
+		'  make npu6-trace-preflight Run read-only NPU6 existing-server trace preflight' \
 		'  make lint         Run ruff checks' \
 		'  make format       Run ruff formatting' \
 		'  make build        Build sdist and wheel artifacts' \
@@ -73,6 +74,10 @@ shared-workloads-test: test shared-workloads-smoke
 synthetic-fault-injection:
 	PYTHONPATH=src $(PYTHON) .benchmarks/run_synthetic_fault_injection.py \
 		--output-dir .benchmarks/results/synthetic_fault_injection
+
+npu6-trace-preflight:
+	PYTHONPATH=src $(PYTHON) .benchmarks/preflight_npu6_trace_probe.py \
+		--output-dir .benchmarks/results/npu6_trace_probe_preflight
 
 lint:
 	$(RUFF) check .
