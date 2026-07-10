@@ -45,3 +45,17 @@ def test_parse_args_supports_no_trace_mode() -> None:
     module = _load_probe_module()
     args = module.parse_args(["--observer-mode", "no-trace"])
     assert args.observer_mode == "no-trace"
+
+
+def test_parse_args_supports_streaming_proxy_delay() -> None:
+    module = _load_probe_module()
+    args = module.parse_args(
+        [
+            "--per-chunk-read-delay-ms",
+            "80",
+            "--proxy-stage-mode",
+            "streaming-proxy",
+        ]
+    )
+    assert args.per_chunk_read_delay_ms == 80
+    assert args.proxy_stage_mode == "streaming-proxy"

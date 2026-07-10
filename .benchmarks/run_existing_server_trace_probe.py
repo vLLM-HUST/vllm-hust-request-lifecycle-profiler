@@ -92,6 +92,8 @@ def _stream_completion(
     request_id: str,
     tokenizer: WhitespaceTokenizer,
     collect_events: bool,
+    per_chunk_read_delay_ms: float,
+    proxy_stage_mode: str,
 ) -> dict[str, Any]:
     start = time.perf_counter()
     events: list[dict[str, Any]] = []
@@ -156,6 +158,7 @@ def _stream_completion(
     error = ""
     first_token_seen = False
     first_token_ms: float | None = None
+    last_data_chunk_ms: float | None = None
     try:
         with urlopen(request, timeout=timeout_s) as response:
             status = response.status
@@ -169,6 +172,7 @@ def _stream_completion(
                     continue
                 if line.startswith(b"data: ") and stripped != b"data: [DONE]":
                     chunk_count += 1
+                    last_data_chunk_ms = _now_ms(start)
                     if not first_token_seen:
                         first_token_seen = True
                         ts = _now_ms(start)
@@ -190,6 +194,8 @@ def _stream_completion(
                                     metadata={"observer": "client_probe"},
                                 )
                             )
+                    if per_chunk_read_delay_ms > 0:
+                        time.sleep(per_chunk_read_delay_ms / 1000.0)
     except HTTPError as exc:
         status = exc.code
         error = f"http_{exc.code}"
@@ -214,12 +220,22 @@ def _stream_completion(
             )
         )
     if collect_events:
+        decode_done_ms = end_ms
+        decode_done_metadata: dict[str, Any] = {
+            "observer": "client_probe",
+            "stream_chunk_count": chunk_count,
+            "proxy_stage_mode": proxy_stage_mode,
+        }
+        if proxy_stage_mode == "streaming-proxy":
+            decode_done_ms = first_token_ms or last_data_chunk_ms or end_ms
+            decode_done_metadata["meaning"] = "client_visible_decode_boundary_for_streaming_proxy"
+            decode_done_metadata["per_chunk_read_delay_ms"] = per_chunk_read_delay_ms
         events.append(
             _event(
                 request_id=request_id,
                 stage=LifecycleStage.DECODE_DONE,
-                timestamp_ms=end_ms,
-                metadata={"observer": "client_probe", "stream_chunk_count": chunk_count},
+                timestamp_ms=decode_done_ms,
+                metadata=decode_done_metadata,
             )
         )
         events.append(
@@ -272,6 +288,8 @@ def _metadata(args: argparse.Namespace) -> dict[str, Any]:
         "warmup_requests": args.warmup_requests,
         "repeat_count": args.repeat_count,
         "observer_mode": args.observer_mode,
+        "per_chunk_read_delay_ms": args.per_chunk_read_delay_ms,
+        "proxy_stage_mode": args.proxy_stage_mode,
         "repo": {
             "path": str(REPO_ROOT),
             "branch": _git(["branch", "--show-current"]),
@@ -313,6 +331,8 @@ def run_probe(args: argparse.Namespace) -> dict[str, Any]:
             request_id=request_id,
             tokenizer=tokenizer,
             collect_events=collect_events,
+            per_chunk_read_delay_ms=args.per_chunk_read_delay_ms,
+            proxy_stage_mode=args.proxy_stage_mode,
         )
         events.extend(result.pop("events"))
         result.update(
@@ -432,6 +452,12 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--repeat-count", type=int, default=1)
     parser.add_argument("--request-max-tokens", type=int, default=8)
     parser.add_argument("--observer-mode", choices=("trace", "no-trace"), default="trace")
+    parser.add_argument("--per-chunk-read-delay-ms", type=float, default=0.0)
+    parser.add_argument(
+        "--proxy-stage-mode",
+        choices=("decode-proxy", "streaming-proxy"),
+        default="decode-proxy",
+    )
     parser.add_argument("--seed", type=int, default=7)
     parser.add_argument("--timeout-s", type=float, default=60.0)
     parser.add_argument("--trace-export-path", type=Path, default=DEFAULT_TRACE_EXPORT)

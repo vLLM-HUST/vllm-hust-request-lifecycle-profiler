@@ -19,7 +19,7 @@ PAPER_DIR := paper/request_lifecycle_causal_profiler
 
 .DEFAULT_GOAL := help
 
-.PHONY: help bootstrap-shared-env install-dev smoke test shared-workloads-smoke shared-workloads-test synthetic-fault-injection trace-diagnosis npu6-trace-preflight npu6-existing-server-trace-probe npu6-existing-server-trace-suite-smoke npu6-existing-server-trace-overhead-smoke managed-install managed-start managed-restart managed-stop managed-status managed-health managed-logs managed-foreground lint format build bench paper paper-assets paper-pdf paper-clean clean
+.PHONY: help bootstrap-shared-env install-dev smoke test shared-workloads-smoke shared-workloads-test synthetic-fault-injection trace-diagnosis npu6-trace-preflight npu6-existing-server-trace-probe npu6-existing-server-trace-suite-smoke npu6-existing-server-slow-stream-trace-smoke npu6-slow-stream-trace-diagnosis npu6-existing-server-trace-overhead-smoke managed-install managed-start managed-restart managed-stop managed-status managed-health managed-logs managed-foreground lint format build bench paper paper-assets paper-pdf paper-clean clean
 
 help:
 	@printf '%s\n' \
@@ -36,6 +36,8 @@ help:
 		'  make npu6-trace-preflight Run read-only NPU6 existing-server trace preflight' \
 		'  make npu6-existing-server-trace-probe Run client-observed lifecycle trace probe on NPU6' \
 		'  make npu6-existing-server-trace-suite-smoke Run warmup-controlled repeated trace suite on NPU6' \
+		'  make npu6-existing-server-slow-stream-trace-smoke Run client-visible slow-stream trace probe on NPU6' \
+		'  make npu6-slow-stream-trace-diagnosis Derive diagnosis from the slow-stream trace probe' \
 		'  make npu6-existing-server-trace-overhead-smoke Run matched no-trace/trace client-probe overhead suite on NPU6' \
 		'  make managed-start Start the NPU6 baseline through vLLM-HUST dev-hub using the repo profile' \
 		'  make managed-stop  Stop the managed NPU6 baseline service' \
@@ -115,6 +117,25 @@ npu6-existing-server-trace-suite-smoke:
 		--max-requests 4 \
 		--trace-export-path /tmp/codex-vllm-request-lifecycle-profiler-npu6-trace.jsonl \
 		--output-dir .benchmarks/results/npu6_existing_server_trace_probe_repeated_smoke
+
+npu6-existing-server-slow-stream-trace-smoke:
+	PYTHONPATH=src $(PYTHON) .benchmarks/run_existing_server_trace_probe.py \
+		--endpoint http://127.0.0.1:18168 \
+		--model codex-qwen2.5-7b-npu6 \
+		--api-key-env VLLM_HUST_API_KEY \
+		--warmup-requests 1 \
+		--repeat-count 2 \
+		--max-requests 2 \
+		--request-max-tokens 64 \
+		--per-chunk-read-delay-ms 80 \
+		--proxy-stage-mode streaming-proxy \
+		--trace-export-path /tmp/codex-vllm-request-lifecycle-profiler-npu6-slow-stream-trace.jsonl \
+		--output-dir .benchmarks/results/npu6_existing_server_slow_stream_trace_smoke
+
+npu6-slow-stream-trace-diagnosis:
+	PYTHONPATH=src $(PYTHON) .benchmarks/analyze_trace_diagnosis.py \
+		--input-probe-results .benchmarks/results/npu6_existing_server_slow_stream_trace_smoke/probe_results.json \
+		--output-dir .benchmarks/results/npu6_slow_stream_trace_diagnosis
 
 npu6-existing-server-trace-overhead-smoke:
 	PYTHONPATH=src $(PYTHON) .benchmarks/run_existing_server_trace_overhead_suite.py \
