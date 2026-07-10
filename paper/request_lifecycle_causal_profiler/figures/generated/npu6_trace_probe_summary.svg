@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="300" viewBox="0 0 640 300">
+<rect width="100%" height="100%" fill="white"/>
+<style>text{font-family:Arial,Helvetica,sans-serif;font-size:13px;fill:#111827}.axis{stroke:#374151;stroke-width:1.2}.grid{stroke:#e5e7eb;stroke-width:1}.bar{fill:#2563eb}.meta{fill:#4b5563}</style>
+<text x="320.0" y="24" text-anchor="middle" font-weight="700">Warmup-controlled NPU6 client-observed trace probe</text>
+<line class="axis" x1="90" y1="54" x2="90" y2="219"/>
+<line class="axis" x1="90" y1="219" x2="598" y2="219"/>
+<text transform="translate(24,136.5) rotate(-90)" text-anchor="middle">Milliseconds</text>
+<line class="grid" x1="90" y1="219.0" x2="598" y2="219.0"/>
+<text x="82" y="223.0" text-anchor="end">0</text>
+<line class="grid" x1="90" y1="179.9" x2="598" y2="179.9"/>
+<text x="82" y="183.9" text-anchor="end">50</text>
+<line class="grid" x1="90" y1="140.8" x2="598" y2="140.8"/>
+<text x="82" y="144.8" text-anchor="end">100</text>
+<line class="grid" x1="90" y1="101.6" x2="598" y2="101.6"/>
+<text x="82" y="105.6" text-anchor="end">150</text>
+<line class="grid" x1="90" y1="62.5" x2="598" y2="62.5"/>
+<text x="82" y="66.5" text-anchor="end">200</text>
+<rect class="bar" x="134" y="153.7" width="72" height="65.3"/>
+<text x="170.0" y="146.7" text-anchor="middle">83.4</text>
+<text x="170.0" y="239" text-anchor="middle">TTFT p50</text>
+<rect class="bar" x="251" y="151.9" width="72" height="67.1"/>
+<text x="287.0" y="144.9" text-anchor="middle">85.8</text>
+<text x="287.0" y="239" text-anchor="middle">TTFT p95</text>
+<rect class="bar" x="368" y="151.2" width="72" height="67.8"/>
+<text x="404.0" y="144.2" text-anchor="middle">86.6</text>
+<text x="404.0" y="239" text-anchor="middle">TTFT p99</text>
+<rect class="bar" x="485" y="75.5" width="72" height="143.5"/>
+<text x="521.0" y="68.5" text-anchor="middle">183.4</text>
+<text x="521.0" y="239" text-anchor="middle">Lat. p95</text>
+<text class="meta" x="320.0" y="280" text-anchor="middle">12 measured requests, 117 lifecycle events, 0 errors</text>
+</svg>
