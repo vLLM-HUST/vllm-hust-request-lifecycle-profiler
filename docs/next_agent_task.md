@@ -27,6 +27,12 @@ If `llm-serving-workloads` needs changes, make them in
 `feature/request-lifecycle-profiler-workloads` branch, push the branch, then
 commit the parent submodule pointer.
 
+The runtime hook carrier is already pinned as
+`third_party/vllm-hust` on branch
+`feature/request-lifecycle-profiler-runtime-hooks`, commit `e67181f`. Do not
+reintegrate hook sites from scratch. Use this submodule as the runtime source
+for the next hook-enabled NPU6 launch.
+
 ## Research Hypothesis
 
 Aggregate TTFT/TPOT and raw runtime logs hide the causal chain behind serving
@@ -72,10 +78,12 @@ pressure, streaming backpressure, and cleanup stalls.
    as internal runtime diagnosis.
 3. **Internal runtime trace hooks** (`real-online` only after repo-launched
    runtime hook instrumentation is active): keep the client-observed proxy
-   events as correlation anchors, but add internal vLLM-HUST hooks for
-   scheduler admission, queue wait, prefill completion, decode-step progress,
-   KV pressure, stream backpressure, and cleanup. Write those internal events
-   into the same JSONL schema.
+   events as correlation anchors. The pinned vLLM-HUST submodule already emits
+   optional hook stages for `received`, `tokenized`, `queued`, `scheduled`,
+   `prefill_done`, `first_token`, `decode_done`, and `cleanup_done` through
+   the parent bridge when `VLLM_RLP_TRACE_EXPORT_PATH` is set. The next job is
+   to launch that submodule on NPU6 and collect paired hook-disabled and
+   hook-enabled suites.
 4. **Controlled fault injection** (`real-online` when launched by this repo,
    otherwise `existing-server-probe`): long-prompt surge, decode-heavy batch,
    slow streaming client, KV-pressure boundary, and cleanup stall.
@@ -102,20 +110,19 @@ causal lifecycle evidence changes optimization decisions compared with ordinary
 timers, not merely that traces can be collected.
 
 Immediate next step: use the normal proxy diagnosis and the slow-stream proxy
-diagnosis as two anchors for internal hook validation. The parent repo now
-provides `vllm_request_lifecycle_profiler.runtime_hooks.RuntimeLifecycleHooks`,
-a dependency-free bridge that writes the same JSONL lifecycle schema from
-runtime hook sites when `VLLM_RLP_TRACE_EXPORT_PATH` is set. Integrate vLLM-HUST
-hook sites by calling this bridge at scheduler admission, queue wait, KV
-pressure, prefill completion, first token, decode completion, streaming
-completion, and cleanup. Then check whether the internal spans confirm or
-overturn the proxy `decode` and client-visible `streaming` hypotheses.
+diagnosis as two anchors for internal hook validation. Install the parent
+package into `vllm-request-lifecycle-profiler-exp`, launch vLLM-HUST from the
+pinned `third_party/vllm-hust` submodule, and set
+`VLLM_RLP_TRACE_EXPORT_PATH=/tmp/codex-vllm-request-lifecycle-profiler-npu6-runtime.jsonl`
+for the hook-enabled mode. First run the same suite with the env var unset,
+then run it with the env var set. Record TTFT/TPOT, host memory, NPU HBM,
+trace bytes per request, parent/submodule commits, conda environment, and
+workload source in `run_metadata.json`.
 
-After hook sites are active, run paired runtime-hook-disabled/runtime-hook-
-enabled NPU6 suites using the same warmup-controlled workload shape, memory
-snapshots, and the no-trace/trace client-probe comparison as a sanity bound.
-Follow with one controlled fault at a time. Keep client-observed proxy trace
-results separate from internal runtime trace claims.
+After the paired runs, check whether the internal spans confirm or overturn the
+proxy `decode` and client-visible `streaming` hypotheses. Follow with one
+controlled fault at a time. Keep client-observed proxy trace results separate
+from internal runtime trace claims.
 
 ## Paper Update Requirement
 

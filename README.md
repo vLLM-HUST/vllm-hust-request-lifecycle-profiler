@@ -17,6 +17,8 @@ stage instead of correlated symptoms?
   plugin code.
 - `.benchmarks/`: trace probes and controlled fault-injection entrypoints.
 - `third_party/llm-serving-workloads/`: pinned shared workload suite.
+- `third_party/vllm-hust/`: pinned vLLM-HUST runtime carrier with optional
+  lifecycle hook sites on `feature/request-lifecycle-profiler-runtime-hooks`.
 - `tests/`: no-NPU trace and repository tests.
 - `docs/research_logic.md`: seven-step research framing.
 - `docs/experiment_plan.md`: evaluation plan and evidence labels.
@@ -61,9 +63,8 @@ make shared-workloads-smoke PYTHON=python3
 
 ## Next Gate
 
-Follow `docs/npu6_trace_probe_runbook.md` and run `make npu6-trace-preflight`
-to verify the endpoint, model, NPU6 ownership, authentication, Ascend runtime
-root, and trace export schema. A passing preflight is readiness evidence only;
-the next measured gate is a NPU6 existing-server probe that emits lifecycle
-timelines, followed by controlled long-prompt, decode-heavy, streaming, and
-KV-pressure faults.
+Follow `docs/npu6_trace_probe_runbook.md` and the pinned
+`third_party/vllm-hust` submodule to launch a hook-enabled NPU6 runtime. The
+next measured gate is a paired hook-disabled/hook-enabled run that records
+runtime JSONL events, client proxy anchors, TTFT/TPOT deltas, and memory
+snapshots under the same shared-workload shape.

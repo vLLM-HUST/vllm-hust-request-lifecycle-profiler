@@ -54,6 +54,39 @@ Do not use another NPU. If NPU6 is occupied by unrelated work, record a blocked
 run and stop. `make managed-stop`, `make managed-status`, and
 `make managed-logs` use the same profile.
 
+## Pinned Runtime Hook Submodule
+
+For internal runtime-hook experiments, use the repository-pinned vLLM-HUST
+submodule rather than a sibling checkout:
+
+```bash
+git submodule update --init --recursive third_party/vllm-hust
+git -C third_party/vllm-hust checkout feature/request-lifecycle-profiler-runtime-hooks
+git -C third_party/vllm-hust rev-parse HEAD
+```
+
+The expected hook carrier is commit
+`e67181fc81987fdd38fd59a0611ac447c1989461`. It imports the parent package's
+runtime hook bridge only when `VLLM_RLP_TRACE_EXPORT_PATH` is set. Before
+launching a hook-enabled service, install the parent repository into the
+project environment:
+
+```bash
+conda run --no-capture-output -n vllm-request-lifecycle-profiler-exp \
+  python -m pip install -e .
+```
+
+Hook-disabled mode leaves `VLLM_RLP_TRACE_EXPORT_PATH` unset. Hook-enabled mode
+sets it to a fresh JSONL path, for example:
+
+```bash
+export VLLM_RLP_TRACE_EXPORT_PATH=/tmp/codex-vllm-request-lifecycle-profiler-npu6-runtime.jsonl
+```
+
+Do not use non-serving import workarounds such as
+`TORCH_DEVICE_BACKEND_AUTOLOAD=0` for the measured service. Those are useful
+only for local syntax/import diagnostics outside the real Ascend runtime.
+
 ## Read-Only Preflight
 
 Run:
