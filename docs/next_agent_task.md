@@ -29,7 +29,7 @@ commit the parent submodule pointer.
 
 The runtime hook carrier is already pinned as
 `third_party/vllm-hust` on branch
-`feature/request-lifecycle-profiler-runtime-hooks`, commit `e67181f`. Do not
+`feature/request-lifecycle-profiler-runtime-hooks`, commit `c3f29b4`. Do not
 reintegrate hook sites from scratch. Use this submodule as the runtime source
 for the next hook-enabled NPU6 launch.
 
@@ -80,10 +80,10 @@ pressure, streaming backpressure, and cleanup stalls.
    runtime hook instrumentation is active): keep the client-observed proxy
    events as correlation anchors. The pinned vLLM-HUST submodule already emits
    optional hook stages for `received`, `tokenized`, `queued`, `scheduled`,
-   `prefill_done`, `first_token`, `decode_done`, and `cleanup_done` through
-   the parent bridge when `VLLM_RLP_TRACE_EXPORT_PATH` is set. The next job is
-   to launch that submodule on NPU6 and collect paired hook-disabled and
-   hook-enabled suites.
+   `prefill_done`, `first_token`, `decode_done`, `stream_done`, and
+   `cleanup_done` through the parent bridge when `VLLM_RLP_TRACE_EXPORT_PATH`
+   is set. The next job is to launch that submodule on NPU6 and collect paired
+   hook-disabled and hook-enabled suites.
 4. **Controlled fault injection** (`real-online` when launched by this repo,
    otherwise `existing-server-probe`): long-prompt surge, decode-heavy batch,
    slow streaming client, KV-pressure boundary, and cleanup stall.

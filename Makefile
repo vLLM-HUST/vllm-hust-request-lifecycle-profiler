@@ -6,6 +6,7 @@ PIP ?= $(PYTHON) -m pip
 PYTEST ?= PYTHONPATH=src $(PYTHON) -m pytest -q
 RUFF ?= $(PYTHON) -m ruff
 BUILD ?= $(PYTHON) -m build
+LINT_TARGETS ?= src tests .benchmarks scripts paper/request_lifecycle_causal_profiler/experiments
 SHARED_ENV_SCRIPT ?= /home/shuhao/llm-optimizations/scripts/bootstrap_shared_env.sh
 SHARED_PROFILE ?= vllm-research
 SHARED_ENV_NAME ?= $(CONDA_ENV)
@@ -172,10 +173,10 @@ managed-foreground:
 	VLLM_ENGINE_ENV_FILE='$(MANAGED_ENV_FILE)' '$(DEV_HUB)'/manage.sh foreground
 
 lint:
-	$(RUFF) check .
+	$(RUFF) check $(LINT_TARGETS)
 
 format:
-	$(RUFF) format .
+	$(RUFF) format $(LINT_TARGETS)
 
 build:
 	$(BUILD)

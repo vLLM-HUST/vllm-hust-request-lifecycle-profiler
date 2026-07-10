@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from pathlib import Path
 
 from vllm_request_lifecycle_profiler.runtime_hooks import RuntimeLifecycleHooks
 from vllm_request_lifecycle_profiler.runtime_hooks import RuntimeTraceConfig
@@ -48,13 +49,20 @@ def test_runtime_hooks_write_schema_compatible_jsonl(tmp_path) -> None:
         hooks.emit("req-2", LifecycleStage.TOKENIZED, timestamp_ms=2.0),
         hooks.emit("req-2", LifecycleStage.QUEUED, timestamp_ms=3.0),
         hooks.emit("req-2", LifecycleStage.SCHEDULED, timestamp_ms=8.0),
+        hooks.emit("req-2", LifecycleStage.PREFILL_DONE, timestamp_ms=18.0),
         hooks.emit("req-2", LifecycleStage.FIRST_TOKEN, timestamp_ms=18.0),
+        hooks.emit("req-2", LifecycleStage.DECODE_DONE, timestamp_ms=28.0),
+        hooks.emit("req-2", LifecycleStage.STREAM_DONE, timestamp_ms=31.0),
+        hooks.emit("req-2", LifecycleStage.CLEANUP_DONE, timestamp_ms=32.0),
     ]
     spans = compute_spans(events)
     assert [(span.name, span.duration_ms) for span in spans] == [
         ("tokenization", 2.0),
         ("queueing", 5.0),
         ("prefill", 10.0),
+        ("decode", 10.0),
+        ("streaming", 3.0),
+        ("cleanup", 1.0),
     ]
 
 
@@ -65,3 +73,21 @@ def test_runtime_hooks_noop_when_disabled(tmp_path) -> None:
     assert event.stage is LifecycleStage.SCHEDULED
     assert event.metadata == {"observer": "vllm_runtime_hook"}
     assert list(tmp_path.iterdir()) == []
+
+
+def test_pinned_vllm_hust_hook_sites_cover_stream_done() -> None:
+    repo_root = Path(__file__).resolve().parents[1]
+    output_processor = (
+        repo_root
+        / "third_party"
+        / "vllm-hust"
+        / "vllm"
+        / "v1"
+        / "engine"
+        / "output_processor.py"
+    )
+    source = output_processor.read_text(encoding="utf-8")
+
+    assert "lifecycle_stream_done_emitted" in source
+    assert "def _emit_lifecycle_stream_done" in source
+    assert '"stream_done"' in source

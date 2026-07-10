@@ -90,14 +90,14 @@ Current live trace evidence:
 
 Runtime hook integration readiness:
 the pinned `third_party/vllm-hust` submodule is on
-`feature/request-lifecycle-profiler-runtime-hooks` at commit `e67181f`. It
+`feature/request-lifecycle-profiler-runtime-hooks` at commit `c3f29b4`. It
 adds an optional dependency-free shim that imports
 `vllm_request_lifecycle_profiler.runtime_hooks` only when
 `VLLM_RLP_TRACE_EXPORT_PATH` is set, then emits internal events for request
 receipt, tokenization, queue admission, scheduling, prefill completion, first
-token, decode completion, and cleanup. This is implementation readiness only;
-it becomes `real-online` evidence only after NPU6 hook-enabled traces are
-collected from a runtime launched with this pinned submodule.
+token, decode completion, stream handoff, and cleanup. This is implementation
+readiness only; it becomes `real-online` evidence only after NPU6 hook-enabled
+traces are collected from a runtime launched with this pinned submodule.
 
 Next step:
 run paired hook-disabled and hook-enabled NPU6 suites under the same
