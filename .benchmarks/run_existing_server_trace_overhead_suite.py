@@ -37,6 +37,7 @@ def _mode_args(base_args: argparse.Namespace, *, mode: str) -> argparse.Namespac
     args.observer_mode = mode
     args.output_dir = base_args.output_dir / mode
     args.trace_export_path = base_args.output_dir / f"{mode}_trace.jsonl"
+    args.dirty_exclusion_dir = base_args.output_dir
     return args
 
 

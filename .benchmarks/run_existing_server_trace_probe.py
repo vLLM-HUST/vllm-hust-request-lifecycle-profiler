@@ -45,6 +45,23 @@ def _git_dirty(cwd: Path) -> bool | str:
     return bool(status)
 
 
+def _git_dirty_excluding(cwd: Path, excluded: Path) -> bool | str:
+    try:
+        excluded_rel = excluded.resolve().relative_to(cwd.resolve())
+    except ValueError:
+        return _git_dirty(cwd)
+    try:
+        status = subprocess.check_output(
+            ["git", "status", "--short", "--", ".", f":(exclude){excluded_rel}"],
+            cwd=cwd,
+            text=True,
+            stderr=subprocess.DEVNULL,
+        ).strip()
+    except (OSError, subprocess.CalledProcessError):
+        return "unknown"
+    return bool(status)
+
+
 def _now_ms(start: float) -> float:
     return (time.perf_counter() - start) * 1000.0
 
@@ -236,6 +253,7 @@ def _stream_completion(
 
 
 def _metadata(args: argparse.Namespace) -> dict[str, Any]:
+    dirty_exclusion_dir = getattr(args, "dirty_exclusion_dir", args.output_dir)
     return {
         "evidence_label": "existing-server-probe",
         "result_valid_for_speedup_claims": False,
@@ -259,6 +277,8 @@ def _metadata(args: argparse.Namespace) -> dict[str, Any]:
             "branch": _git(["branch", "--show-current"]),
             "commit": _git(["rev-parse", "HEAD"]),
             "dirty": _git_dirty(REPO_ROOT),
+            "dirty_excluding_output_dir": _git_dirty_excluding(REPO_ROOT, dirty_exclusion_dir),
+            "dirty_exclusion_dir": str(dirty_exclusion_dir),
         },
         "workload_source": {
             "path": str(WORKLOAD_REPO.relative_to(REPO_ROOT)),
