@@ -36,6 +36,12 @@ pressure, streaming backpressure, and cleanup stalls.
 
 ## Required Experiment Ladder
 
+0. **Current live-service readiness** (`existing-server-probe`): the managed
+   baseline is running on NPU6 at `http://127.0.0.1:18168`; endpoint auth,
+   model path, and NPU6 process checks pass. The current preflight remains
+   blocked only because
+   `/tmp/codex-vllm-request-lifecycle-profiler-npu6-trace.jsonl` is not being
+   emitted. This is the mechanism-integration gap to fix.
 1. **Trace schema coverage** (`derived-artifact`): map every shared workload
    phase to required lifecycle events and mark missing hooks explicitly.
 2. **Existing-server trace probe** (`existing-server-probe`): collect timelines
@@ -65,6 +71,11 @@ serving behavior on shared workloads. A publishable result needs to show why
 causal lifecycle evidence changes optimization decisions compared with ordinary
 timers, not merely that traces can be collected.
 
+Immediate next step: wire the lifecycle trace exporter into the managed vLLM
+runtime so `VLLM_RLP_TRACE_EXPORT_PATH` is written for normal `/v1/completions`
+or chat requests. Once the file appears, rerun `make npu6-trace-preflight` and
+then run the controlled fault matrix on the same endpoint.
+
 ## Paper Update Requirement
 
 After each valid experiment batch, update:
@@ -73,4 +84,3 @@ After each valid experiment batch, update:
 - `docs/experiment_plan.md` with any changed fault model or trace schema.
 - `paper/request_lifecycle_causal_profiler/request_lifecycle_causal_profiler.tex`
   with only claims supported by the current evidence.
-

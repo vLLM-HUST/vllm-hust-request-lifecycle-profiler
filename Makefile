@@ -81,7 +81,7 @@ synthetic-fault-injection:
 		--output-dir .benchmarks/results/synthetic_fault_injection
 
 npu6-trace-preflight:
-	PYTHONPATH=src $(PYTHON) .benchmarks/preflight_npu6_trace_probe.py \
+	ASCEND_HOME_PATH=/usr/local/Ascend PYTHONPATH=src $(PYTHON) .benchmarks/preflight_npu6_trace_probe.py \
 		--endpoint http://127.0.0.1:18168 \
 		--model-path /data/shared_models/Qwen2.5-7B-Instruct \
 		--trace-export-path /tmp/codex-vllm-request-lifecycle-profiler-npu6-trace.jsonl \

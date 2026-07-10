@@ -2,42 +2,78 @@
   "api_token_env": "VLLM_HUST_API_KEY",
   "api_token_value_recorded": false,
   "ascend_runtime_root": {
-    "checked": [],
-    "ok": false,
-    "path": null
+    "checked": [
+      "/usr/local/Ascend"
+    ],
+    "ok": true,
+    "path": "/usr/local/Ascend"
   },
   "blockers": [
-    "ascend_runtime_root_missing",
-    "models_endpoint_failed",
-    "trace_export_invalid:trace_export_path_not_found",
-    "no_process_on_npu6"
+    "trace_export_invalid:trace_export_path_not_found"
   ],
   "command": ".benchmarks/preflight_npu6_trace_probe.py --endpoint http://127.0.0.1:18168 --model-path /data/shared_models/Qwen2.5-7B-Instruct --trace-export-path /tmp/codex-vllm-request-lifecycle-profiler-npu6-trace.jsonl --api-token-env VLLM_HUST_API_KEY --output-dir .benchmarks/results/npu6_trace_probe_preflight",
-  "conda_env": "base",
+  "conda_env": "vllm-request-lifecycle-profiler-exp",
   "endpoint": "http://127.0.0.1:18168",
   "evidence_label": "existing-server-probe",
   "model_path": "/data/shared_models/Qwen2.5-7B-Instruct",
   "model_path_exists": true,
   "models_endpoint": {
-    "error": "connection_error:<urlopen error [Errno 111] Connection refused>",
-    "ok": false,
-    "status": null,
-    "token_env_present": false
+    "json": {
+      "data": [
+        {
+          "created": 1783703601,
+          "id": "codex-qwen2.5-7b-npu6",
+          "max_model_len": 4096,
+          "object": "model",
+          "owned_by": "vllm",
+          "parent": null,
+          "permission": [
+            {
+              "allow_create_engine": false,
+              "allow_fine_tuning": false,
+              "allow_logprobs": true,
+              "allow_sampling": true,
+              "allow_search_indices": false,
+              "allow_view": true,
+              "created": 1783703601,
+              "group": null,
+              "id": "modelperm-820bdac6ab922edd",
+              "is_blocking": false,
+              "object": "model_permission",
+              "organization": "*"
+            }
+          ],
+          "root": "/data/shared_models/Qwen2.5-7B-Instruct"
+        }
+      ],
+      "object": "list"
+    },
+    "ok": true,
+    "status": 200,
+    "token_env_present": true
   },
   "npu_id": 6,
   "npu_smi": {
     "error": null,
-    "has_process_on_requested_npu": false,
+    "has_process_on_requested_npu": true,
     "ok": true,
-    "processes": []
+    "processes": [
+      {
+        "chip": "0",
+        "npu": "6",
+        "pid": "1152907",
+        "process_memory_mb": "46355",
+        "process_name": "VLLMEngineCor"
+      }
+    ]
   },
   "output_dir": ".benchmarks/results/npu6_trace_probe_preflight",
   "parent_branch": "main",
-  "parent_commit": "d7abea75b160c74c8c9dfa38a3294024097ac6d6",
+  "parent_commit": "6200f475f4d2551abd3c01608ebc0f09049f9519",
   "parent_dirty": true,
   "preflight_passed": false,
   "result_valid_for_paper_claims": false,
-  "timestamp_utc": "2026-07-10T17:00:00.326173+00:00",
+  "timestamp_utc": "2026-07-10T17:13:21.513808+00:00",
   "trace_export": {
     "error": "trace_export_path_not_found",
     "ok": false,

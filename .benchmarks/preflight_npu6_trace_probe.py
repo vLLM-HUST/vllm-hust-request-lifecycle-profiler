@@ -67,6 +67,15 @@ def _discover_ascend_runtime_root(configured: str | None) -> dict[str, Any]:
         value = os.environ.get(name)
         if value:
             candidates.append(value)
+    candidates.extend(
+        [
+            "/usr/local/Ascend/ascend-toolkit/latest",
+            "/usr/local/Ascend/ascend-toolkit",
+            "/usr/local/Ascend/latest",
+            "/usr/local/Ascend/cann-8.5.1",
+            "/usr/local/Ascend",
+        ]
+    )
 
     checked = []
     for candidate in dict.fromkeys(candidates):
