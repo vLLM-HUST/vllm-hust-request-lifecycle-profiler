@@ -18,7 +18,7 @@
     "json": {
       "data": [
         {
-          "created": 1783705997,
+          "created": 1783706092,
           "id": "codex-qwen2.5-7b-npu6",
           "max_model_len": 4096,
           "object": "model",
@@ -32,9 +32,9 @@
               "allow_sampling": true,
               "allow_search_indices": false,
               "allow_view": true,
-              "created": 1783705997,
+              "created": 1783706092,
               "group": null,
-              "id": "modelperm-bd87e7433bf59f15",
+              "id": "modelperm-8e12cf6985454b11",
               "is_blocking": false,
               "object": "model_permission",
               "organization": "*"
@@ -66,11 +66,11 @@
   },
   "output_dir": ".benchmarks/results/npu6_trace_probe_preflight",
   "parent_branch": "main",
-  "parent_commit": "7d4c65e516ea560cafe5d669e254d81f02680afd",
-  "parent_dirty": true,
+  "parent_commit": "96e433dd966a3a4aef8f630e2125e5416e24ce4a",
+  "parent_dirty": false,
   "preflight_passed": true,
   "result_valid_for_paper_claims": false,
-  "timestamp_utc": "2026-07-10T17:53:17.734330+00:00",
+  "timestamp_utc": "2026-07-10T17:54:52.515156+00:00",
   "trace_export": {
     "missing_rows": [],
     "ok": true,
