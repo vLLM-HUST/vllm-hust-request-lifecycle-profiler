@@ -15,7 +15,7 @@
       "reason": "non_repo_local_boundary_case"
     }
   ],
-  "supported_case_count": 23,
+  "supported_case_count": 26,
   "supported_cases": [
     {
       "case_id": "shared_session_affine_multi_turn",
@@ -807,6 +807,278 @@
         ],
         "truthfulness_boundary": "This workload exposes scenario semantics and overlap carriers only; it does not claim realized reuse or end-to-end improvement.",
         "workload_family": "async-document-pipeline"
+      }
+    },
+    {
+      "case_id": "shared_code_eval_judge",
+      "dataset_name": "code-eval-judge",
+      "dp_size": 8,
+      "label": "Shared workload: code evaluation judge",
+      "mean_output_len": 96,
+      "mean_prompt_len": 608,
+      "summary": {
+        "anchor_home_rank_histogram": {
+          "0": 2,
+          "1": 2,
+          "2": 2,
+          "3": 2,
+          "4": 2,
+          "5": 2,
+          "6": 2,
+          "7": 2
+        },
+        "anchor_rank_coverage": 8,
+        "anchor_strategy": "Each judging case keeps a stable judge-session anchor, while related cases share judging rubrics, code-surface templates, and correctness criteria across homes.",
+        "deployment_story": "A benchmark service replays code-evaluation prompts where a judge reviews candidate code, hidden test behavior, and answer correctness signals.",
+        "end_to_end_gain_boundary": "End-to-end gains are not implied by workload metadata and require downstream system measurements.",
+        "family_label": "code evaluation judge",
+        "locality_activation_rationale": "Code-judging workloads are mostly single-turn but still benefit from stable rubric state, prompt normalization, and case-local replay behavior.",
+        "observed_overlap_semantics": [
+          "answer_correctness_screening",
+          "code_surface_template",
+          "judge_rubric_overlap"
+        ],
+        "primary_anchor_count": 16,
+        "primary_anchor_kind": "judge_session",
+        "realized_reuse_boundary": "Observed overlap metadata identifies potential continuity or shared structure only; realized runtime reuse must be measured downstream.",
+        "request_count": 64,
+        "sample_anchor_preview": [
+          {
+            "home_rank": 7,
+            "primary_anchor_id": "judge::0",
+            "secondary_anchor_ids": [
+              "surface::0",
+              "style::answer_correctness_judge"
+            ],
+            "turn_index": 0
+          },
+          {
+            "home_rank": 0,
+            "primary_anchor_id": "judge::1",
+            "secondary_anchor_ids": [
+              "surface::1",
+              "style::answer_correctness_judge"
+            ],
+            "turn_index": 1
+          },
+          {
+            "home_rank": 1,
+            "primary_anchor_id": "judge::2",
+            "secondary_anchor_ids": [
+              "surface::0",
+              "style::hidden_test_review"
+            ],
+            "turn_index": 2
+          },
+          {
+            "home_rank": 2,
+            "primary_anchor_id": "judge::3",
+            "secondary_anchor_ids": [
+              "surface::1",
+              "style::hidden_test_review"
+            ],
+            "turn_index": 3
+          }
+        ],
+        "scenario_tags": [
+          "coding",
+          "judging",
+          "real-workload",
+          "single-turn"
+        ],
+        "secondary_anchor_count": 5,
+        "secondary_anchor_kind": "code_surface",
+        "secondary_anchor_preview": [
+          "style::answer_correctness_judge",
+          "style::code_integrity_judge",
+          "style::hidden_test_review",
+          "surface::0",
+          "surface::1"
+        ],
+        "truthfulness_boundary": "This workload exposes scenario semantics and overlap carriers only; it does not claim realized reuse or end-to-end improvement.",
+        "workload_family": "code-eval-judge"
+      }
+    },
+    {
+      "case_id": "shared_structured_json_generation",
+      "dataset_name": "structured-json-generation",
+      "dp_size": 8,
+      "label": "Shared workload: structured JSON generation",
+      "mean_output_len": 96,
+      "mean_prompt_len": 692,
+      "summary": {
+        "anchor_home_rank_histogram": {
+          "0": 2,
+          "1": 2,
+          "2": 2,
+          "3": 2,
+          "4": 2,
+          "5": 2,
+          "6": 2,
+          "7": 2
+        },
+        "anchor_rank_coverage": 8,
+        "anchor_strategy": "Each structured request keeps a stable request anchor, while neighboring requests share schema packs, format rules, and output-shape constraints across homes.",
+        "deployment_story": "A schema-following service serves extraction, orchestration, canonicalization, and analytics prompts that all require machine-readable JSON output.",
+        "end_to_end_gain_boundary": "End-to-end gains are not implied by workload metadata and require downstream system measurements.",
+        "family_label": "structured JSON generation",
+        "locality_activation_rationale": "Structured JSON workloads benefit from schema reuse and format-aware prompting, even when the actual tasks span extraction and planning.",
+        "observed_overlap_semantics": [
+          "format_constraint_overlap",
+          "schema_pack_overlap",
+          "structured_request_mix"
+        ],
+        "primary_anchor_count": 16,
+        "primary_anchor_kind": "structured_request",
+        "realized_reuse_boundary": "Observed overlap metadata identifies potential continuity or shared structure only; realized runtime reuse must be measured downstream.",
+        "request_count": 64,
+        "sample_anchor_preview": [
+          {
+            "home_rank": 7,
+            "primary_anchor_id": "structured::0",
+            "secondary_anchor_ids": [
+              "schema::0",
+              "style::analytics_summary"
+            ],
+            "turn_index": 0
+          },
+          {
+            "home_rank": 0,
+            "primary_anchor_id": "structured::1",
+            "secondary_anchor_ids": [
+              "schema::1",
+              "style::analytics_summary"
+            ],
+            "turn_index": 1
+          },
+          {
+            "home_rank": 1,
+            "primary_anchor_id": "structured::2",
+            "secondary_anchor_ids": [
+              "schema::2",
+              "style::analytics_summary"
+            ],
+            "turn_index": 2
+          },
+          {
+            "home_rank": 2,
+            "primary_anchor_id": "structured::3",
+            "secondary_anchor_ids": [
+              "schema::3",
+              "style::analytics_summary"
+            ],
+            "turn_index": 3
+          }
+        ],
+        "scenario_tags": [
+          "json",
+          "real-workload",
+          "schema-constrained",
+          "structured-output"
+        ],
+        "secondary_anchor_count": 8,
+        "secondary_anchor_kind": "schema_pack",
+        "secondary_anchor_preview": [
+          "schema::0",
+          "schema::1",
+          "schema::2",
+          "schema::3",
+          "style::analytics_summary",
+          "style::planning_orchestration",
+          "style::schema_canonicalization",
+          "style::structured_extraction"
+        ],
+        "truthfulness_boundary": "This workload exposes scenario semantics and overlap carriers only; it does not claim realized reuse or end-to-end improvement.",
+        "workload_family": "structured-json-generation"
+      }
+    },
+    {
+      "case_id": "shared_multi_turn_support_chat",
+      "dataset_name": "multi-turn-support-chat",
+      "dp_size": 8,
+      "label": "Shared workload: multi-turn support chat",
+      "mean_output_len": 96,
+      "mean_prompt_len": 754,
+      "summary": {
+        "anchor_home_rank_histogram": {
+          "0": 2,
+          "1": 2,
+          "2": 2,
+          "3": 2,
+          "4": 2,
+          "5": 2,
+          "6": 2,
+          "7": 2
+        },
+        "anchor_rank_coverage": 8,
+        "anchor_strategy": "Each support conversation keeps a stable session anchor, while related sessions share support scaffolds, issue templates, and follow-up patterns across homes.",
+        "deployment_story": "A customer-support assistant handles multi-turn help flows and general assistant follow-ups, with repeated issue restatements and resolution tracking across turns.",
+        "end_to_end_gain_boundary": "End-to-end gains are not implied by workload metadata and require downstream system measurements.",
+        "family_label": "multi-turn support chat",
+        "locality_activation_rationale": "Support chat workloads mix exact continuation with task-specific follow-ups, making them a practical family for real conversation replay.",
+        "observed_overlap_semantics": [
+          "general_chat_tail",
+          "multi_turn_follow_up",
+          "support_issue_template_overlap"
+        ],
+        "primary_anchor_count": 16,
+        "primary_anchor_kind": "support_session",
+        "realized_reuse_boundary": "Observed overlap metadata identifies potential continuity or shared structure only; realized runtime reuse must be measured downstream.",
+        "request_count": 64,
+        "sample_anchor_preview": [
+          {
+            "home_rank": 7,
+            "primary_anchor_id": "support::0",
+            "secondary_anchor_ids": [
+              "issue::1",
+              "turn-history::4"
+            ],
+            "turn_index": 0
+          },
+          {
+            "home_rank": 0,
+            "primary_anchor_id": "support::1",
+            "secondary_anchor_ids": [
+              "issue::2",
+              "turn-history::4"
+            ],
+            "turn_index": 0
+          },
+          {
+            "home_rank": 1,
+            "primary_anchor_id": "support::2",
+            "secondary_anchor_ids": [
+              "issue::0",
+              "turn-history::4"
+            ],
+            "turn_index": 0
+          },
+          {
+            "home_rank": 2,
+            "primary_anchor_id": "support::3",
+            "secondary_anchor_ids": [
+              "issue::1",
+              "turn-history::4"
+            ],
+            "turn_index": 0
+          }
+        ],
+        "scenario_tags": [
+          "chat",
+          "multi-turn",
+          "real-workload",
+          "support"
+        ],
+        "secondary_anchor_count": 4,
+        "secondary_anchor_kind": "support_context",
+        "secondary_anchor_preview": [
+          "issue::0",
+          "issue::1",
+          "issue::2",
+          "turn-history::4"
+        ],
+        "truthfulness_boundary": "This workload exposes scenario semantics and overlap carriers only; it does not claim realized reuse or end-to-end improvement.",
+        "workload_family": "multi-turn-support-chat"
       }
     },
     {

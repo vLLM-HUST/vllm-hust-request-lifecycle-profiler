@@ -9,7 +9,7 @@ BUILD ?= $(PYTHON) -m build
 SHARED_ENV_SCRIPT ?= /home/shuhao/llm-optimizations/scripts/bootstrap_shared_env.sh
 SHARED_PROFILE ?= vllm-research
 SHARED_ENV_NAME ?= $(CONDA_ENV)
-WORKLOAD_REPO ?= $(abspath $(CURDIR)/../llm-serving-workloads)
+WORKLOAD_REPO ?= $(abspath $(CURDIR)/third_party/llm-serving-workloads)
 
 PACKAGE_IMPORT := vllm_request_lifecycle_profiler
 BENCH_DIR := .benchmarks

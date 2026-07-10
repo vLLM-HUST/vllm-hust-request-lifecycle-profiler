@@ -24,6 +24,7 @@ def _candidate_workload_src_paths() -> tuple[Path, ...]:
 	paths: list[Path] = []
 	if configured:
 		paths.append(Path(configured).expanduser())
+	paths.append(REPO_ROOT / "third_party" / "llm-serving-workloads" / "src")
 	paths.append(REPO_ROOT.parent / "llm-serving-workloads" / "src")
 	return tuple(paths)
 

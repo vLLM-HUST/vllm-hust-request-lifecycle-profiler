@@ -16,6 +16,7 @@ stage instead of correlated symptoms?
 - `src/vllm_request_lifecycle_profiler/`: trace schema, attribution logic, and
   plugin code.
 - `.benchmarks/`: trace probes and controlled fault-injection entrypoints.
+- `third_party/llm-serving-workloads/`: pinned shared workload suite.
 - `tests/`: no-NPU trace and repository tests.
 - `docs/research_logic.md`: seven-step research framing.
 - `docs/experiment_plan.md`: evaluation plan and evidence labels.
@@ -38,8 +39,11 @@ controlled fault-injection experiments can validate it.
 
 ## Shared Workloads
 
-Use `llm-serving-workloads` as the default workload source. Repo-local workloads
-are allowed only for controlled fault-injection cases.
+Use the pinned `third_party/llm-serving-workloads` submodule as the default
+workload source. Repo-local workloads are allowed only for controlled
+fault-injection cases. For workspace convenience, `WORKLOAD_REPO` or
+`LLM_SERVING_WORKLOADS_SRC` may point at a sibling checkout, but paper evidence
+must record the pinned submodule commit.
 
 ## Evidence Discipline
 
@@ -52,6 +56,7 @@ speedups.
 
 ```bash
 PYTHONPATH=src pytest -q
+make shared-workloads-smoke PYTHON=python3
 ```
 
 ## Next Gate
@@ -59,4 +64,3 @@ PYTHONPATH=src pytest -q
 Run a NPU6 existing-server probe that emits lifecycle timelines, then validate
 attribution on controlled long-prompt, decode-heavy, streaming, and KV-pressure
 faults.
-

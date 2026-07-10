@@ -1,7 +1,7 @@
 # Shared Workload Smoke Report
 
 - seed: 7
-- supported cases: 23
+- supported cases: 26
 - skipped cases: 2
 
 ## shared_session_affine_multi_turn
@@ -101,6 +101,39 @@
 - anchors: 20 primary / 35 secondary
 - anchor rank coverage: 8
 - mean prompt len: 932
+- mean output len: 96
+
+## shared_code_eval_judge
+
+- label: Shared workload: code evaluation judge
+- dataset: code-eval-judge
+- requests: 64
+- family: code-eval-judge
+- anchors: 16 primary / 5 secondary
+- anchor rank coverage: 8
+- mean prompt len: 608
+- mean output len: 96
+
+## shared_structured_json_generation
+
+- label: Shared workload: structured JSON generation
+- dataset: structured-json-generation
+- requests: 64
+- family: structured-json-generation
+- anchors: 16 primary / 8 secondary
+- anchor rank coverage: 8
+- mean prompt len: 692
+- mean output len: 96
+
+## shared_multi_turn_support_chat
+
+- label: Shared workload: multi-turn support chat
+- dataset: multi-turn-support-chat
+- requests: 64
+- family: multi-turn-support-chat
+- anchors: 16 primary / 4 secondary
+- anchor rank coverage: 8
+- mean prompt len: 754
 - mean output len: 96
 
 ## shared_realtime_voice_assistant
