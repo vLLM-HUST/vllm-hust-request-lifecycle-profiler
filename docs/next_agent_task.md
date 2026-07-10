@@ -102,16 +102,20 @@ causal lifecycle evidence changes optimization decisions compared with ordinary
 timers, not merely that traces can be collected.
 
 Immediate next step: use the normal proxy diagnosis and the slow-stream proxy
-diagnosis as two anchors for internal hook validation. Integrate internal vLLM
-hooks so the same trace schema records scheduler admission, queue wait, KV
-pressure, prefill, decode, streaming, and cleanup from inside the runtime, then
-check whether the internal spans confirm or overturn the proxy `decode` and
-client-visible `streaming` hypotheses. Run paired
-runtime-hook-disabled/runtime-hook-enabled NPU6 suites using the same
-warmup-controlled workload shape, memory snapshots, and the no-trace/trace
-client-probe comparison as a sanity bound. Follow with one controlled fault at a
-time. Keep client-observed proxy trace results separate from internal runtime
-trace claims.
+diagnosis as two anchors for internal hook validation. The parent repo now
+provides `vllm_request_lifecycle_profiler.runtime_hooks.RuntimeLifecycleHooks`,
+a dependency-free bridge that writes the same JSONL lifecycle schema from
+runtime hook sites when `VLLM_RLP_TRACE_EXPORT_PATH` is set. Integrate vLLM-HUST
+hook sites by calling this bridge at scheduler admission, queue wait, KV
+pressure, prefill completion, first token, decode completion, streaming
+completion, and cleanup. Then check whether the internal spans confirm or
+overturn the proxy `decode` and client-visible `streaming` hypotheses.
+
+After hook sites are active, run paired runtime-hook-disabled/runtime-hook-
+enabled NPU6 suites using the same warmup-controlled workload shape, memory
+snapshots, and the no-trace/trace client-probe comparison as a sanity bound.
+Follow with one controlled fault at a time. Keep client-observed proxy trace
+results separate from internal runtime trace claims.
 
 ## Paper Update Requirement
 
