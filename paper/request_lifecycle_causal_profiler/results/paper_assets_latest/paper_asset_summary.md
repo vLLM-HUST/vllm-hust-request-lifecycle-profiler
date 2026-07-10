@@ -33,5 +33,7 @@
 - `figures/generated/npu6_trace_probe_summary.svg` (figure, derived-artifact)
 - `results/paper_assets_latest/npu6_trace_diagnosis.csv` (csv, derived-artifact)
 - `tables/generated/npu6_trace_diagnosis.tex` (table, derived-artifact)
+- `results/paper_assets_latest/npu6_slow_stream_trace_diagnosis.csv` (csv, derived-artifact)
+- `tables/generated/npu6_slow_stream_trace_diagnosis.tex` (table, derived-artifact)
 - `results/paper_assets_latest/npu6_trace_overhead.csv` (csv, derived-artifact)
 - `tables/generated/npu6_trace_overhead.tex` (table, derived-artifact)
