@@ -73,6 +73,18 @@
       "kind": "table",
       "path": "tables/generated/npu6_trace_overhead.tex",
       "rows": 2
+    },
+    {
+      "evidence_label": "derived-artifact",
+      "kind": "csv",
+      "path": "results/paper_assets_latest/npu6_diagnosis_decision_impact.csv",
+      "rows": 2
+    },
+    {
+      "evidence_label": "derived-artifact",
+      "kind": "table",
+      "path": "tables/generated/npu6_diagnosis_decision_impact.tex",
+      "rows": 2
     }
   ],
   "files": [
