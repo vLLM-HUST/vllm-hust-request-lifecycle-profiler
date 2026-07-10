@@ -80,12 +80,29 @@ events and changes TTFT p95 by +4.07\,ms relative to no-trace
 (Table~\ref{tab:npu6-overhead}). This is evidence about the probe process, not
 internal runtime hook overhead.
 
+The same trace can also be reduced into a client-visible stage diagnosis. The
+derived diagnosis pass computes per-request spans and coverage from the checked
+in NPU6 proxy events. It reports zero missing-event rate and attributes all 12
+measured requests to the decode-visible span, with decode-proxy p95 of
+98.75\,ms and prefill-proxy p95 of 85.50\,ms
+(Table~\ref{tab:npu6-diagnosis}). This does not prove that the internal runtime
+root cause is decode; rather, it gives a concrete hypothesis that internal
+scheduler, KV, prefill, and decode hooks must confirm or overturn.
+
 \begin{table}[t]
 \centering
 \caption{Warmup-controlled NPU6 existing-server probe. The trace is
 client-observed proxy evidence, not yet an internal runtime scheduler/KV trace.}
 \label{tab:npu6-trace}
 \input{tables/generated/npu6_trace_probe_summary.tex}
+\end{table}
+
+\begin{table}[t]
+\centering
+\caption{Derived NPU6 proxy-trace diagnosis. The result identifies the dominant
+client-visible span, not an internal scheduler/KV root cause.}
+\label{tab:npu6-diagnosis}
+\input{tables/generated/npu6_trace_diagnosis.tex}
 \end{table}
 
 \begin{table}[t]
@@ -100,12 +117,13 @@ overhead or memory cost.}
 \section{Claim Boundary}
 
 The current evidence supports trace schema feasibility, synthetic attribution
-coverage, live client-observed lifecycle export, and a narrow client-probe
-event-construction overhead smoke. It does not yet support claims about
-diagnosis accuracy on live faults, internal queue/KV attribution, internal
-runtime hook overhead, memory overhead, or root-cause time improvement. Those
-claims require paired NPU6 runs with and without runtime instrumentation, plus
-controlled runtime fault injection with known ground truth.
+coverage, live client-observed lifecycle export, derived proxy-stage diagnosis,
+and a narrow client-probe event-construction overhead smoke. It does not yet
+support claims about diagnosis accuracy on live faults, internal queue/KV
+attribution, internal runtime hook overhead, memory overhead, or root-cause time
+improvement. Those claims require paired NPU6 runs with and without runtime
+instrumentation, plus controlled runtime fault injection with known ground
+truth.
 
 \bibliographystyle{ACM-Reference-Format}
 \bibliography{references}

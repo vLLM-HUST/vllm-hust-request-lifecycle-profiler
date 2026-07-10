@@ -51,7 +51,13 @@ pressure, streaming backpressure, and cleanup stalls.
    +4.07 ms. This is not yet an internal vLLM scheduler/KV trace or internal
    runtime-hook overhead result.
 1. **Trace schema coverage** (`derived-artifact`): map every shared workload
-   phase to required lifecycle events and mark missing hooks explicitly.
+   phase to required lifecycle events and mark missing hooks explicitly. Current
+   derived diagnosis `.benchmarks/results/npu6_trace_diagnosis/` converts the
+   repeated NPU6 proxy trace into stage spans: 13 requests, 117 events, 0.0
+   missing-event rate, and 12/12 measured requests attributed to the
+   client-visible `decode` span. Decode-proxy p95 is 98.75 ms and
+   prefill-proxy p95 is 85.50 ms. Treat this as a stage hypothesis, not
+   internal decode root cause.
 2. **Internal runtime trace hooks** (`real-online` only after repo-launched
    runtime hook instrumentation is active): keep the client-observed proxy
    events as correlation anchors, but add internal vLLM-HUST hooks for
@@ -83,9 +89,11 @@ serving behavior on shared workloads. A publishable result needs to show why
 causal lifecycle evidence changes optimization decisions compared with ordinary
 timers, not merely that traces can be collected.
 
-Immediate next step: integrate internal vLLM hooks so the same trace schema
-records scheduler admission, queue wait, KV pressure, prefill, decode,
-streaming, and cleanup from inside the runtime. Then run paired
+Immediate next step: use the proxy diagnosis as the target for internal hook
+validation. Integrate internal vLLM hooks so the same trace schema records
+scheduler admission, queue wait, KV pressure, prefill, decode, streaming, and
+cleanup from inside the runtime, then check whether the internal spans confirm
+or overturn the proxy `decode` hypothesis. Run paired
 runtime-hook-disabled/runtime-hook-enabled NPU6 suites using the same
 warmup-controlled workload shape, memory snapshots, and the no-trace/trace
 client-probe comparison as a sanity bound. Follow with one controlled fault at a

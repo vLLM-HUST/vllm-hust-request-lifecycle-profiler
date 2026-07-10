@@ -65,6 +65,14 @@ Current live trace evidence:
   lifecycle events. Relative to no-trace, trace mode changed TTFT p95 by
   +4.07 ms and latency p95 by +4.03 ms. This supports a narrow proxy-overhead
   claim for client-side event construction only.
+- `.benchmarks/results/npu6_trace_diagnosis/` is a `derived-artifact`
+  diagnosis pass over the repeated NPU6 trace probe. It converts 117
+  client-observed events into per-request spans for 13 requests with 0.0
+  missing-event rate. Among the 12 measured requests, the dominant
+  client-visible span is `decode` for 12/12 requests. Decode-proxy p95 is
+  98.75 ms and prefill-proxy p95 is 85.50 ms. This is useful because it turns
+  raw TTFT/latency into a per-request stage hypothesis, but it remains a
+  client-visible proxy diagnosis rather than an internal runtime root cause.
 - Boundary: these are client-observed events (`received`, local tokenization,
   HTTP send, first streamed chunk, stream done, cleanup). They are not yet
   internal vLLM scheduler/KV/preemption events and the matched overhead suite

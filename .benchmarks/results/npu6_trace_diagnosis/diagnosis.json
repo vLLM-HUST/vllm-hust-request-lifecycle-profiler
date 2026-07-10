@@ -1,0 +1,352 @@
+{
+  "metadata": {
+    "claim_boundary": "Derived diagnosis from client-observed lifecycle proxy events. This identifies dominant client-visible spans, not internal vLLM scheduler, KV, prefill, or decode root cause.",
+    "command": [
+      "analyze_trace_diagnosis.py",
+      "--input-probe-results",
+      ".benchmarks/results/npu6_existing_server_trace_probe_repeated_smoke/probe_results.json",
+      "--output-dir",
+      ".benchmarks/results/npu6_trace_diagnosis"
+    ],
+    "evidence_label": "derived-artifact",
+    "input_probe_results": ".benchmarks/results/npu6_existing_server_trace_probe_repeated_smoke/probe_results.json",
+    "repo": {
+      "branch": "main",
+      "commit": "6fad382bbd3341db78881b42bfa405d4fb49ee13",
+      "dirty": false,
+      "dirty_excluding_output_dir": false,
+      "dirty_exclusion_dir": ".benchmarks/results/npu6_trace_diagnosis",
+      "path": "/home/shuhao/vllm-request-lifecycle-profiler-plugin"
+    },
+    "result_valid_for_speedup_claims": false,
+    "timestamp_utc": "2026-07-10T20:07:02.687700+00:00"
+  },
+  "rows": [
+    {
+      "cleanup_ms": 0.010360032320022583,
+      "complete_span_count": 6,
+      "decode_ms": 96.82728722691536,
+      "dominant_duration_ms": 96.82728722691536,
+      "dominant_kind": "decode",
+      "dominant_span": "decode",
+      "missing_event_rate": 0.0,
+      "missing_span_count": 0,
+      "phase": "measured",
+      "prefill_ms": 84.5613176934421,
+      "queueing_ms": 0.2013910561800003,
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat0::0",
+      "streaming_ms": 0.0,
+      "tokenization_ms": 0.09356066584587097
+    },
+    {
+      "cleanup_ms": 0.008179806172847748,
+      "complete_span_count": 6,
+      "decode_ms": 97.29002136737108,
+      "dominant_duration_ms": 97.29002136737108,
+      "dominant_kind": "decode",
+      "dominant_span": "decode",
+      "missing_event_rate": 0.0,
+      "missing_span_count": 0,
+      "phase": "measured",
+      "prefill_ms": 84.30249569937587,
+      "queueing_ms": 0.15096087008714676,
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat0::1",
+      "streaming_ms": 0.0,
+      "tokenization_ms": 0.06248988211154938
+    },
+    {
+      "cleanup_ms": 0.012150034308433533,
+      "complete_span_count": 6,
+      "decode_ms": 98.65288902074099,
+      "dominant_duration_ms": 98.65288902074099,
+      "dominant_kind": "decode",
+      "dominant_span": "decode",
+      "missing_event_rate": 0.0,
+      "missing_span_count": 0,
+      "phase": "measured",
+      "prefill_ms": 83.42787018045783,
+      "queueing_ms": 0.1520710065960884,
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat0::2",
+      "streaming_ms": 0.0,
+      "tokenization_ms": 0.06221095100045204
+    },
+    {
+      "cleanup_ms": 0.009629875421524048,
+      "complete_span_count": 6,
+      "decode_ms": 97.60503238067031,
+      "dominant_duration_ms": 97.60503238067031,
+      "dominant_kind": "decode",
+      "dominant_span": "decode",
+      "missing_event_rate": 0.0,
+      "missing_span_count": 0,
+      "phase": "measured",
+      "prefill_ms": 83.25986983254552,
+      "queueing_ms": 0.16678078100085258,
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat0::3",
+      "streaming_ms": 0.0,
+      "tokenization_ms": 0.08035032078623772
+    },
+    {
+      "cleanup_ms": 0.011169817298650742,
+      "complete_span_count": 6,
+      "decode_ms": 97.8050441481173,
+      "dominant_duration_ms": 97.8050441481173,
+      "dominant_kind": "decode",
+      "dominant_span": "decode",
+      "missing_event_rate": 0.0,
+      "missing_span_count": 0,
+      "phase": "measured",
+      "prefill_ms": 82.79282599687576,
+      "queueing_ms": 0.1408611424267292,
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat1::0",
+      "streaming_ms": 0.0,
+      "tokenization_ms": 0.05890987813472748
+    },
+    {
+      "cleanup_ms": 0.014100223779678345,
+      "complete_span_count": 6,
+      "decode_ms": 97.76776377111673,
+      "dominant_duration_ms": 97.76776377111673,
+      "dominant_kind": "decode",
+      "dominant_span": "decode",
+      "missing_event_rate": 0.0,
+      "missing_span_count": 0,
+      "phase": "measured",
+      "prefill_ms": 86.65002137422562,
+      "queueing_ms": 0.15474064275622368,
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat1::1",
+      "streaming_ms": 0.0,
+      "tokenization_ms": 0.05870126187801361
+    },
+    {
+      "cleanup_ms": 0.011479947715997696,
+      "complete_span_count": 6,
+      "decode_ms": 98.86798122897744,
+      "dominant_duration_ms": 98.86798122897744,
+      "dominant_kind": "decode",
+      "dominant_span": "decode",
+      "missing_event_rate": 0.0,
+      "missing_span_count": 0,
+      "phase": "measured",
+      "prefill_ms": 83.08247802779078,
+      "queueing_ms": 0.17295079305768013,
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat1::2",
+      "streaming_ms": 0.0,
+      "tokenization_ms": 0.07345108315348625
+    },
+    {
+      "cleanup_ms": 0.010519754141569138,
+      "complete_span_count": 6,
+      "decode_ms": 97.73256303742528,
+      "dominant_duration_ms": 97.73256303742528,
+      "dominant_kind": "decode",
+      "dominant_span": "decode",
+      "missing_event_rate": 0.0,
+      "missing_span_count": 0,
+      "phase": "measured",
+      "prefill_ms": 82.74989621713758,
+      "queueing_ms": 0.16614096239209175,
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat1::3",
+      "streaming_ms": 0.0,
+      "tokenization_ms": 0.0666310079395771
+    },
+    {
+      "cleanup_ms": 0.009750016033649445,
+      "complete_span_count": 6,
+      "decode_ms": 97.90260531008244,
+      "dominant_duration_ms": 97.90260531008244,
+      "dominant_kind": "decode",
+      "dominant_span": "decode",
+      "missing_event_rate": 0.0,
+      "missing_span_count": 0,
+      "phase": "measured",
+      "prefill_ms": 82.46917370706797,
+      "queueing_ms": 0.17632124945521355,
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat2::0",
+      "streaming_ms": 0.0,
+      "tokenization_ms": 0.06151990965008736
+    },
+    {
+      "cleanup_ms": 0.009109731763601303,
+      "complete_span_count": 6,
+      "decode_ms": 98.2829462736845,
+      "dominant_duration_ms": 98.2829462736845,
+      "dominant_kind": "decode",
+      "dominant_span": "decode",
+      "missing_event_rate": 0.0,
+      "missing_span_count": 0,
+      "phase": "measured",
+      "prefill_ms": 82.5569350272417,
+      "queueing_ms": 0.16508111730217934,
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat2::1",
+      "streaming_ms": 0.0,
+      "tokenization_ms": 0.07062079384922981
+    },
+    {
+      "cleanup_ms": 0.01255003735423088,
+      "complete_span_count": 6,
+      "decode_ms": 98.19333581253886,
+      "dominant_duration_ms": 98.19333581253886,
+      "dominant_kind": "decode",
+      "dominant_span": "decode",
+      "missing_event_rate": 0.0,
+      "missing_span_count": 0,
+      "phase": "measured",
+      "prefill_ms": 83.10623932629824,
+      "queueing_ms": 0.1630210317671299,
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat2::2",
+      "streaming_ms": 0.0,
+      "tokenization_ms": 0.07524015381932259
+    },
+    {
+      "cleanup_ms": 0.009320210665464401,
+      "complete_span_count": 6,
+      "decode_ms": 97.53875201568007,
+      "dominant_duration_ms": 97.53875201568007,
+      "dominant_kind": "decode",
+      "dominant_span": "decode",
+      "missing_event_rate": 0.0,
+      "missing_span_count": 0,
+      "phase": "measured",
+      "prefill_ms": 84.24082584679127,
+      "queueing_ms": 0.1607709564268589,
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat2::3",
+      "streaming_ms": 0.0,
+      "tokenization_ms": 0.060759950429201126
+    },
+    {
+      "cleanup_ms": 0.021031126379966736,
+      "complete_span_count": 6,
+      "decode_ms": 98.08804467320442,
+      "dominant_duration_ms": 110.07695319131017,
+      "dominant_kind": "prefill",
+      "dominant_span": "prefill",
+      "missing_event_rate": 0.0,
+      "missing_span_count": 0,
+      "phase": "warmup",
+      "prefill_ms": 110.07695319131017,
+      "queueing_ms": 0.4252428188920021,
+      "request_id": "shared_scenario_multi_turn_knowledge_service::warmup::0",
+      "streaming_ms": 0.0,
+      "tokenization_ms": 0.04632025957107544
+    }
+  ],
+  "summary": {
+    "claim_boundary": "Derived diagnosis from client-observed lifecycle proxy events. This identifies dominant client-visible spans, not internal vLLM scheduler, KV, prefill, or decode root cause.",
+    "dominant_bottleneck": "decode",
+    "dominant_bottleneck_counts": {
+      "decode": 12
+    },
+    "event_count": 117,
+    "measured_request_count": 12,
+    "measured_span_duration_ms": {
+      "cleanup": {
+        "count": 12,
+        "max": 0.014100223779678345,
+        "min": 0.008179806172847748,
+        "p50": 0.01043989323079586,
+        "p95": 0.013247621245682238,
+        "p99": 0.013929703272879125
+      },
+      "decode": {
+        "count": 12,
+        "max": 98.86798122897744,
+        "min": 96.82728722691536,
+        "p50": 97.78640395961702,
+        "p95": 98.74968051444739,
+        "p99": 98.84432108607143
+      },
+      "prefill": {
+        "count": 12,
+        "max": 86.65002137422562,
+        "min": 82.46917370706797,
+        "p50": 83.18305457942188,
+        "p95": 85.50123434979469,
+        "p99": 86.42026396933943
+      },
+      "queueing": {
+        "count": 12,
+        "max": 0.2013910561800003,
+        "min": 0.1408611424267292,
+        "p50": 0.16405107453465462,
+        "p95": 0.1876026624813676,
+        "p99": 0.19863337744027376
+      },
+      "streaming": {
+        "count": 12,
+        "max": 0.0,
+        "min": 0.0,
+        "p50": 0.0,
+        "p95": 0.0,
+        "p99": 0.0
+      },
+      "tokenization": {
+        "count": 12,
+        "max": 0.09356066584587097,
+        "min": 0.05870126187801361,
+        "p50": 0.06456044502556324,
+        "p95": 0.08629497606307267,
+        "p99": 0.09210752788931133
+      }
+    },
+    "missing_event_rate": {
+      "count": 13,
+      "max": 0.0,
+      "min": 0.0,
+      "p50": 0.0,
+      "p95": 0.0,
+      "p99": 0.0
+    },
+    "request_count": 13,
+    "span_duration_ms": {
+      "cleanup": {
+        "count": 13,
+        "max": 0.021031126379966736,
+        "min": 0.008179806172847748,
+        "p50": 0.010519754141569138,
+        "p95": 0.016872584819793694,
+        "p99": 0.020199418067932122
+      },
+      "decode": {
+        "count": 13,
+        "max": 98.86798122897744,
+        "min": 96.82728722691536,
+        "p50": 97.8050441481173,
+        "p95": 98.73892590403557,
+        "p99": 98.84217016398907
+      },
+      "prefill": {
+        "count": 13,
+        "max": 110.07695319131017,
+        "min": 82.46917370706797,
+        "p50": 83.25986983254552,
+        "p95": 96.02079410105941,
+        "p99": 107.26572137325999
+      },
+      "queueing": {
+        "count": 13,
+        "max": 0.4252428188920021,
+        "min": 0.1408611424267292,
+        "p50": 0.16508111730217934,
+        "p95": 0.2909317612648007,
+        "p99": 0.39838060736656167
+      },
+      "streaming": {
+        "count": 13,
+        "max": 0.0,
+        "min": 0.0,
+        "p50": 0.0,
+        "p95": 0.0,
+        "p99": 0.0
+      },
+      "tokenization": {
+        "count": 13,
+        "max": 0.09356066584587097,
+        "min": 0.04632025957107544,
+        "p50": 0.06248988211154938,
+        "p95": 0.08563445881009099,
+        "p99": 0.09197542443871497
+      }
+    }
+  }
+}
