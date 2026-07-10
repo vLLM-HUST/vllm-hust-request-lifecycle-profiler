@@ -104,6 +104,14 @@ run paired hook-disabled and hook-enabled NPU6 suites under the same
 warmup-controlled shared-workload shape. Keep the client proxy events as
 correlation anchors, but base internal scheduler/prefill/decode/cleanup claims
 only on the runtime JSONL emitted by the pinned vLLM-HUST hook sites.
+Use `make npu6-runtime-hook-pair-plan` before and after the paired runs. Before
+the runs, it writes the required disabled/enabled command queue to
+`.benchmarks/results/npu6_runtime_hook_pair_plan/`; after the runs, it loads
+`.benchmarks/results/npu6_runtime_hooks_disabled_smoke/` and
+`.benchmarks/results/npu6_runtime_hooks_enabled_smoke/`, then reports
+TTFT/latency/event-count deltas and runtime trace bytes. Treat that plan as a
+`derived-artifact`; only the two source directories can become online internal
+hook evidence.
 
 ## Phase 2: Controlled Fault Injection
 

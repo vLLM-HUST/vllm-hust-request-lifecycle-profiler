@@ -119,6 +119,26 @@ then run it with the env var set. Record TTFT/TPOT, host memory, NPU HBM,
 trace bytes per request, parent/submodule commits, conda environment, and
 workload source in `run_metadata.json`.
 
+Use `make npu6-runtime-hook-pair-plan` as the run queue and post-run
+aggregator. It writes
+`.benchmarks/results/npu6_runtime_hook_pair_plan/summary.json`, with required
+commands for:
+
+```bash
+unset VLLM_RLP_TRACE_EXPORT_PATH && make managed-restart && \
+  make npu6-existing-server-trace-suite-smoke \
+    TRACE_SUITE_OUTPUT_DIR=.benchmarks/results/npu6_runtime_hooks_disabled_smoke
+
+VLLM_RLP_TRACE_EXPORT_PATH=/tmp/codex-vllm-request-lifecycle-profiler-npu6-runtime.jsonl \
+  make managed-restart && \
+  make npu6-existing-server-trace-suite-smoke \
+    TRACE_SUITE_OUTPUT_DIR=.benchmarks/results/npu6_runtime_hooks_enabled_smoke
+```
+
+After both runs, rerun `make npu6-runtime-hook-pair-plan` and use the deltas in
+`runtime_hook_pair_plan.json` only as an audit table over the source run
+directories.
+
 After the paired runs, check whether the internal spans confirm or overturn the
 proxy `decode` and client-visible `streaming` hypotheses. Follow with one
 controlled fault at a time. Keep client-observed proxy trace results separate

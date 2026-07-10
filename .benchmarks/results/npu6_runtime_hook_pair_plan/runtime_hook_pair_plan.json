@@ -1,0 +1,102 @@
+{
+  "metadata": {
+    "claim_boundary": "Runtime-hook pair plan and aggregator. This artifact lists the required hook-disabled and hook-enabled NPU6 runs, then compares their summaries when present. It is not internal runtime-hook evidence until both source rows come from clean online runs launched from the pinned vLLM-HUST submodule.",
+    "command": [
+      "run_runtime_hook_pair_plan.py"
+    ],
+    "evidence_label": "derived-artifact",
+    "loaded_result_count": 0,
+    "make_target": "npu6-existing-server-trace-suite-smoke",
+    "missing_result_count": 2,
+    "parent_repo": {
+      "branch": "main",
+      "commit": "a340d4f38c2b320801600c751cf1f6099ac60014",
+      "dirty": true,
+      "path": "/home/shuhao/vllm-request-lifecycle-profiler-plugin"
+    },
+    "result_valid_for_speedup_claims": false,
+    "runtime_carrier": {
+      "branch": "feature/request-lifecycle-profiler-runtime-hooks",
+      "commit": "c3f29b41a51b3ee1cf8af6c5bfd4621f75f1a732",
+      "dirty": false,
+      "path": "/home/shuhao/vllm-request-lifecycle-profiler-plugin/third_party/vllm-hust"
+    },
+    "timestamp_utc": "2026-07-10T23:38:13.660036+00:00",
+    "trace_export_path": "/tmp/codex-vllm-request-lifecycle-profiler-npu6-runtime.jsonl"
+  },
+  "rows": [
+    {
+      "mode": "hook-disabled",
+      "required_next_run": [
+        "unset",
+        "VLLM_RLP_TRACE_EXPORT_PATH",
+        "&&",
+        "make",
+        "managed-restart",
+        "&&",
+        "make",
+        "npu6-existing-server-trace-suite-smoke",
+        "TRACE_SUITE_OUTPUT_DIR=/home/shuhao/vllm-request-lifecycle-profiler-plugin/.benchmarks/results/npu6_runtime_hooks_disabled_smoke"
+      ],
+      "result_dir": "/home/shuhao/vllm-request-lifecycle-profiler-plugin/.benchmarks/results/npu6_runtime_hooks_disabled_smoke",
+      "status": "missing-result"
+    },
+    {
+      "mode": "hook-enabled",
+      "required_next_run": [
+        "VLLM_RLP_TRACE_EXPORT_PATH=/tmp/codex-vllm-request-lifecycle-profiler-npu6-runtime.jsonl",
+        "make",
+        "managed-restart",
+        "&&",
+        "make",
+        "npu6-existing-server-trace-suite-smoke",
+        "TRACE_SUITE_OUTPUT_DIR=/home/shuhao/vllm-request-lifecycle-profiler-plugin/.benchmarks/results/npu6_runtime_hooks_enabled_smoke"
+      ],
+      "result_dir": "/home/shuhao/vllm-request-lifecycle-profiler-plugin/.benchmarks/results/npu6_runtime_hooks_enabled_smoke",
+      "status": "missing-result"
+    }
+  ],
+  "summary": {
+    "deltas": {
+      "event_count_delta": null,
+      "latency_p50_delta_ms": null,
+      "latency_p95_delta_ms": null,
+      "ttft_p50_delta_ms": null,
+      "ttft_p95_delta_ms": null
+    },
+    "loaded_result_count": 0,
+    "missing_result_count": 2,
+    "rows": [
+      {
+        "mode": "hook-disabled",
+        "required_next_run": [
+          "unset",
+          "VLLM_RLP_TRACE_EXPORT_PATH",
+          "&&",
+          "make",
+          "managed-restart",
+          "&&",
+          "make",
+          "npu6-existing-server-trace-suite-smoke",
+          "TRACE_SUITE_OUTPUT_DIR=/home/shuhao/vllm-request-lifecycle-profiler-plugin/.benchmarks/results/npu6_runtime_hooks_disabled_smoke"
+        ],
+        "result_dir": "/home/shuhao/vllm-request-lifecycle-profiler-plugin/.benchmarks/results/npu6_runtime_hooks_disabled_smoke",
+        "status": "missing-result"
+      },
+      {
+        "mode": "hook-enabled",
+        "required_next_run": [
+          "VLLM_RLP_TRACE_EXPORT_PATH=/tmp/codex-vllm-request-lifecycle-profiler-npu6-runtime.jsonl",
+          "make",
+          "managed-restart",
+          "&&",
+          "make",
+          "npu6-existing-server-trace-suite-smoke",
+          "TRACE_SUITE_OUTPUT_DIR=/home/shuhao/vllm-request-lifecycle-profiler-plugin/.benchmarks/results/npu6_runtime_hooks_enabled_smoke"
+        ],
+        "result_dir": "/home/shuhao/vllm-request-lifecycle-profiler-plugin/.benchmarks/results/npu6_runtime_hooks_enabled_smoke",
+        "status": "missing-result"
+      }
+    ]
+  }
+}

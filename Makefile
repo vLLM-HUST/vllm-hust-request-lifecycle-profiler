@@ -13,6 +13,7 @@ SHARED_ENV_NAME ?= $(CONDA_ENV)
 WORKLOAD_REPO ?= $(abspath $(CURDIR)/third_party/llm-serving-workloads)
 DEV_HUB ?= /home/shuhao/vllm-hust-dev-hub
 MANAGED_ENV_FILE ?= $(abspath $(CURDIR)/.benchmarks/profiles/npu6_vllm_hust_trace.env)
+TRACE_SUITE_OUTPUT_DIR ?= .benchmarks/results/npu6_existing_server_trace_probe_repeated_smoke
 
 PACKAGE_IMPORT := vllm_request_lifecycle_profiler
 BENCH_DIR := .benchmarks
@@ -20,7 +21,7 @@ PAPER_DIR := paper/request_lifecycle_causal_profiler
 
 .DEFAULT_GOAL := help
 
-.PHONY: help bootstrap-shared-env install-dev smoke test shared-workloads-smoke shared-workloads-test synthetic-fault-injection trace-diagnosis npu6-trace-preflight npu6-existing-server-trace-probe npu6-existing-server-trace-suite-smoke npu6-existing-server-slow-stream-trace-smoke npu6-slow-stream-trace-diagnosis npu6-existing-server-trace-overhead-smoke managed-install managed-start managed-restart managed-stop managed-status managed-health managed-logs managed-foreground lint format build bench paper paper-assets paper-pdf paper-clean clean
+.PHONY: help bootstrap-shared-env install-dev smoke test shared-workloads-smoke shared-workloads-test synthetic-fault-injection trace-diagnosis npu6-runtime-hook-pair-plan npu6-trace-preflight npu6-existing-server-trace-probe npu6-existing-server-trace-suite-smoke npu6-existing-server-slow-stream-trace-smoke npu6-slow-stream-trace-diagnosis npu6-existing-server-trace-overhead-smoke managed-install managed-start managed-restart managed-stop managed-status managed-health managed-logs managed-foreground lint format build bench paper paper-assets paper-pdf paper-clean clean
 
 help:
 	@printf '%s\n' \
@@ -34,6 +35,7 @@ help:
 		'  make shared-workloads-test  Run unit tests plus the shared workload compatibility sweep' \
 		'  make synthetic-fault-injection Run no-NPU controlled lifecycle attribution checks' \
 		'  make trace-diagnosis Derive client-visible stage diagnosis from checked-in NPU6 trace probe' \
+		'  make npu6-runtime-hook-pair-plan Aggregate or list hook-disabled/enabled runtime probe runs' \
 		'  make npu6-trace-preflight Run read-only NPU6 existing-server trace preflight' \
 		'  make npu6-existing-server-trace-probe Run client-observed lifecycle trace probe on NPU6' \
 		'  make npu6-existing-server-trace-suite-smoke Run warmup-controlled repeated trace suite on NPU6' \
@@ -92,6 +94,9 @@ trace-diagnosis:
 		--input-probe-results .benchmarks/results/npu6_existing_server_trace_probe_repeated_smoke/probe_results.json \
 		--output-dir .benchmarks/results/npu6_trace_diagnosis
 
+npu6-runtime-hook-pair-plan:
+	PYTHONPATH=src $(PYTHON) .benchmarks/run_runtime_hook_pair_plan.py
+
 npu6-trace-preflight:
 	ASCEND_HOME_PATH=/usr/local/Ascend PYTHONPATH=src $(PYTHON) .benchmarks/preflight_npu6_trace_probe.py \
 		--endpoint http://127.0.0.1:18168 \
@@ -117,7 +122,7 @@ npu6-existing-server-trace-suite-smoke:
 		--repeat-count 3 \
 		--max-requests 4 \
 		--trace-export-path /tmp/codex-vllm-request-lifecycle-profiler-npu6-trace.jsonl \
-		--output-dir .benchmarks/results/npu6_existing_server_trace_probe_repeated_smoke
+		--output-dir $(TRACE_SUITE_OUTPUT_DIR)
 
 npu6-existing-server-slow-stream-trace-smoke:
 	PYTHONPATH=src $(PYTHON) .benchmarks/run_existing_server_trace_probe.py \

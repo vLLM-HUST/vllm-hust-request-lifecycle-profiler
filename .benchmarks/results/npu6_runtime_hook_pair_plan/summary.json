@@ -1,0 +1,43 @@
+{
+  "deltas": {
+    "event_count_delta": null,
+    "latency_p50_delta_ms": null,
+    "latency_p95_delta_ms": null,
+    "ttft_p50_delta_ms": null,
+    "ttft_p95_delta_ms": null
+  },
+  "loaded_result_count": 0,
+  "missing_result_count": 2,
+  "rows": [
+    {
+      "mode": "hook-disabled",
+      "required_next_run": [
+        "unset",
+        "VLLM_RLP_TRACE_EXPORT_PATH",
+        "&&",
+        "make",
+        "managed-restart",
+        "&&",
+        "make",
+        "npu6-existing-server-trace-suite-smoke",
+        "TRACE_SUITE_OUTPUT_DIR=/home/shuhao/vllm-request-lifecycle-profiler-plugin/.benchmarks/results/npu6_runtime_hooks_disabled_smoke"
+      ],
+      "result_dir": "/home/shuhao/vllm-request-lifecycle-profiler-plugin/.benchmarks/results/npu6_runtime_hooks_disabled_smoke",
+      "status": "missing-result"
+    },
+    {
+      "mode": "hook-enabled",
+      "required_next_run": [
+        "VLLM_RLP_TRACE_EXPORT_PATH=/tmp/codex-vllm-request-lifecycle-profiler-npu6-runtime.jsonl",
+        "make",
+        "managed-restart",
+        "&&",
+        "make",
+        "npu6-existing-server-trace-suite-smoke",
+        "TRACE_SUITE_OUTPUT_DIR=/home/shuhao/vllm-request-lifecycle-profiler-plugin/.benchmarks/results/npu6_runtime_hooks_enabled_smoke"
+      ],
+      "result_dir": "/home/shuhao/vllm-request-lifecycle-profiler-plugin/.benchmarks/results/npu6_runtime_hooks_enabled_smoke",
+      "status": "missing-result"
+    }
+  ]
+}
