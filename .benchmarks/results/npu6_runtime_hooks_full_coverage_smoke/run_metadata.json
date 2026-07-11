@@ -31,14 +31,14 @@
   "repeat_count": 3,
   "repo": {
     "branch": "main",
-    "commit": "9b1d57dfd7123f86796e6631b90b21bd98996e98",
+    "commit": "22de7ad0ae7320baccce565bd6e5b5a11caa2a4f",
     "dirty": true,
     "dirty_excluding_output_dir": false,
     "dirty_exclusion_dir": ".benchmarks/results/npu6_runtime_hooks_full_coverage_smoke",
     "path": "/home/shuhao/vllm-request-lifecycle-profiler-plugin"
   },
   "result_valid_for_speedup_claims": false,
-  "timestamp_utc": "2026-07-11T02:08:40.205390+00:00",
+  "timestamp_utc": "2026-07-11T02:20:12.778912+00:00",
   "trace_boundary": "Client-observed lifecycle proxy trace. It records request preparation, HTTP send, first streamed chunk, stream completion, and cleanup from the probe process; it is not yet an internal vLLM scheduler/KV trace.",
   "trace_export_path": "/tmp/codex-vllm-request-lifecycle-profiler-npu6-trace.jsonl",
   "warmup_requests": 1,
