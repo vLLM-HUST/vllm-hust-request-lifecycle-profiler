@@ -21,7 +21,7 @@ PAPER_DIR := paper/request_lifecycle_causal_profiler
 
 .DEFAULT_GOAL := help
 
-.PHONY: help bootstrap-shared-env install-dev smoke test shared-workloads-smoke shared-workloads-test synthetic-fault-injection trace-diagnosis npu6-runtime-hook-pair-plan top-tier-readiness npu6-trace-preflight npu6-existing-server-trace-probe npu6-existing-server-trace-suite-smoke npu6-existing-server-slow-stream-trace-smoke npu6-slow-stream-trace-diagnosis npu6-existing-server-trace-overhead-smoke managed-install managed-start managed-restart managed-stop managed-status managed-health managed-logs managed-foreground lint format build bench paper paper-assets paper-pdf paper-clean clean
+.PHONY: help bootstrap-shared-env install-dev smoke test shared-workloads-smoke shared-workloads-test synthetic-fault-injection trace-diagnosis npu6-runtime-hook-pair-plan npu6-runtime-concurrency-anomaly-analysis top-tier-readiness npu6-trace-preflight npu6-existing-server-trace-probe npu6-existing-server-trace-suite-smoke npu6-existing-server-slow-stream-trace-smoke npu6-slow-stream-trace-diagnosis npu6-existing-server-trace-overhead-smoke managed-install managed-start managed-restart managed-stop managed-status managed-health managed-logs managed-foreground lint format build bench paper paper-assets paper-pdf paper-clean clean
 
 help:
 	@printf '%s\n' \
@@ -36,6 +36,7 @@ help:
 		'  make synthetic-fault-injection Run no-NPU controlled lifecycle attribution checks' \
 		'  make trace-diagnosis Derive client-visible stage diagnosis from checked-in NPU6 trace probe' \
 		'  make npu6-runtime-hook-pair-plan Aggregate or list hook-disabled/enabled runtime probe runs' \
+		'  make npu6-runtime-concurrency-anomaly-analysis Analyze checked-in NPU6 concurrency runtime-hook anomaly' \
 		'  make top-tier-readiness Run no-NPU checks and refresh submission-facing artifacts' \
 		'  make npu6-trace-preflight Run read-only NPU6 existing-server trace preflight' \
 		'  make npu6-existing-server-trace-probe Run client-observed lifecycle trace probe on NPU6' \
@@ -98,8 +99,12 @@ trace-diagnosis:
 npu6-runtime-hook-pair-plan:
 	PYTHONPATH=src $(PYTHON) .benchmarks/run_runtime_hook_pair_plan.py
 
-top-tier-readiness: test synthetic-fault-injection trace-diagnosis npu6-runtime-hook-pair-plan paper-assets
+npu6-runtime-concurrency-anomaly-analysis:
+	PYTHONPATH=src $(PYTHON) .benchmarks/analyze_runtime_concurrency_anomaly.py
+
+top-tier-readiness: test synthetic-fault-injection trace-diagnosis npu6-runtime-hook-pair-plan npu6-runtime-concurrency-anomaly-analysis paper-assets
 	@PYTHONPATH=src $(PYTHON) -c "import json, pathlib, sys; p=pathlib.Path('.benchmarks/results/npu6_runtime_hook_pair_plan/summary.json'); data=json.loads(p.read_text()); rows=data.get('rows', []); enabled=next((r for r in rows if r.get('mode') == 'hook-enabled'), {}); summary=enabled.get('runtime_trace_summary') or {}; complete=summary.get('complete_chain_count', 0); total=summary.get('request_chain_count', 0); missing=summary.get('missing_stage_counts', {}); print({'runtime_hook_complete_chains': complete, 'runtime_hook_total_chains': total, 'missing_stage_counts': missing}); sys.exit(0 if total and complete == total and not missing else 1)"
+	@PYTHONPATH=src $(PYTHON) -c "import json, pathlib, sys; p=pathlib.Path('.benchmarks/results/npu6_runtime_hooks_concurrency_sweep/concurrency_anomaly_analysis/summary.json'); data=json.loads(p.read_text()); print({'prefill_outlier_count': data.get('prefill_outlier_count'), 'prefill_outlier_concurrency_values': data.get('prefill_outlier_concurrency_values')}); sys.exit(0 if data.get('prefill_outlier_count', 0) > 0 and data.get('prefill_outlier_concurrency_values') == [2] else 1)"
 
 npu6-trace-preflight:
 	ASCEND_HOME_PATH=/usr/local/Ascend PYTHONPATH=src $(PYTHON) .benchmarks/preflight_npu6_trace_probe.py \
