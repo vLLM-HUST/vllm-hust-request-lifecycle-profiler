@@ -71,7 +71,7 @@ git -C third_party/vllm-hust rev-parse HEAD
 ```
 
 The expected hook carrier is commit
-`7d5406c5a9eab69e8af90e0b17a86c1b207f0a8b`. It imports the parent package's
+`0daab7a300fb91efebd35b221b9a6f6c6d7486f8`. It imports the parent package's
 runtime hook bridge only when `VLLM_RLP_TRACE_EXPORT_PATH` is set. Before
 launching a hook-enabled service, install the parent repository into the
 project environment:
