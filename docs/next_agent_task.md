@@ -134,23 +134,31 @@ chains. The prompt-heavy low-output fault is now measured at
 `.benchmarks/results/npu6_runtime_hooks_prompt_heavy_low_output_smoke/` with
 8/8 measured success, client-visible `prefill` diagnosis for 8/8 measured
 requests, prefill-span p95 133.66 ms, decode-span p95 36.70 ms, and 9/9
-complete internal runtime hook chains. Do not reuse the invalid
+complete internal runtime hook chains. The concurrency-sensitive sweep is now
+measured at `.benchmarks/results/npu6_runtime_hooks_concurrency_sweep/`: all
+27 measured requests across concurrency 1/2/3 succeed, runtime hooks cover
+30/30 complete chains, and concurrency 2 exposes a severe client-visible
+prefill/TTFT tail (8/9 `prefill`, TTFT p95 12299.08 ms, prefill-span p95
+12298.88 ms) that does not appear at concurrency 3 (9/9 `prefill`, TTFT p95
+131.61 ms). Treat this as the strongest current candidate prefill/KV or
+scheduler boundary, but not as internal KV proof yet. Do not reuse the invalid
 `.benchmarks/results/npu6_runtime_hooks_long_prefill_fault_smoke/` or
 `.benchmarks/results/npu6_runtime_hooks_decode_heavy_fault_smoke/` as positive
 evidence; they are marked `FAILED.txt` because the candidate workload failed
-before usable attribution. Next run a valid KV-pressure or concurrency-sensitive
-prefill/KV boundary with the same discipline: preserve the client-observed
-proxy trace as a correlation anchor, collect the internal runtime JSONL, and
-report whether internal spans confirm or overturn the proxy hypothesis. Keep
-client-observed proxy trace results separate from internal runtime trace
-claims.
+before usable attribution. Next, repeat and instrument the concurrency-2 tail:
+preserve the client-observed proxy trace as a correlation anchor, collect the
+internal runtime JSONL, add internal request-level fields if needed (scheduler
+wait, prefill execution, KV allocation/cache pressure, graph capture or batch
+transition, prompt/generation tokens), and report whether internal spans
+confirm or overturn the proxy hypothesis. Keep client-observed proxy trace
+results separate from internal runtime trace claims.
 
 Before the next run, read `docs/live_fault_matrix_plan.md`. The plan defines
 the stricter ASPLOS gate: existing slow-stream and decode-heavy results prove
 runtime-hook coverage during known faults, but not internal-only causal
-diagnosis accuracy. The next useful NPU6 work is a valid KV-pressure or
-concurrency-sensitive prefill/KV fault, plus a raw-timer baseline comparison
-showing why lifecycle spans change the optimization decision.
+diagnosis accuracy. The next useful NPU6 work is internal correlation for the
+concurrency-2 anomaly, plus a raw-timer baseline comparison showing why
+lifecycle spans change the optimization decision.
 
 ## Paper Update Requirement
 

@@ -1,0 +1,98 @@
+{
+  "claim_boundary": "Concurrency sweep uses client-visible lifecycle proxy diagnosis plus runtime-hook schema coverage. It is not yet internal-only root-cause proof or KV allocator attribution.",
+  "evidence_label": "existing-server-probe plus derived-artifact",
+  "key_observations": [
+    "Concurrency 1 is mostly decode-dominant with two prefill outliers.",
+    "Concurrency 2 exposes a severe TTFT/prefill tail: prefill p95 is 12298.88 ms and 8/9 measured requests are prefill-dominant.",
+    "Concurrency 3 stays successful and prefill-dominant for 9/9 measured requests with prefill p95 131.47 ms, showing a non-monotonic scheduling/batching boundary rather than a simple throughput slope.",
+    "Runtime hooks cover 30/30 request chains with all nine stages and no missing stage counts across the sweep."
+  ],
+  "rows": [
+    {
+      "decode_p50_ms": 100.03088368102908,
+      "decode_p95_ms": 103.22210025042295,
+      "diagnosis_dir": ".benchmarks/results/npu6_runtime_hooks_concurrency_sweep/diagnosis_concurrency_1",
+      "dominant_bottleneck": "decode",
+      "dominant_bottleneck_counts": {
+        "decode": 7,
+        "prefill": 2
+      },
+      "latency_p50_ms": 177.90614208206534,
+      "latency_p95_ms": 265.0932718999684,
+      "measured_concurrency": 1,
+      "missing_event_rate_p95": 0.0,
+      "prefill_p50_ms": 77.65957666561007,
+      "prefill_p95_ms": 163.05495873093605,
+      "probe_dir": ".benchmarks/results/npu6_runtime_hooks_concurrency_sweep/concurrency_1",
+      "request_count": 9,
+      "success_count": 9,
+      "ttft_p50_ms": 77.90402788668871,
+      "ttft_p95_ms": 163.30057280138135
+    },
+    {
+      "decode_p50_ms": 102.66105039045215,
+      "decode_p95_ms": 107.44889760389924,
+      "diagnosis_dir": ".benchmarks/results/npu6_runtime_hooks_concurrency_sweep/diagnosis_concurrency_2",
+      "dominant_bottleneck": "prefill",
+      "dominant_bottleneck_counts": {
+        "decode": 1,
+        "prefill": 8
+      },
+      "latency_p50_ms": 220.57610098272562,
+      "latency_p95_ms": 12404.060316551477,
+      "measured_concurrency": 2,
+      "missing_event_rate_p95": 0.0,
+      "prefill_p50_ms": 116.75087176263332,
+      "prefill_p95_ms": 12298.884271737188,
+      "probe_dir": ".benchmarks/results/npu6_runtime_hooks_concurrency_sweep/concurrency_2",
+      "request_count": 9,
+      "success_count": 9,
+      "ttft_p50_ms": 116.8922227807343,
+      "ttft_p95_ms": 12299.080367106944
+    },
+    {
+      "decode_p50_ms": 103.21351373568177,
+      "decode_p95_ms": 109.39960647374392,
+      "diagnosis_dir": ".benchmarks/results/npu6_runtime_hooks_concurrency_sweep/diagnosis_concurrency_3",
+      "dominant_bottleneck": "prefill",
+      "dominant_bottleneck_counts": {
+        "prefill": 9
+      },
+      "latency_p50_ms": 230.46307498589158,
+      "latency_p95_ms": 234.90174189209938,
+      "measured_concurrency": 3,
+      "missing_event_rate_p95": 0.0,
+      "prefill_p50_ms": 126.91996898502111,
+      "prefill_p95_ms": 131.4666286110878,
+      "probe_dir": ".benchmarks/results/npu6_runtime_hooks_concurrency_sweep/concurrency_3",
+      "request_count": 9,
+      "success_count": 9,
+      "ttft_p50_ms": 127.064089756459,
+      "ttft_p95_ms": 131.61356952041388
+    }
+  ],
+  "runtime_trace_summary": {
+    "complete_chain_count": 30,
+    "event_count": 270,
+    "incomplete_chain_count": 0,
+    "incomplete_chain_sample": [],
+    "internal_request_id_count": 60,
+    "missing_stage_counts": {},
+    "observer_counts": {
+      "vllm_runtime_hook": 270
+    },
+    "request_chain_count": 30,
+    "stage_counts": {
+      "cleanup_done": 30,
+      "decode_done": 30,
+      "first_token": 30,
+      "prefill_done": 30,
+      "queued": 30,
+      "received": 30,
+      "scheduled": 30,
+      "stream_done": 30,
+      "tokenized": 30
+    }
+  },
+  "workload": "shared_scenario_structured_agent_decode, 1 warmup, 3 repeats x 3 measured requests, max_tokens=8"
+}

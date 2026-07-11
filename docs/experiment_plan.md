@@ -140,13 +140,26 @@ tokens, records 8/8 measured success, and attributes 8/8 measured requests to
 `prefill` with prefill-span p95 133.66 ms, decode-span p95 36.70 ms, and
 runtime hooks over 9/9 complete chains.
 
+A concurrency-sensitive sweep is now checked in at
+`.benchmarks/results/npu6_runtime_hooks_concurrency_sweep/`. It uses the same
+structured-agent workload, 8 requested output tokens, and measured concurrency
+1/2/3. All 27 measured requests succeed. Concurrency 1 is mostly `decode`
+dominant (7 decode, 2 prefill) with TTFT p95 163.30 ms. Concurrency 2 exposes
+a severe prefill/TTFT tail: 8/9 measured requests are `prefill` dominant,
+TTFT p95 is 12299.08 ms, latency p95 is 12404.06 ms, and prefill-span p95 is
+12298.88 ms. Concurrency 3 is 9/9 `prefill` dominant but has TTFT p95
+131.61 ms. Runtime hooks record 270 events across 30/30 complete chains with
+no missing-stage counts. Treat this as a candidate prefill/KV or scheduler
+boundary, not as internal KV proof yet.
+
 Two attempted long-context candidates are intentionally marked invalid:
 `.benchmarks/results/npu6_runtime_hooks_long_prefill_fault_smoke/` and
 `.benchmarks/results/npu6_runtime_hooks_decode_heavy_fault_smoke/` both failed
 before usable runtime-hook attribution. Treat them as service-boundary evidence
 for workload design, not as attribution failures. The next submission-critical
-gap is a valid KV-pressure or concurrency-sensitive prefill/KV boundary under
-the same hook-enabled pattern.
+gap is internal correlation for the concurrency-2 tail: scheduler wait, prefill
+execution, KV allocation/cache pressure, graph capture or batch transition, and
+request token counts under the same hook-enabled pattern.
 
 The stricter live-fault matrix gate is documented in
 `docs/live_fault_matrix_plan.md`. It separates current coverage claims from the

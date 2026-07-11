@@ -1,0 +1,308 @@
+{
+  "metadata": {
+    "claim_boundary": "Derived diagnosis from client-observed lifecycle proxy events. This identifies dominant client-visible spans, not internal vLLM scheduler, KV, prefill, or decode root cause.",
+    "command": [
+      "analyze_trace_diagnosis.py",
+      "--input-probe-results",
+      ".benchmarks/results/npu6_runtime_hooks_concurrency_sweep/concurrency_3/probe_results.json",
+      "--output-dir",
+      ".benchmarks/results/npu6_runtime_hooks_concurrency_sweep/diagnosis_concurrency_3"
+    ],
+    "evidence_label": "derived-artifact",
+    "input_probe_results": ".benchmarks/results/npu6_runtime_hooks_concurrency_sweep/concurrency_3/probe_results.json",
+    "repo": {
+      "branch": "main",
+      "commit": "89c1a4a0c5ccc7a2768dbae5cacb7f1f35a62a90",
+      "dirty": true,
+      "dirty_excluding_output_dir": true,
+      "dirty_exclusion_dir": ".benchmarks/results/npu6_runtime_hooks_concurrency_sweep/diagnosis_concurrency_3",
+      "dirty_exclusion_dirs": [
+        ".benchmarks/results/npu6_runtime_hooks_concurrency_sweep/diagnosis_concurrency_3",
+        ".benchmarks/results/npu6_runtime_hooks_concurrency_sweep/concurrency_3"
+      ],
+      "path": "/home/shuhao/vllm-request-lifecycle-profiler-plugin"
+    },
+    "result_valid_for_speedup_claims": false,
+    "timestamp_utc": "2026-07-11T04:49:35.701666+00:00"
+  },
+  "rows": [
+    {
+      "cleanup_ms": 0.011059921234846115,
+      "complete_span_count": 6,
+      "decode_ms": 109.78011693805456,
+      "dominant_duration_ms": 118.81157709285617,
+      "dominant_kind": "prefill",
+      "dominant_span": "prefill",
+      "missing_event_rate": 0.0,
+      "missing_span_count": 0,
+      "phase": "measured",
+      "prefill_ms": 118.81157709285617,
+      "queueing_ms": 0.17398130148649216,
+      "request_id": "shared_scenario_structured_agent_decode::repeat0::0",
+      "streaming_ms": 0.0,
+      "tokenization_ms": 0.06128987297415733
+    },
+    {
+      "cleanup_ms": 0.005729962140321732,
+      "complete_span_count": 6,
+      "decode_ms": 103.43141527846456,
+      "dominant_duration_ms": 131.82957097887993,
+      "dominant_kind": "prefill",
+      "dominant_span": "prefill",
+      "missing_event_rate": 0.0,
+      "missing_span_count": 0,
+      "phase": "measured",
+      "prefill_ms": 131.82957097887993,
+      "queueing_ms": 0.09156111627817154,
+      "request_id": "shared_scenario_structured_agent_decode::repeat0::1",
+      "streaming_ms": 0.0,
+      "tokenization_ms": 0.052409712225198746
+    },
+    {
+      "cleanup_ms": 0.007400289177894592,
+      "complete_span_count": 6,
+      "decode_ms": 103.05731277912855,
+      "dominant_duration_ms": 130.9222150593996,
+      "dominant_kind": "prefill",
+      "dominant_span": "prefill",
+      "missing_event_rate": 0.0,
+      "missing_span_count": 0,
+      "phase": "measured",
+      "prefill_ms": 130.9222150593996,
+      "queueing_ms": 0.094591174274683,
+      "request_id": "shared_scenario_structured_agent_decode::repeat0::2",
+      "streaming_ms": 0.0,
+      "tokenization_ms": 0.0492599792778492
+    },
+    {
+      "cleanup_ms": 0.010750256478786469,
+      "complete_span_count": 6,
+      "decode_ms": 108.82884077727795,
+      "dominant_duration_ms": 120.87216880172491,
+      "dominant_kind": "prefill",
+      "dominant_span": "prefill",
+      "missing_event_rate": 0.0,
+      "missing_span_count": 0,
+      "phase": "measured",
+      "prefill_ms": 120.87216880172491,
+      "queueing_ms": 0.15982100740075111,
+      "request_id": "shared_scenario_structured_agent_decode::repeat1::0",
+      "streaming_ms": 0.0,
+      "tokenization_ms": 0.06103096529841423
+    },
+    {
+      "cleanup_ms": 0.0071497634053230286,
+      "complete_span_count": 6,
+      "decode_ms": 102.83484123647213,
+      "dominant_duration_ms": 126.91996898502111,
+      "dominant_kind": "prefill",
+      "dominant_span": "prefill",
+      "missing_event_rate": 0.0,
+      "missing_span_count": 0,
+      "phase": "measured",
+      "prefill_ms": 126.91996898502111,
+      "queueing_ms": 0.09422097355127335,
+      "request_id": "shared_scenario_structured_agent_decode::repeat1::1",
+      "streaming_ms": 0.0,
+      "tokenization_ms": 0.047530047595500946
+    },
+    {
+      "cleanup_ms": 0.0062300823628902435,
+      "complete_span_count": 6,
+      "decode_ms": 103.21351373568177,
+      "dominant_duration_ms": 126.57890701666474,
+      "dominant_kind": "prefill",
+      "dominant_span": "prefill",
+      "missing_event_rate": 0.0,
+      "missing_span_count": 0,
+      "phase": "measured",
+      "prefill_ms": 126.57890701666474,
+      "queueing_ms": 0.08111028000712395,
+      "request_id": "shared_scenario_structured_agent_decode::repeat1::2",
+      "streaming_ms": 0.0,
+      "tokenization_ms": 0.03599002957344055
+    },
+    {
+      "cleanup_ms": 0.00991998240351677,
+      "complete_span_count": 6,
+      "decode_ms": 108.75026974827051,
+      "dominant_duration_ms": 121.84559600427747,
+      "dominant_kind": "prefill",
+      "dominant_span": "prefill",
+      "missing_event_rate": 0.0,
+      "missing_span_count": 0,
+      "phase": "measured",
+      "prefill_ms": 121.84559600427747,
+      "queueing_ms": 0.14325091615319252,
+      "request_id": "shared_scenario_structured_agent_decode::repeat2::0",
+      "streaming_ms": 0.0,
+      "tokenization_ms": 0.05223974585533142
+    },
+    {
+      "cleanup_ms": 0.005729962140321732,
+      "complete_span_count": 6,
+      "decode_ms": 102.88292216137052,
+      "dominant_duration_ms": 127.79128411784768,
+      "dominant_kind": "prefill",
+      "dominant_span": "prefill",
+      "missing_event_rate": 0.0,
+      "missing_span_count": 0,
+      "phase": "measured",
+      "prefill_ms": 127.79128411784768,
+      "queueing_ms": 0.09443098679184914,
+      "request_id": "shared_scenario_structured_agent_decode::repeat2::1",
+      "streaming_ms": 0.0,
+      "tokenization_ms": 0.04833005368709564
+    },
+    {
+      "cleanup_ms": 0.005360227078199387,
+      "complete_span_count": 6,
+      "decode_ms": 102.89000207558274,
+      "dominant_duration_ms": 127.44178296998143,
+      "dominant_kind": "prefill",
+      "dominant_span": "prefill",
+      "missing_event_rate": 0.0,
+      "missing_span_count": 0,
+      "phase": "measured",
+      "prefill_ms": 127.44178296998143,
+      "queueing_ms": 0.09140977635979652,
+      "request_id": "shared_scenario_structured_agent_decode::repeat2::2",
+      "streaming_ms": 0.0,
+      "tokenization_ms": 0.03260001540184021
+    },
+    {
+      "cleanup_ms": 0.01434003934264183,
+      "complete_span_count": 6,
+      "decode_ms": 99.28331803530455,
+      "dominant_duration_ms": 99.28331803530455,
+      "dominant_kind": "decode",
+      "dominant_span": "decode",
+      "missing_event_rate": 0.0,
+      "missing_span_count": 0,
+      "phase": "warmup",
+      "prefill_ms": 88.45908800140023,
+      "queueing_ms": 0.4392429254949093,
+      "request_id": "shared_scenario_structured_agent_decode::warmup::0",
+      "streaming_ms": 0.0,
+      "tokenization_ms": 0.036700163036584854
+    }
+  ],
+  "summary": {
+    "claim_boundary": "Derived diagnosis from client-observed lifecycle proxy events. This identifies dominant client-visible spans, not internal vLLM scheduler, KV, prefill, or decode root cause.",
+    "dominant_bottleneck": "prefill",
+    "dominant_bottleneck_counts": {
+      "prefill": 9
+    },
+    "event_count": 90,
+    "measured_request_count": 9,
+    "measured_span_duration_ms": {
+      "cleanup": {
+        "count": 9,
+        "max": 0.011059921234846115,
+        "min": 0.005360227078199387,
+        "p50": 0.0071497634053230286,
+        "p95": 0.010936055332422256,
+        "p99": 0.011035148054361343
+      },
+      "decode": {
+        "count": 9,
+        "max": 109.78011693805456,
+        "min": 102.83484123647213,
+        "p50": 103.21351373568177,
+        "p95": 109.39960647374392,
+        "p99": 109.70401484519243
+      },
+      "prefill": {
+        "count": 9,
+        "max": 131.82957097887993,
+        "min": 118.81157709285617,
+        "p50": 126.91996898502111,
+        "p95": 131.4666286110878,
+        "p99": 131.7569825053215
+      },
+      "queueing": {
+        "count": 9,
+        "max": 0.17398130148649216,
+        "min": 0.08111028000712395,
+        "p50": 0.09443098679184914,
+        "p95": 0.16831718385219574,
+        "p99": 0.17284847795963287
+      },
+      "streaming": {
+        "count": 9,
+        "max": 0.0,
+        "min": 0.0,
+        "p50": 0.0,
+        "p95": 0.0,
+        "p99": 0.0
+      },
+      "tokenization": {
+        "count": 9,
+        "max": 0.06128987297415733,
+        "min": 0.03260001540184021,
+        "p50": 0.0492599792778492,
+        "p95": 0.06118630990386009,
+        "p99": 0.061269160360097885
+      }
+    },
+    "missing_event_rate": {
+      "count": 10,
+      "max": 0.0,
+      "min": 0.0,
+      "p50": 0.0,
+      "p95": 0.0,
+      "p99": 0.0
+    },
+    "request_count": 10,
+    "span_duration_ms": {
+      "cleanup": {
+        "count": 10,
+        "max": 0.01434003934264183,
+        "min": 0.005360227078199387,
+        "p50": 0.00727502629160881,
+        "p95": 0.012863986194133755,
+        "p99": 0.014044828712940216
+      },
+      "decode": {
+        "count": 10,
+        "max": 109.78011693805456,
+        "min": 99.28331803530455,
+        "p50": 103.13541325740516,
+        "p95": 109.35204266570508,
+        "p99": 109.69450208358467
+      },
+      "prefill": {
+        "count": 10,
+        "max": 131.82957097887993,
+        "min": 88.45908800140023,
+        "p50": 126.74943800084293,
+        "p95": 131.42126081511378,
+        "p99": 131.7479089461267
+      },
+      "queueing": {
+        "count": 10,
+        "max": 0.4392429254949093,
+        "min": 0.08111028000712395,
+        "p50": 0.09451108053326607,
+        "p95": 0.3198751946911213,
+        "p99": 0.4153693793341518
+      },
+      "streaming": {
+        "count": 10,
+        "max": 0.0,
+        "min": 0.0,
+        "p50": 0.0,
+        "p95": 0.0,
+        "p99": 0.0
+      },
+      "tokenization": {
+        "count": 10,
+        "max": 0.06128987297415733,
+        "min": 0.03260001540184021,
+        "p50": 0.04879501648247242,
+        "p95": 0.06117336452007294,
+        "p99": 0.061266571283340454
+      }
+    }
+  }
+}

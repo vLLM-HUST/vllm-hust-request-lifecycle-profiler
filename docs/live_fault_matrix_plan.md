@@ -23,6 +23,12 @@ classes, raw-timer baselines, and explicit overhead measurements.
 - Prompt-heavy low-output fault: the same runtime-entering workload with only
   4 requested output tokens switches client-visible diagnosis to `prefill`,
   with 8/8 measured success and complete runtime hook chains.
+- Concurrency-sensitive structured-agent sweep: the hook-enabled NPU6 service
+  succeeds for 27/27 measured requests across measured concurrency 1/2/3. It
+  exposes a non-monotonic prefill/TTFT boundary: concurrency 2 has 8/9
+  `prefill` diagnoses and TTFT p95 12299.08 ms, while concurrency 3 has 9/9
+  `prefill` diagnoses but TTFT p95 131.61 ms. Runtime hooks record 30/30
+  complete chains with no missing stages.
 
 These results support trace feasibility and coverage during known faults. They
 do not yet prove internal-only causal diagnosis accuracy.
@@ -36,17 +42,25 @@ The two long-context candidates in
 `.benchmarks/results/npu6_runtime_hooks_decode_heavy_fault_smoke/` are invalid
 boundary evidence because requests failed before usable runtime attribution.
 The prompt-heavy low-output run now provides a valid prefill-dominant case that
-enters the runtime and produces successful measured requests. The remaining
-gap is a KV-pressure or concurrency-sensitive prefill/KV boundary.
+enters the runtime and produces successful measured requests. The concurrency
+sweep adds a candidate prefill/KV boundary and a concrete anomaly to explain:
+the concurrency-2 run produces a 12.3 s TTFT/prefill tail that does not appear
+at concurrency 3. The remaining gate is to correlate that anomaly with internal
+scheduler/KV spans or runtime counters, rather than treating the client-visible
+prefill label as internal KV proof.
 
 Required evidence:
 
-- `existing-server-probe` or `real-online` result directory on NPU6;
-- 1+ warmup and at least 4 measured successful requests;
-- client proxy trace and internal `runtime_trace.jsonl`;
-- derived diagnosis with measured dominant class;
-- runtime trace summary with all nine stages and no missing-stage counts;
-- `FAILED.txt` only if the candidate is invalid, with the exact boundary.
+- Keep `.benchmarks/results/npu6_runtime_hooks_concurrency_sweep/` as the
+  candidate boundary evidence.
+- Add internal span or counter analysis for the concurrency-2 tail: scheduler
+  wait, prefill execution, KV allocation/cache pressure, graph capture or batch
+  transition, and request-level token counts.
+- Preserve client proxy trace and internal `runtime_trace.jsonl`.
+- Report whether internal evidence confirms a KV/prefill mechanism or
+  overturns the proxy hypothesis.
+- Use `FAILED.txt` only if a follow-up candidate is invalid, with the exact
+  boundary.
 
 ### Gate 2: Raw-Timer Baseline Comparison
 
@@ -104,16 +118,20 @@ Do not use these terms yet:
 
 ## Suggested Next NPU6 Run
 
-Start from the prompt-heavy low-output run that succeeds, then add concurrency
-or KV pressure while keeping the prompt below the current 4096-token service
-boundary:
+Start from the concurrency sweep that succeeds, then instrument the
+concurrency-2 tail while keeping the prompt below the current 4096-token
+service boundary:
 
 - use `shared_scenario_structured_agent_decode` or a repo-local prompt around
   2300-3300 prompt tokens;
 - request 4-16 output tokens;
-- sweep concurrency 1/2/3 first to look for a prefill/KV knee;
-- if concurrency fails before attribution, mark the boundary and lower prompt
-  size before retrying;
+- repeat concurrency 2 enough times to determine whether the 12.3 s tail is
+  reproducible or a rare scheduler transition;
+- add internal request-level fields when available: prompt tokens, generation
+  tokens, batch size, prefill batch composition, KV allocation status, graph
+  capture size, and scheduler wait;
+- run the same shape at concurrency 1 and 3 as controls after adding those
+  fields;
 - preserve both client proxy and runtime hook traces.
 
 If no valid prefill/KV candidate is found, commit all failed attempts with

@@ -1,0 +1,23 @@
+{
+  "complete_chain_count": 30,
+  "event_count": 270,
+  "incomplete_chain_count": 0,
+  "incomplete_chain_sample": [],
+  "internal_request_id_count": 60,
+  "missing_stage_counts": {},
+  "observer_counts": {
+    "vllm_runtime_hook": 270
+  },
+  "request_chain_count": 30,
+  "stage_counts": {
+    "cleanup_done": 30,
+    "decode_done": 30,
+    "first_token": 30,
+    "prefill_done": 30,
+    "queued": 30,
+    "received": 30,
+    "scheduled": 30,
+    "stream_done": 30,
+    "tokenized": 30
+  }
+}

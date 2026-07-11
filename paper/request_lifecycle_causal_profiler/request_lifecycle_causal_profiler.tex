@@ -139,6 +139,18 @@ measured requests and switches the client-visible diagnosis to prefill for
 prefill-dominant live-fault coverage gap, but it is still not an internal-only
 root-cause accuracy claim.
 
+Finally, we sweep measured concurrency 1/2/3 on the same structured-agent
+shape with eight requested output tokens. All 27 measured requests succeed,
+and the combined runtime hook trace records 270 events over 30/30 complete
+chains. The sweep exposes a candidate prefill/KV or scheduler boundary rather
+than a simple throughput curve: concurrency 1 is mostly decode-dominant
+(7 decode, 2 prefill) with TTFT p95 163.30\,ms, concurrency 2 switches to
+8/9 prefill-dominant requests with a severe TTFT p95 of 12299.08\,ms and
+prefill-span p95 of 12298.88\,ms, while concurrency 3 is 9/9 prefill-dominant
+but has TTFT p95 131.61\,ms. This is currently a client-visible anomaly with
+runtime-hook coverage; the next step is to correlate it with internal
+scheduler, batch-transition, graph-capture, or KV-allocation signals.
+
 Table~\ref{tab:npu6-decision-impact} restates the same evidence as an
 optimization decision aid. Ordinary request timers can show that latency is
 large, but lifecycle spans determine which next experiment should run: normal
@@ -210,14 +222,16 @@ NPU6 smoke workload, bounded runtime-hook overhead on that smoke, runtime-hook
 coverage during known slow-stream and decode-heavy faults, and a derived
 decision-impact view over the same proxy traces. The new prompt-heavy
 low-output fault adds a valid prefill-dominant live case with runtime-hook
-coverage. The decision-impact table is
+coverage, and the concurrency sweep adds a concrete non-monotonic
+prefill/TTFT tail to explain with deeper runtime signals. The decision-impact
+table is
 not a new online measurement: it summarizes which follow-up optimization
 experiment each proxy diagnosis justifies. The artifact does not yet support
 claims about internal-only diagnosis accuracy on live faults, memory overhead,
 TPOT overhead, broad workload generality, or root-cause time improvement. Those
-claims require a KV-pressure or concurrency-sensitive prefill/KV fault,
-causal-rule comparison against raw timers, TPOT/HBM overhead evidence beyond
-the smoke workload, and a larger workload matrix.
+claims require internal correlation for the concurrency-2 anomaly, causal-rule
+comparison against raw timers, TPOT/HBM overhead evidence beyond the smoke
+workload, and a larger workload matrix.
 
 \begin{table}[t]
 \centering
