@@ -148,8 +148,12 @@ than a simple throughput curve: concurrency 1 is mostly decode-dominant
 8/9 prefill-dominant requests with a severe TTFT p95 of 12299.08\,ms and
 prefill-span p95 of 12298.88\,ms, while concurrency 3 is 9/9 prefill-dominant
 but has TTFT p95 131.61\,ms. This is currently a client-visible anomaly with
-runtime-hook coverage; the next step is to correlate it with internal
-scheduler, batch-transition, graph-capture, or KV-allocation signals.
+runtime-hook coverage. A post-hoc runtime-span analysis confirms that the
+concurrency-2 tail is inside the runtime prefill span: internal prefill p95 is
+12261.98\,ms at concurrency 2, compared with 150.31\,ms at concurrency 1 and
+106.94\,ms at concurrency 3. The next step is therefore narrower: split this
+coarse prefill span into scheduler-to-prefill transition, graph capture, batch
+transition, KV allocation, and prefill kernel execution signals.
 
 Table~\ref{tab:npu6-decision-impact} restates the same evidence as an
 optimization decision aid. Ordinary request timers can show that latency is
@@ -223,15 +227,16 @@ coverage during known slow-stream and decode-heavy faults, and a derived
 decision-impact view over the same proxy traces. The new prompt-heavy
 low-output fault adds a valid prefill-dominant live case with runtime-hook
 coverage, and the concurrency sweep adds a concrete non-monotonic
-prefill/TTFT tail to explain with deeper runtime signals. The decision-impact
+prefill/TTFT tail that is confirmed inside runtime prefill but not yet
+decomposed into KV, graph, batch, or kernel mechanisms. The decision-impact
 table is
 not a new online measurement: it summarizes which follow-up optimization
 experiment each proxy diagnosis justifies. The artifact does not yet support
 claims about internal-only diagnosis accuracy on live faults, memory overhead,
 TPOT overhead, broad workload generality, or root-cause time improvement. Those
-claims require internal correlation for the concurrency-2 anomaly, causal-rule
-comparison against raw timers, TPOT/HBM overhead evidence beyond the smoke
-workload, and a larger workload matrix.
+claims require finer decomposition of the concurrency-2 runtime prefill
+anomaly, causal-rule comparison against raw timers, TPOT/HBM overhead evidence
+beyond the smoke workload, and a larger workload matrix.
 
 \begin{table}[t]
 \centering

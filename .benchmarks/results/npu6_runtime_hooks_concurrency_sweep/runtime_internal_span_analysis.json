@@ -1,0 +1,145 @@
+{
+  "chain_count": 30,
+  "claim_boundary": "Derived post-hoc analysis of runtime hook timestamps from the concurrency sweep. Blocks are assigned by chronological run order because the three client probes ran sequentially against one hook-enabled service.",
+  "evidence_label": "derived-artifact",
+  "span_definitions": [
+    {
+      "end_stage": "tokenized",
+      "name": "tokenization",
+      "start_stage": "received"
+    },
+    {
+      "end_stage": "scheduled",
+      "name": "queueing",
+      "start_stage": "queued"
+    },
+    {
+      "end_stage": "prefill_done",
+      "name": "prefill",
+      "start_stage": "scheduled"
+    },
+    {
+      "end_stage": "first_token",
+      "name": "first_token_gap",
+      "start_stage": "prefill_done"
+    },
+    {
+      "end_stage": "decode_done",
+      "name": "decode",
+      "start_stage": "first_token"
+    },
+    {
+      "end_stage": "stream_done",
+      "name": "streaming",
+      "start_stage": "decode_done"
+    },
+    {
+      "end_stage": "cleanup_done",
+      "name": "cleanup",
+      "start_stage": "stream_done"
+    },
+    {
+      "end_stage": "cleanup_done",
+      "name": "runtime_total",
+      "start_stage": "received"
+    }
+  ],
+  "summary_rows": [
+    {
+      "assigned_concurrency": 1,
+      "cleanup_max_ms": 0.08044052124023438,
+      "cleanup_p50_ms": 0.056231021881103516,
+      "cleanup_p95_ms": 0.07974834442138672,
+      "decode_max_ms": 105.16665697097778,
+      "decode_p50_ms": 102.01599550247192,
+      "decode_p95_ms": 105.03427991867065,
+      "first_token_gap_max_ms": 0.0,
+      "first_token_gap_p50_ms": 0.0,
+      "first_token_gap_p95_ms": 0.0,
+      "generation_tokens_max": 8,
+      "generation_tokens_min": 8,
+      "measured_chain_count": 9,
+      "prefill_max_ms": 150.5027732849121,
+      "prefill_p50_ms": 64.78249311447144,
+      "prefill_p95_ms": 150.30548763275146,
+      "prompt_tokens_max": 2335,
+      "prompt_tokens_min": 2335,
+      "queueing_max_ms": 2.2290635108947754,
+      "queueing_p50_ms": 1.7535409927368164,
+      "queueing_p95_ms": 2.080886936187744,
+      "runtime_total_max_ms": 263.0390086174011,
+      "runtime_total_p50_ms": 175.01844310760498,
+      "runtime_total_p95_ms": 262.2372591972351,
+      "streaming_max_ms": 0.7034540176391602,
+      "streaming_p50_ms": 0.5905838012695312,
+      "streaming_p95_ms": 0.6995985031127929,
+      "tokenization_max_ms": 8.697186470031738,
+      "tokenization_p50_ms": 5.676677227020264,
+      "tokenization_p95_ms": 7.588835525512694
+    },
+    {
+      "assigned_concurrency": 2,
+      "cleanup_max_ms": 0.054990291595458984,
+      "cleanup_p50_ms": 0.05454111099243164,
+      "cleanup_p95_ms": 0.05495405197143555,
+      "decode_max_ms": 109.86819744110107,
+      "decode_p50_ms": 104.44394207000732,
+      "decode_p95_ms": 108.71475811004638,
+      "first_token_gap_max_ms": 0.0,
+      "first_token_gap_p50_ms": 0.0,
+      "first_token_gap_p95_ms": 0.0,
+      "generation_tokens_max": 8,
+      "generation_tokens_min": 8,
+      "measured_chain_count": 9,
+      "prefill_max_ms": 12277.615494728088,
+      "prefill_p50_ms": 98.66607522964478,
+      "prefill_p95_ms": 12261.982732391356,
+      "prompt_tokens_max": 2335,
+      "prompt_tokens_min": 2335,
+      "queueing_max_ms": 48.465436935424805,
+      "queueing_p50_ms": 1.8537917137145996,
+      "queueing_p95_ms": 48.142579078674316,
+      "runtime_total_max_ms": 12402.82778263092,
+      "runtime_total_p50_ms": 218.2933955192566,
+      "runtime_total_p95_ms": 12400.452175331116,
+      "streaming_max_ms": 1.1837778091430664,
+      "streaming_p50_ms": 0.5769538879394531,
+      "streaming_p95_ms": 1.1660058975219725,
+      "tokenization_max_ms": 10.612099170684814,
+      "tokenization_p50_ms": 6.397592544555664,
+      "tokenization_p95_ms": 9.132613468170165
+    },
+    {
+      "assigned_concurrency": 3,
+      "cleanup_max_ms": 0.06730079650878906,
+      "cleanup_p50_ms": 0.05271005630493164,
+      "cleanup_p95_ms": 0.06196861267089844,
+      "decode_max_ms": 111.7167592048645,
+      "decode_p50_ms": 105.77528095245361,
+      "decode_p95_ms": 110.90445051193237,
+      "first_token_gap_max_ms": 0.0,
+      "first_token_gap_p50_ms": 0.0,
+      "first_token_gap_p95_ms": 0.0,
+      "generation_tokens_max": 8,
+      "generation_tokens_min": 8,
+      "measured_chain_count": 9,
+      "prefill_max_ms": 107.34905052185059,
+      "prefill_p50_ms": 66.37979316711426,
+      "prefill_p95_ms": 106.94362392425538,
+      "prompt_tokens_max": 2335,
+      "prompt_tokens_min": 2335,
+      "queueing_max_ms": 51.01290321350098,
+      "queueing_p50_ms": 43.17018175125122,
+      "queueing_p95_ms": 49.71117877960205,
+      "runtime_total_max_ms": 230.89154767990112,
+      "runtime_total_p50_ms": 227.3526954650879,
+      "runtime_total_p95_ms": 230.74826688766478,
+      "streaming_max_ms": 1.1575865745544434,
+      "streaming_p50_ms": 0.7082738876342773,
+      "streaming_p95_ms": 1.1404429435729981,
+      "tokenization_max_ms": 15.087877750396729,
+      "tokenization_p50_ms": 8.24156379699707,
+      "tokenization_p95_ms": 13.458087253570556
+    }
+  ]
+}

@@ -140,25 +140,28 @@ measured at `.benchmarks/results/npu6_runtime_hooks_concurrency_sweep/`: all
 30/30 complete chains, and concurrency 2 exposes a severe client-visible
 prefill/TTFT tail (8/9 `prefill`, TTFT p95 12299.08 ms, prefill-span p95
 12298.88 ms) that does not appear at concurrency 3 (9/9 `prefill`, TTFT p95
-131.61 ms). Treat this as the strongest current candidate prefill/KV or
-scheduler boundary, but not as internal KV proof yet. Do not reuse the invalid
+131.61 ms). Post-hoc internal span analysis confirms the tail inside runtime
+prefill: internal prefill p95 is 12261.98 ms at concurrency 2, versus
+150.31 ms at concurrency 1 and 106.94 ms at concurrency 3. Treat this as the
+strongest current prefill-tail boundary, but not as KV allocator proof yet. Do
+not reuse the invalid
 `.benchmarks/results/npu6_runtime_hooks_long_prefill_fault_smoke/` or
 `.benchmarks/results/npu6_runtime_hooks_decode_heavy_fault_smoke/` as positive
 evidence; they are marked `FAILED.txt` because the candidate workload failed
-before usable attribution. Next, repeat and instrument the concurrency-2 tail:
-preserve the client-observed proxy trace as a correlation anchor, collect the
-internal runtime JSONL, add internal request-level fields if needed (scheduler
-wait, prefill execution, KV allocation/cache pressure, graph capture or batch
-transition, prompt/generation tokens), and report whether internal spans
-confirm or overturn the proxy hypothesis. Keep client-observed proxy trace
-results separate from internal runtime trace claims.
+before usable attribution. Next, repeat and split the concurrency-2 runtime
+prefill tail: preserve the client-observed proxy trace as a correlation anchor,
+collect the internal runtime JSONL, add internal request-level fields if needed
+(scheduler-to-prefill transition, prefill kernel execution, KV allocation/cache
+pressure, graph capture or batch transition, prompt/generation tokens), and
+report which mechanism explains the internal prefill span. Keep client-observed
+proxy trace results separate from internal runtime trace claims.
 
 Before the next run, read `docs/live_fault_matrix_plan.md`. The plan defines
 the stricter ASPLOS gate: existing slow-stream and decode-heavy results prove
 runtime-hook coverage during known faults, but not internal-only causal
-diagnosis accuracy. The next useful NPU6 work is internal correlation for the
-concurrency-2 anomaly, plus a raw-timer baseline comparison showing why
-lifecycle spans change the optimization decision.
+diagnosis accuracy. The next useful NPU6 work is finer decomposition of the
+concurrency-2 runtime prefill anomaly, plus a raw-timer baseline comparison
+showing why lifecycle spans change the optimization decision.
 
 ## Paper Update Requirement
 

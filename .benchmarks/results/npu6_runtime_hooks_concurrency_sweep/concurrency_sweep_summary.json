@@ -5,7 +5,8 @@
     "Concurrency 1 is mostly decode-dominant with two prefill outliers.",
     "Concurrency 2 exposes a severe TTFT/prefill tail: prefill p95 is 12298.88 ms and 8/9 measured requests are prefill-dominant.",
     "Concurrency 3 stays successful and prefill-dominant for 9/9 measured requests with prefill p95 131.47 ms, showing a non-monotonic scheduling/batching boundary rather than a simple throughput slope.",
-    "Runtime hooks cover 30/30 request chains with all nine stages and no missing stage counts across the sweep."
+    "Runtime hooks cover 30/30 request chains with all nine stages and no missing stage counts across the sweep.",
+    "Post-hoc internal runtime span analysis confirms the concurrency-2 tail is inside runtime prefill: internal prefill p95 is 12261.98 ms at concurrency 2, versus 150.31 ms at concurrency 1 and 106.94 ms at concurrency 3."
   ],
   "rows": [
     {

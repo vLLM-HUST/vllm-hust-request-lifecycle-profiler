@@ -28,7 +28,10 @@ classes, raw-timer baselines, and explicit overhead measurements.
   exposes a non-monotonic prefill/TTFT boundary: concurrency 2 has 8/9
   `prefill` diagnoses and TTFT p95 12299.08 ms, while concurrency 3 has 9/9
   `prefill` diagnoses but TTFT p95 131.61 ms. Runtime hooks record 30/30
-  complete chains with no missing stages.
+  complete chains with no missing stages. Post-hoc internal span analysis
+  confirms that the concurrency-2 tail is inside the runtime prefill span:
+  runtime prefill p95 is 12261.98 ms at concurrency 2, versus 150.31 ms at
+  concurrency 1 and 106.94 ms at concurrency 3.
 
 These results support trace feasibility and coverage during known faults. They
 do not yet prove internal-only causal diagnosis accuracy.
@@ -43,19 +46,20 @@ The two long-context candidates in
 boundary evidence because requests failed before usable runtime attribution.
 The prompt-heavy low-output run now provides a valid prefill-dominant case that
 enters the runtime and produces successful measured requests. The concurrency
-sweep adds a candidate prefill/KV boundary and a concrete anomaly to explain:
-the concurrency-2 run produces a 12.3 s TTFT/prefill tail that does not appear
-at concurrency 3. The remaining gate is to correlate that anomaly with internal
-scheduler/KV spans or runtime counters, rather than treating the client-visible
-prefill label as internal KV proof.
+sweep adds a concrete anomaly to explain: the concurrency-2 run produces a
+12.3 s TTFT/prefill tail that does not appear at concurrency 3, and internal
+runtime spans confirm the tail is in prefill. The remaining gate is to split
+that prefill span into scheduler-to-prefill transition, KV allocation/cache
+pressure, graph capture or batch transition, and prefill kernel execution,
+rather than treating a coarse prefill span as KV proof.
 
 Required evidence:
 
 - Keep `.benchmarks/results/npu6_runtime_hooks_concurrency_sweep/` as the
   candidate boundary evidence.
-- Add internal span or counter analysis for the concurrency-2 tail: scheduler
-  wait, prefill execution, KV allocation/cache pressure, graph capture or batch
-  transition, and request-level token counts.
+- Add finer internal span or counter analysis for the concurrency-2 tail:
+  scheduler-to-prefill transition, prefill execution, KV allocation/cache
+  pressure, graph capture or batch transition, and request-level token counts.
 - Preserve client proxy trace and internal `runtime_trace.jsonl`.
 - Report whether internal evidence confirms a KV/prefill mechanism or
   overturns the proxy hypothesis.
@@ -118,15 +122,15 @@ Do not use these terms yet:
 
 ## Suggested Next NPU6 Run
 
-Start from the concurrency sweep that succeeds, then instrument the
-concurrency-2 tail while keeping the prompt below the current 4096-token
+Start from the concurrency sweep that succeeds, then split the concurrency-2
+runtime prefill tail while keeping the prompt below the current 4096-token
 service boundary:
 
 - use `shared_scenario_structured_agent_decode` or a repo-local prompt around
   2300-3300 prompt tokens;
 - request 4-16 output tokens;
-- repeat concurrency 2 enough times to determine whether the 12.3 s tail is
-  reproducible or a rare scheduler transition;
+- repeat concurrency 2 enough times to determine whether the 12.3 s runtime
+  prefill tail is reproducible or a rare scheduler transition;
 - add internal request-level fields when available: prompt tokens, generation
   tokens, batch size, prefill batch composition, KV allocation status, graph
   capture size, and scheduler wait;
