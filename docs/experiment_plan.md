@@ -122,8 +122,22 @@ attributes 4/4 measured requests to `streaming`; the runtime trace summary
 records 45 internal events over 5/5 complete chains with all nine stages
 present. This closes the "hook coverage during a known fault" gap for
 slow-stream, but it is not yet internal-only diagnosis accuracy. The next
-submission-critical gap is long-prompt prefill, decode-heavy, and KV-pressure
-fault attribution under the same hook-enabled service pattern.
+hook-enabled decode-heavy fault is also checked in at
+`.benchmarks/results/npu6_runtime_hooks_structured_decode_fault_smoke/`, with
+derived diagnosis in
+`.benchmarks/results/npu6_runtime_hooks_structured_decode_fault_diagnosis/`.
+It uses `shared_scenario_structured_agent_decode` with 128 requested output
+tokens, records 4/4 measured success, and attributes 4/4 measured requests to
+`decode` with decode-span p95 1986.54 ms while runtime hooks again record 5/5
+complete chains.
+
+Two attempted long-context candidates are intentionally marked invalid:
+`.benchmarks/results/npu6_runtime_hooks_long_prefill_fault_smoke/` and
+`.benchmarks/results/npu6_runtime_hooks_decode_heavy_fault_smoke/` both failed
+before usable runtime-hook attribution. Treat them as service-boundary evidence
+for workload design, not as attribution failures. The next submission-critical
+gap is a valid prefill-pressure or KV-pressure fault under the same
+hook-enabled pattern.
 
 ## Phase 2: Controlled Fault Injection
 

@@ -125,12 +125,20 @@ Immediate next step: continue the hook-enabled controlled-fault matrix. The
 slow-stream client fault is now measured at
 `.benchmarks/results/npu6_runtime_hooks_slow_stream_fault_smoke/` with 4/4
 measured success, client-visible `streaming` diagnosis for 4/4 measured
-requests, and 5/5 complete internal runtime hook chains. Next run long-prompt
-prefill pressure, decode-heavy output, or KV-pressure boundary with the same
-discipline: preserve the client-observed proxy trace as a correlation anchor,
-collect the internal runtime JSONL, and report whether internal spans confirm
-or overturn the proxy hypothesis. Keep client-observed proxy trace results
-separate from internal runtime trace claims.
+requests, and 5/5 complete internal runtime hook chains. The structured
+decode-heavy fault is now measured at
+`.benchmarks/results/npu6_runtime_hooks_structured_decode_fault_smoke/` with
+4/4 measured success, client-visible `decode` diagnosis for 4/4 measured
+requests, decode-span p95 1986.54 ms, and 5/5 complete internal runtime hook
+chains. Do not reuse the invalid
+`.benchmarks/results/npu6_runtime_hooks_long_prefill_fault_smoke/` or
+`.benchmarks/results/npu6_runtime_hooks_decode_heavy_fault_smoke/` as positive
+evidence; they are marked `FAILED.txt` because the candidate workload failed
+before usable attribution. Next run a valid prefill-pressure or KV-pressure
+boundary with the same discipline: preserve the client-observed proxy trace as
+a correlation anchor, collect the internal runtime JSONL, and report whether
+internal spans confirm or overturn the proxy hypothesis. Keep client-observed
+proxy trace results separate from internal runtime trace claims.
 
 ## Paper Update Requirement
 

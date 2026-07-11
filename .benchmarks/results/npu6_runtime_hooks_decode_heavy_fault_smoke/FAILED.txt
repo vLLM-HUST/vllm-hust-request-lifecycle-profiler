@@ -1,0 +1,1 @@
+Invalid decode-heavy candidate: shared_preemption_resume_long_decode produced 4/4 failed measured requests and no successful latency/TTFT samples. Do not use this directory as positive runtime fault attribution evidence. A safer structured-agent decode-heavy run should use a separate result directory.

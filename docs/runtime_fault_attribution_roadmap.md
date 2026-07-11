@@ -14,22 +14,24 @@ faults.
 | Hook-enabled runtime trace | `.benchmarks/results/npu6_runtime_hooks_low_overhead_enabled_smoke/` | 117 internal JSONL events over 13 chains; all chains include received, tokenized, queued, scheduled, prefill_done, first_token, decode_done, stream_done, cleanup_done |
 | Pair-plan summary | `.benchmarks/results/npu6_runtime_hook_pair_plan/` | Derived paired gate with complete runtime chains and small-smoke deltas: -2.14 ms TTFT p95 and +0.93 ms latency p95 |
 | Slow-stream controlled fault | `.benchmarks/results/npu6_runtime_hooks_slow_stream_fault_smoke/` | Hook-enabled NPU6 run with client slow-read fault: 4/4 measured success, latency p95 5334.74 ms, client diagnosis `streaming` for 4/4 measured requests, and 5/5 complete internal runtime chains |
+| Decode-heavy controlled fault | `.benchmarks/results/npu6_runtime_hooks_structured_decode_fault_smoke/` | Hook-enabled NPU6 run with structured-agent decode: 4/4 measured success, latency p95 2135.82 ms, client diagnosis `decode` for 4/4 measured requests, decode-span p95 1986.54 ms, and 5/5 complete internal runtime chains |
+| Invalid long-context candidates | `.benchmarks/results/npu6_runtime_hooks_long_prefill_fault_smoke/`, `.benchmarks/results/npu6_runtime_hooks_decode_heavy_fault_smoke/` | Both candidate workloads failed before usable attribution under the current 4096-token service profile; keep as boundary evidence only |
 
 This evidence proves full lifecycle capture on the smoke path and coverage
-during one known client-side slow-stream fault. It does not yet prove
+during two known live faults: client-side slow-stream and structured
+decode-heavy output. It does not yet prove
 internal-only fault attribution accuracy, memory overhead, TPOT overhead, or
 broad workload generality.
 
 ## Next Fault Classes
 
-1. Long-prompt prefill pressure: use shared workload long-context shapes and
-   verify prefill-dominant attribution without confusing it with queueing.
-2. Decode-heavy output: extend output length while holding prompt shape stable
-   and verify decode-dominant attribution.
-3. KV-pressure boundary: use long-context/burst cases from
+1. Valid prefill pressure: avoid the currently invalid long-context cases and
+   design a prompt shape that enters the runtime while still making prefill
+   dominant.
+2. KV-pressure boundary: use long-context/burst cases from
    `third_party/llm-serving-workloads` and check whether queue, prefill, or KV
    events become the dominant chain.
-4. Cleanup stall: inject or simulate delayed cleanup only if the runtime hook
+3. Cleanup stall: inject or simulate delayed cleanup only if the runtime hook
    boundary can label it honestly.
 
 ## Evidence Rules

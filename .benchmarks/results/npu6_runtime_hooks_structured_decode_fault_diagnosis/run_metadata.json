@@ -1,0 +1,26 @@
+{
+  "claim_boundary": "Derived diagnosis from client-observed lifecycle proxy events. This identifies dominant client-visible spans, not internal vLLM scheduler, KV, prefill, or decode root cause.",
+  "command": [
+    "analyze_trace_diagnosis.py",
+    "--input-probe-results",
+    ".benchmarks/results/npu6_runtime_hooks_structured_decode_fault_smoke/probe_results.json",
+    "--output-dir",
+    ".benchmarks/results/npu6_runtime_hooks_structured_decode_fault_diagnosis"
+  ],
+  "evidence_label": "derived-artifact",
+  "input_probe_results": ".benchmarks/results/npu6_runtime_hooks_structured_decode_fault_smoke/probe_results.json",
+  "repo": {
+    "branch": "main",
+    "commit": "5646a5fb03299fce06d53acc6c4df9706951f91b",
+    "dirty": true,
+    "dirty_excluding_output_dir": true,
+    "dirty_exclusion_dir": ".benchmarks/results/npu6_runtime_hooks_structured_decode_fault_diagnosis",
+    "dirty_exclusion_dirs": [
+      ".benchmarks/results/npu6_runtime_hooks_structured_decode_fault_diagnosis",
+      ".benchmarks/results/npu6_runtime_hooks_structured_decode_fault_smoke"
+    ],
+    "path": "/home/shuhao/vllm-request-lifecycle-profiler-plugin"
+  },
+  "result_valid_for_speedup_claims": false,
+  "timestamp_utc": "2026-07-11T04:12:59.941646+00:00"
+}

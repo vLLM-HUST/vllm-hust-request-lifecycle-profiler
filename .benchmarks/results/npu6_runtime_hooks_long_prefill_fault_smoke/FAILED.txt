@@ -1,0 +1,1 @@
+Invalid controlled-fault candidate: shared_scenario_rag_followup_long_context was rejected before the hook-enabled runtime wrote internal lifecycle events. Summary: 4/4 measured requests failed, no runtime_trace.jsonl was produced. Keep this as boundary evidence only; do not use it for runtime fault attribution claims.

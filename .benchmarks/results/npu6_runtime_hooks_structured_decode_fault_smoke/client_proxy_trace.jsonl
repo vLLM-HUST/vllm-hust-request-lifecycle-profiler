@@ -1,0 +1,45 @@
+{"metadata": {"observer": "client_probe"}, "request_id": "shared_scenario_structured_agent_decode::warmup::0", "stage": "received", "timestamp_ms": 0.0}
+{"metadata": {"observer": "client_probe", "prompt_tokens_proxy": 335}, "request_id": "shared_scenario_structured_agent_decode::warmup::0", "stage": "tokenized", "timestamp_ms": 0.033869873732328415}
+{"metadata": {"meaning": "request_ready_to_send", "observer": "client_probe"}, "request_id": "shared_scenario_structured_agent_decode::warmup::0", "stage": "queued", "timestamp_ms": 0.03832019865512848}
+{"metadata": {"meaning": "http_request_sent", "observer": "client_probe"}, "request_id": "shared_scenario_structured_agent_decode::warmup::0", "stage": "scheduled", "timestamp_ms": 0.43387291952967644}
+{"metadata": {"meaning": "first_stream_chunk", "observer": "client_probe"}, "request_id": "shared_scenario_structured_agent_decode::warmup::0", "stage": "prefill_done", "timestamp_ms": 290.1384849101305}
+{"metadata": {"observer": "client_probe"}, "request_id": "shared_scenario_structured_agent_decode::warmup::0", "stage": "first_token", "timestamp_ms": 290.1384849101305}
+{"metadata": {"observer": "client_probe", "proxy_stage_mode": "decode-proxy", "stream_chunk_count": 128}, "request_id": "shared_scenario_structured_agent_decode::warmup::0", "stage": "decode_done", "timestamp_ms": 2284.7981262020767}
+{"metadata": {"observer": "client_probe", "stream_byte_count": 32158}, "request_id": "shared_scenario_structured_agent_decode::warmup::0", "stage": "stream_done", "timestamp_ms": 2284.7981262020767}
+{"metadata": {"observer": "client_probe"}, "request_id": "shared_scenario_structured_agent_decode::warmup::0", "stage": "cleanup_done", "timestamp_ms": 2284.8230861127377}
+{"metadata": {"observer": "client_probe"}, "request_id": "shared_scenario_structured_agent_decode::repeat0::0", "stage": "received", "timestamp_ms": 0.0}
+{"metadata": {"observer": "client_probe", "prompt_tokens_proxy": 335}, "request_id": "shared_scenario_structured_agent_decode::repeat0::0", "stage": "tokenized", "timestamp_ms": 0.08480018004775047}
+{"metadata": {"meaning": "request_ready_to_send", "observer": "client_probe"}, "request_id": "shared_scenario_structured_agent_decode::repeat0::0", "stage": "queued", "timestamp_ms": 0.08889008313417435}
+{"metadata": {"meaning": "http_request_sent", "observer": "client_probe"}, "request_id": "shared_scenario_structured_agent_decode::repeat0::0", "stage": "scheduled", "timestamp_ms": 0.314182136207819}
+{"metadata": {"meaning": "first_stream_chunk", "observer": "client_probe"}, "request_id": "shared_scenario_structured_agent_decode::repeat0::0", "stage": "prefill_done", "timestamp_ms": 79.26999311894178}
+{"metadata": {"observer": "client_probe"}, "request_id": "shared_scenario_structured_agent_decode::repeat0::0", "stage": "first_token", "timestamp_ms": 79.26999311894178}
+{"metadata": {"observer": "client_probe", "proxy_stage_mode": "decode-proxy", "stream_chunk_count": 128}, "request_id": "shared_scenario_structured_agent_decode::repeat0::0", "stage": "decode_done", "timestamp_ms": 2066.170093137771}
+{"metadata": {"observer": "client_probe", "stream_byte_count": 32158}, "request_id": "shared_scenario_structured_agent_decode::repeat0::0", "stage": "stream_done", "timestamp_ms": 2066.170093137771}
+{"metadata": {"observer": "client_probe"}, "request_id": "shared_scenario_structured_agent_decode::repeat0::0", "stage": "cleanup_done", "timestamp_ms": 2066.1943331360817}
+{"metadata": {"observer": "client_probe"}, "request_id": "shared_scenario_structured_agent_decode::repeat0::1", "stage": "received", "timestamp_ms": 0.0}
+{"metadata": {"observer": "client_probe", "prompt_tokens_proxy": 335}, "request_id": "shared_scenario_structured_agent_decode::repeat0::1", "stage": "tokenized", "timestamp_ms": 0.06105098873376846}
+{"metadata": {"meaning": "request_ready_to_send", "observer": "client_probe"}, "request_id": "shared_scenario_structured_agent_decode::repeat0::1", "stage": "queued", "timestamp_ms": 0.06443075835704803}
+{"metadata": {"meaning": "http_request_sent", "observer": "client_probe"}, "request_id": "shared_scenario_structured_agent_decode::repeat0::1", "stage": "scheduled", "timestamp_ms": 0.29103178530931473}
+{"metadata": {"meaning": "first_stream_chunk", "observer": "client_probe"}, "request_id": "shared_scenario_structured_agent_decode::repeat0::1", "stage": "prefill_done", "timestamp_ms": 163.61091984435916}
+{"metadata": {"observer": "client_probe"}, "request_id": "shared_scenario_structured_agent_decode::repeat0::1", "stage": "first_token", "timestamp_ms": 163.61091984435916}
+{"metadata": {"observer": "client_probe", "proxy_stage_mode": "decode-proxy", "stream_chunk_count": 128}, "request_id": "shared_scenario_structured_agent_decode::repeat0::1", "stage": "decode_done", "timestamp_ms": 2148.082203697413}
+{"metadata": {"observer": "client_probe", "stream_byte_count": 32158}, "request_id": "shared_scenario_structured_agent_decode::repeat0::1", "stage": "stream_done", "timestamp_ms": 2148.082203697413}
+{"metadata": {"observer": "client_probe"}, "request_id": "shared_scenario_structured_agent_decode::repeat0::1", "stage": "cleanup_done", "timestamp_ms": 2148.1019440107048}
+{"metadata": {"observer": "client_probe"}, "request_id": "shared_scenario_structured_agent_decode::repeat1::0", "stage": "received", "timestamp_ms": 0.0}
+{"metadata": {"observer": "client_probe", "prompt_tokens_proxy": 335}, "request_id": "shared_scenario_structured_agent_decode::repeat1::0", "stage": "tokenized", "timestamp_ms": 0.10107038542628288}
+{"metadata": {"meaning": "request_ready_to_send", "observer": "client_probe"}, "request_id": "shared_scenario_structured_agent_decode::repeat1::0", "stage": "queued", "timestamp_ms": 0.10586017742753029}
+{"metadata": {"meaning": "http_request_sent", "observer": "client_probe"}, "request_id": "shared_scenario_structured_agent_decode::repeat1::0", "stage": "scheduled", "timestamp_ms": 0.3030020743608475}
+{"metadata": {"meaning": "first_stream_chunk", "observer": "client_probe"}, "request_id": "shared_scenario_structured_agent_decode::repeat1::0", "stage": "prefill_done", "timestamp_ms": 77.79162330552936}
+{"metadata": {"observer": "client_probe"}, "request_id": "shared_scenario_structured_agent_decode::repeat1::0", "stage": "first_token", "timestamp_ms": 77.79162330552936}
+{"metadata": {"observer": "client_probe", "proxy_stage_mode": "decode-proxy", "stream_chunk_count": 128}, "request_id": "shared_scenario_structured_agent_decode::repeat1::0", "stage": "decode_done", "timestamp_ms": 2059.31512825191}
+{"metadata": {"observer": "client_probe", "stream_byte_count": 32158}, "request_id": "shared_scenario_structured_agent_decode::repeat1::0", "stage": "stream_done", "timestamp_ms": 2059.31512825191}
+{"metadata": {"observer": "client_probe"}, "request_id": "shared_scenario_structured_agent_decode::repeat1::0", "stage": "cleanup_done", "timestamp_ms": 2059.3351083807647}
+{"metadata": {"observer": "client_probe"}, "request_id": "shared_scenario_structured_agent_decode::repeat1::1", "stage": "received", "timestamp_ms": 0.0}
+{"metadata": {"observer": "client_probe", "prompt_tokens_proxy": 335}, "request_id": "shared_scenario_structured_agent_decode::repeat1::1", "stage": "tokenized", "timestamp_ms": 0.05853082984685898}
+{"metadata": {"meaning": "request_ready_to_send", "observer": "client_probe"}, "request_id": "shared_scenario_structured_agent_decode::repeat1::1", "stage": "queued", "timestamp_ms": 0.0616908073425293}
+{"metadata": {"meaning": "http_request_sent", "observer": "client_probe"}, "request_id": "shared_scenario_structured_agent_decode::repeat1::1", "stage": "scheduled", "timestamp_ms": 0.2637621946632862}
+{"metadata": {"meaning": "first_stream_chunk", "observer": "client_probe"}, "request_id": "shared_scenario_structured_agent_decode::repeat1::1", "stage": "prefill_done", "timestamp_ms": 75.91776084154844}
+{"metadata": {"observer": "client_probe"}, "request_id": "shared_scenario_structured_agent_decode::repeat1::1", "stage": "first_token", "timestamp_ms": 75.91776084154844}
+{"metadata": {"observer": "client_probe", "proxy_stage_mode": "decode-proxy", "stream_chunk_count": 128}, "request_id": "shared_scenario_structured_agent_decode::repeat1::1", "stage": "decode_done", "timestamp_ms": 2056.4491590484977}
+{"metadata": {"observer": "client_probe", "stream_byte_count": 32158}, "request_id": "shared_scenario_structured_agent_decode::repeat1::1", "stage": "stream_done", "timestamp_ms": 2056.4491590484977}
+{"metadata": {"observer": "client_probe"}, "request_id": "shared_scenario_structured_agent_decode::repeat1::1", "stage": "cleanup_done", "timestamp_ms": 2056.470510084182}

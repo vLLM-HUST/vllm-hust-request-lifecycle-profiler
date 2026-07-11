@@ -1,0 +1,41 @@
+{
+  "error_count": 4,
+  "event_count": 45,
+  "first_token_ms": {
+    "count": 0,
+    "max": null,
+    "min": null,
+    "p50": null,
+    "p95": null,
+    "p99": null
+  },
+  "latency_ms": {
+    "count": 0,
+    "max": null,
+    "min": null,
+    "p50": null,
+    "p95": null,
+    "p99": null
+  },
+  "observer_mode": "trace",
+  "request_count": 4,
+  "success_count": 0,
+  "warmup_first_token_ms": {
+    "count": 0,
+    "max": null,
+    "min": null,
+    "p50": null,
+    "p95": null,
+    "p99": null
+  },
+  "warmup_latency_ms": {
+    "count": 0,
+    "max": null,
+    "min": null,
+    "p50": null,
+    "p95": null,
+    "p99": null
+  },
+  "warmup_request_count": 1,
+  "warmup_success_count": 0
+}

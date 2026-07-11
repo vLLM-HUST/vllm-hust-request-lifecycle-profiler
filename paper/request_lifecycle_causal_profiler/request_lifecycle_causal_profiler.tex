@@ -121,6 +121,15 @@ it is still not an internal-only diagnosis accuracy result: the injected
 client-side slow read remains the ground-truth fault and the runtime trace is a
 coverage/correlation artifact for this batch.
 
+We then add a second hook-enabled controlled fault using the structured-agent
+decode workload with 128 requested output tokens. This run succeeds for 4/4
+measured requests and switches the client-visible diagnosis to decode for 4/4
+requests. The decode span dominates with p95 1986.54\,ms, while streaming p95
+stays at 0.0\,ms. The internal runtime hook again records 45 events over 5/5
+complete chains. Two attempted long-context candidates failed before usable
+attribution under the current 4096-token service profile; those directories
+are retained as boundary evidence rather than diagnosis results.
+
 Table~\ref{tab:npu6-decision-impact} restates the same evidence as an
 optimization decision aid. Ordinary request timers can show that latency is
 large, but lifecycle spans determine which next experiment should run: normal
@@ -189,14 +198,14 @@ coverage, live client-observed lifecycle export, derived proxy-stage diagnosis,
 controlled client-visible slow-stream discrimination, a narrow client-probe
 event-construction overhead smoke, full internal lifecycle capture on a small
 NPU6 smoke workload, bounded runtime-hook overhead on that smoke, runtime-hook
-coverage during one known slow-stream client fault, and a derived
+coverage during known slow-stream and decode-heavy faults, and a derived
 decision-impact view over the same proxy traces. The decision-impact table is
 not a new online measurement: it summarizes which follow-up optimization
 experiment each proxy diagnosis justifies. The artifact does not yet support
 claims about internal-only diagnosis accuracy on live faults, memory overhead,
 TPOT overhead, broad workload generality, or root-cause time improvement. Those
-claims require additional controlled runtime fault injection with known ground
-truth and a larger workload matrix.
+claims require a valid prefill/KV fault, causal-rule comparison against raw
+timers, and a larger workload matrix.
 
 \begin{table}[t]
 \centering

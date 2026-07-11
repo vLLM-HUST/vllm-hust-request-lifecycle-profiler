@@ -1,0 +1,25 @@
+{
+  "claim_boundary": "Derived runtime-hook coverage summary for the NPU6 structured decode-heavy controlled fault; it proves event coverage, not attribution accuracy by itself.",
+  "complete_chain_count": 5,
+  "event_count": 45,
+  "evidence_label": "derived-artifact",
+  "generated_at_utc": "2026-07-11T04:12:48.064439+00:00",
+  "incomplete_chain_count": 0,
+  "missing_stage_counts": {},
+  "observer_counts": {
+    "vllm_runtime_hook": 45
+  },
+  "request_chain_count": 5,
+  "source_trace": "runtime_trace.jsonl",
+  "stage_counts": {
+    "cleanup_done": 5,
+    "decode_done": 5,
+    "first_token": 5,
+    "prefill_done": 5,
+    "queued": 5,
+    "received": 5,
+    "scheduled": 5,
+    "stream_done": 5,
+    "tokenized": 5
+  }
+}
