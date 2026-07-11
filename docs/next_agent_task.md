@@ -142,19 +142,25 @@ prefill/TTFT tail (8/9 `prefill`, TTFT p95 12299.08 ms, prefill-span p95
 12298.88 ms) that does not appear at concurrency 3 (9/9 `prefill`, TTFT p95
 131.61 ms). Post-hoc internal span analysis confirms the tail inside runtime
 prefill: internal prefill p95 is 12261.98 ms at concurrency 2, versus
-150.31 ms at concurrency 1 and 106.94 ms at concurrency 3. Treat this as the
-strongest current prefill-tail boundary, but not as KV allocator proof yet. Do
+150.31 ms at concurrency 1 and 106.94 ms at concurrency 3. The chain-level
+artifact
+`.benchmarks/results/npu6_runtime_hooks_concurrency_sweep/concurrency_anomaly_analysis/`
+holds prompt tokens at 2335, generation tokens at 8, and cached-token ratio p50
+at 0.987; the only two >1 s runtime-prefill outliers occur in concurrency 2.
+Treat this as the strongest current prefill-tail boundary under a fixed
+token/cache shape, but not as KV allocator proof yet. Do
 not reuse the invalid
 `.benchmarks/results/npu6_runtime_hooks_long_prefill_fault_smoke/` or
 `.benchmarks/results/npu6_runtime_hooks_decode_heavy_fault_smoke/` as positive
 evidence; they are marked `FAILED.txt` because the candidate workload failed
-before usable attribution. Next, repeat and split the concurrency-2 runtime
-prefill tail: preserve the client-observed proxy trace as a correlation anchor,
-collect the internal runtime JSONL, add internal request-level fields if needed
-(scheduler-to-prefill transition, prefill kernel execution, KV allocation/cache
-pressure, graph capture or batch transition, prompt/generation tokens), and
-report which mechanism explains the internal prefill span. Keep client-observed
-proxy trace results separate from internal runtime trace claims.
+before usable attribution. Next, add sub-prefill internal fields first, then
+repeat the concurrency-2 runtime prefill tail: preserve the client-observed
+proxy trace as a correlation anchor, collect the internal runtime JSONL, and
+record scheduler-output shape, scheduler-to-prefill transition, prefill kernel
+execution, KV allocation/cache pressure, graph capture or batch transition,
+and prompt/generation token metadata. Report which mechanism explains the
+internal prefill span. Keep client-observed proxy trace results separate from
+internal runtime trace claims.
 
 Before the next run, read `docs/live_fault_matrix_plan.md`. The plan defines
 the stricter ASPLOS gate: existing slow-stream and decode-heavy results prove

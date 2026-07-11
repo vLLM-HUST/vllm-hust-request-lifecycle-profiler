@@ -31,7 +31,12 @@ classes, raw-timer baselines, and explicit overhead measurements.
   complete chains with no missing stages. Post-hoc internal span analysis
   confirms that the concurrency-2 tail is inside the runtime prefill span:
   runtime prefill p95 is 12261.98 ms at concurrency 2, versus 150.31 ms at
-  concurrency 1 and 106.94 ms at concurrency 3.
+  concurrency 1 and 106.94 ms at concurrency 3. The chain-level anomaly
+  artifact
+  `.benchmarks/results/npu6_runtime_hooks_concurrency_sweep/concurrency_anomaly_analysis/`
+  holds prompt tokens (2335), generation tokens (8), and cached-token ratio p50
+  (0.987) constant, and finds the only two >1 s runtime-prefill outliers in
+  concurrency 2.
 
 These results support trace feasibility and coverage during known faults. They
 do not yet prove internal-only causal diagnosis accuracy.
@@ -48,15 +53,19 @@ The prompt-heavy low-output run now provides a valid prefill-dominant case that
 enters the runtime and produces successful measured requests. The concurrency
 sweep adds a concrete anomaly to explain: the concurrency-2 run produces a
 12.3 s TTFT/prefill tail that does not appear at concurrency 3, and internal
-runtime spans confirm the tail is in prefill. The remaining gate is to split
-that prefill span into scheduler-to-prefill transition, KV allocation/cache
-pressure, graph capture or batch transition, and prefill kernel execution,
-rather than treating a coarse prefill span as KV proof.
+runtime spans confirm the tail is in prefill under a fixed prompt/output/cache
+shape. The remaining gate is to split that prefill span into
+scheduler-to-prefill transition, KV allocation/cache pressure, graph capture or
+batch transition, and prefill kernel execution, rather than treating a coarse
+prefill span as KV proof.
 
 Required evidence:
 
 - Keep `.benchmarks/results/npu6_runtime_hooks_concurrency_sweep/` as the
   candidate boundary evidence.
+- Keep `.benchmarks/results/npu6_runtime_hooks_concurrency_sweep/concurrency_anomaly_analysis/`
+  as the chain-level audit table for fixed token/cache shape and c=2-only
+  outliers.
 - Add finer internal span or counter analysis for the concurrency-2 tail:
   scheduler-to-prefill transition, prefill execution, KV allocation/cache
   pressure, graph capture or batch transition, and request-level token counts.

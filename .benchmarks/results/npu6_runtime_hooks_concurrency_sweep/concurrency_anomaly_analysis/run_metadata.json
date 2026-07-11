@@ -1,0 +1,18 @@
+{
+  "claim_boundary": "Post-hoc analysis of checked-in NPU6 runtime hook traces. It localizes the observed tail to lifecycle spans and metadata already emitted by the runtime hooks; it does not yet prove the sub-stage root cause inside prefill.",
+  "command": [
+    "analyze_runtime_concurrency_anomaly.py"
+  ],
+  "evidence_label": "derived-artifact",
+  "input_dir": "/home/shuhao/vllm-request-lifecycle-profiler-plugin/.benchmarks/results/npu6_runtime_hooks_concurrency_sweep",
+  "parent_repo": {
+    "branch": "main",
+    "commit": "6fee6710ead34127fc5676d0739f1410ed11ba07",
+    "dirty": true,
+    "dirty_excluding_output_dir": true,
+    "dirty_exclusion_dir": "/home/shuhao/vllm-request-lifecycle-profiler-plugin/.benchmarks/results/npu6_runtime_hooks_concurrency_sweep/concurrency_anomaly_analysis",
+    "path": "/home/shuhao/vllm-request-lifecycle-profiler-plugin"
+  },
+  "runtime_trace": "/home/shuhao/vllm-request-lifecycle-profiler-plugin/.benchmarks/results/npu6_runtime_hooks_concurrency_sweep/runtime_trace.jsonl",
+  "timestamp_utc": "2026-07-11T06:16:40.034476+00:00"
+}

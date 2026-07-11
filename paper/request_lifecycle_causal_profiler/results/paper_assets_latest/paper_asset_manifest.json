@@ -89,6 +89,18 @@
     {
       "evidence_label": "derived-artifact",
       "kind": "csv",
+      "path": "results/paper_assets_latest/npu6_runtime_concurrency_anomaly.csv",
+      "rows": 3
+    },
+    {
+      "evidence_label": "derived-artifact",
+      "kind": "table",
+      "path": "tables/generated/npu6_runtime_concurrency_anomaly.tex",
+      "rows": 3
+    },
+    {
+      "evidence_label": "derived-artifact",
+      "kind": "csv",
       "path": "results/paper_assets_latest/npu6_diagnosis_decision_impact.csv",
       "rows": 2
     },

@@ -1,0 +1,169 @@
+{
+  "chain_count": 30,
+  "interpretation": "The checked-in sweep holds prompt_tokens and generation_tokens constant. The only >1s runtime prefill outliers occur in the concurrency-2 block, while queueing/decode stay small. Current hooks therefore justify the next instrumentation split inside prefill, especially scheduler-output shape, KV allocation/cache state, graph/batch transition, and prefill kernel execution.",
+  "measured_chain_count": 27,
+  "outlier_threshold_ms": 4306.062172102924,
+  "outliers": [
+    {
+      "assigned_concurrency": 2,
+      "cached_token_ratio": 0.9867237687366167,
+      "cached_tokens": 2304,
+      "chain_id": "cmpl-82176d048d0ae2f5-0",
+      "generation_tokens": 8,
+      "is_warmup": false,
+      "max_tokens": 8,
+      "prompt_tokens": 2335,
+      "spans_ms": {
+        "cleanup": 0.05485105514526367,
+        "decode": 109.86819744110107,
+        "prefill": 12277.615494728088,
+        "queueing": 1.6095795631408691,
+        "runtime_total": 12396.888764381409,
+        "streaming": 1.1837778091430664,
+        "tokenization": 6.397592544555664
+      }
+    },
+    {
+      "assigned_concurrency": 2,
+      "cached_token_ratio": 0.9867237687366167,
+      "cached_tokens": 2304,
+      "chain_id": "cmpl-bbb5e9c241563eba-0",
+      "generation_tokens": 8,
+      "is_warmup": false,
+      "max_tokens": 8,
+      "prompt_tokens": 2335,
+      "spans_ms": {
+        "cleanup": 0.05470085144042969,
+        "decode": 104.44394207000732,
+        "prefill": 12238.533588886261,
+        "queueing": 48.465436935424805,
+        "runtime_total": 12402.82778263092,
+        "streaming": 0.5769538879394531,
+        "tokenization": 10.612099170684814
+      }
+    }
+  ],
+  "per_concurrency": [
+    {
+      "cached_token_ratio": {
+        "count": 9,
+        "max": 0.9867237687366167,
+        "min": 0.0,
+        "p50": 0.9867237687366167,
+        "p95": 0.9867237687366167
+      },
+      "concurrency": 1,
+      "decode_ms": {
+        "count": 9,
+        "max": 105.16665697097778,
+        "min": 101.00264883041382,
+        "p50": 102.01599550247192,
+        "p95": 105.03427991867065
+      },
+      "generation_token_values": [
+        8
+      ],
+      "measured_chain_count": 9,
+      "prefill_ms": {
+        "count": 9,
+        "max": 150.5027732849121,
+        "min": 61.598341941833496,
+        "p50": 64.78249311447144,
+        "p95": 150.30548763275146
+      },
+      "prefill_outlier_count": 0,
+      "prompt_token_values": [
+        2335
+      ],
+      "queueing_ms": {
+        "count": 9,
+        "max": 2.2290635108947754,
+        "min": 1.6346807479858398,
+        "p50": 1.7535409927368164,
+        "p95": 2.080886936187744
+      }
+    },
+    {
+      "cached_token_ratio": {
+        "count": 9,
+        "max": 0.9867237687366167,
+        "min": 0.9867237687366167,
+        "p50": 0.9867237687366167,
+        "p95": 0.9867237687366167
+      },
+      "concurrency": 2,
+      "decode_ms": {
+        "count": 9,
+        "max": 109.86819744110107,
+        "min": 101.16968107223511,
+        "p50": 104.44394207000732,
+        "p95": 108.71475811004638
+      },
+      "generation_token_values": [
+        8
+      ],
+      "measured_chain_count": 9,
+      "prefill_ms": {
+        "count": 9,
+        "max": 12277.615494728088,
+        "min": 60.93925952911377,
+        "p50": 98.66607522964478,
+        "p95": 12261.982732391356
+      },
+      "prefill_outlier_count": 2,
+      "prompt_token_values": [
+        2335
+      ],
+      "queueing_ms": {
+        "count": 9,
+        "max": 48.465436935424805,
+        "min": 1.6095795631408691,
+        "p50": 1.8537917137145996,
+        "p95": 48.142579078674316
+      }
+    },
+    {
+      "cached_token_ratio": {
+        "count": 9,
+        "max": 0.9867237687366167,
+        "min": 0.9867237687366167,
+        "p50": 0.9867237687366167,
+        "p95": 0.9867237687366167
+      },
+      "concurrency": 3,
+      "decode_ms": {
+        "count": 9,
+        "max": 111.7167592048645,
+        "min": 105.57765007019043,
+        "p50": 105.77528095245361,
+        "p95": 110.90445051193237
+      },
+      "generation_token_values": [
+        8
+      ],
+      "measured_chain_count": 9,
+      "prefill_ms": {
+        "count": 9,
+        "max": 107.34905052185059,
+        "min": 63.855287075042725,
+        "p50": 66.37979316711426,
+        "p95": 106.94362392425538
+      },
+      "prefill_outlier_count": 0,
+      "prompt_token_values": [
+        2335
+      ],
+      "queueing_ms": {
+        "count": 9,
+        "max": 51.01290321350098,
+        "min": 1.4908690452575684,
+        "p50": 43.17018175125122,
+        "p95": 49.71117877960205
+      }
+    }
+  ],
+  "prefill_outlier_concurrency_values": [
+    2
+  ],
+  "prefill_outlier_count": 2
+}

@@ -152,18 +152,22 @@ TTFT p95 is 12299.08 ms, latency p95 is 12404.06 ms, and prefill-span p95 is
 no missing-stage counts. Post-hoc internal span analysis confirms that the
 concurrency-2 tail is inside runtime prefill: internal prefill p95 is
 12261.98 ms at concurrency 2, versus 150.31 ms at concurrency 1 and 106.94 ms
-at concurrency 3. Treat this as an internally confirmed prefill-tail boundary,
-not as KV allocator proof yet.
+at concurrency 3. The chain-level anomaly analysis in
+`.benchmarks/results/npu6_runtime_hooks_concurrency_sweep/concurrency_anomaly_analysis/`
+holds prompt tokens at 2335, generation tokens at 8, and cached-token ratio p50
+at 0.987; the only two >1 s runtime-prefill outliers occur in concurrency 2.
+Treat this as an internally confirmed prefill-tail boundary under fixed
+token/cache shape, not as KV allocator proof yet.
 
 Two attempted long-context candidates are intentionally marked invalid:
 `.benchmarks/results/npu6_runtime_hooks_long_prefill_fault_smoke/` and
 `.benchmarks/results/npu6_runtime_hooks_decode_heavy_fault_smoke/` both failed
 before usable runtime-hook attribution. Treat them as service-boundary evidence
 for workload design, not as attribution failures. The next submission-critical
-gap is finer internal decomposition of the concurrency-2 tail: scheduler to
-prefill transition, prefill kernel execution, KV allocation/cache pressure,
-graph capture or batch transition, and request token counts under the same
-hook-enabled pattern.
+gap is finer internal decomposition of the concurrency-2 tail:
+scheduler-to-prefill transition, prefill kernel execution, KV allocation/cache
+pressure, graph capture or batch transition, and scheduler-output/batch-shape
+counters under the same hook-enabled pattern.
 
 The stricter live-fault matrix gate is documented in
 `docs/live_fault_matrix_plan.md`. It separates current coverage claims from the

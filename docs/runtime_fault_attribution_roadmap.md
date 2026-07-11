@@ -15,19 +15,20 @@ faults.
 | Pair-plan summary | `.benchmarks/results/npu6_runtime_hook_pair_plan/` | Derived paired gate with complete runtime chains and small-smoke deltas: -2.14 ms TTFT p95 and +0.93 ms latency p95 |
 | Slow-stream controlled fault | `.benchmarks/results/npu6_runtime_hooks_slow_stream_fault_smoke/` | Hook-enabled NPU6 run with client slow-read fault: 4/4 measured success, latency p95 5334.74 ms, client diagnosis `streaming` for 4/4 measured requests, and 5/5 complete internal runtime chains |
 | Decode-heavy controlled fault | `.benchmarks/results/npu6_runtime_hooks_structured_decode_fault_smoke/` | Hook-enabled NPU6 run with structured-agent decode: 4/4 measured success, latency p95 2135.82 ms, client diagnosis `decode` for 4/4 measured requests, decode-span p95 1986.54 ms, and 5/5 complete internal runtime chains |
+| Concurrency anomaly analysis | `.benchmarks/results/npu6_runtime_hooks_concurrency_sweep/concurrency_anomaly_analysis/` | Chain-level derived artifact over checked-in runtime hooks: prompt tokens 2335, generation tokens 8, cached-token ratio p50 0.987, and the only two >1 s runtime-prefill outliers both occur in concurrency 2 |
 | Invalid long-context candidates | `.benchmarks/results/npu6_runtime_hooks_long_prefill_fault_smoke/`, `.benchmarks/results/npu6_runtime_hooks_decode_heavy_fault_smoke/` | Both candidate workloads failed before usable attribution under the current 4096-token service profile; keep as boundary evidence only |
 
 This evidence proves full lifecycle capture on the smoke path and coverage
 during two known live faults: client-side slow-stream and structured
-decode-heavy output. It does not yet prove
+decode-heavy output. The concurrency anomaly analysis narrows one live anomaly
+to coarse runtime prefill under a fixed token/cache shape. It does not yet prove
 internal-only fault attribution accuracy, memory overhead, TPOT overhead, or
 broad workload generality.
 
 ## Next Fault Classes
 
-1. Valid prefill pressure: avoid the currently invalid long-context cases and
-   design a prompt shape that enters the runtime while still making prefill
-   dominant.
+1. Valid prefill pressure: start from the existing concurrency-2 anomaly and
+   add sub-prefill hooks or counters before trying new long-context prompts.
 2. KV-pressure boundary: use long-context/burst cases from
    `third_party/llm-serving-workloads` and check whether queue, prefill, or KV
    events become the dominant chain.

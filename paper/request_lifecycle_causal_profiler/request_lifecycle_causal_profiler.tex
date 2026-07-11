@@ -151,9 +151,14 @@ but has TTFT p95 131.61\,ms. This is currently a client-visible anomaly with
 runtime-hook coverage. A post-hoc runtime-span analysis confirms that the
 concurrency-2 tail is inside the runtime prefill span: internal prefill p95 is
 12261.98\,ms at concurrency 2, compared with 150.31\,ms at concurrency 1 and
-106.94\,ms at concurrency 3. The next step is therefore narrower: split this
-coarse prefill span into scheduler-to-prefill transition, graph capture, batch
-transition, KV allocation, and prefill kernel execution signals.
+106.94\,ms at concurrency 3. A chain-level anomaly pass further checks that
+the measured shape is held constant: all measured chains use 2335 prompt tokens
+and eight generation tokens, the median cached-token ratio is 0.987, and the
+only two prefill outliers appear in the concurrency-2 block
+(Table~\ref{tab:npu6-runtime-concurrency-anomaly}). The next step is therefore
+narrower: split this coarse prefill span into scheduler-to-prefill transition,
+graph capture, batch transition, KV allocation, and prefill kernel execution
+signals.
 
 Table~\ref{tab:npu6-decision-impact} restates the same evidence as an
 optimization decision aid. Ordinary request timers can show that latency is
@@ -205,6 +210,16 @@ smoke on NPU6 after the low-overhead sink change. The enabled run records
 13/13 complete request chains with all nine lifecycle stages.}
 \label{tab:npu6-runtime-hooks}
 \input{tables/generated/npu6_runtime_hook_pair_plan.tex}
+\end{table}
+
+\begin{table}[t]
+\centering
+\caption{Derived runtime-hook anomaly analysis for the structured-agent
+concurrency sweep. The table localizes the tail to the coarse runtime prefill
+span under a fixed prompt/output/cache shape; it does not prove the sub-stage
+root cause inside prefill.}
+\label{tab:npu6-runtime-concurrency-anomaly}
+\input{tables/generated/npu6_runtime_concurrency_anomaly.tex}
 \end{table}
 
 \begin{table}[t]
