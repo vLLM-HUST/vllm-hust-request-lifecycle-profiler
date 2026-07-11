@@ -16,10 +16,13 @@ DEFAULT_DISABLED_DIR = (
     REPO_ROOT
     / ".benchmarks"
     / "results"
-    / "npu6_runtime_hooks_disabled_full_coverage_baseline"
+    / "npu6_runtime_hooks_disabled_low_overhead_baseline"
 )
 DEFAULT_ENABLED_DIR = (
-    REPO_ROOT / ".benchmarks" / "results" / "npu6_runtime_hooks_full_coverage_smoke"
+    REPO_ROOT
+    / ".benchmarks"
+    / "results"
+    / "npu6_runtime_hooks_low_overhead_enabled_smoke"
 )
 DEFAULT_TRACE_PATH = DEFAULT_ENABLED_DIR / "runtime_trace.jsonl"
 EXPECTED_RUNTIME_STAGES = {
