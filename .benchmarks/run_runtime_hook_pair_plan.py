@@ -13,12 +13,26 @@ from typing import Any
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_DISABLED_DIR = (
-    REPO_ROOT / ".benchmarks" / "results" / "npu6_runtime_hooks_disabled_smoke"
+    REPO_ROOT
+    / ".benchmarks"
+    / "results"
+    / "npu6_runtime_hooks_disabled_full_coverage_baseline"
 )
 DEFAULT_ENABLED_DIR = (
-    REPO_ROOT / ".benchmarks" / "results" / "npu6_runtime_hooks_enabled_smoke"
+    REPO_ROOT / ".benchmarks" / "results" / "npu6_runtime_hooks_full_coverage_smoke"
 )
 DEFAULT_TRACE_PATH = DEFAULT_ENABLED_DIR / "runtime_trace.jsonl"
+EXPECTED_RUNTIME_STAGES = {
+    "received",
+    "tokenized",
+    "queued",
+    "scheduled",
+    "prefill_done",
+    "first_token",
+    "decode_done",
+    "stream_done",
+    "cleanup_done",
+}
 
 
 def _git_text(args: list[str], *, cwd: Path = REPO_ROOT) -> str:
@@ -59,18 +73,38 @@ def _trace_summary(path: Path) -> dict[str, Any] | None:
     stages: Counter[str] = Counter()
     observers: Counter[str] = Counter()
     request_ids: set[str] = set()
+    chain_stages: dict[str, set[str]] = {}
     for line in path.read_text(encoding="utf-8").splitlines():
         if not line.strip():
             continue
         row = json.loads(line)
-        stages[str(row.get("stage", ""))] += 1
-        request_ids.add(str(row.get("request_id", "")))
+        stage = str(row.get("stage", ""))
+        stages[stage] += 1
+        request_id = str(row.get("request_id", ""))
+        request_ids.add(request_id)
         metadata = row.get("metadata", {})
         observer = metadata.get("observer", "") if isinstance(metadata, dict) else ""
         observers[str(observer)] += 1
+        external_request_id = (
+            metadata.get("external_request_id") if isinstance(metadata, dict) else None
+        )
+        chain_id = str(external_request_id or request_id)
+        chain_stages.setdefault(chain_id, set()).add(stage)
+    missing_stage_counts: Counter[str] = Counter()
+    incomplete_chain_ids: list[str] = []
+    for chain_id, observed_stages in sorted(chain_stages.items()):
+        missing_stages = EXPECTED_RUNTIME_STAGES - observed_stages
+        if missing_stages:
+            incomplete_chain_ids.append(chain_id)
+            missing_stage_counts.update(missing_stages)
     return {
         "event_count": sum(stages.values()),
-        "request_count": len(request_ids),
+        "internal_request_id_count": len(request_ids),
+        "request_chain_count": len(chain_stages),
+        "complete_chain_count": len(chain_stages) - len(incomplete_chain_ids),
+        "incomplete_chain_count": len(incomplete_chain_ids),
+        "missing_stage_counts": dict(sorted(missing_stage_counts.items())),
+        "incomplete_chain_sample": incomplete_chain_ids[:5],
         "stage_counts": dict(sorted(stages.items())),
         "observer_counts": dict(sorted(observers.items())),
     }

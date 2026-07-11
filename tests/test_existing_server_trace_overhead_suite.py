@@ -124,8 +124,15 @@ def test_runtime_hook_pair_plan_loads_rows_and_deltas(tmp_path: Path) -> None:
     enabled_dir.mkdir()
     trace_path = tmp_path / "runtime.jsonl"
     trace_path.write_text(
-        '{"request_id":"r1","stage":"scheduled","metadata":{"observer":"vllm_runtime_hook"}}\n'
-        '{"request_id":"r1","stage":"first_token","metadata":{"observer":"vllm_runtime_hook"}}\n',
+        '{"request_id":"r1","stage":"received","metadata":{"observer":"vllm_runtime_hook"}}\n'
+        '{"request_id":"r1","stage":"tokenized","metadata":{"observer":"vllm_runtime_hook"}}\n'
+        '{"request_id":"r1","stage":"queued","metadata":{"observer":"vllm_runtime_hook"}}\n'
+        '{"request_id":"r1-a","stage":"scheduled","metadata":{"observer":"vllm_runtime_hook","external_request_id":"r1"}}\n'
+        '{"request_id":"r1-a","stage":"prefill_done","metadata":{"observer":"vllm_runtime_hook","external_request_id":"r1"}}\n'
+        '{"request_id":"r1-a","stage":"first_token","metadata":{"observer":"vllm_runtime_hook","external_request_id":"r1"}}\n'
+        '{"request_id":"r1-a","stage":"decode_done","metadata":{"observer":"vllm_runtime_hook","external_request_id":"r1"}}\n'
+        '{"request_id":"r1-a","stage":"stream_done","metadata":{"observer":"vllm_runtime_hook","external_request_id":"r1"}}\n'
+        '{"request_id":"r1-a","stage":"cleanup_done","metadata":{"observer":"vllm_runtime_hook","external_request_id":"r1"}}\n',
         encoding="utf-8",
     )
     for result_dir, event_count, ttft_p95 in [
@@ -182,8 +189,21 @@ def test_runtime_hook_pair_plan_loads_rows_and_deltas(tmp_path: Path) -> None:
     assert result["summary"]["rows"][1]["trace_bytes"] == trace_path.stat().st_size
     assert result["summary"]["rows"][1]["source_commit"] == "abc123"
     assert result["summary"]["rows"][1]["source_dirty_excluding_output_dir"] is False
-    assert result["summary"]["rows"][1]["runtime_trace_summary"]["event_count"] == 2
+    trace_summary = result["summary"]["rows"][1]["runtime_trace_summary"]
+    assert trace_summary["event_count"] == 9
+    assert trace_summary["internal_request_id_count"] == 2
+    assert trace_summary["request_chain_count"] == 1
+    assert trace_summary["complete_chain_count"] == 1
+    assert trace_summary["incomplete_chain_count"] == 0
+    assert trace_summary["missing_stage_counts"] == {}
     assert result["summary"]["rows"][1]["runtime_trace_summary"]["stage_counts"] == {
+        "cleanup_done": 1,
+        "decode_done": 1,
         "first_token": 1,
+        "prefill_done": 1,
+        "queued": 1,
+        "received": 1,
         "scheduled": 1,
+        "stream_done": 1,
+        "tokenized": 1,
     }
