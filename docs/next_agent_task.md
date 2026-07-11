@@ -140,6 +140,13 @@ a correlation anchor, collect the internal runtime JSONL, and report whether
 internal spans confirm or overturn the proxy hypothesis. Keep client-observed
 proxy trace results separate from internal runtime trace claims.
 
+Before the next run, read `docs/live_fault_matrix_plan.md`. The plan defines
+the stricter ASPLOS gate: existing slow-stream and decode-heavy results prove
+runtime-hook coverage during known faults, but not internal-only causal
+diagnosis accuracy. The next useful NPU6 work is a valid prefill/KV-pressure
+fault that enters the runtime, plus a raw-timer baseline comparison showing why
+lifecycle spans change the optimization decision.
+
 ## Paper Update Requirement
 
 After each valid experiment batch, update:

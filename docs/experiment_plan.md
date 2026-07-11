@@ -139,6 +139,12 @@ for workload design, not as attribution failures. The next submission-critical
 gap is a valid prefill-pressure or KV-pressure fault under the same
 hook-enabled pattern.
 
+The stricter live-fault matrix gate is documented in
+`docs/live_fault_matrix_plan.md`. It separates current coverage claims from the
+missing ASPLOS-level diagnosis claims: valid prefill/KV ground truth,
+timer-only baseline comparison, TPOT/HBM overhead beyond the smoke workload,
+and a larger workload matrix.
+
 ## Phase 2: Controlled Fault Injection
 
 - Inject tokenizer slow path, queue surge, long-prompt prefill, decode-heavy
