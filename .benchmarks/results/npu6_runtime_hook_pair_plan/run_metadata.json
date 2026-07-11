@@ -9,8 +9,8 @@
   "missing_result_count": 0,
   "parent_repo": {
     "branch": "main",
-    "commit": "5810c4c2aff4c2ce44ff377a53a945a364cdf41c",
-    "dirty": true,
+    "commit": "8887c215021a54d00754d32e34f346a159cba260",
+    "dirty": false,
     "path": "/home/shuhao/vllm-request-lifecycle-profiler-plugin"
   },
   "result_valid_for_speedup_claims": false,
@@ -20,6 +20,6 @@
     "dirty": false,
     "path": "/home/shuhao/vllm-request-lifecycle-profiler-plugin/third_party/vllm-hust"
   },
-  "timestamp_utc": "2026-07-11T01:55:42.109131+00:00",
+  "timestamp_utc": "2026-07-11T01:58:12.432912+00:00",
   "trace_export_path": "/home/shuhao/vllm-request-lifecycle-profiler-plugin/.benchmarks/results/npu6_runtime_hooks_enabled_smoke/runtime_trace.jsonl"
 }
