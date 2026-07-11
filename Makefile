@@ -1,7 +1,7 @@
 CONDA ?= conda
 CONDA_ENV ?= vllm-request-lifecycle-profiler-exp
-CONDA_RUN ?= $(CONDA) run --no-capture-output -n $(CONDA_ENV)
-PYTHON ?= $(CONDA_RUN) python
+CONDA_ENV_PREFIX ?= /home/shuhao/miniconda3/envs/$(CONDA_ENV)
+PYTHON ?= $(CONDA_ENV_PREFIX)/bin/python
 PIP ?= $(PYTHON) -m pip
 PYTEST ?= PYTHONPATH=src $(PYTHON) -m pytest -q
 RUFF ?= $(PYTHON) -m ruff
