@@ -113,7 +113,7 @@ Immediate next step: use the normal proxy diagnosis and the slow-stream proxy
 diagnosis as two anchors for internal hook validation. Install the parent
 package into `vllm-request-lifecycle-profiler-exp`, launch vLLM-HUST from the
 pinned `third_party/vllm-hust` submodule, and set
-`VLLM_RLP_TRACE_EXPORT_PATH=/tmp/codex-vllm-request-lifecycle-profiler-npu6-runtime.jsonl`
+`VLLM_RLP_TRACE_EXPORT_PATH=/home/shuhao/vllm-request-lifecycle-profiler-plugin/.benchmarks/results/npu6_runtime_hooks_enabled_smoke/runtime_trace.jsonl`
 for the hook-enabled mode. First run the same suite with the env var unset,
 then run it with the env var set. Record TTFT/TPOT, host memory, NPU HBM,
 trace bytes per request, parent/submodule commits, conda environment, and
@@ -129,7 +129,7 @@ unset VLLM_RLP_TRACE_EXPORT_PATH && make managed-restart && \
   make npu6-existing-server-trace-suite-smoke \
     TRACE_SUITE_OUTPUT_DIR=.benchmarks/results/npu6_runtime_hooks_disabled_smoke
 
-VLLM_RLP_TRACE_EXPORT_PATH=/tmp/codex-vllm-request-lifecycle-profiler-npu6-runtime.jsonl \
+VLLM_RLP_TRACE_EXPORT_PATH=/home/shuhao/vllm-request-lifecycle-profiler-plugin/.benchmarks/results/npu6_runtime_hooks_enabled_smoke/runtime_trace.jsonl \
   make managed-restart && \
   make npu6-existing-server-trace-suite-smoke \
     TRACE_SUITE_OUTPUT_DIR=.benchmarks/results/npu6_runtime_hooks_enabled_smoke

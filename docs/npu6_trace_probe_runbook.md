@@ -85,7 +85,7 @@ Hook-disabled mode leaves `VLLM_RLP_TRACE_EXPORT_PATH` unset. Hook-enabled mode
 sets it to a fresh JSONL path, for example:
 
 ```bash
-export VLLM_RLP_TRACE_EXPORT_PATH=/tmp/codex-vllm-request-lifecycle-profiler-npu6-runtime.jsonl
+export VLLM_RLP_TRACE_EXPORT_PATH=/home/shuhao/vllm-request-lifecycle-profiler-plugin/.benchmarks/results/npu6_runtime_hooks_enabled_smoke/runtime_trace.jsonl
 ```
 
 Do not use non-serving import workarounds such as

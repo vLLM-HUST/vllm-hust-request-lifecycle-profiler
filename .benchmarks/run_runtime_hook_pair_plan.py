@@ -17,9 +17,7 @@ DEFAULT_DISABLED_DIR = (
 DEFAULT_ENABLED_DIR = (
     REPO_ROOT / ".benchmarks" / "results" / "npu6_runtime_hooks_enabled_smoke"
 )
-DEFAULT_TRACE_PATH = Path(
-    "/tmp/codex-vllm-request-lifecycle-profiler-npu6-runtime.jsonl"
-)
+DEFAULT_TRACE_PATH = DEFAULT_ENABLED_DIR / "runtime_trace.jsonl"
 
 
 def _git_text(args: list[str], *, cwd: Path = REPO_ROOT) -> str:
