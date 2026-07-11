@@ -20,6 +20,9 @@ classes, raw-timer baselines, and explicit overhead measurements.
 - Structured decode-heavy fault: the known decode-heavy workload switches
   client-visible diagnosis to `decode`, while runtime hooks again record
   complete chains.
+- Prompt-heavy low-output fault: the same runtime-entering workload with only
+  4 requested output tokens switches client-visible diagnosis to `prefill`,
+  with 8/8 measured success and complete runtime hook chains.
 
 These results support trace feasibility and coverage during known faults. They
 do not yet prove internal-only causal diagnosis accuracy.
@@ -32,9 +35,9 @@ The two long-context candidates in
 `.benchmarks/results/npu6_runtime_hooks_long_prefill_fault_smoke/` and
 `.benchmarks/results/npu6_runtime_hooks_decode_heavy_fault_smoke/` are invalid
 boundary evidence because requests failed before usable runtime attribution.
-The next run must find a prompt shape that enters the runtime, produces
-successful measured requests, and makes prefill or KV pressure the dominant
-stage.
+The prompt-heavy low-output run now provides a valid prefill-dominant case that
+enters the runtime and produces successful measured requests. The remaining
+gap is a KV-pressure or concurrency-sensitive prefill/KV boundary.
 
 Required evidence:
 
@@ -101,14 +104,16 @@ Do not use these terms yet:
 
 ## Suggested Next NPU6 Run
 
-Start from the structured decode run that succeeds, then vary prompt shape
-while keeping output tokens modest. Prefer a medium prompt that is below the
-current 4096-token service boundary but high enough to make prefill visible:
+Start from the prompt-heavy low-output run that succeeds, then add concurrency
+or KV pressure while keeping the prompt below the current 4096-token service
+boundary:
 
-- choose a shared workload or repo-local prompt around 2500-3300 prompt tokens;
-- request 16-32 output tokens;
-- keep concurrency low first to avoid admission rejection;
-- if successful, sweep concurrency 1/2/3 to look for a prefill/KV knee;
+- use `shared_scenario_structured_agent_decode` or a repo-local prompt around
+  2300-3300 prompt tokens;
+- request 4-16 output tokens;
+- sweep concurrency 1/2/3 first to look for a prefill/KV knee;
+- if concurrency fails before attribution, mark the boundary and lower prompt
+  size before retrying;
 - preserve both client proxy and runtime hook traces.
 
 If no valid prefill/KV candidate is found, commit all failed attempts with

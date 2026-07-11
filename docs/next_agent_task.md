@@ -130,22 +130,27 @@ decode-heavy fault is now measured at
 `.benchmarks/results/npu6_runtime_hooks_structured_decode_fault_smoke/` with
 4/4 measured success, client-visible `decode` diagnosis for 4/4 measured
 requests, decode-span p95 1986.54 ms, and 5/5 complete internal runtime hook
-chains. Do not reuse the invalid
+chains. The prompt-heavy low-output fault is now measured at
+`.benchmarks/results/npu6_runtime_hooks_prompt_heavy_low_output_smoke/` with
+8/8 measured success, client-visible `prefill` diagnosis for 8/8 measured
+requests, prefill-span p95 133.66 ms, decode-span p95 36.70 ms, and 9/9
+complete internal runtime hook chains. Do not reuse the invalid
 `.benchmarks/results/npu6_runtime_hooks_long_prefill_fault_smoke/` or
 `.benchmarks/results/npu6_runtime_hooks_decode_heavy_fault_smoke/` as positive
 evidence; they are marked `FAILED.txt` because the candidate workload failed
-before usable attribution. Next run a valid prefill-pressure or KV-pressure
-boundary with the same discipline: preserve the client-observed proxy trace as
-a correlation anchor, collect the internal runtime JSONL, and report whether
-internal spans confirm or overturn the proxy hypothesis. Keep client-observed
-proxy trace results separate from internal runtime trace claims.
+before usable attribution. Next run a valid KV-pressure or concurrency-sensitive
+prefill/KV boundary with the same discipline: preserve the client-observed
+proxy trace as a correlation anchor, collect the internal runtime JSONL, and
+report whether internal spans confirm or overturn the proxy hypothesis. Keep
+client-observed proxy trace results separate from internal runtime trace
+claims.
 
 Before the next run, read `docs/live_fault_matrix_plan.md`. The plan defines
 the stricter ASPLOS gate: existing slow-stream and decode-heavy results prove
 runtime-hook coverage during known faults, but not internal-only causal
-diagnosis accuracy. The next useful NPU6 work is a valid prefill/KV-pressure
-fault that enters the runtime, plus a raw-timer baseline comparison showing why
-lifecycle spans change the optimization decision.
+diagnosis accuracy. The next useful NPU6 work is a valid KV-pressure or
+concurrency-sensitive prefill/KV fault, plus a raw-timer baseline comparison
+showing why lifecycle spans change the optimization decision.
 
 ## Paper Update Requirement
 

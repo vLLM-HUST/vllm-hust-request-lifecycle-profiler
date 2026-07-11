@@ -1,0 +1,26 @@
+{
+  "claim_boundary": "Derived runtime-hook coverage summary for the NPU6 prompt-heavy low-output controlled fault; it proves event coverage, not internal-only attribution accuracy by itself.",
+  "complete_chain_count": 9,
+  "event_count": 81,
+  "evidence_label": "derived-artifact",
+  "generated_at_utc": "2026-07-11T04:34:21.991169+00:00",
+  "incomplete_chain_count": 0,
+  "internal_request_id_count": 18,
+  "missing_stage_counts": {},
+  "observer_counts": {
+    "vllm_runtime_hook": 81
+  },
+  "request_chain_count": 9,
+  "source_trace": "runtime_trace.jsonl",
+  "stage_counts": {
+    "cleanup_done": 9,
+    "decode_done": 9,
+    "first_token": 9,
+    "prefill_done": 9,
+    "queued": 9,
+    "received": 9,
+    "scheduled": 9,
+    "stream_done": 9,
+    "tokenized": 9
+  }
+}

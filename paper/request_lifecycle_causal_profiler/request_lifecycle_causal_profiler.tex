@@ -130,6 +130,15 @@ complete chains. Two attempted long-context candidates failed before usable
 attribution under the current 4096-token service profile; those directories
 are retained as boundary evidence rather than diagnosis results.
 
+The third hook-enabled fault keeps the same runtime-entering structured-agent
+prompt but reduces requested output to four tokens. This run succeeds for 8/8
+measured requests and switches the client-visible diagnosis to prefill for
+8/8 requests: prefill-span p95 is 133.66\,ms, decode-span p95 is
+36.70\,ms, and streaming p95 remains 0.0\,ms. The internal runtime hook records
+81 events over 9/9 complete chains. This closes the first valid
+prefill-dominant live-fault coverage gap, but it is still not an internal-only
+root-cause accuracy claim.
+
 Table~\ref{tab:npu6-decision-impact} restates the same evidence as an
 optimization decision aid. Ordinary request timers can show that latency is
 large, but lifecycle spans determine which next experiment should run: normal
@@ -199,14 +208,16 @@ controlled client-visible slow-stream discrimination, a narrow client-probe
 event-construction overhead smoke, full internal lifecycle capture on a small
 NPU6 smoke workload, bounded runtime-hook overhead on that smoke, runtime-hook
 coverage during known slow-stream and decode-heavy faults, and a derived
-decision-impact view over the same proxy traces. The decision-impact table is
+decision-impact view over the same proxy traces. The new prompt-heavy
+low-output fault adds a valid prefill-dominant live case with runtime-hook
+coverage. The decision-impact table is
 not a new online measurement: it summarizes which follow-up optimization
 experiment each proxy diagnosis justifies. The artifact does not yet support
 claims about internal-only diagnosis accuracy on live faults, memory overhead,
 TPOT overhead, broad workload generality, or root-cause time improvement. Those
-claims require a valid prefill/KV fault, causal-rule comparison against raw
-timers, TPOT/HBM overhead evidence beyond the smoke workload, and a larger
-workload matrix.
+claims require a KV-pressure or concurrency-sensitive prefill/KV fault,
+causal-rule comparison against raw timers, TPOT/HBM overhead evidence beyond
+the smoke workload, and a larger workload matrix.
 
 \begin{table}[t]
 \centering

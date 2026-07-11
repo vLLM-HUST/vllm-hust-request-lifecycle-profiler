@@ -131,19 +131,28 @@ tokens, records 4/4 measured success, and attributes 4/4 measured requests to
 `decode` with decode-span p95 1986.54 ms while runtime hooks again record 5/5
 complete chains.
 
+A valid prompt-heavy low-output fault is now checked in at
+`.benchmarks/results/npu6_runtime_hooks_prompt_heavy_low_output_smoke/`, with
+derived diagnosis in
+`.benchmarks/results/npu6_runtime_hooks_prompt_heavy_low_output_diagnosis/`.
+It keeps the same runtime-entering shared workload but requests only 4 output
+tokens, records 8/8 measured success, and attributes 8/8 measured requests to
+`prefill` with prefill-span p95 133.66 ms, decode-span p95 36.70 ms, and
+runtime hooks over 9/9 complete chains.
+
 Two attempted long-context candidates are intentionally marked invalid:
 `.benchmarks/results/npu6_runtime_hooks_long_prefill_fault_smoke/` and
 `.benchmarks/results/npu6_runtime_hooks_decode_heavy_fault_smoke/` both failed
 before usable runtime-hook attribution. Treat them as service-boundary evidence
 for workload design, not as attribution failures. The next submission-critical
-gap is a valid prefill-pressure or KV-pressure fault under the same
-hook-enabled pattern.
+gap is a valid KV-pressure or concurrency-sensitive prefill/KV boundary under
+the same hook-enabled pattern.
 
 The stricter live-fault matrix gate is documented in
 `docs/live_fault_matrix_plan.md`. It separates current coverage claims from the
-missing ASPLOS-level diagnosis claims: valid prefill/KV ground truth,
-timer-only baseline comparison, TPOT/HBM overhead beyond the smoke workload,
-and a larger workload matrix.
+missing ASPLOS-level diagnosis claims: KV-pressure ground truth, timer-only
+baseline comparison, TPOT/HBM overhead beyond the smoke workload, and a larger
+workload matrix.
 
 ## Phase 2: Controlled Fault Injection
 
