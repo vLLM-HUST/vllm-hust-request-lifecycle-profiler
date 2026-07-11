@@ -111,6 +111,16 @@ streaming for 4/4 measured requests, with streaming-span p95 of 5127.09\,ms
 (Table~\ref{tab:npu6-slow-stream}). This is a controlled client-probe
 backpressure result, not an internal runtime streaming claim.
 
+The next NPU6 batch runs the same slow-stream fault with the hook-enabled
+runtime active. The client-visible diagnosis again attributes 4/4 measured
+requests to streaming, with latency p95 of 5334.74\,ms and streaming-span p95
+of 5126.99\,ms. At the same time, the internal runtime hook writes 45 JSONL
+events over 5/5 complete request chains, each containing the nine expected
+lifecycle stages. This closes the hook-coverage gap during a known fault, but
+it is still not an internal-only diagnosis accuracy result: the injected
+client-side slow read remains the ground-truth fault and the runtime trace is a
+coverage/correlation artifact for this batch.
+
 Table~\ref{tab:npu6-decision-impact} restates the same evidence as an
 optimization decision aid. Ordinary request timers can show that latency is
 large, but lifecycle spans determine which next experiment should run: normal
@@ -178,14 +188,15 @@ The current evidence supports trace schema feasibility, synthetic attribution
 coverage, live client-observed lifecycle export, derived proxy-stage diagnosis,
 controlled client-visible slow-stream discrimination, a narrow client-probe
 event-construction overhead smoke, full internal lifecycle capture on a small
-NPU6 smoke workload, bounded runtime-hook overhead on that smoke, and a derived
+NPU6 smoke workload, bounded runtime-hook overhead on that smoke, runtime-hook
+coverage during one known slow-stream client fault, and a derived
 decision-impact view over the same proxy traces. The decision-impact table is
 not a new online measurement: it summarizes which follow-up optimization
 experiment each proxy diagnosis justifies. The artifact does not yet support
-claims about diagnosis accuracy on live internal faults, memory overhead, TPOT
-overhead, broad workload generality, or root-cause time improvement. Those
-claims require controlled runtime fault injection with known ground truth and a
-larger workload matrix.
+claims about internal-only diagnosis accuracy on live faults, memory overhead,
+TPOT overhead, broad workload generality, or root-cause time improvement. Those
+claims require additional controlled runtime fault injection with known ground
+truth and a larger workload matrix.
 
 \begin{table}[t]
 \centering

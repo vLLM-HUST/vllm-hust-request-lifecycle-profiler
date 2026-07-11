@@ -1,0 +1,6 @@
+request_id,phase,dominant_kind,dominant_span,dominant_duration_ms,missing_event_rate,complete_span_count,missing_span_count,tokenization_ms,queueing_ms,prefill_ms,decode_ms,streaming_ms,cleanup_ms
+shared_scenario_multi_turn_knowledge_service::repeat0::0,measured,streaming,streaming,5126.462358981371,0.0,6,0,0.08990010246634483,0.20839180797338486,76.23777911067009,0.0,5126.462358981371,0.024510081857442856
+shared_scenario_multi_turn_knowledge_service::repeat0::1,measured,streaming,streaming,5127.062573097646,0.0,6,0,0.0859508290886879,0.18561119213700294,230.63093097880483,0.0,5127.062573097646,0.017330050468444824
+shared_scenario_multi_turn_knowledge_service::repeat1::0,measured,streaming,streaming,5126.5585399232805,0.0,6,0,0.06897002458572388,0.18195109441876411,74.9275297857821,0.0,5126.5585399232805,0.01853005960583687
+shared_scenario_multi_turn_knowledge_service::repeat1::1,measured,streaming,streaming,5126.3306979089975,0.0,6,0,0.08203089237213135,0.18854113295674324,75.22596325725317,0.0,5126.3306979089975,0.0184597447514534
+shared_scenario_multi_turn_knowledge_service::warmup::0,warmup,streaming,streaming,5126.4245277270675,0.0,6,0,0.047789886593818665,0.4122029058635235,350.0915332697332,0.0,5126.4245277270675,0.025690067559480667

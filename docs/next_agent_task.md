@@ -121,15 +121,16 @@ events over 13 external request chains, and all 13 chains include `received`,
 `tokenized`, `queued`, `scheduled`, `prefill_done`, `first_token`,
 `decode_done`, `stream_done`, and `cleanup_done`.
 
-Immediate next step: use the low-overhead full-lifecycle hooks for live
-controlled-fault attribution. Start with one fault class that can be exercised
-on the existing NPU6 single-card managed service, such as slow streaming client,
-long-prompt prefill pressure, or decode-heavy output. For each run, preserve
-the client-observed proxy trace as a correlation anchor, collect the internal
-runtime JSONL, and report whether internal spans confirm or overturn the proxy
-`decode` and client-visible `streaming` hypotheses. Keep
-client-observed proxy trace results separate from internal runtime trace
-claims.
+Immediate next step: continue the hook-enabled controlled-fault matrix. The
+slow-stream client fault is now measured at
+`.benchmarks/results/npu6_runtime_hooks_slow_stream_fault_smoke/` with 4/4
+measured success, client-visible `streaming` diagnosis for 4/4 measured
+requests, and 5/5 complete internal runtime hook chains. Next run long-prompt
+prefill pressure, decode-heavy output, or KV-pressure boundary with the same
+discipline: preserve the client-observed proxy trace as a correlation anchor,
+collect the internal runtime JSONL, and report whether internal spans confirm
+or overturn the proxy hypothesis. Keep client-observed proxy trace results
+separate from internal runtime trace claims.
 
 ## Paper Update Requirement
 

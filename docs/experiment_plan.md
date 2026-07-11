@@ -113,11 +113,17 @@ hook-disabled, after replacing per-event open/write/close with a persistent
 append fd sink.
 
 Next step:
-run one controlled fault at a time and compare internal spans against the
-existing client-observed normal and slow-stream diagnoses. The entry-path
-coverage gap is closed and the smoke-run trace overhead is now bounded, so the
-next submission-critical gap is live attribution accuracy under known injected
-conditions.
+the first hook-enabled controlled fault is now checked in at
+`.benchmarks/results/npu6_runtime_hooks_slow_stream_fault_smoke/`. It reruns
+the slow-stream client fault while preserving both the client proxy trace and
+the internal runtime JSONL. The client diagnosis
+`.benchmarks/results/npu6_runtime_hooks_slow_stream_fault_diagnosis/`
+attributes 4/4 measured requests to `streaming`; the runtime trace summary
+records 45 internal events over 5/5 complete chains with all nine stages
+present. This closes the "hook coverage during a known fault" gap for
+slow-stream, but it is not yet internal-only diagnosis accuracy. The next
+submission-critical gap is long-prompt prefill, decode-heavy, and KV-pressure
+fault attribution under the same hook-enabled service pattern.
 
 ## Phase 2: Controlled Fault Injection
 
