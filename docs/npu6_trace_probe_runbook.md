@@ -43,7 +43,12 @@ make managed-health
 
 The profile is `.benchmarks/profiles/npu6_vllm_hust_trace.env`. It binds
 `VLLM_ENGINE_NPU_DEVICES=6`, `ASCEND_RT_VISIBLE_DEVICES=6`, port `18168`, and
-the default 7B model. Equivalent explicit command:
+the default 7B model. It also points `PYTHONPATH` at this parent repository and
+its pinned `third_party/vllm-hust` submodule so hook-enabled evidence is
+reproducible from the optimization repository. The profile intentionally does
+not set `VLLM_RLP_TRACE_EXPORT_PATH`; hook-disabled mode is the default, and
+hook-enabled mode must pass the export path explicitly. Equivalent explicit
+command:
 
 ```bash
 VLLM_ENGINE_ENV_FILE=$PWD/.benchmarks/profiles/npu6_vllm_hust_trace.env \

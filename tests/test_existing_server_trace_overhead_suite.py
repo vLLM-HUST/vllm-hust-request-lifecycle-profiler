@@ -33,6 +33,17 @@ def _load_runtime_hook_plan_module():
     return module
 
 
+def _profile_env(path: Path) -> dict[str, str]:
+    values: dict[str, str] = {}
+    for raw_line in path.read_text(encoding="utf-8").splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, value = line.split("=", 1)
+        values[key.strip()] = value.strip()
+    return values
+
+
 def _mode_result(mode: str, *, ttft_p95: float, latency_p95: float, event_count: int):
     return {
         "mode": mode,
@@ -83,6 +94,26 @@ def test_runtime_hook_pair_plan_reports_missing_runs(tmp_path: Path) -> None:
     assert "TRACE_SUITE_OUTPUT_DIR=" in result["summary"]["rows"][0][
         "required_next_run"
     ][-1]
+
+
+def test_npu6_profile_uses_pinned_runtime_and_does_not_enable_hooks_by_default() -> None:
+    profile = (
+        Path(__file__).resolve().parents[1]
+        / ".benchmarks"
+        / "profiles"
+        / "npu6_vllm_hust_trace.env"
+    )
+    env = _profile_env(profile)
+
+    assert "VLLM_RLP_TRACE_EXPORT_PATH" not in env
+    assert "VLLM_RLP_TRACE_ENABLED" not in env
+    assert env["VLLM_OPTIMIZATION_REPO_CONTAINER"] == (
+        "/workspace/vllm-request-lifecycle-profiler-plugin"
+    )
+    assert (
+        "/workspace/vllm-request-lifecycle-profiler-plugin/third_party/vllm-hust"
+        in env["VLLM_ENGINE_PYTHONPATH"].split(":")
+    )
 
 
 def test_runtime_hook_pair_plan_loads_rows_and_deltas(tmp_path: Path) -> None:

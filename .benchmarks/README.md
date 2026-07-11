@@ -18,7 +18,9 @@ trace export schema, and pinned workload submodule metadata without launching or
 killing any service.
 
 The repo also provides a non-secret vLLM-HUST dev-hub profile at
-`profiles/npu6_vllm_hust_trace.env`. Use:
+`.benchmarks/profiles/npu6_vllm_hust_trace.env`. The profile launches NPU6 from
+the pinned parent-repo runtime path and does not enable runtime hooks unless
+`VLLM_RLP_TRACE_EXPORT_PATH` is set by the caller. Use:
 
 ```bash
 make managed-start
