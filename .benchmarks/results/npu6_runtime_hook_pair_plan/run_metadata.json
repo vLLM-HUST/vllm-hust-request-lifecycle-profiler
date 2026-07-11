@@ -9,8 +9,8 @@
   "missing_result_count": 2,
   "parent_repo": {
     "branch": "main",
-    "commit": "a340d4f38c2b320801600c751cf1f6099ac60014",
-    "dirty": true,
+    "commit": "effd053ee5c01cc35197abf0eda8f4b1bee4d5d3",
+    "dirty": false,
     "path": "/home/shuhao/vllm-request-lifecycle-profiler-plugin"
   },
   "result_valid_for_speedup_claims": false,
@@ -20,6 +20,6 @@
     "dirty": false,
     "path": "/home/shuhao/vllm-request-lifecycle-profiler-plugin/third_party/vllm-hust"
   },
-  "timestamp_utc": "2026-07-10T23:38:13.660036+00:00",
+  "timestamp_utc": "2026-07-11T01:34:30.704845+00:00",
   "trace_export_path": "/tmp/codex-vllm-request-lifecycle-profiler-npu6-runtime.jsonl"
 }
