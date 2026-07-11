@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+from collections import Counter
 from datetime import datetime
 from datetime import timezone
 import json
@@ -50,6 +51,37 @@ def _trace_bytes(path: Path) -> int | None:
     if not path.exists():
         return None
     return path.stat().st_size
+
+
+def _trace_summary(path: Path) -> dict[str, Any] | None:
+    if not path.exists():
+        return None
+    stages: Counter[str] = Counter()
+    observers: Counter[str] = Counter()
+    request_ids: set[str] = set()
+    for line in path.read_text(encoding="utf-8").splitlines():
+        if not line.strip():
+            continue
+        row = json.loads(line)
+        stages[str(row.get("stage", ""))] += 1
+        request_ids.add(str(row.get("request_id", "")))
+        metadata = row.get("metadata", {})
+        observer = metadata.get("observer", "") if isinstance(metadata, dict) else ""
+        observers[str(observer)] += 1
+    return {
+        "event_count": sum(stages.values()),
+        "request_count": len(request_ids),
+        "stage_counts": dict(sorted(stages.items())),
+        "observer_counts": dict(sorted(observers.items())),
+    }
+
+
+def _source_repo(metadata: dict[str, Any]) -> dict[str, Any]:
+    source = metadata.get("parent_repo")
+    if isinstance(source, dict):
+        return source
+    source = metadata.get("repo")
+    return source if isinstance(source, dict) else {}
 
 
 def _mode_command(
@@ -103,13 +135,15 @@ def _mode_row(
                 make_target=make_target,
             ),
         }
+    source_repo = _source_repo(metadata)
+    trace_summary = _trace_summary(trace_path) if mode == "hook-enabled" else None
     return {
         "mode": mode,
         "result_dir": str(result_dir),
         "status": "loaded",
         "source_evidence_label": metadata.get("evidence_label"),
-        "source_commit": metadata.get("parent_repo", {}).get("commit"),
-        "source_dirty_excluding_output_dir": metadata.get("parent_repo", {}).get(
+        "source_commit": source_repo.get("commit"),
+        "source_dirty_excluding_output_dir": source_repo.get(
             "dirty_excluding_output_dir"
         ),
         "request_count": summary.get("request_count"),
@@ -122,6 +156,7 @@ def _mode_row(
         "latency_p95_ms": _metric(summary, "latency_ms", "p95"),
         "trace_export_path": str(trace_path),
         "trace_bytes": _trace_bytes(trace_path) if mode == "hook-enabled" else None,
+        "runtime_trace_summary": trace_summary,
         "source_command": metadata.get("command"),
     }
 

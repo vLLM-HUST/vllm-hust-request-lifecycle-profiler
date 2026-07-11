@@ -123,7 +123,11 @@ def test_runtime_hook_pair_plan_loads_rows_and_deltas(tmp_path: Path) -> None:
     disabled_dir.mkdir()
     enabled_dir.mkdir()
     trace_path = tmp_path / "runtime.jsonl"
-    trace_path.write_text('{"stage":"received"}\n', encoding="utf-8")
+    trace_path.write_text(
+        '{"request_id":"r1","stage":"scheduled","metadata":{"observer":"vllm_runtime_hook"}}\n'
+        '{"request_id":"r1","stage":"first_token","metadata":{"observer":"vllm_runtime_hook"}}\n',
+        encoding="utf-8",
+    )
     for result_dir, event_count, ttft_p95 in [
         (disabled_dir, 0, 80.0),
         (enabled_dir, 27, 83.5),
@@ -147,7 +151,7 @@ def test_runtime_hook_pair_plan_loads_rows_and_deltas(tmp_path: Path) -> None:
             json.dumps(
                 {
                     "evidence_label": "existing-server-probe",
-                    "parent_repo": {
+                    "repo": {
                         "commit": "abc123",
                         "dirty_excluding_output_dir": False,
                     },
@@ -176,3 +180,10 @@ def test_runtime_hook_pair_plan_loads_rows_and_deltas(tmp_path: Path) -> None:
     assert result["summary"]["deltas"]["ttft_p95_delta_ms"] == 3.5
     assert result["summary"]["deltas"]["event_count_delta"] == 27
     assert result["summary"]["rows"][1]["trace_bytes"] == trace_path.stat().st_size
+    assert result["summary"]["rows"][1]["source_commit"] == "abc123"
+    assert result["summary"]["rows"][1]["source_dirty_excluding_output_dir"] is False
+    assert result["summary"]["rows"][1]["runtime_trace_summary"]["event_count"] == 2
+    assert result["summary"]["rows"][1]["runtime_trace_summary"]["stage_counts"] == {
+        "first_token": 1,
+        "scheduled": 1,
+    }
