@@ -10,29 +10,29 @@
     "missing_result_count": 0,
     "parent_repo": {
       "branch": "main",
-      "commit": "8887c215021a54d00754d32e34f346a159cba260",
+      "commit": "03ed861f461644af2b27550f3fff2cc37012e779",
       "dirty": false,
       "path": "/home/shuhao/vllm-request-lifecycle-profiler-plugin"
     },
     "result_valid_for_speedup_claims": false,
     "runtime_carrier": {
       "branch": "feature/request-lifecycle-profiler-runtime-hooks-faculty",
-      "commit": "7d5406c5ab13a81290ad40eae31204f88fd0615a",
+      "commit": "0daab7a300fb91efebd35b221b9a6f6c6d7486f8",
       "dirty": false,
       "path": "/home/shuhao/vllm-request-lifecycle-profiler-plugin/third_party/vllm-hust"
     },
-    "timestamp_utc": "2026-07-11T01:58:12.432912+00:00",
-    "trace_export_path": "/home/shuhao/vllm-request-lifecycle-profiler-plugin/.benchmarks/results/npu6_runtime_hooks_enabled_smoke/runtime_trace.jsonl"
+    "timestamp_utc": "2026-07-11T02:21:08.816364+00:00",
+    "trace_export_path": "/home/shuhao/vllm-request-lifecycle-profiler-plugin/.benchmarks/results/npu6_runtime_hooks_full_coverage_smoke/runtime_trace.jsonl"
   },
   "rows": [
     {
       "error_count": 0,
       "event_count": 117,
-      "latency_p50_ms": 176.09704053029418,
-      "latency_p95_ms": 177.63446241151541,
+      "latency_p50_ms": 175.03377865068614,
+      "latency_p95_ms": 194.43703957367686,
       "mode": "hook-disabled",
       "request_count": 12,
-      "result_dir": "/home/shuhao/vllm-request-lifecycle-profiler-plugin/.benchmarks/results/npu6_runtime_hooks_disabled_smoke",
+      "result_dir": "/home/shuhao/vllm-request-lifecycle-profiler-plugin/.benchmarks/results/npu6_runtime_hooks_disabled_full_coverage_baseline",
       "runtime_trace_summary": null,
       "source_command": [
         "run_existing_server_trace_probe.py",
@@ -51,39 +51,47 @@
         "--trace-export-path",
         "/tmp/codex-vllm-request-lifecycle-profiler-npu6-trace.jsonl",
         "--output-dir",
-        ".benchmarks/results/npu6_runtime_hooks_disabled_smoke"
+        ".benchmarks/results/npu6_runtime_hooks_disabled_full_coverage_baseline"
       ],
-      "source_commit": "c2573f33ddb2d8d04acb8fd1d29063edd96d3574",
+      "source_commit": "21c62a83c7e11a1e4e3aee3c6691e6eb080f25b5",
       "source_dirty_excluding_output_dir": false,
       "source_evidence_label": "existing-server-probe",
       "status": "loaded",
       "success_count": 12,
       "trace_bytes": null,
-      "trace_export_path": "/home/shuhao/vllm-request-lifecycle-profiler-plugin/.benchmarks/results/npu6_runtime_hooks_enabled_smoke/runtime_trace.jsonl",
-      "ttft_p50_ms": 77.1565840113908,
-      "ttft_p95_ms": 78.62833321560174
+      "trace_export_path": "/home/shuhao/vllm-request-lifecycle-profiler-plugin/.benchmarks/results/npu6_runtime_hooks_full_coverage_smoke/runtime_trace.jsonl",
+      "ttft_p50_ms": 76.29889296367764,
+      "ttft_p95_ms": 77.83876934554428
     },
     {
       "error_count": 0,
       "event_count": 117,
-      "latency_p50_ms": 176.1411353945732,
-      "latency_p95_ms": 193.71390126179904,
+      "latency_p50_ms": 190.40178321301937,
+      "latency_p95_ms": 231.19699889793992,
       "mode": "hook-enabled",
       "request_count": 12,
-      "result_dir": "/home/shuhao/vllm-request-lifecycle-profiler-plugin/.benchmarks/results/npu6_runtime_hooks_enabled_smoke",
+      "result_dir": "/home/shuhao/vllm-request-lifecycle-profiler-plugin/.benchmarks/results/npu6_runtime_hooks_full_coverage_smoke",
       "runtime_trace_summary": {
-        "event_count": 78,
+        "complete_chain_count": 13,
+        "event_count": 117,
+        "incomplete_chain_count": 0,
+        "incomplete_chain_sample": [],
+        "internal_request_id_count": 26,
+        "missing_stage_counts": {},
         "observer_counts": {
-          "vllm_runtime_hook": 78
+          "vllm_runtime_hook": 117
         },
-        "request_count": 13,
+        "request_chain_count": 13,
         "stage_counts": {
           "cleanup_done": 13,
           "decode_done": 13,
           "first_token": 13,
           "prefill_done": 13,
+          "queued": 13,
+          "received": 13,
           "scheduled": 13,
-          "stream_done": 13
+          "stream_done": 13,
+          "tokenized": 13
         }
       },
       "source_command": [
@@ -103,26 +111,26 @@
         "--trace-export-path",
         "/tmp/codex-vllm-request-lifecycle-profiler-npu6-trace.jsonl",
         "--output-dir",
-        ".benchmarks/results/npu6_runtime_hooks_enabled_smoke"
+        ".benchmarks/results/npu6_runtime_hooks_full_coverage_smoke"
       ],
-      "source_commit": "5f6be11901382238b20911ad1674ca43c4b9e387",
+      "source_commit": "22de7ad0ae7320baccce565bd6e5b5a11caa2a4f",
       "source_dirty_excluding_output_dir": false,
       "source_evidence_label": "existing-server-probe",
       "status": "loaded",
       "success_count": 12,
-      "trace_bytes": 18643,
-      "trace_export_path": "/home/shuhao/vllm-request-lifecycle-profiler-plugin/.benchmarks/results/npu6_runtime_hooks_enabled_smoke/runtime_trace.jsonl",
-      "ttft_p50_ms": 77.23319414071739,
-      "ttft_p95_ms": 88.65379246417433
+      "trace_bytes": 29153,
+      "trace_export_path": "/home/shuhao/vllm-request-lifecycle-profiler-plugin/.benchmarks/results/npu6_runtime_hooks_full_coverage_smoke/runtime_trace.jsonl",
+      "ttft_p50_ms": 78.91188096255064,
+      "ttft_p95_ms": 88.21883501950651
     }
   ],
   "summary": {
     "deltas": {
       "event_count_delta": 0,
-      "latency_p50_delta_ms": 0.044094864279031754,
-      "latency_p95_delta_ms": 16.079438850283623,
-      "ttft_p50_delta_ms": 0.07661012932658195,
-      "ttft_p95_delta_ms": 10.025459248572588
+      "latency_p50_delta_ms": 15.368004562333226,
+      "latency_p95_delta_ms": 36.759959324263065,
+      "ttft_p50_delta_ms": 2.6129879988729954,
+      "ttft_p95_delta_ms": 10.380065673962235
     },
     "loaded_result_count": 2,
     "missing_result_count": 0,
@@ -130,11 +138,11 @@
       {
         "error_count": 0,
         "event_count": 117,
-        "latency_p50_ms": 176.09704053029418,
-        "latency_p95_ms": 177.63446241151541,
+        "latency_p50_ms": 175.03377865068614,
+        "latency_p95_ms": 194.43703957367686,
         "mode": "hook-disabled",
         "request_count": 12,
-        "result_dir": "/home/shuhao/vllm-request-lifecycle-profiler-plugin/.benchmarks/results/npu6_runtime_hooks_disabled_smoke",
+        "result_dir": "/home/shuhao/vllm-request-lifecycle-profiler-plugin/.benchmarks/results/npu6_runtime_hooks_disabled_full_coverage_baseline",
         "runtime_trace_summary": null,
         "source_command": [
           "run_existing_server_trace_probe.py",
@@ -153,39 +161,47 @@
           "--trace-export-path",
           "/tmp/codex-vllm-request-lifecycle-profiler-npu6-trace.jsonl",
           "--output-dir",
-          ".benchmarks/results/npu6_runtime_hooks_disabled_smoke"
+          ".benchmarks/results/npu6_runtime_hooks_disabled_full_coverage_baseline"
         ],
-        "source_commit": "c2573f33ddb2d8d04acb8fd1d29063edd96d3574",
+        "source_commit": "21c62a83c7e11a1e4e3aee3c6691e6eb080f25b5",
         "source_dirty_excluding_output_dir": false,
         "source_evidence_label": "existing-server-probe",
         "status": "loaded",
         "success_count": 12,
         "trace_bytes": null,
-        "trace_export_path": "/home/shuhao/vllm-request-lifecycle-profiler-plugin/.benchmarks/results/npu6_runtime_hooks_enabled_smoke/runtime_trace.jsonl",
-        "ttft_p50_ms": 77.1565840113908,
-        "ttft_p95_ms": 78.62833321560174
+        "trace_export_path": "/home/shuhao/vllm-request-lifecycle-profiler-plugin/.benchmarks/results/npu6_runtime_hooks_full_coverage_smoke/runtime_trace.jsonl",
+        "ttft_p50_ms": 76.29889296367764,
+        "ttft_p95_ms": 77.83876934554428
       },
       {
         "error_count": 0,
         "event_count": 117,
-        "latency_p50_ms": 176.1411353945732,
-        "latency_p95_ms": 193.71390126179904,
+        "latency_p50_ms": 190.40178321301937,
+        "latency_p95_ms": 231.19699889793992,
         "mode": "hook-enabled",
         "request_count": 12,
-        "result_dir": "/home/shuhao/vllm-request-lifecycle-profiler-plugin/.benchmarks/results/npu6_runtime_hooks_enabled_smoke",
+        "result_dir": "/home/shuhao/vllm-request-lifecycle-profiler-plugin/.benchmarks/results/npu6_runtime_hooks_full_coverage_smoke",
         "runtime_trace_summary": {
-          "event_count": 78,
+          "complete_chain_count": 13,
+          "event_count": 117,
+          "incomplete_chain_count": 0,
+          "incomplete_chain_sample": [],
+          "internal_request_id_count": 26,
+          "missing_stage_counts": {},
           "observer_counts": {
-            "vllm_runtime_hook": 78
+            "vllm_runtime_hook": 117
           },
-          "request_count": 13,
+          "request_chain_count": 13,
           "stage_counts": {
             "cleanup_done": 13,
             "decode_done": 13,
             "first_token": 13,
             "prefill_done": 13,
+            "queued": 13,
+            "received": 13,
             "scheduled": 13,
-            "stream_done": 13
+            "stream_done": 13,
+            "tokenized": 13
           }
         },
         "source_command": [
@@ -205,17 +221,17 @@
           "--trace-export-path",
           "/tmp/codex-vllm-request-lifecycle-profiler-npu6-trace.jsonl",
           "--output-dir",
-          ".benchmarks/results/npu6_runtime_hooks_enabled_smoke"
+          ".benchmarks/results/npu6_runtime_hooks_full_coverage_smoke"
         ],
-        "source_commit": "5f6be11901382238b20911ad1674ca43c4b9e387",
+        "source_commit": "22de7ad0ae7320baccce565bd6e5b5a11caa2a4f",
         "source_dirty_excluding_output_dir": false,
         "source_evidence_label": "existing-server-probe",
         "status": "loaded",
         "success_count": 12,
-        "trace_bytes": 18643,
-        "trace_export_path": "/home/shuhao/vllm-request-lifecycle-profiler-plugin/.benchmarks/results/npu6_runtime_hooks_enabled_smoke/runtime_trace.jsonl",
-        "ttft_p50_ms": 77.23319414071739,
-        "ttft_p95_ms": 88.65379246417433
+        "trace_bytes": 29153,
+        "trace_export_path": "/home/shuhao/vllm-request-lifecycle-profiler-plugin/.benchmarks/results/npu6_runtime_hooks_full_coverage_smoke/runtime_trace.jsonl",
+        "ttft_p50_ms": 78.91188096255064,
+        "ttft_p95_ms": 88.21883501950651
       }
     ]
   }

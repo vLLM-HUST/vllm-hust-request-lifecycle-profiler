@@ -90,7 +90,7 @@ Current live trace evidence:
 
 Runtime hook integration readiness:
 the pinned `third_party/vllm-hust` submodule is on
-`feature/request-lifecycle-profiler-runtime-hooks-faculty` at commit `7d5406c5a`. It
+`feature/request-lifecycle-profiler-runtime-hooks-faculty` at commit `0daab7a30`. It
 adds an optional dependency-free shim that imports
 `vllm_request_lifecycle_profiler.runtime_hooks` only when
 `VLLM_RLP_TRACE_EXPORT_PATH` is set, then emits internal events for request
@@ -98,26 +98,26 @@ receipt, tokenization, queue admission, scheduling, prefill completion, first
 token, decode completion, stream handoff, and cleanup.
 
 Current paired runtime-hook evidence:
-`.benchmarks/results/npu6_runtime_hooks_disabled_smoke/` and
-`.benchmarks/results/npu6_runtime_hooks_enabled_smoke/` run the same
+`.benchmarks/results/npu6_runtime_hooks_disabled_full_coverage_baseline/` and
+`.benchmarks/results/npu6_runtime_hooks_full_coverage_smoke/` run the same
 warmup-controlled shared-workload shape from the pinned submodule. Both source
 runs are `existing-server-probe` evidence with clean `dirty_excluding_output_dir`
 metadata and 12/12 successful measured requests. The enabled run writes
-`.benchmarks/results/npu6_runtime_hooks_enabled_smoke/runtime_trace.jsonl` with
-78 internal runtime events over 13 requests. The derived pair-plan
-`.benchmarks/results/npu6_runtime_hook_pair_plan/` reports +10.03 ms TTFT p95
-and +16.08 ms latency p95 for hook-enabled versus hook-disabled. Runtime trace
-coverage currently starts at `scheduled` and includes `prefill_done`,
-`first_token`, `decode_done`, `stream_done`, and `cleanup_done`; the expected
-`received`, `tokenized`, and `queued` stages are still missing on this serving
-path.
+`.benchmarks/results/npu6_runtime_hooks_full_coverage_smoke/runtime_trace.jsonl`
+with 117 internal runtime events over 13 external request chains. The derived
+pair-plan `.benchmarks/results/npu6_runtime_hook_pair_plan/` reports 13/13
+complete chains with all nine stages present and no missing stages. Current
+overhead on this small smoke is +2.61 ms TTFT p50, +10.38 ms TTFT p95,
++15.37 ms latency p50, and +36.76 ms latency p95 for hook-enabled versus
+hook-disabled.
 
 Next step:
-close the runtime coverage gap before broad claims. Add or move hook sites so
-OpenAI serving requests emit `received`, `tokenized`, and `queued` in the same
-runtime JSONL, then rerun the paired smoke. After full-stage coverage is
-present, run one controlled fault at a time and compare internal spans against
-the existing client-observed normal and slow-stream diagnoses.
+optimize the full-lifecycle trace path before broad claims. The entry-path
+coverage gap is closed, so the next implementation target is reducing enabled
+mode tail latency by buffering/batching trace writes or moving JSONL export off
+the request path. After the overhead is bounded, run one controlled fault at a
+time and compare internal spans against the existing client-observed normal and
+slow-stream diagnoses.
 
 ## Phase 2: Controlled Fault Injection
 

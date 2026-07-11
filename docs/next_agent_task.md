@@ -110,23 +110,22 @@ causal lifecycle evidence changes optimization decisions compared with ordinary
 timers, not merely that traces can be collected.
 
 Current paired runtime-hook evidence is available. The disabled source run
-`.benchmarks/results/npu6_runtime_hooks_disabled_smoke/` has 12/12 measured
-success, TTFT p95 78.63 ms, and latency p95 177.63 ms. The enabled source run
-`.benchmarks/results/npu6_runtime_hooks_enabled_smoke/` has 12/12 measured
-success, TTFT p95 88.65 ms, latency p95 193.71 ms, and 18,643 bytes of
-runtime JSONL. `make npu6-runtime-hook-pair-plan` aggregates these into
-`.benchmarks/results/npu6_runtime_hook_pair_plan/`, reporting +10.03 ms TTFT
-p95 and +16.08 ms latency p95.
+`.benchmarks/results/npu6_runtime_hooks_disabled_full_coverage_baseline/` has
+12/12 measured success, TTFT p95 77.84 ms, and latency p95 194.44 ms. The
+enabled source run `.benchmarks/results/npu6_runtime_hooks_full_coverage_smoke/`
+has 12/12 measured success, TTFT p95 88.22 ms, latency p95 231.20 ms, and
+29,153 bytes of runtime JSONL. `make npu6-runtime-hook-pair-plan` aggregates
+these into `.benchmarks/results/npu6_runtime_hook_pair_plan/`, reporting
++10.38 ms TTFT p95 and +36.76 ms latency p95.
 
-Immediate next step: close the internal lifecycle coverage gap. The runtime
-JSONL currently contains 78 events over 13 requests, but only for
+Immediate next step: reduce full-lifecycle trace overhead without losing stage
+coverage. The runtime JSONL now contains 117 events over 13 external request
+chains, and all 13 chains include `received`, `tokenized`, `queued`,
 `scheduled`, `prefill_done`, `first_token`, `decode_done`, `stream_done`, and
-`cleanup_done`. The expected `received`, `tokenized`, and `queued` events do
-not appear on the current OpenAI serving path. Patch the pinned
-`third_party/vllm-hust` branch
-`feature/request-lifecycle-profiler-runtime-hooks-faculty` so those entry-path
-events are emitted for the same requests, then rerun disabled/enabled and
-regenerate the pair plan.
+`cleanup_done`. The remaining implementation problem is the hook-enabled tail
+latency, especially stream/JSONL export overhead. Try batched or background
+trace sinking, fixed-schema serialization, and sampling/flush controls, then
+rerun disabled/enabled and regenerate the pair plan.
 
 After full-stage runtime coverage is present, check whether internal spans
 confirm or overturn the proxy `decode` and client-visible `streaming`
