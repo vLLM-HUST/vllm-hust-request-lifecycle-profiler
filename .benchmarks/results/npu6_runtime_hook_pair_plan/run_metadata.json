@@ -4,22 +4,22 @@
     "run_runtime_hook_pair_plan.py"
   ],
   "evidence_label": "derived-artifact",
-  "loaded_result_count": 0,
+  "loaded_result_count": 2,
   "make_target": "npu6-existing-server-trace-suite-smoke",
-  "missing_result_count": 2,
+  "missing_result_count": 0,
   "parent_repo": {
     "branch": "main",
-    "commit": "effd053ee5c01cc35197abf0eda8f4b1bee4d5d3",
-    "dirty": false,
+    "commit": "5810c4c2aff4c2ce44ff377a53a945a364cdf41c",
+    "dirty": true,
     "path": "/home/shuhao/vllm-request-lifecycle-profiler-plugin"
   },
   "result_valid_for_speedup_claims": false,
   "runtime_carrier": {
-    "branch": "feature/request-lifecycle-profiler-runtime-hooks",
-    "commit": "c3f29b41a51b3ee1cf8af6c5bfd4621f75f1a732",
+    "branch": "feature/request-lifecycle-profiler-runtime-hooks-faculty",
+    "commit": "7d5406c5ab13a81290ad40eae31204f88fd0615a",
     "dirty": false,
     "path": "/home/shuhao/vllm-request-lifecycle-profiler-plugin/third_party/vllm-hust"
   },
-  "timestamp_utc": "2026-07-11T01:34:30.704845+00:00",
-  "trace_export_path": "/tmp/codex-vllm-request-lifecycle-profiler-npu6-runtime.jsonl"
+  "timestamp_utc": "2026-07-11T01:55:42.109131+00:00",
+  "trace_export_path": "/home/shuhao/vllm-request-lifecycle-profiler-plugin/.benchmarks/results/npu6_runtime_hooks_enabled_smoke/runtime_trace.jsonl"
 }

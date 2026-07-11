@@ -109,40 +109,30 @@ serving behavior on shared workloads. A publishable result needs to show why
 causal lifecycle evidence changes optimization decisions compared with ordinary
 timers, not merely that traces can be collected.
 
-Immediate next step: use the normal proxy diagnosis and the slow-stream proxy
-diagnosis as two anchors for internal hook validation. Install the parent
-package into `vllm-request-lifecycle-profiler-exp`, launch vLLM-HUST from the
-pinned `third_party/vllm-hust` submodule, and set
-`VLLM_RLP_TRACE_EXPORT_PATH=/home/shuhao/vllm-request-lifecycle-profiler-plugin/.benchmarks/results/npu6_runtime_hooks_enabled_smoke/runtime_trace.jsonl`
-for the hook-enabled mode. First run the same suite with the env var unset,
-then run it with the env var set. Record TTFT/TPOT, host memory, NPU HBM,
-trace bytes per request, parent/submodule commits, conda environment, and
-workload source in `run_metadata.json`.
+Current paired runtime-hook evidence is available. The disabled source run
+`.benchmarks/results/npu6_runtime_hooks_disabled_smoke/` has 12/12 measured
+success, TTFT p95 78.63 ms, and latency p95 177.63 ms. The enabled source run
+`.benchmarks/results/npu6_runtime_hooks_enabled_smoke/` has 12/12 measured
+success, TTFT p95 88.65 ms, latency p95 193.71 ms, and 18,643 bytes of
+runtime JSONL. `make npu6-runtime-hook-pair-plan` aggregates these into
+`.benchmarks/results/npu6_runtime_hook_pair_plan/`, reporting +10.03 ms TTFT
+p95 and +16.08 ms latency p95.
 
-Use `make npu6-runtime-hook-pair-plan` as the run queue and post-run
-aggregator. It writes
-`.benchmarks/results/npu6_runtime_hook_pair_plan/summary.json`, with required
-commands for:
+Immediate next step: close the internal lifecycle coverage gap. The runtime
+JSONL currently contains 78 events over 13 requests, but only for
+`scheduled`, `prefill_done`, `first_token`, `decode_done`, `stream_done`, and
+`cleanup_done`. The expected `received`, `tokenized`, and `queued` events do
+not appear on the current OpenAI serving path. Patch the pinned
+`third_party/vllm-hust` branch
+`feature/request-lifecycle-profiler-runtime-hooks-faculty` so those entry-path
+events are emitted for the same requests, then rerun disabled/enabled and
+regenerate the pair plan.
 
-```bash
-unset VLLM_RLP_TRACE_EXPORT_PATH && make managed-restart && \
-  make npu6-existing-server-trace-suite-smoke \
-    TRACE_SUITE_OUTPUT_DIR=.benchmarks/results/npu6_runtime_hooks_disabled_smoke
-
-VLLM_RLP_TRACE_EXPORT_PATH=/home/shuhao/vllm-request-lifecycle-profiler-plugin/.benchmarks/results/npu6_runtime_hooks_enabled_smoke/runtime_trace.jsonl \
-  make managed-restart && \
-  make npu6-existing-server-trace-suite-smoke \
-    TRACE_SUITE_OUTPUT_DIR=.benchmarks/results/npu6_runtime_hooks_enabled_smoke
-```
-
-After both runs, rerun `make npu6-runtime-hook-pair-plan` and use the deltas in
-`runtime_hook_pair_plan.json` only as an audit table over the source run
-directories.
-
-After the paired runs, check whether the internal spans confirm or overturn the
-proxy `decode` and client-visible `streaming` hypotheses. Follow with one
-controlled fault at a time. Keep client-observed proxy trace results separate
-from internal runtime trace claims.
+After full-stage runtime coverage is present, check whether internal spans
+confirm or overturn the proxy `decode` and client-visible `streaming`
+hypotheses. Then follow with one controlled fault at a time. Keep
+client-observed proxy trace results separate from internal runtime trace
+claims.
 
 ## Paper Update Requirement
 

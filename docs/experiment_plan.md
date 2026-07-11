@@ -95,23 +95,29 @@ adds an optional dependency-free shim that imports
 `vllm_request_lifecycle_profiler.runtime_hooks` only when
 `VLLM_RLP_TRACE_EXPORT_PATH` is set, then emits internal events for request
 receipt, tokenization, queue admission, scheduling, prefill completion, first
-token, decode completion, stream handoff, and cleanup. This is implementation
-readiness only; it becomes `real-online` evidence only after NPU6 hook-enabled
-traces are collected from a runtime launched with this pinned submodule.
+token, decode completion, stream handoff, and cleanup.
+
+Current paired runtime-hook evidence:
+`.benchmarks/results/npu6_runtime_hooks_disabled_smoke/` and
+`.benchmarks/results/npu6_runtime_hooks_enabled_smoke/` run the same
+warmup-controlled shared-workload shape from the pinned submodule. Both source
+runs are `existing-server-probe` evidence with clean `dirty_excluding_output_dir`
+metadata and 12/12 successful measured requests. The enabled run writes
+`.benchmarks/results/npu6_runtime_hooks_enabled_smoke/runtime_trace.jsonl` with
+78 internal runtime events over 13 requests. The derived pair-plan
+`.benchmarks/results/npu6_runtime_hook_pair_plan/` reports +10.03 ms TTFT p95
+and +16.08 ms latency p95 for hook-enabled versus hook-disabled. Runtime trace
+coverage currently starts at `scheduled` and includes `prefill_done`,
+`first_token`, `decode_done`, `stream_done`, and `cleanup_done`; the expected
+`received`, `tokenized`, and `queued` stages are still missing on this serving
+path.
 
 Next step:
-run paired hook-disabled and hook-enabled NPU6 suites under the same
-warmup-controlled shared-workload shape. Keep the client proxy events as
-correlation anchors, but base internal scheduler/prefill/decode/cleanup claims
-only on the runtime JSONL emitted by the pinned vLLM-HUST hook sites.
-Use `make npu6-runtime-hook-pair-plan` before and after the paired runs. Before
-the runs, it writes the required disabled/enabled command queue to
-`.benchmarks/results/npu6_runtime_hook_pair_plan/`; after the runs, it loads
-`.benchmarks/results/npu6_runtime_hooks_disabled_smoke/` and
-`.benchmarks/results/npu6_runtime_hooks_enabled_smoke/`, then reports
-TTFT/latency/event-count deltas and runtime trace bytes. Treat that plan as a
-`derived-artifact`; only the two source directories can become online internal
-hook evidence.
+close the runtime coverage gap before broad claims. Add or move hook sites so
+OpenAI serving requests emit `received`, `tokenized`, and `queued` in the same
+runtime JSONL, then rerun the paired smoke. After full-stage coverage is
+present, run one controlled fault at a time and compare internal spans against
+the existing client-observed normal and slow-stream diagnoses.
 
 ## Phase 2: Controlled Fault Injection
 

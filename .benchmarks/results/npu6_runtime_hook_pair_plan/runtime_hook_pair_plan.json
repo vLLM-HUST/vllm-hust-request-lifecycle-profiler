@@ -5,97 +5,217 @@
       "run_runtime_hook_pair_plan.py"
     ],
     "evidence_label": "derived-artifact",
-    "loaded_result_count": 0,
+    "loaded_result_count": 2,
     "make_target": "npu6-existing-server-trace-suite-smoke",
-    "missing_result_count": 2,
+    "missing_result_count": 0,
     "parent_repo": {
       "branch": "main",
-      "commit": "effd053ee5c01cc35197abf0eda8f4b1bee4d5d3",
-      "dirty": false,
+      "commit": "5810c4c2aff4c2ce44ff377a53a945a364cdf41c",
+      "dirty": true,
       "path": "/home/shuhao/vllm-request-lifecycle-profiler-plugin"
     },
     "result_valid_for_speedup_claims": false,
     "runtime_carrier": {
-      "branch": "feature/request-lifecycle-profiler-runtime-hooks",
-      "commit": "c3f29b41a51b3ee1cf8af6c5bfd4621f75f1a732",
+      "branch": "feature/request-lifecycle-profiler-runtime-hooks-faculty",
+      "commit": "7d5406c5ab13a81290ad40eae31204f88fd0615a",
       "dirty": false,
       "path": "/home/shuhao/vllm-request-lifecycle-profiler-plugin/third_party/vllm-hust"
     },
-    "timestamp_utc": "2026-07-11T01:34:30.704845+00:00",
-    "trace_export_path": "/tmp/codex-vllm-request-lifecycle-profiler-npu6-runtime.jsonl"
+    "timestamp_utc": "2026-07-11T01:55:42.109131+00:00",
+    "trace_export_path": "/home/shuhao/vllm-request-lifecycle-profiler-plugin/.benchmarks/results/npu6_runtime_hooks_enabled_smoke/runtime_trace.jsonl"
   },
   "rows": [
     {
+      "error_count": 0,
+      "event_count": 117,
+      "latency_p50_ms": 176.09704053029418,
+      "latency_p95_ms": 177.63446241151541,
       "mode": "hook-disabled",
-      "required_next_run": [
-        "unset",
-        "VLLM_RLP_TRACE_EXPORT_PATH",
-        "&&",
-        "make",
-        "managed-restart",
-        "&&",
-        "make",
-        "npu6-existing-server-trace-suite-smoke",
-        "TRACE_SUITE_OUTPUT_DIR=/home/shuhao/vllm-request-lifecycle-profiler-plugin/.benchmarks/results/npu6_runtime_hooks_disabled_smoke"
-      ],
+      "request_count": 12,
       "result_dir": "/home/shuhao/vllm-request-lifecycle-profiler-plugin/.benchmarks/results/npu6_runtime_hooks_disabled_smoke",
-      "status": "missing-result"
+      "runtime_trace_summary": null,
+      "source_command": [
+        "run_existing_server_trace_probe.py",
+        "--endpoint",
+        "http://127.0.0.1:18168",
+        "--model",
+        "codex-qwen2.5-7b-npu6",
+        "--api-key-env",
+        "VLLM_HUST_API_KEY",
+        "--warmup-requests",
+        "1",
+        "--repeat-count",
+        "3",
+        "--max-requests",
+        "4",
+        "--trace-export-path",
+        "/tmp/codex-vllm-request-lifecycle-profiler-npu6-trace.jsonl",
+        "--output-dir",
+        ".benchmarks/results/npu6_runtime_hooks_disabled_smoke"
+      ],
+      "source_commit": "c2573f33ddb2d8d04acb8fd1d29063edd96d3574",
+      "source_dirty_excluding_output_dir": false,
+      "source_evidence_label": "existing-server-probe",
+      "status": "loaded",
+      "success_count": 12,
+      "trace_bytes": null,
+      "trace_export_path": "/home/shuhao/vllm-request-lifecycle-profiler-plugin/.benchmarks/results/npu6_runtime_hooks_enabled_smoke/runtime_trace.jsonl",
+      "ttft_p50_ms": 77.1565840113908,
+      "ttft_p95_ms": 78.62833321560174
     },
     {
+      "error_count": 0,
+      "event_count": 117,
+      "latency_p50_ms": 176.1411353945732,
+      "latency_p95_ms": 193.71390126179904,
       "mode": "hook-enabled",
-      "required_next_run": [
-        "VLLM_RLP_TRACE_EXPORT_PATH=/tmp/codex-vllm-request-lifecycle-profiler-npu6-runtime.jsonl",
-        "make",
-        "managed-restart",
-        "&&",
-        "make",
-        "npu6-existing-server-trace-suite-smoke",
-        "TRACE_SUITE_OUTPUT_DIR=/home/shuhao/vllm-request-lifecycle-profiler-plugin/.benchmarks/results/npu6_runtime_hooks_enabled_smoke"
-      ],
+      "request_count": 12,
       "result_dir": "/home/shuhao/vllm-request-lifecycle-profiler-plugin/.benchmarks/results/npu6_runtime_hooks_enabled_smoke",
-      "status": "missing-result"
+      "runtime_trace_summary": {
+        "event_count": 78,
+        "observer_counts": {
+          "vllm_runtime_hook": 78
+        },
+        "request_count": 13,
+        "stage_counts": {
+          "cleanup_done": 13,
+          "decode_done": 13,
+          "first_token": 13,
+          "prefill_done": 13,
+          "scheduled": 13,
+          "stream_done": 13
+        }
+      },
+      "source_command": [
+        "run_existing_server_trace_probe.py",
+        "--endpoint",
+        "http://127.0.0.1:18168",
+        "--model",
+        "codex-qwen2.5-7b-npu6",
+        "--api-key-env",
+        "VLLM_HUST_API_KEY",
+        "--warmup-requests",
+        "1",
+        "--repeat-count",
+        "3",
+        "--max-requests",
+        "4",
+        "--trace-export-path",
+        "/tmp/codex-vllm-request-lifecycle-profiler-npu6-trace.jsonl",
+        "--output-dir",
+        ".benchmarks/results/npu6_runtime_hooks_enabled_smoke"
+      ],
+      "source_commit": "5f6be11901382238b20911ad1674ca43c4b9e387",
+      "source_dirty_excluding_output_dir": false,
+      "source_evidence_label": "existing-server-probe",
+      "status": "loaded",
+      "success_count": 12,
+      "trace_bytes": 18643,
+      "trace_export_path": "/home/shuhao/vllm-request-lifecycle-profiler-plugin/.benchmarks/results/npu6_runtime_hooks_enabled_smoke/runtime_trace.jsonl",
+      "ttft_p50_ms": 77.23319414071739,
+      "ttft_p95_ms": 88.65379246417433
     }
   ],
   "summary": {
     "deltas": {
-      "event_count_delta": null,
-      "latency_p50_delta_ms": null,
-      "latency_p95_delta_ms": null,
-      "ttft_p50_delta_ms": null,
-      "ttft_p95_delta_ms": null
+      "event_count_delta": 0,
+      "latency_p50_delta_ms": 0.044094864279031754,
+      "latency_p95_delta_ms": 16.079438850283623,
+      "ttft_p50_delta_ms": 0.07661012932658195,
+      "ttft_p95_delta_ms": 10.025459248572588
     },
-    "loaded_result_count": 0,
-    "missing_result_count": 2,
+    "loaded_result_count": 2,
+    "missing_result_count": 0,
     "rows": [
       {
+        "error_count": 0,
+        "event_count": 117,
+        "latency_p50_ms": 176.09704053029418,
+        "latency_p95_ms": 177.63446241151541,
         "mode": "hook-disabled",
-        "required_next_run": [
-          "unset",
-          "VLLM_RLP_TRACE_EXPORT_PATH",
-          "&&",
-          "make",
-          "managed-restart",
-          "&&",
-          "make",
-          "npu6-existing-server-trace-suite-smoke",
-          "TRACE_SUITE_OUTPUT_DIR=/home/shuhao/vllm-request-lifecycle-profiler-plugin/.benchmarks/results/npu6_runtime_hooks_disabled_smoke"
-        ],
+        "request_count": 12,
         "result_dir": "/home/shuhao/vllm-request-lifecycle-profiler-plugin/.benchmarks/results/npu6_runtime_hooks_disabled_smoke",
-        "status": "missing-result"
+        "runtime_trace_summary": null,
+        "source_command": [
+          "run_existing_server_trace_probe.py",
+          "--endpoint",
+          "http://127.0.0.1:18168",
+          "--model",
+          "codex-qwen2.5-7b-npu6",
+          "--api-key-env",
+          "VLLM_HUST_API_KEY",
+          "--warmup-requests",
+          "1",
+          "--repeat-count",
+          "3",
+          "--max-requests",
+          "4",
+          "--trace-export-path",
+          "/tmp/codex-vllm-request-lifecycle-profiler-npu6-trace.jsonl",
+          "--output-dir",
+          ".benchmarks/results/npu6_runtime_hooks_disabled_smoke"
+        ],
+        "source_commit": "c2573f33ddb2d8d04acb8fd1d29063edd96d3574",
+        "source_dirty_excluding_output_dir": false,
+        "source_evidence_label": "existing-server-probe",
+        "status": "loaded",
+        "success_count": 12,
+        "trace_bytes": null,
+        "trace_export_path": "/home/shuhao/vllm-request-lifecycle-profiler-plugin/.benchmarks/results/npu6_runtime_hooks_enabled_smoke/runtime_trace.jsonl",
+        "ttft_p50_ms": 77.1565840113908,
+        "ttft_p95_ms": 78.62833321560174
       },
       {
+        "error_count": 0,
+        "event_count": 117,
+        "latency_p50_ms": 176.1411353945732,
+        "latency_p95_ms": 193.71390126179904,
         "mode": "hook-enabled",
-        "required_next_run": [
-          "VLLM_RLP_TRACE_EXPORT_PATH=/tmp/codex-vllm-request-lifecycle-profiler-npu6-runtime.jsonl",
-          "make",
-          "managed-restart",
-          "&&",
-          "make",
-          "npu6-existing-server-trace-suite-smoke",
-          "TRACE_SUITE_OUTPUT_DIR=/home/shuhao/vllm-request-lifecycle-profiler-plugin/.benchmarks/results/npu6_runtime_hooks_enabled_smoke"
-        ],
+        "request_count": 12,
         "result_dir": "/home/shuhao/vllm-request-lifecycle-profiler-plugin/.benchmarks/results/npu6_runtime_hooks_enabled_smoke",
-        "status": "missing-result"
+        "runtime_trace_summary": {
+          "event_count": 78,
+          "observer_counts": {
+            "vllm_runtime_hook": 78
+          },
+          "request_count": 13,
+          "stage_counts": {
+            "cleanup_done": 13,
+            "decode_done": 13,
+            "first_token": 13,
+            "prefill_done": 13,
+            "scheduled": 13,
+            "stream_done": 13
+          }
+        },
+        "source_command": [
+          "run_existing_server_trace_probe.py",
+          "--endpoint",
+          "http://127.0.0.1:18168",
+          "--model",
+          "codex-qwen2.5-7b-npu6",
+          "--api-key-env",
+          "VLLM_HUST_API_KEY",
+          "--warmup-requests",
+          "1",
+          "--repeat-count",
+          "3",
+          "--max-requests",
+          "4",
+          "--trace-export-path",
+          "/tmp/codex-vllm-request-lifecycle-profiler-npu6-trace.jsonl",
+          "--output-dir",
+          ".benchmarks/results/npu6_runtime_hooks_enabled_smoke"
+        ],
+        "source_commit": "5f6be11901382238b20911ad1674ca43c4b9e387",
+        "source_dirty_excluding_output_dir": false,
+        "source_evidence_label": "existing-server-probe",
+        "status": "loaded",
+        "success_count": 12,
+        "trace_bytes": 18643,
+        "trace_export_path": "/home/shuhao/vllm-request-lifecycle-profiler-plugin/.benchmarks/results/npu6_runtime_hooks_enabled_smoke/runtime_trace.jsonl",
+        "ttft_p50_ms": 77.23319414071739,
+        "ttft_p95_ms": 88.65379246417433
       }
     ]
   }
