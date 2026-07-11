@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import argparse
+from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import as_completed
 from datetime import datetime
 from datetime import timezone
 import json
@@ -8,6 +10,7 @@ import os
 from pathlib import Path
 import subprocess
 import sys
+import threading
 import time
 from typing import Any
 from urllib.error import HTTPError
@@ -287,6 +290,7 @@ def _metadata(args: argparse.Namespace) -> dict[str, Any]:
         "max_requests": args.max_requests,
         "warmup_requests": args.warmup_requests,
         "repeat_count": args.repeat_count,
+        "measured_concurrency": getattr(args, "measured_concurrency", 1),
         "observer_mode": args.observer_mode,
         "per_chunk_read_delay_ms": args.per_chunk_read_delay_ms,
         "proxy_stage_mode": args.proxy_stage_mode,
@@ -319,6 +323,8 @@ def run_probe(args: argparse.Namespace) -> dict[str, Any]:
     records: list[dict[str, Any]] = []
     warmup_records: list[dict[str, Any]] = []
     events: list[dict[str, Any]] = []
+    events_lock = threading.Lock()
+    measured_concurrency = max(1, int(getattr(args, "measured_concurrency", 1)))
 
     def run_one(*, row: Any, request_id: str, phase: str, repeat: int, index: int) -> dict[str, Any]:
         result = _stream_completion(
@@ -334,7 +340,10 @@ def run_probe(args: argparse.Namespace) -> dict[str, Any]:
             per_chunk_read_delay_ms=args.per_chunk_read_delay_ms,
             proxy_stage_mode=args.proxy_stage_mode,
         )
-        events.extend(result.pop("events"))
+        result_events = result.pop("events")
+        if result_events:
+            with events_lock:
+                events.extend(result_events)
         result.update(
             {
                 "phase": phase,
@@ -355,17 +364,38 @@ def run_probe(args: argparse.Namespace) -> dict[str, Any]:
             )
         )
 
-    for repeat in range(args.repeat_count):
-        for index, row in enumerate(rows):
-            records.append(
-                run_one(
-                    row=row,
-                    request_id=f"{args.case_id}::repeat{repeat}::{index}",
-                    phase="measured",
-                    repeat=repeat,
-                    index=index,
+    if measured_concurrency == 1:
+        for repeat in range(args.repeat_count):
+            for index, row in enumerate(rows):
+                records.append(
+                    run_one(
+                        row=row,
+                        request_id=f"{args.case_id}::repeat{repeat}::{index}",
+                        phase="measured",
+                        repeat=repeat,
+                        index=index,
+                    )
                 )
-            )
+    else:
+        with ThreadPoolExecutor(max_workers=measured_concurrency) as executor:
+            future_to_seq = {}
+            sequence = 0
+            for repeat in range(args.repeat_count):
+                for index, row in enumerate(rows):
+                    future = executor.submit(
+                        run_one,
+                        row=row,
+                        request_id=f"{args.case_id}::repeat{repeat}::{index}",
+                        phase="measured",
+                        repeat=repeat,
+                        index=index,
+                    )
+                    future_to_seq[future] = sequence
+                    sequence += 1
+            completed_records: list[tuple[int, dict[str, Any]]] = []
+            for future in as_completed(future_to_seq):
+                completed_records.append((future_to_seq[future], future.result()))
+            records.extend(record for _, record in sorted(completed_records, key=lambda item: item[0]))
 
     success = [record for record in records if record["ok"]]
     warmup_success = [record for record in warmup_records if record["ok"]]
@@ -384,6 +414,7 @@ def run_probe(args: argparse.Namespace) -> dict[str, Any]:
             "success_count": len(success),
             "error_count": len(records) - len(success),
             "event_count": len(events),
+            "measured_concurrency": measured_concurrency,
             "observer_mode": args.observer_mode,
             "warmup_first_token_ms": _numeric_summary(warmup_first_tokens),
             "warmup_latency_ms": _numeric_summary(warmup_latencies),
@@ -450,6 +481,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--max-requests", type=int, default=4)
     parser.add_argument("--warmup-requests", type=int, default=0)
     parser.add_argument("--repeat-count", type=int, default=1)
+    parser.add_argument("--measured-concurrency", type=int, default=1)
     parser.add_argument("--request-max-tokens", type=int, default=8)
     parser.add_argument("--observer-mode", choices=("trace", "no-trace"), default="trace")
     parser.add_argument("--per-chunk-read-delay-ms", type=float, default=0.0)

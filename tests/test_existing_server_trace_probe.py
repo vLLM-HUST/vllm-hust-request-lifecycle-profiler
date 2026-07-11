@@ -59,3 +59,9 @@ def test_parse_args_supports_streaming_proxy_delay() -> None:
     )
     assert args.per_chunk_read_delay_ms == 80
     assert args.proxy_stage_mode == "streaming-proxy"
+
+
+def test_parse_args_supports_measured_concurrency() -> None:
+    module = _load_probe_module()
+    args = module.parse_args(["--measured-concurrency", "3"])
+    assert args.measured_concurrency == 3
