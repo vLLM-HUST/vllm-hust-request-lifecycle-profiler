@@ -1,0 +1,1295 @@
+{
+  "events": [
+    {
+      "metadata": {
+        "observer": "client_probe"
+      },
+      "request_id": "shared_scenario_multi_turn_knowledge_service::warmup::0",
+      "stage": "received",
+      "timestamp_ms": 0.0
+    },
+    {
+      "metadata": {
+        "observer": "client_probe",
+        "prompt_tokens_proxy": 549
+      },
+      "request_id": "shared_scenario_multi_turn_knowledge_service::warmup::0",
+      "stage": "tokenized",
+      "timestamp_ms": 0.05591101944446564
+    },
+    {
+      "metadata": {
+        "meaning": "request_ready_to_send",
+        "observer": "client_probe"
+      },
+      "request_id": "shared_scenario_multi_turn_knowledge_service::warmup::0",
+      "stage": "queued",
+      "timestamp_ms": 0.0617210753262043
+    },
+    {
+      "metadata": {
+        "meaning": "http_request_sent",
+        "observer": "client_probe"
+      },
+      "request_id": "shared_scenario_multi_turn_knowledge_service::warmup::0",
+      "stage": "scheduled",
+      "timestamp_ms": 0.5876338109374046
+    },
+    {
+      "metadata": {
+        "meaning": "first_stream_chunk",
+        "observer": "client_probe"
+      },
+      "request_id": "shared_scenario_multi_turn_knowledge_service::warmup::0",
+      "stage": "prefill_done",
+      "timestamp_ms": 98.0923417955637
+    },
+    {
+      "metadata": {
+        "observer": "client_probe"
+      },
+      "request_id": "shared_scenario_multi_turn_knowledge_service::warmup::0",
+      "stage": "first_token",
+      "timestamp_ms": 98.0923417955637
+    },
+    {
+      "metadata": {
+        "observer": "client_probe",
+        "proxy_stage_mode": "decode-proxy",
+        "stream_chunk_count": 8
+      },
+      "request_id": "shared_scenario_multi_turn_knowledge_service::warmup::0",
+      "stage": "decode_done",
+      "timestamp_ms": 195.96162112429738
+    },
+    {
+      "metadata": {
+        "observer": "client_probe",
+        "stream_byte_count": 2067
+      },
+      "request_id": "shared_scenario_multi_turn_knowledge_service::warmup::0",
+      "stage": "stream_done",
+      "timestamp_ms": 195.96162112429738
+    },
+    {
+      "metadata": {
+        "observer": "client_probe"
+      },
+      "request_id": "shared_scenario_multi_turn_knowledge_service::warmup::0",
+      "stage": "cleanup_done",
+      "timestamp_ms": 195.97291201353073
+    },
+    {
+      "metadata": {
+        "observer": "client_probe"
+      },
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat0::0",
+      "stage": "received",
+      "timestamp_ms": 0.0
+    },
+    {
+      "metadata": {
+        "observer": "client_probe",
+        "prompt_tokens_proxy": 549
+      },
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat0::0",
+      "stage": "tokenized",
+      "timestamp_ms": 0.09455997496843338
+    },
+    {
+      "metadata": {
+        "meaning": "request_ready_to_send",
+        "observer": "client_probe"
+      },
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat0::0",
+      "stage": "queued",
+      "timestamp_ms": 0.0991099514067173
+    },
+    {
+      "metadata": {
+        "meaning": "http_request_sent",
+        "observer": "client_probe"
+      },
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat0::0",
+      "stage": "scheduled",
+      "timestamp_ms": 0.27745217084884644
+    },
+    {
+      "metadata": {
+        "meaning": "first_stream_chunk",
+        "observer": "client_probe"
+      },
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat0::0",
+      "stage": "prefill_done",
+      "timestamp_ms": 76.30269322544336
+    },
+    {
+      "metadata": {
+        "observer": "client_probe"
+      },
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat0::0",
+      "stage": "first_token",
+      "timestamp_ms": 76.30269322544336
+    },
+    {
+      "metadata": {
+        "observer": "client_probe",
+        "proxy_stage_mode": "decode-proxy",
+        "stream_chunk_count": 8
+      },
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat0::0",
+      "stage": "decode_done",
+      "timestamp_ms": 174.95732801035047
+    },
+    {
+      "metadata": {
+        "observer": "client_probe",
+        "stream_byte_count": 2067
+      },
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat0::0",
+      "stage": "stream_done",
+      "timestamp_ms": 174.95732801035047
+    },
+    {
+      "metadata": {
+        "observer": "client_probe"
+      },
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat0::0",
+      "stage": "cleanup_done",
+      "timestamp_ms": 174.9652079306543
+    },
+    {
+      "metadata": {
+        "observer": "client_probe"
+      },
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat0::1",
+      "stage": "received",
+      "timestamp_ms": 0.0
+    },
+    {
+      "metadata": {
+        "observer": "client_probe",
+        "prompt_tokens_proxy": 549
+      },
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat0::1",
+      "stage": "tokenized",
+      "timestamp_ms": 0.04770001396536827
+    },
+    {
+      "metadata": {
+        "meaning": "request_ready_to_send",
+        "observer": "client_probe"
+      },
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat0::1",
+      "stage": "queued",
+      "timestamp_ms": 0.04979036748409271
+    },
+    {
+      "metadata": {
+        "meaning": "http_request_sent",
+        "observer": "client_probe"
+      },
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat0::1",
+      "stage": "scheduled",
+      "timestamp_ms": 0.15152106061577797
+    },
+    {
+      "metadata": {
+        "meaning": "first_stream_chunk",
+        "observer": "client_probe"
+      },
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat0::1",
+      "stage": "prefill_done",
+      "timestamp_ms": 76.46420411765575
+    },
+    {
+      "metadata": {
+        "observer": "client_probe"
+      },
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat0::1",
+      "stage": "first_token",
+      "timestamp_ms": 76.46420411765575
+    },
+    {
+      "metadata": {
+        "observer": "client_probe",
+        "proxy_stage_mode": "decode-proxy",
+        "stream_chunk_count": 8
+      },
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat0::1",
+      "stage": "decode_done",
+      "timestamp_ms": 174.00010209530592
+    },
+    {
+      "metadata": {
+        "observer": "client_probe",
+        "stream_byte_count": 2067
+      },
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat0::1",
+      "stage": "stream_done",
+      "timestamp_ms": 174.00010209530592
+    },
+    {
+      "metadata": {
+        "observer": "client_probe"
+      },
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat0::1",
+      "stage": "cleanup_done",
+      "timestamp_ms": 174.009102396667
+    },
+    {
+      "metadata": {
+        "observer": "client_probe"
+      },
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat0::2",
+      "stage": "received",
+      "timestamp_ms": 0.0
+    },
+    {
+      "metadata": {
+        "observer": "client_probe",
+        "prompt_tokens_proxy": 549
+      },
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat0::2",
+      "stage": "tokenized",
+      "timestamp_ms": 0.072430819272995
+    },
+    {
+      "metadata": {
+        "meaning": "request_ready_to_send",
+        "observer": "client_probe"
+      },
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat0::2",
+      "stage": "queued",
+      "timestamp_ms": 0.07526064291596413
+    },
+    {
+      "metadata": {
+        "meaning": "http_request_sent",
+        "observer": "client_probe"
+      },
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat0::2",
+      "stage": "scheduled",
+      "timestamp_ms": 0.20312098786234856
+    },
+    {
+      "metadata": {
+        "meaning": "first_stream_chunk",
+        "observer": "client_probe"
+      },
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat0::2",
+      "stage": "prefill_done",
+      "timestamp_ms": 75.84521966055036
+    },
+    {
+      "metadata": {
+        "observer": "client_probe"
+      },
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat0::2",
+      "stage": "first_token",
+      "timestamp_ms": 75.84521966055036
+    },
+    {
+      "metadata": {
+        "observer": "client_probe",
+        "proxy_stage_mode": "decode-proxy",
+        "stream_chunk_count": 8
+      },
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat0::2",
+      "stage": "decode_done",
+      "timestamp_ms": 174.20480260625482
+    },
+    {
+      "metadata": {
+        "observer": "client_probe",
+        "stream_byte_count": 2067
+      },
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat0::2",
+      "stage": "stream_done",
+      "timestamp_ms": 174.20480260625482
+    },
+    {
+      "metadata": {
+        "observer": "client_probe"
+      },
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat0::2",
+      "stage": "cleanup_done",
+      "timestamp_ms": 174.2116529494524
+    },
+    {
+      "metadata": {
+        "observer": "client_probe"
+      },
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat0::3",
+      "stage": "received",
+      "timestamp_ms": 0.0
+    },
+    {
+      "metadata": {
+        "observer": "client_probe",
+        "prompt_tokens_proxy": 549
+      },
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat0::3",
+      "stage": "tokenized",
+      "timestamp_ms": 0.057169701904058456
+    },
+    {
+      "metadata": {
+        "meaning": "request_ready_to_send",
+        "observer": "client_probe"
+      },
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat0::3",
+      "stage": "queued",
+      "timestamp_ms": 0.05976995453238487
+    },
+    {
+      "metadata": {
+        "meaning": "http_request_sent",
+        "observer": "client_probe"
+      },
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat0::3",
+      "stage": "scheduled",
+      "timestamp_ms": 0.17215078696608543
+    },
+    {
+      "metadata": {
+        "meaning": "first_stream_chunk",
+        "observer": "client_probe"
+      },
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat0::3",
+      "stage": "prefill_done",
+      "timestamp_ms": 75.12641465291381
+    },
+    {
+      "metadata": {
+        "observer": "client_probe"
+      },
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat0::3",
+      "stage": "first_token",
+      "timestamp_ms": 75.12641465291381
+    },
+    {
+      "metadata": {
+        "observer": "client_probe",
+        "proxy_stage_mode": "decode-proxy",
+        "stream_chunk_count": 8
+      },
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat0::3",
+      "stage": "decode_done",
+      "timestamp_ms": 174.63092505931854
+    },
+    {
+      "metadata": {
+        "observer": "client_probe",
+        "stream_byte_count": 2067
+      },
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat0::3",
+      "stage": "stream_done",
+      "timestamp_ms": 174.63092505931854
+    },
+    {
+      "metadata": {
+        "observer": "client_probe"
+      },
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat0::3",
+      "stage": "cleanup_done",
+      "timestamp_ms": 174.6375048533082
+    },
+    {
+      "metadata": {
+        "observer": "client_probe"
+      },
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat1::0",
+      "stage": "received",
+      "timestamp_ms": 0.0
+    },
+    {
+      "metadata": {
+        "observer": "client_probe",
+        "prompt_tokens_proxy": 549
+      },
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat1::0",
+      "stage": "tokenized",
+      "timestamp_ms": 0.046830158680677414
+    },
+    {
+      "metadata": {
+        "meaning": "request_ready_to_send",
+        "observer": "client_probe"
+      },
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat1::0",
+      "stage": "queued",
+      "timestamp_ms": 0.049110036343336105
+    },
+    {
+      "metadata": {
+        "meaning": "http_request_sent",
+        "observer": "client_probe"
+      },
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat1::0",
+      "stage": "scheduled",
+      "timestamp_ms": 0.1495908945798874
+    },
+    {
+      "metadata": {
+        "meaning": "first_stream_chunk",
+        "observer": "client_probe"
+      },
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat1::0",
+      "stage": "prefill_done",
+      "timestamp_ms": 83.49829819053411
+    },
+    {
+      "metadata": {
+        "observer": "client_probe"
+      },
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat1::0",
+      "stage": "first_token",
+      "timestamp_ms": 83.49829819053411
+    },
+    {
+      "metadata": {
+        "observer": "client_probe",
+        "proxy_stage_mode": "decode-proxy",
+        "stream_chunk_count": 8
+      },
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat1::0",
+      "stage": "decode_done",
+      "timestamp_ms": 179.2433550581336
+    },
+    {
+      "metadata": {
+        "observer": "client_probe",
+        "stream_byte_count": 2067
+      },
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat1::0",
+      "stage": "stream_done",
+      "timestamp_ms": 179.2433550581336
+    },
+    {
+      "metadata": {
+        "observer": "client_probe"
+      },
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat1::0",
+      "stage": "cleanup_done",
+      "timestamp_ms": 179.25298493355513
+    },
+    {
+      "metadata": {
+        "observer": "client_probe"
+      },
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat1::1",
+      "stage": "received",
+      "timestamp_ms": 0.0
+    },
+    {
+      "metadata": {
+        "observer": "client_probe",
+        "prompt_tokens_proxy": 549
+      },
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat1::1",
+      "stage": "tokenized",
+      "timestamp_ms": 0.05964003503322601
+    },
+    {
+      "metadata": {
+        "meaning": "request_ready_to_send",
+        "observer": "client_probe"
+      },
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat1::1",
+      "stage": "queued",
+      "timestamp_ms": 0.06243027746677399
+    },
+    {
+      "metadata": {
+        "meaning": "http_request_sent",
+        "observer": "client_probe"
+      },
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat1::1",
+      "stage": "scheduled",
+      "timestamp_ms": 0.218851026147604
+    },
+    {
+      "metadata": {
+        "meaning": "first_stream_chunk",
+        "observer": "client_probe"
+      },
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat1::1",
+      "stage": "prefill_done",
+      "timestamp_ms": 82.18319993466139
+    },
+    {
+      "metadata": {
+        "observer": "client_probe"
+      },
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat1::1",
+      "stage": "first_token",
+      "timestamp_ms": 82.18319993466139
+    },
+    {
+      "metadata": {
+        "observer": "client_probe",
+        "proxy_stage_mode": "decode-proxy",
+        "stream_chunk_count": 8
+      },
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat1::1",
+      "stage": "decode_done",
+      "timestamp_ms": 180.87659496814013
+    },
+    {
+      "metadata": {
+        "observer": "client_probe",
+        "stream_byte_count": 2067
+      },
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat1::1",
+      "stage": "stream_done",
+      "timestamp_ms": 180.87659496814013
+    },
+    {
+      "metadata": {
+        "observer": "client_probe"
+      },
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat1::1",
+      "stage": "cleanup_done",
+      "timestamp_ms": 180.88481482118368
+    },
+    {
+      "metadata": {
+        "observer": "client_probe"
+      },
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat1::2",
+      "stage": "received",
+      "timestamp_ms": 0.0
+    },
+    {
+      "metadata": {
+        "observer": "client_probe",
+        "prompt_tokens_proxy": 549
+      },
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat1::2",
+      "stage": "tokenized",
+      "timestamp_ms": 0.059380196034908295
+    },
+    {
+      "metadata": {
+        "meaning": "request_ready_to_send",
+        "observer": "client_probe"
+      },
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat1::2",
+      "stage": "queued",
+      "timestamp_ms": 0.06232038140296936
+    },
+    {
+      "metadata": {
+        "meaning": "http_request_sent",
+        "observer": "client_probe"
+      },
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat1::2",
+      "stage": "scheduled",
+      "timestamp_ms": 0.18179137259721756
+    },
+    {
+      "metadata": {
+        "meaning": "first_stream_chunk",
+        "observer": "client_probe"
+      },
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat1::2",
+      "stage": "prefill_done",
+      "timestamp_ms": 79.77619534358382
+    },
+    {
+      "metadata": {
+        "observer": "client_probe"
+      },
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat1::2",
+      "stage": "first_token",
+      "timestamp_ms": 79.77619534358382
+    },
+    {
+      "metadata": {
+        "observer": "client_probe",
+        "proxy_stage_mode": "decode-proxy",
+        "stream_chunk_count": 8
+      },
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat1::2",
+      "stage": "decode_done",
+      "timestamp_ms": 180.11246994137764
+    },
+    {
+      "metadata": {
+        "observer": "client_probe",
+        "stream_byte_count": 2067
+      },
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat1::2",
+      "stage": "stream_done",
+      "timestamp_ms": 180.11246994137764
+    },
+    {
+      "metadata": {
+        "observer": "client_probe"
+      },
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat1::2",
+      "stage": "cleanup_done",
+      "timestamp_ms": 180.12019013985991
+    },
+    {
+      "metadata": {
+        "observer": "client_probe"
+      },
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat1::3",
+      "stage": "received",
+      "timestamp_ms": 0.0
+    },
+    {
+      "metadata": {
+        "observer": "client_probe",
+        "prompt_tokens_proxy": 549
+      },
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat1::3",
+      "stage": "tokenized",
+      "timestamp_ms": 0.055070966482162476
+    },
+    {
+      "metadata": {
+        "meaning": "request_ready_to_send",
+        "observer": "client_probe"
+      },
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat1::3",
+      "stage": "queued",
+      "timestamp_ms": 0.0573708675801754
+    },
+    {
+      "metadata": {
+        "meaning": "http_request_sent",
+        "observer": "client_probe"
+      },
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat1::3",
+      "stage": "scheduled",
+      "timestamp_ms": 0.17467187717556953
+    },
+    {
+      "metadata": {
+        "meaning": "first_stream_chunk",
+        "observer": "client_probe"
+      },
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat1::3",
+      "stage": "prefill_done",
+      "timestamp_ms": 78.7248588167131
+    },
+    {
+      "metadata": {
+        "observer": "client_probe"
+      },
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat1::3",
+      "stage": "first_token",
+      "timestamp_ms": 78.7248588167131
+    },
+    {
+      "metadata": {
+        "observer": "client_probe",
+        "proxy_stage_mode": "decode-proxy",
+        "stream_chunk_count": 8
+      },
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat1::3",
+      "stage": "decode_done",
+      "timestamp_ms": 193.47688602283597
+    },
+    {
+      "metadata": {
+        "observer": "client_probe",
+        "stream_byte_count": 2067
+      },
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat1::3",
+      "stage": "stream_done",
+      "timestamp_ms": 193.47688602283597
+    },
+    {
+      "metadata": {
+        "observer": "client_probe"
+      },
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat1::3",
+      "stage": "cleanup_done",
+      "timestamp_ms": 193.49532574415207
+    },
+    {
+      "metadata": {
+        "observer": "client_probe"
+      },
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat2::0",
+      "stage": "received",
+      "timestamp_ms": 0.0
+    },
+    {
+      "metadata": {
+        "observer": "client_probe",
+        "prompt_tokens_proxy": 549
+      },
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat2::0",
+      "stage": "tokenized",
+      "timestamp_ms": 0.08228141814470291
+    },
+    {
+      "metadata": {
+        "meaning": "request_ready_to_send",
+        "observer": "client_probe"
+      },
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat2::0",
+      "stage": "queued",
+      "timestamp_ms": 0.08545117452740669
+    },
+    {
+      "metadata": {
+        "meaning": "http_request_sent",
+        "observer": "client_probe"
+      },
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat2::0",
+      "stage": "scheduled",
+      "timestamp_ms": 0.328312162309885
+    },
+    {
+      "metadata": {
+        "meaning": "first_stream_chunk",
+        "observer": "client_probe"
+      },
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat2::0",
+      "stage": "prefill_done",
+      "timestamp_ms": 94.95495213195682
+    },
+    {
+      "metadata": {
+        "observer": "client_probe"
+      },
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat2::0",
+      "stage": "first_token",
+      "timestamp_ms": 94.95495213195682
+    },
+    {
+      "metadata": {
+        "observer": "client_probe",
+        "proxy_stage_mode": "decode-proxy",
+        "stream_chunk_count": 8
+      },
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat2::0",
+      "stage": "decode_done",
+      "timestamp_ms": 193.97243903949857
+    },
+    {
+      "metadata": {
+        "observer": "client_probe",
+        "stream_byte_count": 2067
+      },
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat2::0",
+      "stage": "stream_done",
+      "timestamp_ms": 193.97243903949857
+    },
+    {
+      "metadata": {
+        "observer": "client_probe"
+      },
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat2::0",
+      "stage": "cleanup_done",
+      "timestamp_ms": 193.9810491167009
+    },
+    {
+      "metadata": {
+        "observer": "client_probe"
+      },
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat2::1",
+      "stage": "received",
+      "timestamp_ms": 0.0
+    },
+    {
+      "metadata": {
+        "observer": "client_probe",
+        "prompt_tokens_proxy": 549
+      },
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat2::1",
+      "stage": "tokenized",
+      "timestamp_ms": 0.07712002843618393
+    },
+    {
+      "metadata": {
+        "meaning": "request_ready_to_send",
+        "observer": "client_probe"
+      },
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat2::1",
+      "stage": "queued",
+      "timestamp_ms": 0.0799698755145073
+    },
+    {
+      "metadata": {
+        "meaning": "http_request_sent",
+        "observer": "client_probe"
+      },
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat2::1",
+      "stage": "scheduled",
+      "timestamp_ms": 0.21706102415919304
+    },
+    {
+      "metadata": {
+        "meaning": "first_stream_chunk",
+        "observer": "client_probe"
+      },
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat2::1",
+      "stage": "prefill_done",
+      "timestamp_ms": 77.3248290643096
+    },
+    {
+      "metadata": {
+        "observer": "client_probe"
+      },
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat2::1",
+      "stage": "first_token",
+      "timestamp_ms": 77.3248290643096
+    },
+    {
+      "metadata": {
+        "observer": "client_probe",
+        "proxy_stage_mode": "decode-proxy",
+        "stream_chunk_count": 8
+      },
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat2::1",
+      "stage": "decode_done",
+      "timestamp_ms": 176.54827795922756
+    },
+    {
+      "metadata": {
+        "observer": "client_probe",
+        "stream_byte_count": 2067
+      },
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat2::1",
+      "stage": "stream_done",
+      "timestamp_ms": 176.54827795922756
+    },
+    {
+      "metadata": {
+        "observer": "client_probe"
+      },
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat2::1",
+      "stage": "cleanup_done",
+      "timestamp_ms": 176.55476788058877
+    },
+    {
+      "metadata": {
+        "observer": "client_probe"
+      },
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat2::2",
+      "stage": "received",
+      "timestamp_ms": 0.0
+    },
+    {
+      "metadata": {
+        "observer": "client_probe",
+        "prompt_tokens_proxy": 549
+      },
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat2::2",
+      "stage": "tokenized",
+      "timestamp_ms": 0.048629939556121826
+    },
+    {
+      "metadata": {
+        "meaning": "request_ready_to_send",
+        "observer": "client_probe"
+      },
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat2::2",
+      "stage": "queued",
+      "timestamp_ms": 0.050690025091171265
+    },
+    {
+      "metadata": {
+        "meaning": "http_request_sent",
+        "observer": "client_probe"
+      },
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat2::2",
+      "stage": "scheduled",
+      "timestamp_ms": 0.16057072207331657
+    },
+    {
+      "metadata": {
+        "meaning": "first_stream_chunk",
+        "observer": "client_probe"
+      },
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat2::2",
+      "stage": "prefill_done",
+      "timestamp_ms": 75.73548005893826
+    },
+    {
+      "metadata": {
+        "observer": "client_probe"
+      },
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat2::2",
+      "stage": "first_token",
+      "timestamp_ms": 75.73548005893826
+    },
+    {
+      "metadata": {
+        "observer": "client_probe",
+        "proxy_stage_mode": "decode-proxy",
+        "stream_chunk_count": 8
+      },
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat2::2",
+      "stage": "decode_done",
+      "timestamp_ms": 174.86118711531162
+    },
+    {
+      "metadata": {
+        "observer": "client_probe",
+        "stream_byte_count": 2067
+      },
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat2::2",
+      "stage": "stream_done",
+      "timestamp_ms": 174.86118711531162
+    },
+    {
+      "metadata": {
+        "observer": "client_probe"
+      },
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat2::2",
+      "stage": "cleanup_done",
+      "timestamp_ms": 174.86797692254186
+    },
+    {
+      "metadata": {
+        "observer": "client_probe"
+      },
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat2::3",
+      "stage": "received",
+      "timestamp_ms": 0.0
+    },
+    {
+      "metadata": {
+        "observer": "client_probe",
+        "prompt_tokens_proxy": 549
+      },
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat2::3",
+      "stage": "tokenized",
+      "timestamp_ms": 0.05002086982131004
+    },
+    {
+      "metadata": {
+        "meaning": "request_ready_to_send",
+        "observer": "client_probe"
+      },
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat2::3",
+      "stage": "queued",
+      "timestamp_ms": 0.05207117646932602
+    },
+    {
+      "metadata": {
+        "meaning": "http_request_sent",
+        "observer": "client_probe"
+      },
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat2::3",
+      "stage": "scheduled",
+      "timestamp_ms": 0.15622097998857498
+    },
+    {
+      "metadata": {
+        "meaning": "first_stream_chunk",
+        "observer": "client_probe"
+      },
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat2::3",
+      "stage": "prefill_done",
+      "timestamp_ms": 77.14155921712518
+    },
+    {
+      "metadata": {
+        "observer": "client_probe"
+      },
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat2::3",
+      "stage": "first_token",
+      "timestamp_ms": 77.14155921712518
+    },
+    {
+      "metadata": {
+        "observer": "client_probe",
+        "proxy_stage_mode": "decode-proxy",
+        "stream_chunk_count": 8
+      },
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat2::3",
+      "stage": "decode_done",
+      "timestamp_ms": 175.72123324498534
+    },
+    {
+      "metadata": {
+        "observer": "client_probe",
+        "stream_byte_count": 2067
+      },
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat2::3",
+      "stage": "stream_done",
+      "timestamp_ms": 175.72123324498534
+    },
+    {
+      "metadata": {
+        "observer": "client_probe"
+      },
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat2::3",
+      "stage": "cleanup_done",
+      "timestamp_ms": 175.72750290855765
+    }
+  ],
+  "metadata": {
+    "api_key_env": "VLLM_HUST_API_KEY",
+    "api_key_present": true,
+    "case_id": "shared_scenario_multi_turn_knowledge_service",
+    "command": [
+      "run_existing_server_trace_probe.py",
+      "--endpoint",
+      "http://127.0.0.1:18168",
+      "--model",
+      "codex-qwen2.5-7b-npu6",
+      "--api-key-env",
+      "VLLM_HUST_API_KEY",
+      "--warmup-requests",
+      "1",
+      "--repeat-count",
+      "3",
+      "--max-requests",
+      "4",
+      "--trace-export-path",
+      "/tmp/codex-vllm-request-lifecycle-profiler-npu6-trace.jsonl",
+      "--output-dir",
+      ".benchmarks/results/npu6_runtime_hooks_enabled_smoke"
+    ],
+    "endpoint": "http://127.0.0.1:18168",
+    "evidence_label": "existing-server-probe",
+    "max_requests": 4,
+    "model": "codex-qwen2.5-7b-npu6",
+    "observer_mode": "trace",
+    "per_chunk_read_delay_ms": 0.0,
+    "proxy_stage_mode": "decode-proxy",
+    "repeat_count": 3,
+    "repo": {
+      "branch": "main",
+      "commit": "5f6be11901382238b20911ad1674ca43c4b9e387",
+      "dirty": true,
+      "dirty_excluding_output_dir": false,
+      "dirty_exclusion_dir": ".benchmarks/results/npu6_runtime_hooks_enabled_smoke",
+      "path": "/home/shuhao/vllm-request-lifecycle-profiler-plugin"
+    },
+    "result_valid_for_speedup_claims": false,
+    "timestamp_utc": "2026-07-11T01:51:33.174643+00:00",
+    "trace_boundary": "Client-observed lifecycle proxy trace. It records request preparation, HTTP send, first streamed chunk, stream completion, and cleanup from the probe process; it is not yet an internal vLLM scheduler/KV trace.",
+    "trace_export_path": "/tmp/codex-vllm-request-lifecycle-profiler-npu6-trace.jsonl",
+    "warmup_requests": 1,
+    "workload_source": {
+      "commit": "76e24c85bcab76ecfabb831c9444002b6efffd58",
+      "dirty": false,
+      "path": "third_party/llm-serving-workloads"
+    }
+  },
+  "records": [
+    {
+      "case_index": 0,
+      "error": "",
+      "first_token_ms": 76.30269322544336,
+      "latency_ms": 174.9652079306543,
+      "ok": true,
+      "phase": "measured",
+      "repeat": 0,
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat0::0",
+      "status": 200,
+      "stream_byte_count": 2067,
+      "stream_chunk_count": 8
+    },
+    {
+      "case_index": 1,
+      "error": "",
+      "first_token_ms": 76.46420411765575,
+      "latency_ms": 174.009102396667,
+      "ok": true,
+      "phase": "measured",
+      "repeat": 0,
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat0::1",
+      "status": 200,
+      "stream_byte_count": 2067,
+      "stream_chunk_count": 8
+    },
+    {
+      "case_index": 2,
+      "error": "",
+      "first_token_ms": 75.84521966055036,
+      "latency_ms": 174.2116529494524,
+      "ok": true,
+      "phase": "measured",
+      "repeat": 0,
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat0::2",
+      "status": 200,
+      "stream_byte_count": 2067,
+      "stream_chunk_count": 8
+    },
+    {
+      "case_index": 3,
+      "error": "",
+      "first_token_ms": 75.12641465291381,
+      "latency_ms": 174.6375048533082,
+      "ok": true,
+      "phase": "measured",
+      "repeat": 0,
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat0::3",
+      "status": 200,
+      "stream_byte_count": 2067,
+      "stream_chunk_count": 8
+    },
+    {
+      "case_index": 0,
+      "error": "",
+      "first_token_ms": 83.49829819053411,
+      "latency_ms": 179.25298493355513,
+      "ok": true,
+      "phase": "measured",
+      "repeat": 1,
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat1::0",
+      "status": 200,
+      "stream_byte_count": 2067,
+      "stream_chunk_count": 8
+    },
+    {
+      "case_index": 1,
+      "error": "",
+      "first_token_ms": 82.18319993466139,
+      "latency_ms": 180.88481482118368,
+      "ok": true,
+      "phase": "measured",
+      "repeat": 1,
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat1::1",
+      "status": 200,
+      "stream_byte_count": 2067,
+      "stream_chunk_count": 8
+    },
+    {
+      "case_index": 2,
+      "error": "",
+      "first_token_ms": 79.77619534358382,
+      "latency_ms": 180.12019013985991,
+      "ok": true,
+      "phase": "measured",
+      "repeat": 1,
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat1::2",
+      "status": 200,
+      "stream_byte_count": 2067,
+      "stream_chunk_count": 8
+    },
+    {
+      "case_index": 3,
+      "error": "",
+      "first_token_ms": 78.7248588167131,
+      "latency_ms": 193.49532574415207,
+      "ok": true,
+      "phase": "measured",
+      "repeat": 1,
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat1::3",
+      "status": 200,
+      "stream_byte_count": 2067,
+      "stream_chunk_count": 8
+    },
+    {
+      "case_index": 0,
+      "error": "",
+      "first_token_ms": 94.95495213195682,
+      "latency_ms": 193.9810491167009,
+      "ok": true,
+      "phase": "measured",
+      "repeat": 2,
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat2::0",
+      "status": 200,
+      "stream_byte_count": 2067,
+      "stream_chunk_count": 8
+    },
+    {
+      "case_index": 1,
+      "error": "",
+      "first_token_ms": 77.3248290643096,
+      "latency_ms": 176.55476788058877,
+      "ok": true,
+      "phase": "measured",
+      "repeat": 2,
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat2::1",
+      "status": 200,
+      "stream_byte_count": 2067,
+      "stream_chunk_count": 8
+    },
+    {
+      "case_index": 2,
+      "error": "",
+      "first_token_ms": 75.73548005893826,
+      "latency_ms": 174.86797692254186,
+      "ok": true,
+      "phase": "measured",
+      "repeat": 2,
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat2::2",
+      "status": 200,
+      "stream_byte_count": 2067,
+      "stream_chunk_count": 8
+    },
+    {
+      "case_index": 3,
+      "error": "",
+      "first_token_ms": 77.14155921712518,
+      "latency_ms": 175.72750290855765,
+      "ok": true,
+      "phase": "measured",
+      "repeat": 2,
+      "request_id": "shared_scenario_multi_turn_knowledge_service::repeat2::3",
+      "status": 200,
+      "stream_byte_count": 2067,
+      "stream_chunk_count": 8
+    }
+  ],
+  "summary": {
+    "error_count": 0,
+    "event_count": 117,
+    "first_token_ms": {
+      "count": 12,
+      "max": 94.95495213195682,
+      "min": 75.12641465291381,
+      "p50": 77.23319414071739,
+      "p95": 88.65379246417433,
+      "p99": 93.69472019840033
+    },
+    "latency_ms": {
+      "count": 12,
+      "max": 193.9810491167009,
+      "min": 174.009102396667,
+      "p50": 176.1411353945732,
+      "p95": 193.71390126179904,
+      "p99": 193.92761954572052
+    },
+    "observer_mode": "trace",
+    "request_count": 12,
+    "success_count": 12,
+    "warmup_first_token_ms": {
+      "count": 1,
+      "max": 98.0923417955637,
+      "min": 98.0923417955637,
+      "p50": 98.0923417955637,
+      "p95": 98.0923417955637,
+      "p99": 98.0923417955637
+    },
+    "warmup_latency_ms": {
+      "count": 1,
+      "max": 195.97291201353073,
+      "min": 195.97291201353073,
+      "p50": 195.97291201353073,
+      "p95": 195.97291201353073,
+      "p99": 195.97291201353073
+    },
+    "warmup_request_count": 1,
+    "warmup_success_count": 1
+  },
+  "warmup_records": [
+    {
+      "case_index": 0,
+      "error": "",
+      "first_token_ms": 98.0923417955637,
+      "latency_ms": 195.97291201353073,
+      "ok": true,
+      "phase": "warmup",
+      "repeat": 0,
+      "request_id": "shared_scenario_multi_turn_knowledge_service::warmup::0",
+      "status": 200,
+      "stream_byte_count": 2067,
+      "stream_chunk_count": 8
+    }
+  ]
+}
