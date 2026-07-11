@@ -49,18 +49,19 @@ endpoint, model path, authentication, Ascend runtime root, device ownership, and
 trace export schema required before existing-server probes can support
 client-observed online evidence. The current NPU6 probe records request
 preparation, HTTP send, first streamed chunk, stream completion, and cleanup
-from the probe process. Runtime claims require internal hooks for scheduler
-admission, queue wait, prefill completion, decode progress, KV pressure, stream
-backpressure, and cleanup.
+from the probe process. The latest runtime hook path also records internal
+OpenAI entry, scheduler, prefill, first-token, decode, stream-handoff, and
+cleanup events through a repo-local bridge when trace export is enabled.
 
 \section{Evaluation Plan}
 
 The evaluation will compare the profiler against raw logs, simple stage timers,
 manual diagnosis, and profiler reports with causal rules disabled. Metrics
 include attribution accuracy, false positives, false negatives, tracing
-overhead, event coverage, and root-cause diagnosis time. Until internal runtime
-hooks are integrated, overhead measurements are limited to the client-probe
-event-construction path.
+overhead, event coverage, and root-cause diagnosis time. Internal runtime-hook
+evidence is now available for the NPU6 smoke workload; controlled live faults
+with known ground truth remain required before claiming runtime diagnosis
+accuracy.
 
 \section{Current Evidence Boundary}
 
@@ -81,6 +82,16 @@ client-side event construction disabled and enabled. Trace mode emits 117
 events and changes TTFT p95 by +4.07\,ms relative to no-trace
 (Table~\ref{tab:npu6-overhead}). This is evidence about the probe process, not
 internal runtime hook overhead.
+
+The internal runtime-hook path is now measured separately. A matched NPU6 smoke
+pairs hook-disabled serving with low-overhead hook-enabled serving while keeping
+the same request shape. The enabled run writes 117 runtime JSONL events and
+recovers 13 of 13 complete request chains, each with all nine lifecycle stages.
+After replacing per-event file open/write/close with a persistent append file
+descriptor in the trace sink, the hook-enabled run changes TTFT p95 by
+-2.14\,ms and latency p95 by +0.93\,ms relative to the disabled baseline
+(Table~\ref{tab:npu6-runtime-hooks}). This is still a small smoke result, so it
+does not establish TPOT, memory, or broad-workload overhead.
 
 The same trace can also be reduced into a client-visible stage diagnosis. The
 derived diagnosis pass computes per-request spans and coverage from the checked
@@ -145,6 +156,15 @@ overhead or memory cost.}
 
 \begin{table}[t]
 \centering
+\caption{Matched hook-disabled/hook-enabled internal runtime lifecycle trace
+smoke on NPU6 after the low-overhead sink change. The enabled run records
+13/13 complete request chains with all nine lifecycle stages.}
+\label{tab:npu6-runtime-hooks}
+\input{tables/generated/npu6_runtime_hook_pair_plan.tex}
+\end{table}
+
+\begin{table}[t]
+\centering
 \caption{Lifecycle diagnosis changes the next optimization action compared
 with timer-only symptoms. The table is a derived artifact from checked-in
 NPU6 proxy traces and does not claim internal runtime root cause.}
@@ -157,14 +177,15 @@ NPU6 proxy traces and does not claim internal runtime root cause.}
 The current evidence supports trace schema feasibility, synthetic attribution
 coverage, live client-observed lifecycle export, derived proxy-stage diagnosis,
 controlled client-visible slow-stream discrimination, a narrow client-probe
-event-construction overhead smoke, and a derived decision-impact view over the
-same proxy traces. The decision-impact table is not a new online measurement:
-it summarizes which follow-up optimization experiment each proxy diagnosis
-justifies. The artifact does not yet support claims about diagnosis accuracy on
-live internal faults, internal queue/KV attribution, internal runtime hook
-overhead, memory overhead, or root-cause time improvement. Those claims require
-paired NPU6 runs with and without runtime instrumentation, plus controlled
-runtime fault injection with known ground truth.
+event-construction overhead smoke, full internal lifecycle capture on a small
+NPU6 smoke workload, bounded runtime-hook overhead on that smoke, and a derived
+decision-impact view over the same proxy traces. The decision-impact table is
+not a new online measurement: it summarizes which follow-up optimization
+experiment each proxy diagnosis justifies. The artifact does not yet support
+claims about diagnosis accuracy on live internal faults, memory overhead, TPOT
+overhead, broad workload generality, or root-cause time improvement. Those
+claims require controlled runtime fault injection with known ground truth and a
+larger workload matrix.
 
 \begin{table}[t]
 \centering

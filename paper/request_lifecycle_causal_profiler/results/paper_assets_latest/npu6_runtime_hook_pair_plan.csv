@@ -1,0 +1,5 @@
+mode,request_count,success_count,event_count,complete_chain_count,missing_stage_count,ttft_p50_ms,ttft_p95_ms,latency_p50_ms,latency_p95_ms,trace_bytes,source_commit,result_dir_name
+hook-disabled,12,12,117,,,78.11587653122842,80.94060667790473,177.62286798097193,179.4813242740929,,0bb17c17ff333c5bdda732075ea8ac2a8385ece2,npu6_runtime_hooks_disabled_low_overhead_baseline
+hook-enabled,12,12,117,13,0,74.45940328761935,78.80069257225841,173.338990425691,180.40633650962263,29159,6f280909cfe1ee275128708a01b37da525622e1f,npu6_runtime_hooks_low_overhead_enabled_smoke
+,,,,,,,,,,,,
+delta,,,,,,-3.6564732436090708,-2.1399141056463122,-4.283877555280924,0.9250122355297208,,,

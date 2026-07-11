@@ -98,26 +98,26 @@ receipt, tokenization, queue admission, scheduling, prefill completion, first
 token, decode completion, stream handoff, and cleanup.
 
 Current paired runtime-hook evidence:
-`.benchmarks/results/npu6_runtime_hooks_disabled_full_coverage_baseline/` and
-`.benchmarks/results/npu6_runtime_hooks_full_coverage_smoke/` run the same
+`.benchmarks/results/npu6_runtime_hooks_disabled_low_overhead_baseline/` and
+`.benchmarks/results/npu6_runtime_hooks_low_overhead_enabled_smoke/` run the same
 warmup-controlled shared-workload shape from the pinned submodule. Both source
 runs are `existing-server-probe` evidence with clean `dirty_excluding_output_dir`
 metadata and 12/12 successful measured requests. The enabled run writes
-`.benchmarks/results/npu6_runtime_hooks_full_coverage_smoke/runtime_trace.jsonl`
+`.benchmarks/results/npu6_runtime_hooks_low_overhead_enabled_smoke/runtime_trace.jsonl`
 with 117 internal runtime events over 13 external request chains. The derived
 pair-plan `.benchmarks/results/npu6_runtime_hook_pair_plan/` reports 13/13
 complete chains with all nine stages present and no missing stages. Current
-overhead on this small smoke is +2.61 ms TTFT p50, +10.38 ms TTFT p95,
-+15.37 ms latency p50, and +36.76 ms latency p95 for hook-enabled versus
-hook-disabled.
+overhead on this small smoke is -3.66 ms TTFT p50, -2.14 ms TTFT p95,
+-4.28 ms latency p50, and +0.93 ms latency p95 for hook-enabled versus
+hook-disabled, after replacing per-event open/write/close with a persistent
+append fd sink.
 
 Next step:
-optimize the full-lifecycle trace path before broad claims. The entry-path
-coverage gap is closed, so the next implementation target is reducing enabled
-mode tail latency by buffering/batching trace writes or moving JSONL export off
-the request path. After the overhead is bounded, run one controlled fault at a
-time and compare internal spans against the existing client-observed normal and
-slow-stream diagnoses.
+run one controlled fault at a time and compare internal spans against the
+existing client-observed normal and slow-stream diagnoses. The entry-path
+coverage gap is closed and the smoke-run trace overhead is now bounded, so the
+next submission-critical gap is live attribution accuracy under known injected
+conditions.
 
 ## Phase 2: Controlled Fault Injection
 

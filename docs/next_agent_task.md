@@ -110,26 +110,24 @@ causal lifecycle evidence changes optimization decisions compared with ordinary
 timers, not merely that traces can be collected.
 
 Current paired runtime-hook evidence is available. The disabled source run
-`.benchmarks/results/npu6_runtime_hooks_disabled_full_coverage_baseline/` has
-12/12 measured success, TTFT p95 77.84 ms, and latency p95 194.44 ms. The
-enabled source run `.benchmarks/results/npu6_runtime_hooks_full_coverage_smoke/`
-has 12/12 measured success, TTFT p95 88.22 ms, latency p95 231.20 ms, and
-29,153 bytes of runtime JSONL. `make npu6-runtime-hook-pair-plan` aggregates
+`.benchmarks/results/npu6_runtime_hooks_disabled_low_overhead_baseline/` has
+12/12 measured success, TTFT p95 80.94 ms, and latency p95 179.48 ms. The
+enabled source run `.benchmarks/results/npu6_runtime_hooks_low_overhead_enabled_smoke/`
+has 12/12 measured success, TTFT p95 78.80 ms, latency p95 180.41 ms, and
+29,159 bytes of runtime JSONL. `make npu6-runtime-hook-pair-plan` aggregates
 these into `.benchmarks/results/npu6_runtime_hook_pair_plan/`, reporting
-+10.38 ms TTFT p95 and +36.76 ms latency p95.
+-2.14 ms TTFT p95 and +0.93 ms latency p95. The runtime JSONL contains 117
+events over 13 external request chains, and all 13 chains include `received`,
+`tokenized`, `queued`, `scheduled`, `prefill_done`, `first_token`,
+`decode_done`, `stream_done`, and `cleanup_done`.
 
-Immediate next step: reduce full-lifecycle trace overhead without losing stage
-coverage. The runtime JSONL now contains 117 events over 13 external request
-chains, and all 13 chains include `received`, `tokenized`, `queued`,
-`scheduled`, `prefill_done`, `first_token`, `decode_done`, `stream_done`, and
-`cleanup_done`. The remaining implementation problem is the hook-enabled tail
-latency, especially stream/JSONL export overhead. Try batched or background
-trace sinking, fixed-schema serialization, and sampling/flush controls, then
-rerun disabled/enabled and regenerate the pair plan.
-
-After full-stage runtime coverage is present, check whether internal spans
-confirm or overturn the proxy `decode` and client-visible `streaming`
-hypotheses. Then follow with one controlled fault at a time. Keep
+Immediate next step: use the low-overhead full-lifecycle hooks for live
+controlled-fault attribution. Start with one fault class that can be exercised
+on the existing NPU6 single-card managed service, such as slow streaming client,
+long-prompt prefill pressure, or decode-heavy output. For each run, preserve
+the client-observed proxy trace as a correlation anchor, collect the internal
+runtime JSONL, and report whether internal spans confirm or overturn the proxy
+`decode` and client-visible `streaming` hypotheses. Keep
 client-observed proxy trace results separate from internal runtime trace
 claims.
 

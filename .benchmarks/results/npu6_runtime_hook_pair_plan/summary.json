@@ -1,10 +1,10 @@
 {
   "deltas": {
     "event_count_delta": 0,
-    "latency_p50_delta_ms": 15.368004562333226,
-    "latency_p95_delta_ms": 36.759959324263065,
-    "ttft_p50_delta_ms": 2.6129879988729954,
-    "ttft_p95_delta_ms": 10.380065673962235
+    "latency_p50_delta_ms": -4.283877555280924,
+    "latency_p95_delta_ms": 0.9250122355297208,
+    "ttft_p50_delta_ms": -3.6564732436090708,
+    "ttft_p95_delta_ms": -2.1399141056463122
   },
   "loaded_result_count": 2,
   "missing_result_count": 0,
@@ -12,11 +12,11 @@
     {
       "error_count": 0,
       "event_count": 117,
-      "latency_p50_ms": 175.03377865068614,
-      "latency_p95_ms": 194.43703957367686,
+      "latency_p50_ms": 177.62286798097193,
+      "latency_p95_ms": 179.4813242740929,
       "mode": "hook-disabled",
       "request_count": 12,
-      "result_dir": "/home/shuhao/vllm-request-lifecycle-profiler-plugin/.benchmarks/results/npu6_runtime_hooks_disabled_full_coverage_baseline",
+      "result_dir": "/home/shuhao/vllm-request-lifecycle-profiler-plugin/.benchmarks/results/npu6_runtime_hooks_disabled_low_overhead_baseline",
       "runtime_trace_summary": null,
       "source_command": [
         "run_existing_server_trace_probe.py",
@@ -35,26 +35,26 @@
         "--trace-export-path",
         "/tmp/codex-vllm-request-lifecycle-profiler-npu6-trace.jsonl",
         "--output-dir",
-        ".benchmarks/results/npu6_runtime_hooks_disabled_full_coverage_baseline"
+        ".benchmarks/results/npu6_runtime_hooks_disabled_low_overhead_baseline"
       ],
-      "source_commit": "21c62a83c7e11a1e4e3aee3c6691e6eb080f25b5",
+      "source_commit": "0bb17c17ff333c5bdda732075ea8ac2a8385ece2",
       "source_dirty_excluding_output_dir": false,
       "source_evidence_label": "existing-server-probe",
       "status": "loaded",
       "success_count": 12,
       "trace_bytes": null,
-      "trace_export_path": "/home/shuhao/vllm-request-lifecycle-profiler-plugin/.benchmarks/results/npu6_runtime_hooks_full_coverage_smoke/runtime_trace.jsonl",
-      "ttft_p50_ms": 76.29889296367764,
-      "ttft_p95_ms": 77.83876934554428
+      "trace_export_path": "/home/shuhao/vllm-request-lifecycle-profiler-plugin/.benchmarks/results/npu6_runtime_hooks_low_overhead_enabled_smoke/runtime_trace.jsonl",
+      "ttft_p50_ms": 78.11587653122842,
+      "ttft_p95_ms": 80.94060667790473
     },
     {
       "error_count": 0,
       "event_count": 117,
-      "latency_p50_ms": 190.40178321301937,
-      "latency_p95_ms": 231.19699889793992,
+      "latency_p50_ms": 173.338990425691,
+      "latency_p95_ms": 180.40633650962263,
       "mode": "hook-enabled",
       "request_count": 12,
-      "result_dir": "/home/shuhao/vllm-request-lifecycle-profiler-plugin/.benchmarks/results/npu6_runtime_hooks_full_coverage_smoke",
+      "result_dir": "/home/shuhao/vllm-request-lifecycle-profiler-plugin/.benchmarks/results/npu6_runtime_hooks_low_overhead_enabled_smoke",
       "runtime_trace_summary": {
         "complete_chain_count": 13,
         "event_count": 117,
@@ -95,17 +95,17 @@
         "--trace-export-path",
         "/tmp/codex-vllm-request-lifecycle-profiler-npu6-trace.jsonl",
         "--output-dir",
-        ".benchmarks/results/npu6_runtime_hooks_full_coverage_smoke"
+        ".benchmarks/results/npu6_runtime_hooks_low_overhead_enabled_smoke"
       ],
-      "source_commit": "22de7ad0ae7320baccce565bd6e5b5a11caa2a4f",
+      "source_commit": "6f280909cfe1ee275128708a01b37da525622e1f",
       "source_dirty_excluding_output_dir": false,
       "source_evidence_label": "existing-server-probe",
       "status": "loaded",
       "success_count": 12,
-      "trace_bytes": 29153,
-      "trace_export_path": "/home/shuhao/vllm-request-lifecycle-profiler-plugin/.benchmarks/results/npu6_runtime_hooks_full_coverage_smoke/runtime_trace.jsonl",
-      "ttft_p50_ms": 78.91188096255064,
-      "ttft_p95_ms": 88.21883501950651
+      "trace_bytes": 29159,
+      "trace_export_path": "/home/shuhao/vllm-request-lifecycle-profiler-plugin/.benchmarks/results/npu6_runtime_hooks_low_overhead_enabled_smoke/runtime_trace.jsonl",
+      "ttft_p50_ms": 74.45940328761935,
+      "ttft_p95_ms": 78.80069257225841
     }
   ]
 }

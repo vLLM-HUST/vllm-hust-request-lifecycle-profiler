@@ -77,6 +77,18 @@
     {
       "evidence_label": "derived-artifact",
       "kind": "csv",
+      "path": "results/paper_assets_latest/npu6_runtime_hook_pair_plan.csv",
+      "rows": 2
+    },
+    {
+      "evidence_label": "derived-artifact",
+      "kind": "table",
+      "path": "tables/generated/npu6_runtime_hook_pair_plan.tex",
+      "rows": 2
+    },
+    {
+      "evidence_label": "derived-artifact",
+      "kind": "csv",
       "path": "results/paper_assets_latest/npu6_diagnosis_decision_impact.csv",
       "rows": 2
     },
