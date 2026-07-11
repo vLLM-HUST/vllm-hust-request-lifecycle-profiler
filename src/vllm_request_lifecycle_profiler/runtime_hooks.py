@@ -46,13 +46,30 @@ class JsonlTraceSink:
         self.path = path
         self._lock = threading.Lock()
         self.path.parent.mkdir(parents=True, exist_ok=True)
+        self._fd = os.open(
+            self.path,
+            os.O_CREAT | os.O_APPEND | os.O_WRONLY,
+            0o644,
+        )
 
     def write_event(self, event: TraceEvent) -> None:
         payload = trace_event_to_json(event)
-        line = json.dumps(payload, sort_keys=True, separators=(",", ":")) + "\n"
+        line = json.dumps(payload, separators=(",", ":")) + "\n"
+        encoded = line.encode("utf-8")
         with self._lock:
-            with self.path.open("a", encoding="utf-8") as handle:
-                handle.write(line)
+            os.write(self._fd, encoded)
+
+    def close(self) -> None:
+        with self._lock:
+            if self._fd >= 0:
+                os.close(self._fd)
+                self._fd = -1
+
+    def __del__(self) -> None:
+        try:
+            self.close()
+        except Exception:
+            pass
 
 
 class NullTraceSink:
