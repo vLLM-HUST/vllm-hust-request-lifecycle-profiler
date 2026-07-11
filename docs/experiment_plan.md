@@ -90,7 +90,7 @@ Current live trace evidence:
 
 Runtime hook integration readiness:
 the pinned `third_party/vllm-hust` submodule is on
-`feature/request-lifecycle-profiler-runtime-hooks` at commit `c3f29b4`. It
+`feature/request-lifecycle-profiler-runtime-hooks-faculty` at commit `7d5406c5a`. It
 adds an optional dependency-free shim that imports
 `vllm_request_lifecycle_profiler.runtime_hooks` only when
 `VLLM_RLP_TRACE_EXPORT_PATH` is set, then emits internal events for request

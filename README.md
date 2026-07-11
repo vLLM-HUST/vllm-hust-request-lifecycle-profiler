@@ -18,7 +18,7 @@ stage instead of correlated symptoms?
 - `.benchmarks/`: trace probes and controlled fault-injection entrypoints.
 - `third_party/llm-serving-workloads/`: pinned shared workload suite.
 - `third_party/vllm-hust/`: pinned vLLM-HUST runtime carrier with optional
-  lifecycle hook sites on `feature/request-lifecycle-profiler-runtime-hooks`.
+  lifecycle hook sites on `feature/request-lifecycle-profiler-runtime-hooks-faculty`.
 - `tests/`: no-NPU trace and repository tests.
 - `docs/research_logic.md`: seven-step research framing.
 - `docs/experiment_plan.md`: evaluation plan and evidence labels.

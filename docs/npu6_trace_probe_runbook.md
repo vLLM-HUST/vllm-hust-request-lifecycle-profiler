@@ -66,12 +66,12 @@ submodule rather than a sibling checkout:
 
 ```bash
 git submodule update --init --recursive third_party/vllm-hust
-git -C third_party/vllm-hust checkout feature/request-lifecycle-profiler-runtime-hooks
+git -C third_party/vllm-hust checkout feature/request-lifecycle-profiler-runtime-hooks-faculty
 git -C third_party/vllm-hust rev-parse HEAD
 ```
 
 The expected hook carrier is commit
-`c3f29b41a51b3ee1cf8af6c5bfd4621f75f1a732`. It imports the parent package's
+`7d5406c5a9eab69e8af90e0b17a86c1b207f0a8b`. It imports the parent package's
 runtime hook bridge only when `VLLM_RLP_TRACE_EXPORT_PATH` is set. Before
 launching a hook-enabled service, install the parent repository into the
 project environment:

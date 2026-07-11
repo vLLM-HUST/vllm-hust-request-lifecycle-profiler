@@ -29,7 +29,7 @@ commit the parent submodule pointer.
 
 The runtime hook carrier is already pinned as
 `third_party/vllm-hust` on branch
-`feature/request-lifecycle-profiler-runtime-hooks`, commit `c3f29b4`. Do not
+`feature/request-lifecycle-profiler-runtime-hooks-faculty`, commit `7d5406c5a`. Do not
 reintegrate hook sites from scratch. Use this submodule as the runtime source
 for the next hook-enabled NPU6 launch.
 
