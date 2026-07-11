@@ -23,6 +23,8 @@ stage instead of correlated symptoms?
 - `docs/research_logic.md`: seven-step research framing.
 - `docs/experiment_plan.md`: evaluation plan and evidence labels.
 - `docs/claim_ledger.md`: current claims and forbidden wording.
+- `docs/runtime_fault_attribution_roadmap.md`: path from complete runtime
+  hooks to controlled-fault attribution evidence.
 - `paper/request_lifecycle_causal_profiler/`: systems-paper scaffold.
 
 ## Current Mechanism
@@ -63,8 +65,14 @@ make shared-workloads-smoke PYTHON=python3
 
 ## Next Gate
 
-Follow `docs/npu6_trace_probe_runbook.md` and the pinned
-`third_party/vllm-hust` submodule to launch a hook-enabled NPU6 runtime. The
-next measured gate is a paired hook-disabled/hook-enabled run that records
-runtime JSONL events, client proxy anchors, TTFT/TPOT deltas, and memory
-snapshots under the same shared-workload shape.
+The hook-enabled NPU6 runtime gate is now satisfied for the smoke path:
+`.benchmarks/results/npu6_runtime_hook_pair_plan/summary.json` reports complete
+chains for all observed request chains and bounded TTFT/latency overhead on the
+matched hook-disabled/enabled workload shape.
+
+The next gate is controlled live attribution. Use the pinned
+`third_party/vllm-hust` runtime hook branch on NPU6, inject one fault class at a
+time, and compare internal runtime spans against client-observed anchors. Start
+with slow streaming, long-prompt prefill pressure, or decode-heavy output; then
+add KV-pressure and cleanup stalls. Run `make top-tier-readiness` before and
+after each evidence batch.
