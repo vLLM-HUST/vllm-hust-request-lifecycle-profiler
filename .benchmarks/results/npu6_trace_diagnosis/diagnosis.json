@@ -12,14 +12,18 @@
     "input_probe_results": ".benchmarks/results/npu6_existing_server_trace_probe_repeated_smoke/probe_results.json",
     "repo": {
       "branch": "main",
-      "commit": "6fad382bbd3341db78881b42bfa405d4fb49ee13",
-      "dirty": false,
-      "dirty_excluding_output_dir": false,
+      "commit": "f648c44f50fe3a0cda890a37b222dd55e967d4e4",
+      "dirty": true,
+      "dirty_excluding_output_dir": true,
       "dirty_exclusion_dir": ".benchmarks/results/npu6_trace_diagnosis",
+      "dirty_exclusion_dirs": [
+        ".benchmarks/results/npu6_trace_diagnosis",
+        ".benchmarks/results/npu6_existing_server_trace_probe_repeated_smoke"
+      ],
       "path": "/home/shuhao/vllm-request-lifecycle-profiler-plugin"
     },
     "result_valid_for_speedup_claims": false,
-    "timestamp_utc": "2026-07-10T20:07:02.687700+00:00"
+    "timestamp_utc": "2026-07-25T17:45:48.076858+00:00"
   },
   "rows": [
     {

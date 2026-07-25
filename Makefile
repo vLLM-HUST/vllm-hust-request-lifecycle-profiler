@@ -21,7 +21,7 @@ PAPER_DIR := paper/request_lifecycle_causal_profiler
 
 .DEFAULT_GOAL := help
 
-.PHONY: help bootstrap-shared-env install-dev smoke test shared-workloads-smoke shared-workloads-test synthetic-fault-injection trace-diagnosis npu6-runtime-hook-pair-plan npu6-runtime-concurrency-anomaly-analysis top-tier-readiness npu6-trace-preflight npu6-existing-server-trace-probe npu6-existing-server-trace-suite-smoke npu6-existing-server-slow-stream-trace-smoke npu6-slow-stream-trace-diagnosis npu6-existing-server-trace-overhead-smoke managed-install managed-start managed-restart managed-stop managed-status managed-health managed-logs managed-foreground lint format build bench paper paper-assets paper-pdf paper-clean clean
+.PHONY: help bootstrap-shared-env install-dev smoke test shared-workloads-smoke shared-workloads-test synthetic-fault-injection trace-diagnosis npu6-controlled-fault-matrix npu6-runtime-hook-pair-plan npu6-runtime-concurrency-anomaly-analysis top-tier-readiness npu6-trace-preflight npu6-existing-server-trace-probe npu6-existing-server-trace-suite-smoke npu6-existing-server-slow-stream-trace-smoke npu6-slow-stream-trace-diagnosis npu6-existing-server-trace-overhead-smoke managed-install managed-start managed-restart managed-stop managed-status managed-health managed-logs managed-foreground lint format build bench paper paper-assets paper-pdf paper-clean clean
 
 help:
 	@printf '%s\n' \
@@ -35,6 +35,7 @@ help:
 		'  make shared-workloads-test  Run unit tests plus the shared workload compatibility sweep' \
 		'  make synthetic-fault-injection Run no-NPU controlled lifecycle attribution checks' \
 		'  make trace-diagnosis Derive client-visible stage diagnosis from checked-in NPU6 trace probe' \
+		'  make npu6-controlled-fault-matrix Aggregate checked-in NPU6 controlled-fault artifacts and gaps' \
 		'  make npu6-runtime-hook-pair-plan Aggregate or list hook-disabled/enabled runtime probe runs' \
 		'  make npu6-runtime-concurrency-anomaly-analysis Analyze checked-in NPU6 concurrency runtime-hook anomaly' \
 		'  make top-tier-readiness Run no-NPU checks and refresh submission-facing artifacts' \
@@ -96,15 +97,19 @@ trace-diagnosis:
 		--input-probe-results .benchmarks/results/npu6_existing_server_trace_probe_repeated_smoke/probe_results.json \
 		--output-dir .benchmarks/results/npu6_trace_diagnosis
 
+npu6-controlled-fault-matrix:
+	PYTHONPATH=src $(PYTHON) .benchmarks/analyze_controlled_fault_matrix.py
+
 npu6-runtime-hook-pair-plan:
 	PYTHONPATH=src $(PYTHON) .benchmarks/run_runtime_hook_pair_plan.py
 
 npu6-runtime-concurrency-anomaly-analysis:
 	PYTHONPATH=src $(PYTHON) .benchmarks/analyze_runtime_concurrency_anomaly.py
 
-top-tier-readiness: test synthetic-fault-injection trace-diagnosis npu6-runtime-hook-pair-plan npu6-runtime-concurrency-anomaly-analysis paper-assets
+top-tier-readiness: test synthetic-fault-injection trace-diagnosis npu6-controlled-fault-matrix npu6-runtime-hook-pair-plan npu6-runtime-concurrency-anomaly-analysis paper-assets
 	@PYTHONPATH=src $(PYTHON) -c "import json, pathlib, sys; p=pathlib.Path('.benchmarks/results/npu6_runtime_hook_pair_plan/summary.json'); data=json.loads(p.read_text()); rows=data.get('rows', []); enabled=next((r for r in rows if r.get('mode') == 'hook-enabled'), {}); summary=enabled.get('runtime_trace_summary') or {}; complete=summary.get('complete_chain_count', 0); total=summary.get('request_chain_count', 0); missing=summary.get('missing_stage_counts', {}); print({'runtime_hook_complete_chains': complete, 'runtime_hook_total_chains': total, 'missing_stage_counts': missing}); sys.exit(0 if total and complete == total and not missing else 1)"
-	@PYTHONPATH=src $(PYTHON) -c "import json, pathlib, sys; p=pathlib.Path('.benchmarks/results/npu6_runtime_hooks_concurrency_sweep/concurrency_anomaly_analysis/summary.json'); data=json.loads(p.read_text()); print({'prefill_outlier_count': data.get('prefill_outlier_count'), 'prefill_outlier_concurrency_values': data.get('prefill_outlier_concurrency_values')}); sys.exit(0 if data.get('prefill_outlier_count', 0) > 0 and data.get('prefill_outlier_concurrency_values') == [2] else 1)"
+	@PYTHONPATH=src $(PYTHON) -c "import json, pathlib, sys; p=pathlib.Path('.benchmarks/results/npu6_runtime_hooks_concurrency_sweep/concurrency_anomaly_analysis/summary.json'); data=json.loads(p.read_text()); diagnosis=data.get('diagnosis', {}); requirements=data.get('required_subprefill_instrumentation', []); status={'prefill_outlier_count': data.get('prefill_outlier_count'), 'prefill_outlier_concurrency_values': data.get('prefill_outlier_concurrency_values'), 'stage_localization': diagnosis.get('stage_localization'), 'root_cause_status': diagnosis.get('root_cause_status'), 'missing_instrumentation_components': [row.get('component') for row in requirements if row.get('status') == 'missing']}; print(status); sys.exit(0 if data.get('prefill_outlier_count', 0) > 0 and data.get('prefill_outlier_concurrency_values') == [2] and diagnosis.get('stage_localization') == 'prefill' and diagnosis.get('root_cause_status') == 'unresolved' and len(status['missing_instrumentation_components']) == 4 else 1)"
+	@PYTHONPATH=src $(PYTHON) -c "import json, pathlib, sys; p=pathlib.Path('.benchmarks/results/npu6_controlled_fault_matrix/summary.json'); data=json.loads(p.read_text()); status={'available_case_count': data.get('available_case_count'), 'missing_classes': data.get('missing_classes'), 'real_online_matrix_status': data.get('real_online_matrix_status')}; print(status); sys.exit(0 if data.get('available_case_count', 0) >= 4 and set(data.get('missing_classes', [])) == {'queue_pressure', 'kv_pressure', 'cleanup_stall'} and data.get('real_online_matrix_status') == 'incomplete' else 1)"
 
 npu6-trace-preflight:
 	ASCEND_HOME_PATH=/usr/local/Ascend PYTHONPATH=src $(PYTHON) .benchmarks/preflight_npu6_trace_probe.py \

@@ -7,12 +7,12 @@
   "input_dir": "/home/shuhao/vllm-request-lifecycle-profiler-plugin/.benchmarks/results/npu6_runtime_hooks_concurrency_sweep",
   "parent_repo": {
     "branch": "main",
-    "commit": "6fee6710ead34127fc5676d0739f1410ed11ba07",
+    "commit": "f648c44f50fe3a0cda890a37b222dd55e967d4e4",
     "dirty": true,
     "dirty_excluding_output_dir": true,
     "dirty_exclusion_dir": "/home/shuhao/vllm-request-lifecycle-profiler-plugin/.benchmarks/results/npu6_runtime_hooks_concurrency_sweep/concurrency_anomaly_analysis",
     "path": "/home/shuhao/vllm-request-lifecycle-profiler-plugin"
   },
   "runtime_trace": "/home/shuhao/vllm-request-lifecycle-profiler-plugin/.benchmarks/results/npu6_runtime_hooks_concurrency_sweep/runtime_trace.jsonl",
-  "timestamp_utc": "2026-07-11T06:16:40.034476+00:00"
+  "timestamp_utc": "2026-07-25T17:45:48.575161+00:00"
 }

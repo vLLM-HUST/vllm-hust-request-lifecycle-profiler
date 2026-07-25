@@ -1,0 +1,520 @@
+{
+  "ground_truth": [
+    {
+      "case_id": "slow_stream_backpressure",
+      "injection": "per_chunk_read_delay_ms=80",
+      "known_fault_layer": "client_stream_reader",
+      "source": "probe_client"
+    },
+    {
+      "case_id": "structured_decode_heavy",
+      "injection": "structured-agent decode workload with request_max_tokens=128",
+      "known_fault_layer": "decode_visible_output_length",
+      "source": "workload_shape"
+    },
+    {
+      "case_id": "prompt_heavy_low_output",
+      "injection": "structured-agent prompt with request_max_tokens=4",
+      "known_fault_layer": "prefill_visible_prompt_processing",
+      "source": "workload_shape"
+    },
+    {
+      "case_id": "concurrency2_prefill_tail",
+      "injection": "structured-agent concurrency=2 sweep block",
+      "known_fault_layer": "runtime_prefill_tail_unresolved_substage",
+      "source": "observed_anomaly"
+    }
+  ],
+  "metadata": {
+    "claim_boundary": "Benchmark-owned aggregation over checked-in NPU6 existing-server probe and diagnosis artifacts. It is not a repo-launched real-online controlled-fault matrix and must not be used as internal-only diagnosis accuracy.",
+    "command": [
+      "analyze_controlled_fault_matrix.py"
+    ],
+    "evidence_label": "derived-artifact",
+    "repo": {
+      "branch": "main",
+      "commit": "f648c44f50fe3a0cda890a37b222dd55e967d4e4",
+      "dirty": true,
+      "dirty_excluding_output_dir": true,
+      "dirty_exclusion_dir": "/home/shuhao/vllm-request-lifecycle-profiler-plugin/.benchmarks/results/npu6_controlled_fault_matrix",
+      "path": "/home/shuhao/vllm-request-lifecycle-profiler-plugin"
+    },
+    "result_valid_for_real_online_accuracy_claims": false,
+    "result_valid_for_speedup_claims": false,
+    "timestamp_utc": "2026-07-25T17:45:48.254347+00:00"
+  },
+  "missing_rows": [
+    {
+      "case_id": "queue_pressure",
+      "causal_rules_enabled_correct": null,
+      "evidence_label": null,
+      "expected_bottleneck": "queueing",
+      "missing_reason": "No benchmark-owned repo-launched queue-pressure fault with ground-truth scheduler admission delay is checked in.",
+      "observed_bottleneck": null,
+      "status": "missing_real_online_ground_truth"
+    },
+    {
+      "case_id": "kv_pressure",
+      "causal_rules_enabled_correct": null,
+      "evidence_label": null,
+      "expected_bottleneck": "kv_pressure",
+      "missing_reason": "No checked-in live run emits KV allocation/cache-pressure fields or ground-truth KV-pressure injection.",
+      "observed_bottleneck": null,
+      "status": "missing_real_online_ground_truth"
+    },
+    {
+      "case_id": "cleanup_stall",
+      "causal_rules_enabled_correct": null,
+      "evidence_label": null,
+      "expected_bottleneck": "cleanup",
+      "missing_reason": "No checked-in live cleanup-stall injection or cleanup substage hook is available.",
+      "observed_bottleneck": null,
+      "status": "missing_real_online_ground_truth"
+    }
+  ],
+  "rows": [
+    {
+      "baseline_comparison": [
+        {
+          "baseline": "causal_rules_enabled",
+          "correct": true,
+          "diagnostic_steps": 1,
+          "notes": "Reads derived lifecycle diagnosis summary and per-request spans.",
+          "observed_bottleneck": "streaming",
+          "status": "available",
+          "time_to_root_cause_measurement": "scripted_not_human_timed"
+        },
+        {
+          "baseline": "simple_stage_timer",
+          "correct": true,
+          "diagnostic_steps": 2,
+          "notes": "Uses largest client-visible lifecycle span; current positive cases do not yet require KV-specific causal rules.",
+          "observed_bottleneck": "streaming",
+          "status": "available",
+          "time_to_root_cause_measurement": "scripted_not_human_timed"
+        },
+        {
+          "baseline": "causal_rules_disabled",
+          "correct": true,
+          "diagnostic_steps": 2,
+          "notes": "Falls back to timer-only dominant span. This is not enough for KV-pressure claims.",
+          "observed_bottleneck": "streaming",
+          "status": "available",
+          "time_to_root_cause_measurement": "scripted_not_human_timed"
+        },
+        {
+          "baseline": "raw_logs",
+          "correct": null,
+          "diagnostic_steps": null,
+          "notes": "No raw vLLM/vLLM-HUST log bundle is checked in for this matrix.",
+          "observed_bottleneck": null,
+          "status": "missing",
+          "time_to_root_cause_measurement": "not_measured"
+        },
+        {
+          "baseline": "manual_posthoc",
+          "correct": null,
+          "diagnostic_steps": null,
+          "notes": "No timed human/manual diagnosis protocol has been run.",
+          "observed_bottleneck": null,
+          "status": "missing",
+          "time_to_root_cause_measurement": "not_measured"
+        },
+        {
+          "baseline": "event_coverage",
+          "correct": true,
+          "diagnostic_steps": 1,
+          "notes": "Reports missing-event p95 from derived diagnosis.",
+          "observed_bottleneck": "complete",
+          "status": "available",
+          "time_to_root_cause_measurement": "not_applicable"
+        }
+      ],
+      "case_id": "slow_stream_backpressure",
+      "causal_rules_enabled_correct": true,
+      "diagnosis_dir": ".benchmarks/results/npu6_runtime_hooks_slow_stream_fault_diagnosis",
+      "evidence_label": "derived-artifact over existing-server-probe",
+      "expected_bottleneck": "streaming",
+      "ground_truth": {
+        "injection": "per_chunk_read_delay_ms=80",
+        "known_fault_layer": "client_stream_reader",
+        "source": "probe_client"
+      },
+      "latency_p95_ms": 5334.742314741015,
+      "measured_request_count": 4,
+      "missing_event_rate_p95": 0.0,
+      "observed_bottleneck": "streaming",
+      "probe_dir": ".benchmarks/results/npu6_runtime_hooks_slow_stream_fault_smoke",
+      "probe_error_count": 0,
+      "probe_success_count": 4,
+      "result_valid_for_internal_only_accuracy_claims": false,
+      "result_valid_for_speedup_claims": false,
+      "runtime_complete_chain_count": 5,
+      "runtime_missing_stage_counts": {},
+      "runtime_request_chain_count": 5,
+      "runtime_trace_summary": ".benchmarks/results/npu6_runtime_hooks_slow_stream_fault_smoke/runtime_trace_summary.json",
+      "source_dirty_excluding_output_dir": false,
+      "source_parent_commit": "133042e2241e481788e8922887e9a5598430edf4",
+      "status": "available",
+      "ttft_p95_ms": 207.75136670563364
+    },
+    {
+      "baseline_comparison": [
+        {
+          "baseline": "causal_rules_enabled",
+          "correct": true,
+          "diagnostic_steps": 1,
+          "notes": "Reads derived lifecycle diagnosis summary and per-request spans.",
+          "observed_bottleneck": "decode",
+          "status": "available",
+          "time_to_root_cause_measurement": "scripted_not_human_timed"
+        },
+        {
+          "baseline": "simple_stage_timer",
+          "correct": true,
+          "diagnostic_steps": 2,
+          "notes": "Uses largest client-visible lifecycle span; current positive cases do not yet require KV-specific causal rules.",
+          "observed_bottleneck": "decode",
+          "status": "available",
+          "time_to_root_cause_measurement": "scripted_not_human_timed"
+        },
+        {
+          "baseline": "causal_rules_disabled",
+          "correct": true,
+          "diagnostic_steps": 2,
+          "notes": "Falls back to timer-only dominant span. This is not enough for KV-pressure claims.",
+          "observed_bottleneck": "decode",
+          "status": "available",
+          "time_to_root_cause_measurement": "scripted_not_human_timed"
+        },
+        {
+          "baseline": "raw_logs",
+          "correct": null,
+          "diagnostic_steps": null,
+          "notes": "No raw vLLM/vLLM-HUST log bundle is checked in for this matrix.",
+          "observed_bottleneck": null,
+          "status": "missing",
+          "time_to_root_cause_measurement": "not_measured"
+        },
+        {
+          "baseline": "manual_posthoc",
+          "correct": null,
+          "diagnostic_steps": null,
+          "notes": "No timed human/manual diagnosis protocol has been run.",
+          "observed_bottleneck": null,
+          "status": "missing",
+          "time_to_root_cause_measurement": "not_measured"
+        },
+        {
+          "baseline": "event_coverage",
+          "correct": true,
+          "diagnostic_steps": 1,
+          "notes": "Reports missing-event p95 from derived diagnosis.",
+          "observed_bottleneck": "complete",
+          "status": "available",
+          "time_to_root_cause_measurement": "not_applicable"
+        }
+      ],
+      "case_id": "structured_decode_heavy",
+      "causal_rules_enabled_correct": true,
+      "diagnosis_dir": ".benchmarks/results/npu6_runtime_hooks_structured_decode_fault_diagnosis",
+      "evidence_label": "derived-artifact over existing-server-probe",
+      "expected_bottleneck": "decode",
+      "ground_truth": {
+        "injection": "structured-agent decode workload with request_max_tokens=128",
+        "known_fault_layer": "decode_visible_output_length",
+        "source": "workload_shape"
+      },
+      "latency_p95_ms": 2135.8158023795113,
+      "measured_request_count": 4,
+      "missing_event_rate_p95": 0.0,
+      "observed_bottleneck": "decode",
+      "probe_dir": ".benchmarks/results/npu6_runtime_hooks_structured_decode_fault_smoke",
+      "probe_error_count": 0,
+      "probe_success_count": 4,
+      "result_valid_for_internal_only_accuracy_claims": false,
+      "result_valid_for_speedup_claims": false,
+      "runtime_complete_chain_count": 5,
+      "runtime_missing_stage_counts": {},
+      "runtime_request_chain_count": 5,
+      "runtime_trace_summary": ".benchmarks/results/npu6_runtime_hooks_structured_decode_fault_smoke/runtime_trace_summary.json",
+      "source_dirty_excluding_output_dir": true,
+      "source_parent_commit": "5646a5fb03299fce06d53acc6c4df9706951f91b",
+      "status": "available",
+      "ttft_p95_ms": 150.95978083554652
+    },
+    {
+      "baseline_comparison": [
+        {
+          "baseline": "causal_rules_enabled",
+          "correct": true,
+          "diagnostic_steps": 1,
+          "notes": "Reads derived lifecycle diagnosis summary and per-request spans.",
+          "observed_bottleneck": "prefill",
+          "status": "available",
+          "time_to_root_cause_measurement": "scripted_not_human_timed"
+        },
+        {
+          "baseline": "simple_stage_timer",
+          "correct": true,
+          "diagnostic_steps": 2,
+          "notes": "Uses largest client-visible lifecycle span; current positive cases do not yet require KV-specific causal rules.",
+          "observed_bottleneck": "prefill",
+          "status": "available",
+          "time_to_root_cause_measurement": "scripted_not_human_timed"
+        },
+        {
+          "baseline": "causal_rules_disabled",
+          "correct": true,
+          "diagnostic_steps": 2,
+          "notes": "Falls back to timer-only dominant span. This is not enough for KV-pressure claims.",
+          "observed_bottleneck": "prefill",
+          "status": "available",
+          "time_to_root_cause_measurement": "scripted_not_human_timed"
+        },
+        {
+          "baseline": "raw_logs",
+          "correct": null,
+          "diagnostic_steps": null,
+          "notes": "No raw vLLM/vLLM-HUST log bundle is checked in for this matrix.",
+          "observed_bottleneck": null,
+          "status": "missing",
+          "time_to_root_cause_measurement": "not_measured"
+        },
+        {
+          "baseline": "manual_posthoc",
+          "correct": null,
+          "diagnostic_steps": null,
+          "notes": "No timed human/manual diagnosis protocol has been run.",
+          "observed_bottleneck": null,
+          "status": "missing",
+          "time_to_root_cause_measurement": "not_measured"
+        },
+        {
+          "baseline": "event_coverage",
+          "correct": true,
+          "diagnostic_steps": 1,
+          "notes": "Reports missing-event p95 from derived diagnosis.",
+          "observed_bottleneck": "complete",
+          "status": "available",
+          "time_to_root_cause_measurement": "not_applicable"
+        }
+      ],
+      "case_id": "prompt_heavy_low_output",
+      "causal_rules_enabled_correct": true,
+      "diagnosis_dir": ".benchmarks/results/npu6_runtime_hooks_prompt_heavy_low_output_diagnosis",
+      "evidence_label": "derived-artifact over existing-server-probe",
+      "expected_bottleneck": "prefill",
+      "ground_truth": {
+        "injection": "structured-agent prompt with request_max_tokens=4",
+        "known_fault_layer": "prefill_visible_prompt_processing",
+        "source": "workload_shape"
+      },
+      "latency_p95_ms": 170.13156237080688,
+      "measured_request_count": 8,
+      "missing_event_rate_p95": 0.0,
+      "observed_bottleneck": "prefill",
+      "probe_dir": ".benchmarks/results/npu6_runtime_hooks_prompt_heavy_low_output_smoke",
+      "probe_error_count": 0,
+      "probe_success_count": 8,
+      "result_valid_for_internal_only_accuracy_claims": false,
+      "result_valid_for_speedup_claims": false,
+      "runtime_complete_chain_count": 9,
+      "runtime_missing_stage_counts": {},
+      "runtime_request_chain_count": 9,
+      "runtime_trace_summary": ".benchmarks/results/npu6_runtime_hooks_prompt_heavy_low_output_smoke/runtime_trace_summary.json",
+      "source_dirty_excluding_output_dir": false,
+      "source_parent_commit": "24ec4cfeea2e4c77f92266ab03788f1120262fcf",
+      "status": "available",
+      "ttft_p95_ms": 133.89123859815294
+    },
+    {
+      "baseline_comparison": [
+        {
+          "baseline": "causal_rules_enabled",
+          "correct": true,
+          "diagnostic_steps": 1,
+          "notes": "Reads derived lifecycle diagnosis summary and per-request spans.",
+          "observed_bottleneck": "prefill",
+          "status": "available",
+          "time_to_root_cause_measurement": "scripted_not_human_timed"
+        },
+        {
+          "baseline": "simple_stage_timer",
+          "correct": true,
+          "diagnostic_steps": 2,
+          "notes": "Uses largest client-visible lifecycle span; current positive cases do not yet require KV-specific causal rules.",
+          "observed_bottleneck": "prefill",
+          "status": "available",
+          "time_to_root_cause_measurement": "scripted_not_human_timed"
+        },
+        {
+          "baseline": "causal_rules_disabled",
+          "correct": true,
+          "diagnostic_steps": 2,
+          "notes": "Falls back to timer-only dominant span. This is not enough for KV-pressure claims.",
+          "observed_bottleneck": "prefill",
+          "status": "available",
+          "time_to_root_cause_measurement": "scripted_not_human_timed"
+        },
+        {
+          "baseline": "raw_logs",
+          "correct": null,
+          "diagnostic_steps": null,
+          "notes": "No raw vLLM/vLLM-HUST log bundle is checked in for this matrix.",
+          "observed_bottleneck": null,
+          "status": "missing",
+          "time_to_root_cause_measurement": "not_measured"
+        },
+        {
+          "baseline": "manual_posthoc",
+          "correct": null,
+          "diagnostic_steps": null,
+          "notes": "No timed human/manual diagnosis protocol has been run.",
+          "observed_bottleneck": null,
+          "status": "missing",
+          "time_to_root_cause_measurement": "not_measured"
+        },
+        {
+          "baseline": "event_coverage",
+          "correct": true,
+          "diagnostic_steps": 1,
+          "notes": "Reports missing-event p95 from derived diagnosis.",
+          "observed_bottleneck": "complete",
+          "status": "available",
+          "time_to_root_cause_measurement": "not_applicable"
+        }
+      ],
+      "case_id": "concurrency2_prefill_tail",
+      "causal_rules_enabled_correct": true,
+      "diagnosis_dir": ".benchmarks/results/npu6_runtime_hooks_concurrency_sweep/diagnosis_concurrency_2",
+      "evidence_label": "derived-artifact over existing-server-probe",
+      "expected_bottleneck": "prefill",
+      "ground_truth": {
+        "injection": "structured-agent concurrency=2 sweep block",
+        "known_fault_layer": "runtime_prefill_tail_unresolved_substage",
+        "source": "observed_anomaly"
+      },
+      "latency_p95_ms": 12404.060316551477,
+      "measured_request_count": 9,
+      "missing_event_rate_p95": 0.0,
+      "observed_bottleneck": "prefill",
+      "prefill_outlier_concurrency_values": [
+        2
+      ],
+      "prefill_outlier_count": 2,
+      "probe_dir": ".benchmarks/results/npu6_runtime_hooks_concurrency_sweep/concurrency_2",
+      "probe_error_count": 0,
+      "probe_success_count": 9,
+      "required_subprefill_instrumentation": [
+        {
+          "component": "scheduler_to_prefill",
+          "fields": [
+            "scheduler_dispatch_timestamp_ms",
+            "worker_prefill_start_timestamp_ms",
+            "scheduled_batch_size",
+            "scheduled_prefill_tokens"
+          ],
+          "missing_fields": [
+            "scheduler_dispatch_timestamp_ms",
+            "worker_prefill_start_timestamp_ms",
+            "scheduled_batch_size",
+            "scheduled_prefill_tokens"
+          ],
+          "question": "Is the tail in scheduler-to-worker handoff or after prefill starts?",
+          "status": "missing"
+        },
+        {
+          "component": "kv_allocation_cache_pressure",
+          "fields": [
+            "kv_allocation_duration_ms",
+            "kv_blocks_requested",
+            "kv_blocks_allocated",
+            "kv_free_blocks_before",
+            "kv_free_blocks_after"
+          ],
+          "missing_fields": [
+            "kv_allocation_duration_ms",
+            "kv_blocks_requested",
+            "kv_blocks_allocated",
+            "kv_free_blocks_before",
+            "kv_free_blocks_after"
+          ],
+          "question": "Does KV allocation or cache pressure consume the prefill span?",
+          "status": "missing"
+        },
+        {
+          "component": "graph_batch_transition",
+          "fields": [
+            "execution_mode",
+            "graph_key",
+            "graph_capture_or_compile_duration_ms",
+            "previous_batch_shape",
+            "current_batch_shape"
+          ],
+          "missing_fields": [
+            "execution_mode",
+            "graph_key",
+            "graph_capture_or_compile_duration_ms",
+            "previous_batch_shape",
+            "current_batch_shape"
+          ],
+          "question": "Does a graph capture, compile, or batch-shape transition explain the tail?",
+          "status": "missing"
+        },
+        {
+          "component": "prefill_kernel_execution",
+          "fields": [
+            "prefill_kernel_start_timestamp_ms",
+            "prefill_kernel_end_timestamp_ms",
+            "prefill_device_duration_ms",
+            "attention_backend"
+          ],
+          "missing_fields": [
+            "prefill_kernel_start_timestamp_ms",
+            "prefill_kernel_end_timestamp_ms",
+            "prefill_device_duration_ms",
+            "attention_backend"
+          ],
+          "question": "Is the delay inside device execution, and on which prefill path?",
+          "status": "missing"
+        }
+      ],
+      "result_valid_for_internal_only_accuracy_claims": false,
+      "result_valid_for_speedup_claims": false,
+      "runtime_complete_chain_count": 30,
+      "runtime_missing_stage_counts": {},
+      "runtime_request_chain_count": 30,
+      "runtime_trace_summary": ".benchmarks/results/npu6_runtime_hooks_concurrency_sweep/runtime_trace_summary.json",
+      "source_dirty_excluding_output_dir": true,
+      "source_parent_commit": "89c1a4a0c5ccc7a2768dbae5cacb7f1f35a62a90",
+      "status": "available",
+      "tail_root_cause_status": "unresolved",
+      "tail_stage_localization": "prefill",
+      "ttft_p95_ms": 12299.080367106944
+    }
+  ],
+  "summary": {
+    "available_case_count": 4,
+    "causal_rules_enabled_accuracy_available_cases": 1.0,
+    "claim_boundary": "Benchmark-owned aggregation over checked-in NPU6 existing-server probe and diagnosis artifacts. It is not a repo-launched real-online controlled-fault matrix and must not be used as internal-only diagnosis accuracy.",
+    "evidence_label": "derived-artifact",
+    "false_negative_count_available_cases": 0,
+    "false_positive_count_available_cases": 0,
+    "manual_time_to_root_cause_status": "not_measured",
+    "missing_classes": [
+      "queue_pressure",
+      "kv_pressure",
+      "cleanup_stall"
+    ],
+    "missing_event_rate_p95_max_available_cases": 0.0,
+    "missing_real_online_case_count": 3,
+    "raw_log_baseline_status": "missing",
+    "real_online_matrix_status": "incomplete",
+    "required_case_count": 7,
+    "source_evidence_labels": [
+      "existing-server-probe",
+      "derived-artifact"
+    ]
+  }
+}

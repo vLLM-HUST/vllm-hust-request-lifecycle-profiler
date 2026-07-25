@@ -1,0 +1,26 @@
+[
+  {
+    "case_id": "slow_stream_backpressure",
+    "injection": "per_chunk_read_delay_ms=80",
+    "known_fault_layer": "client_stream_reader",
+    "source": "probe_client"
+  },
+  {
+    "case_id": "structured_decode_heavy",
+    "injection": "structured-agent decode workload with request_max_tokens=128",
+    "known_fault_layer": "decode_visible_output_length",
+    "source": "workload_shape"
+  },
+  {
+    "case_id": "prompt_heavy_low_output",
+    "injection": "structured-agent prompt with request_max_tokens=4",
+    "known_fault_layer": "prefill_visible_prompt_processing",
+    "source": "workload_shape"
+  },
+  {
+    "case_id": "concurrency2_prefill_tail",
+    "injection": "structured-agent concurrency=2 sweep block",
+    "known_fault_layer": "runtime_prefill_tail_unresolved_substage",
+    "source": "observed_anomaly"
+  }
+]

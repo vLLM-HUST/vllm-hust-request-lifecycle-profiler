@@ -159,6 +159,17 @@ at 0.987; the only two >1 s runtime-prefill outliers occur in concurrency 2.
 Treat this as an internally confirmed prefill-tail boundary under fixed
 token/cache shape, not as KV allocator proof yet.
 
+The benchmark-owned controlled-fault audit is checked in at
+`.benchmarks/results/npu6_controlled_fault_matrix/`. It aggregates the available
+NPU6 fault artifacts into seven required rows: four available
+existing-server-probe/derived cases (slow streaming backpressure, decode-heavy,
+prompt-heavy prefill, and the concurrency-2 prefill tail) and three explicit
+missing gates (queue pressure, KV pressure, cleanup). The current matrix reports
+4/4 available-row attribution agreement and 0.0 p95 missing-event rate, but its
+`real_online_matrix_status` is `incomplete`; use it as a readiness audit, not as
+live internal diagnosis accuracy. Raw-log and manual time-to-root-cause
+baselines are also recorded as missing/not measured.
+
 Two attempted long-context candidates are intentionally marked invalid:
 `.benchmarks/results/npu6_runtime_hooks_long_prefill_fault_smoke/` and
 `.benchmarks/results/npu6_runtime_hooks_decode_heavy_fault_smoke/` both failed
@@ -181,6 +192,13 @@ workload matrix.
   output, KV pressure boundary, slow streaming client, and cleanup stall
   conditions.
 - Measure whether attribution matches injected ground truth.
+- For the next NPU6 pass, prioritize repo-launched graph-mode rows for queue
+  pressure, KV pressure, and cleanup, then add raw logs, simple timers,
+  causal-rules-disabled diagnosis, and a timed manual diagnosis baseline.
+- Extend the runtime hook beyond the coarse prefill span with scheduler
+  dispatch/start timestamps, KV allocation/cache-pressure counters, graph or
+  batch transition fields, and prefill kernel timing before making a KV/graph
+  root-cause claim for the concurrency-2 tail.
 
 Evidence label: `real-online` only when the runtime actually serves requests on
 NPU6; otherwise use `replay` or `simulation/model`.

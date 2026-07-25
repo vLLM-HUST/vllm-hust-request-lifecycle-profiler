@@ -1,5 +1,6 @@
 TECTONIC ?= tectonic
 PYTHON ?= python3
+SOURCE_DATE_EPOCH ?= 0
 PAPER_TEX := request_lifecycle_causal_profiler.tex
 PAPER_PDF := request_lifecycle_causal_profiler.pdf
 OUTDIR := build
@@ -19,6 +20,7 @@ TABLES_DIR := tables
 MANUAL_TABLES_DIR := $(TABLES_DIR)/manual
 GENERATED_TABLES_DIR := $(TABLES_DIR)/generated
 PAPER_ASSET_EXPORT_SCRIPT := $(EXPERIMENTS_DIR)/export_paper_assets.py
+PDF_CANONICALIZE_SCRIPT := $(EXPERIMENTS_DIR)/canonicalize_pdf.py
 PAPER_ASSET_MANIFEST := $(PAPER_ASSET_OUTPUT_DIR)/paper_asset_manifest.json
 PAPER_ASSET_SUMMARY_MD := $(PAPER_ASSET_OUTPUT_DIR)/paper_asset_summary.md
 PAPER_ASSET_SUMMARY_TEX := $(GENERATED_TABLES_DIR)/results_summary.tex
@@ -48,7 +50,8 @@ paper-assets: $(PAPER_ASSET_EXPORT_SCRIPT)
 
 pdf: paper-assets
 	mkdir -p $(OUTDIR) $(CACHE_DIR) $(CONFIG_DIR)
-	XDG_CACHE_HOME=$(CURDIR)/$(CACHE_DIR) XDG_CONFIG_HOME=$(CURDIR)/$(CONFIG_DIR) $(TECTONIC) --keep-logs --keep-intermediates --outdir $(OUTDIR) $(PAPER_TEX)
+	SOURCE_DATE_EPOCH=$(SOURCE_DATE_EPOCH) FORCE_SOURCE_DATE=1 XDG_CACHE_HOME=$(CURDIR)/$(CACHE_DIR) XDG_CONFIG_HOME=$(CURDIR)/$(CONFIG_DIR) $(TECTONIC) --keep-logs --keep-intermediates --outdir $(OUTDIR) $(PAPER_TEX)
+	$(PYTHON) $(PDF_CANONICALIZE_SCRIPT) $(OUTDIR)/$(PAPER_PDF)
 	@if [ -d "$(LLM_OPTIMIZATIONS_ROOT)" ] && [ -f "$(OUTDIR)/$(PAPER_PDF)" ]; then \
 		python3 "$(LLM_OPTIMIZATIONS_ROOT)/scripts/export_paper_pdf.py" \
 			--workspace-file "$(LLM_OPTIMIZATIONS_ROOT)/llm-optimizations.code-workspace" \

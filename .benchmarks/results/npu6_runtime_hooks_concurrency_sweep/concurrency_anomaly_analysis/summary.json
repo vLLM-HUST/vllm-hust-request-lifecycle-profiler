@@ -1,7 +1,34 @@
 {
   "chain_count": 30,
+  "diagnosis": {
+    "root_cause_candidates_not_distinguished": [
+      "scheduler_to_prefill",
+      "kv_allocation_cache_pressure",
+      "graph_batch_transition",
+      "prefill_kernel_execution"
+    ],
+    "root_cause_status": "unresolved",
+    "stage_localization": "prefill",
+    "stage_localization_status": "localized"
+  },
   "interpretation": "The checked-in sweep holds prompt_tokens and generation_tokens constant. The only >1s runtime prefill outliers occur in the concurrency-2 block, while queueing/decode stay small. Current hooks therefore justify the next instrumentation split inside prefill, especially scheduler-output shape, KV allocation/cache state, graph/batch transition, and prefill kernel execution.",
   "measured_chain_count": 27,
+  "observed_metadata_fields": [
+    "cached_tokens",
+    "external_request_id",
+    "finish_reason",
+    "first_token_latency_ms",
+    "generation_tokens",
+    "max_tokens",
+    "observer",
+    "output_count",
+    "prompt_count",
+    "prompt_index",
+    "prompt_tokens",
+    "queue_delay_ms",
+    "route",
+    "source"
+  ],
   "outlier_threshold_ms": 4306.062172102924,
   "outliers": [
     {
@@ -165,5 +192,79 @@
   "prefill_outlier_concurrency_values": [
     2
   ],
-  "prefill_outlier_count": 2
+  "prefill_outlier_count": 2,
+  "required_subprefill_instrumentation": [
+    {
+      "component": "scheduler_to_prefill",
+      "fields": [
+        "scheduler_dispatch_timestamp_ms",
+        "worker_prefill_start_timestamp_ms",
+        "scheduled_batch_size",
+        "scheduled_prefill_tokens"
+      ],
+      "missing_fields": [
+        "scheduler_dispatch_timestamp_ms",
+        "worker_prefill_start_timestamp_ms",
+        "scheduled_batch_size",
+        "scheduled_prefill_tokens"
+      ],
+      "question": "Is the tail in scheduler-to-worker handoff or after prefill starts?",
+      "status": "missing"
+    },
+    {
+      "component": "kv_allocation_cache_pressure",
+      "fields": [
+        "kv_allocation_duration_ms",
+        "kv_blocks_requested",
+        "kv_blocks_allocated",
+        "kv_free_blocks_before",
+        "kv_free_blocks_after"
+      ],
+      "missing_fields": [
+        "kv_allocation_duration_ms",
+        "kv_blocks_requested",
+        "kv_blocks_allocated",
+        "kv_free_blocks_before",
+        "kv_free_blocks_after"
+      ],
+      "question": "Does KV allocation or cache pressure consume the prefill span?",
+      "status": "missing"
+    },
+    {
+      "component": "graph_batch_transition",
+      "fields": [
+        "execution_mode",
+        "graph_key",
+        "graph_capture_or_compile_duration_ms",
+        "previous_batch_shape",
+        "current_batch_shape"
+      ],
+      "missing_fields": [
+        "execution_mode",
+        "graph_key",
+        "graph_capture_or_compile_duration_ms",
+        "previous_batch_shape",
+        "current_batch_shape"
+      ],
+      "question": "Does a graph capture, compile, or batch-shape transition explain the tail?",
+      "status": "missing"
+    },
+    {
+      "component": "prefill_kernel_execution",
+      "fields": [
+        "prefill_kernel_start_timestamp_ms",
+        "prefill_kernel_end_timestamp_ms",
+        "prefill_device_duration_ms",
+        "attention_backend"
+      ],
+      "missing_fields": [
+        "prefill_kernel_start_timestamp_ms",
+        "prefill_kernel_end_timestamp_ms",
+        "prefill_device_duration_ms",
+        "attention_backend"
+      ],
+      "question": "Is the delay inside device execution, and on which prefill path?",
+      "status": "missing"
+    }
+  ]
 }

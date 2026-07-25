@@ -1,0 +1,23 @@
+{
+  "available_case_count": 4,
+  "causal_rules_enabled_accuracy_available_cases": 1.0,
+  "claim_boundary": "Benchmark-owned aggregation over checked-in NPU6 existing-server probe and diagnosis artifacts. It is not a repo-launched real-online controlled-fault matrix and must not be used as internal-only diagnosis accuracy.",
+  "evidence_label": "derived-artifact",
+  "false_negative_count_available_cases": 0,
+  "false_positive_count_available_cases": 0,
+  "manual_time_to_root_cause_status": "not_measured",
+  "missing_classes": [
+    "queue_pressure",
+    "kv_pressure",
+    "cleanup_stall"
+  ],
+  "missing_event_rate_p95_max_available_cases": 0.0,
+  "missing_real_online_case_count": 3,
+  "raw_log_baseline_status": "missing",
+  "real_online_matrix_status": "incomplete",
+  "required_case_count": 7,
+  "source_evidence_labels": [
+    "existing-server-probe",
+    "derived-artifact"
+  ]
+}

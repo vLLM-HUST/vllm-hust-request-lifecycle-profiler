@@ -1,6 +1,20 @@
 \documentclass[sigconf,screen,nonacm]{acmart}
 
-\title{Causal Request Lifecycle Profiling for LLM Serving}
+\usepackage{tabularx}
+\usepackage{float}
+\usepackage{balance}
+\hyphenpenalty=700
+\exhyphenpenalty=500
+\tolerance=1200
+\emergencystretch=1em
+\hypersetup{
+  pdfcreationdate={D:20260725000000Z},
+  pdfmoddate={D:20260725000000Z},
+  pdfdocumentid={uuid:7fad99ba-31f4-48c5-bd5b-79c19431a164},
+  pdfinstanceid={uuid:7fad99ba-31f4-48c5-bd5b-79c19431a164}
+}
+
+\title{Request-Lifecycle Profiling for Diagnosing LLM Serving Latency}
 
 \author{Anonymous Authors}
 \affiliation{\institution{Anonymous Institution}\country{}}
@@ -9,258 +23,276 @@
 \begin{document}
 
 \begin{abstract}
-LLM serving slowdowns are often diagnosed from aggregate latency and scattered
-logs, making it difficult to distinguish causal bottlenecks from correlated
-symptoms. This draft studies request lifecycle profiling: representing each
-request as an ordered timeline across tokenization, queueing, prefill, decode,
-streaming, and cleanup, then attributing the dominant bottleneck under
-controlled fault injection. The current artifact contains the trace schema,
-attribution skeleton, deterministic synthetic fault-injection harness, tests,
-NPU6 preflight contract, warmup-controlled client-observed trace probe,
-experiment plan, and claim ledger. It does not yet claim internal vLLM
-scheduler/KV tracing, measured diagnosis accuracy, or internal runtime tracing
-overhead.
+Aggregate latency metrics reveal that an LLM request is slow, but not whether
+the delay arose in admission, prefill, decoding, response delivery, or cleanup.
+We investigate a request-lifecycle profiler that joins ordered events across
+these stages, rejects incomplete traces, and applies explicit attribution rules
+to complete spans. Checked-in probes against an existing NPU server provide
+three controlled workload contrasts. An injected slow-reader delay is assigned
+to streaming for all four measured requests; decode-heavy and
+prompt-heavy/low-output contrasts are assigned to decode for four of four and
+prefill for eight of eight measured requests, respectively. These repeated
+requests validate scenario correspondence, not independent estimates of
+diagnosis accuracy. In a separate concurrency sweep, the profiler localizes two
+12.2\,s-class tails to the coarse runtime prefill span, narrowing the next
+experiment without identifying a scheduler, KV-cache, graph, or kernel root
+cause. Queue, KV-pressure, and cleanup ground truth, controlled online runs,
+and broad overhead measurements remain missing. The current evidence therefore
+supports the diagnostic method and a focused research agenda, but not a
+submission-ready evaluation.
 \end{abstract}
 
-\keywords{LLM serving, observability, profiling, causal diagnosis}
+\keywords{LLM serving, latency diagnosis, lifecycle tracing, observability}
 
 \maketitle
 
-\section{Problem}
+\section{Introduction}
 
-Aggregate TTFT and TPOT report symptoms, not causes. A request may be slow
-because of queueing, prefill saturation, KV allocation, decode jitter, slow
-streaming, or cleanup stalls. We study whether lifecycle traces can become
-auditable causal evidence for optimization work.
+Modern LLM serving systems schedule token-by-token execution, manage a shared
+KV cache, and stream results to clients. Systems such as Orca, vLLM, and SGLang
+optimize these mechanisms to improve latency or throughput
+\cite{orca2022,vllm2023,sglang2024}. Their aggregate metrics, however, collapse
+distinct causes into the same symptom. A high time to first token (TTFT) might
+reflect admission delay, prefill execution, cache management, or a graph
+transition. High end-to-end latency with normal TTFT might instead be caused by
+decoding or by a slow consumer. Choosing an optimization from the aggregate
+number alone can target the wrong stage.
 
-\section{Key Idea}
+Distributed tracing links work performed for one request across components
+\cite{dapper2010}. General latency profilers can also identify functions
+associated with tail events \cite{ldb2024}. LLM serving adds a semantic
+boundary that these abstractions do not by themselves supply: a useful
+diagnosis must distinguish ordered serving stages and must say when missing
+events make that diagnosis unsafe. The research question in this draft is
+therefore: \emph{can ordered request-lifecycle events provide an auditable
+stage diagnosis that is more actionable than aggregate request timers?}
 
-Each request emits ordered lifecycle events. The profiler converts complete
-event pairs into stage spans and attributes the dominant bottleneck using an
-explicit rule set that can be validated by fault-injection ground truth.
+Our approach assigns each request a sequence of stage events from receipt
+through cleanup. It derives spans only when both endpoints are present, reports
+schema completeness, and applies explicit causal rules to complete spans. The
+rules are intentionally simple: the largest valid span supplies the default
+stage diagnosis, while stage-specific metadata may refine it (for example, a
+KV-pressure marker can refine a queue or prefill diagnosis). This separation
+between observations, completeness, and rules makes a conclusion inspectable
+and falsifiable.
 
-\section{Design Scope}
+This draft makes three contributions, each with a deliberately narrow evidence
+boundary:
 
-The first implementation provides trace primitives, schema coverage checks, and
-deterministic attribution logic. The no-NPU harness covers tokenizer delay,
-queueing, prefill, decode, KV pressure, streaming backpressure, and cleanup
-stalls with known ground truth. The NPU6 preflight contract specifies the
-endpoint, model path, authentication, Ascend runtime root, device ownership, and
-trace export schema required before existing-server probes can support
-client-observed online evidence. The current NPU6 probe records request
-preparation, HTTP send, first streamed chunk, stream completion, and cleanup
-from the probe process. The latest runtime hook path also records internal
-OpenAI entry, scheduler, prefill, first-token, decode, stream-handoff, and
-cleanup events through a repo-local bridge when trace export is enabled.
+\begin{itemize}
+  \item a request-lifecycle schema and completeness contract spanning
+  tokenization, queueing, prefill, decode, streaming, and cleanup;
+  \item deterministic attribution rules and a controlled-fault audit that
+  records both supported scenarios and missing online ground truth; and
+  \item an empirical case showing that a severe latency tail can be localized
+  to a coarse prefill interval, changing the next instrumentation step without
+  overclaiming a substage root cause.
+\end{itemize}
 
-\section{Evaluation Plan}
+The evidence is not yet sufficient for a conference submission. All current
+NPU measurements are probes of an already-running server rather than
+repository-controlled online experiments, and several central baselines and
+fault classes remain absent. We retain this limitation because it determines
+the experiments that must be run next.
 
-The evaluation will compare the profiler against raw logs, simple stage timers,
-manual diagnosis, and profiler reports with causal rules disabled. Metrics
-include attribution accuracy, false positives, false negatives, tracing
-overhead, event coverage, and root-cause diagnosis time. Internal runtime-hook
-evidence is now available for the NPU6 smoke workload; controlled live faults
-with known ground truth remain required before claiming runtime diagnosis
-accuracy.
+\section{Background and Motivation}
 
-\section{Current Evidence Boundary}
+\subsection{Why aggregate timers are ambiguous}
 
-No-NPU trace tests and a deterministic synthetic fault-injection matrix are
-currently supported as \texttt{simulation/model} evidence. The latest synthetic
-matrix reports seven of seven correct attributions with zero false positives,
-zero false negatives, and zero missing-event rate
-(Table~\ref{tab:synthetic-faults}). This validates the deterministic span and
-attribution logic under known ground truth before interpreting live traces.
+TTFT covers work before the first visible token, while time per output token
+(TPOT) summarizes generation after that point. Neither metric uniquely maps to
+a serving mechanism. Queueing, tokenization, prefill, and runtime transitions
+can all inflate TTFT; decode execution and client backpressure can both inflate
+end-to-end latency. A timer can rank slow requests but cannot, without further
+structure, distinguish these explanations.
 
-The live NPU6 evidence is narrower. The repo-local preflight is READY, and a
-warmup-controlled existing-server probe records one warmup request plus 12
-measured streaming requests on the managed NPU6 endpoint. All measured requests
-succeed, and the probe emits 117 client-observed lifecycle events across nine
-stage names. Table~\ref{tab:npu6-trace} summarizes the generated paper asset.
-A matched proxy-overhead suite then replays the same 12-request shape with
-client-side event construction disabled and enabled. Trace mode emits 117
-events and changes TTFT p95 by +4.07\,ms relative to no-trace
-(Table~\ref{tab:npu6-overhead}). This is evidence about the probe process, not
-internal runtime hook overhead.
+This ambiguity matters because the remedies conflict. Queueing suggests an
+admission or scheduling experiment. KV pressure suggests cache occupancy and
+allocation instrumentation. A slow stream reader suggests isolating response
+delivery, not tuning accelerator kernels. The profiler is useful only if it
+changes this next decision and if its uncertainty is explicit.
 
-The internal runtime-hook path is now measured separately. A matched NPU6 smoke
-pairs hook-disabled serving with low-overhead hook-enabled serving while keeping
-the same request shape. The enabled run writes 117 runtime JSONL events and
-recovers 13 of 13 complete request chains, each with all nine lifecycle stages.
-After replacing per-event file open/write/close with a persistent append file
-descriptor in the trace sink, the hook-enabled run changes TTFT p95 by
--2.14\,ms and latency p95 by +0.93\,ms relative to the disabled baseline
-(Table~\ref{tab:npu6-runtime-hooks}). This is still a small smoke result, so it
-does not establish TPOT, memory, or broad-workload overhead.
+\section{Profiler Design}
 
-The same trace can also be reduced into a client-visible stage diagnosis. The
-derived diagnosis pass computes per-request spans and coverage from the checked
-in NPU6 proxy events. It reports zero missing-event rate and attributes all 12
-measured requests to the decode-visible span, with decode-proxy p95 of
-98.75\,ms and prefill-proxy p95 of 85.50\,ms
-(Table~\ref{tab:npu6-diagnosis}). This does not prove that the internal runtime
-root cause is decode; rather, it gives a concrete hypothesis that internal
-scheduler, KV, prefill, and decode hooks must confirm or overturn.
+\subsection{Ordered lifecycle events}
 
-We also added a controlled client-visible slow-stream probe. The probe keeps
-TTFT low but intentionally waits 80\,ms while reading each streamed chunk and
-uses a streaming-proxy span boundary. All four measured requests succeed; TTFT
-p95 remains 81.14\,ms, while end-to-end latency p95 rises to 5208.20\,ms. The
-derived diagnosis switches from the normal decode-visible hypothesis to
-streaming for 4/4 measured requests, with streaming-span p95 of 5127.09\,ms
-(Table~\ref{tab:npu6-slow-stream}). This is a controlled client-probe
-backpressure result, not an internal runtime streaming claim.
+An event contains a request identifier, stage, monotonic timestamp, observer,
+and optional metadata. The sequence records receipt, tokenization, queue entry,
+scheduling, prefill completion, first token, decode completion, stream
+completion, and cleanup. Its adjacent semantic endpoints define six spans.
 
-The next NPU6 batch runs the same slow-stream fault with the hook-enabled
-runtime active. The client-visible diagnosis again attributes 4/4 measured
-requests to streaming, with latency p95 of 5334.74\,ms and streaming-span p95
-of 5126.99\,ms. At the same time, the internal runtime hook writes 45 JSONL
-events over 5/5 complete request chains, each containing the nine expected
-lifecycle stages. This closes the hook-coverage gap during a known fault, but
-it is still not an internal-only diagnosis accuracy result: the injected
-client-side slow read remains the ground-truth fault and the runtime trace is a
-coverage/correlation artifact for this batch.
+Proxy events describe HTTP send, first chunk, stream completion, and client
+cleanup. Runtime hooks describe internal boundaries. A proxy diagnosis is a
+client-visible hypothesis; it becomes an internal diagnosis only when runtime
+events support the same boundary.
 
-We then add a second hook-enabled controlled fault using the structured-agent
-decode workload with 128 requested output tokens. This run succeeds for 4/4
-measured requests and switches the client-visible diagnosis to decode for 4/4
-requests. The decode span dominates with p95 1986.54\,ms, while streaming p95
-stays at 0.0\,ms. The internal runtime hook again records 45 events over 5/5
-complete chains. Two attempted long-context candidates failed before usable
-attribution under the current 4096-token service profile; those directories
-are retained as boundary evidence rather than diagnosis results.
+\subsection{Completeness before attribution}
 
-The third hook-enabled fault keeps the same runtime-entering structured-agent
-prompt but reduces requested output to four tokens. This run succeeds for 8/8
-measured requests and switches the client-visible diagnosis to prefill for
-8/8 requests: prefill-span p95 is 133.66\,ms, decode-span p95 is
-36.70\,ms, and streaming p95 remains 0.0\,ms. The internal runtime hook records
-81 events over 9/9 complete chains. This closes the first valid
-prefill-dominant live-fault coverage gap, but it is still not an internal-only
-root-cause accuracy claim.
+For every request, the analyzer enumerates missing stages and spans. It never
+fabricates a duration from a single endpoint. Completeness is part of the
+diagnosis so an absent event cannot silently move blame elsewhere.
 
-Finally, we sweep measured concurrency 1/2/3 on the same structured-agent
-shape with eight requested output tokens. All 27 measured requests succeed,
-and the combined runtime hook trace records 270 events over 30/30 complete
-chains. The sweep exposes a candidate prefill/KV or scheduler boundary rather
-than a simple throughput curve: concurrency 1 is mostly decode-dominant
-(7 decode, 2 prefill) with TTFT p95 163.30\,ms, concurrency 2 switches to
-8/9 prefill-dominant requests with a severe TTFT p95 of 12299.08\,ms and
-prefill-span p95 of 12298.88\,ms, while concurrency 3 is 9/9 prefill-dominant
-but has TTFT p95 131.61\,ms. This is currently a client-visible anomaly with
-runtime-hook coverage. A post-hoc runtime-span analysis confirms that the
-concurrency-2 tail is inside the runtime prefill span: internal prefill p95 is
-12261.98\,ms at concurrency 2, compared with 150.31\,ms at concurrency 1 and
-106.94\,ms at concurrency 3. A chain-level anomaly pass further checks that
-the measured shape is held constant: all measured chains use 2335 prompt tokens
-and eight generation tokens, the median cached-token ratio is 0.987, and the
-only two prefill outliers appear in the concurrency-2 block
-(Table~\ref{tab:npu6-runtime-concurrency-anomaly}). The next step is therefore
-narrower: split this coarse prefill span into scheduler-to-prefill transition,
-graph capture, batch transition, KV allocation, and prefill kernel execution
-signals.
+\subsection{Explicit causal rules}
 
-Table~\ref{tab:npu6-decision-impact} restates the same evidence as an
-optimization decision aid. Ordinary request timers can show that latency is
-large, but lifecycle spans determine which next experiment should run: normal
-proxy traces motivate internal decode/prefill validation, while the slow-stream
-proxy should first test streaming backpressure isolation before tuning compute
-stages. This is the current artifact's strongest evidence that causal traces
-change the optimization queue, while still remaining inside the client-visible
-proxy boundary.
+The default rule selects the largest complete span above a duration threshold.
+Optional metadata may refine that label: a queue or prefill span with an
+explicit KV-pressure marker is reported as KV pressure. The output names the
+span, duration, and reason. Rules can be disabled to recover a timer-only
+baseline.
 
-\begin{table}[t]
+The rules do not infer a kernel, graph, or scheduler cause from a coarse
+prefill span. Such a conclusion requires timestamps and counters on both sides
+of the candidate substage.
+
+\section{Evaluation Method}
+\label{sec:method}
+
+\subsection{Questions}
+
+We ask whether spans correspond to controlled, externally known stage changes,
+and how far current events can localize a non-obvious tail. A complete
+evaluation must later compare causal rules with raw logs, simple timers,
+rules-disabled reports, and timed manual diagnosis.
+
+\subsection{Evidence provenance}
+
+The checked-in NPU results are \emph{existing-server probes}: the repository
+sent requests to a managed Qwen2.5-7B endpoint on NPU6 but did not control the
+serving process. Derived diagnoses therefore support observations about these
+requests, not clean comparisons or online accuracy. The manifests also do not
+establish graph mode, so these are not formal graph-mode results.
+
+Slow streaming is controlled by adding an 80\,ms delay while the client reads
+each chunk. Decode and prefill contrasts use the same structured-agent prompt
+shape with 128 and four requested output tokens, respectively. The concurrency
+sweep uses the same request shape at measured concurrency one, two, and three.
+Repeated requests within a scenario share configuration and server state; they
+are observations of that scenario, not independent lifecycle experiments.
+
+\section{Current Results}
+\label{sec:evaluation}
+
+\subsection{Controlled correspondences and coverage gaps}
+
+Table~\ref{tab:coverage} gives the complete coverage audit. Under the injected
+slow-reader delay, the client-visible diagnosis is streaming for all four
+measured requests, while runtime hooks record five complete request chains.
+The decode-heavy contrast is diagnosed as decode for four of four requests,
+again with five complete runtime chains. The prompt-heavy/low-output contrast
+is diagnosed as prefill for eight of eight requests, with nine complete runtime
+chains. These correspondences show that the event ordering can separate the
+three stages in these checked-in probes. They are not an estimate of population
+accuracy: there are only three scenario configurations, and their repeated
+requests are not independent.
+
+\begin{table*}[t]
 \centering
-\caption{Warmup-controlled NPU6 existing-server probe. The trace is
-client-observed proxy evidence, not yet an internal runtime scheduler/KV trace.}
-\label{tab:npu6-trace}
-\input{tables/generated/npu6_trace_probe_summary.tex}
-\end{table}
+\caption{Coverage audit over checked-in NPU6 artifacts. Available measurements
+are probes of an existing server, and the table is derived from those probes.
+The concurrency tail is an observation, not a controlled-fault row.}
+\label{tab:coverage}
+\input{tables/generated/npu6_controlled_fault_matrix.tex}
+\end{table*}
 
-\begin{table}[t]
-\centering
-\caption{Derived NPU6 proxy-trace diagnosis. The result identifies the dominant
-client-visible span, not an internal scheduler/KV root cause.}
-\label{tab:npu6-diagnosis}
-\input{tables/generated/npu6_trace_diagnosis.tex}
-\end{table}
+\balance
 
-\begin{table}[t]
-\centering
-\caption{Controlled client-visible slow-stream diagnosis on NPU6. The delay is
-introduced by the probe client, so the result validates proxy-stage
-discrimination rather than internal runtime backpressure attribution.}
-\label{tab:npu6-slow-stream}
-\input{tables/generated/npu6_slow_stream_trace_diagnosis.tex}
-\end{table}
+The missing rows are scientifically important. No checked-in
+repository-controlled run provides queue-delay ground truth, KV allocation or
+pressure ground truth, or an injected cleanup stall. The simple largest-span
+timer also agrees with the causal-rule output on the three available scenarios,
+so these cases do not yet show an advantage for causal metadata. A stronger
+evaluation needs a case---most plausibly KV pressure---where the same coarse
+timer span admits competing causes and the metadata rule disambiguates them.
 
-\begin{table}[t]
-\centering
-\caption{Matched no-trace/trace client-probe overhead smoke on NPU6. This is
-existing-server proxy evidence and does not measure internal runtime hook
-overhead or memory cost.}
-\label{tab:npu6-overhead}
-\input{tables/generated/npu6_trace_overhead.tex}
-\end{table}
+\subsection{A non-obvious concurrency tail}
 
-\begin{table}[t]
-\centering
-\caption{Matched hook-disabled/hook-enabled internal runtime lifecycle trace
-smoke on NPU6 after the low-overhead sink change. The enabled run records
-13/13 complete request chains with all nine lifecycle stages.}
-\label{tab:npu6-runtime-hooks}
-\input{tables/generated/npu6_runtime_hook_pair_plan.tex}
-\end{table}
+The concurrency sweep contains 27 measured requests and 30 complete runtime
+chains including warmups. Table~\ref{tab:tail} shows a sharp, non-monotonic
+tail: at concurrency two, the runtime prefill p95 is 12,262.0\,ms and two
+chains exceed one second; concurrency one and three have prefill p95 values of
+150.3 and 106.9\,ms. Prompt tokens (2,335), requested output tokens (eight),
+and median cached-token ratio (0.987) are the same across the three blocks.
 
-\begin{table}[t]
+\begin{table}[H]
 \centering
-\caption{Derived runtime-hook anomaly analysis for the structured-agent
-concurrency sweep. The table localizes the tail to the coarse runtime prefill
-span under a fixed prompt/output/cache shape; it does not prove the sub-stage
-root cause inside prefill.}
-\label{tab:npu6-runtime-concurrency-anomaly}
+\caption{Post-hoc analysis of existing-server runtime traces. The two
+12.2\,s-class events are inside \texttt{scheduled}$\rightarrow$
+\texttt{prefill\_done}; the table does not identify a prefill substage cause.}
+\label{tab:tail}
 \input{tables/generated/npu6_runtime_concurrency_anomaly.tex}
 \end{table}
 
-\begin{table}[t]
-\centering
-\caption{Lifecycle diagnosis changes the next optimization action compared
-with timer-only symptoms. The table is a derived artifact from checked-in
-NPU6 proxy traces and does not claim internal runtime root cause.}
-\label{tab:npu6-decision-impact}
-\input{tables/generated/npu6_diagnosis_decision_impact.tex}
-\end{table}
+This is the strongest non-obvious result, but it is localization rather than
+root cause. Current metadata cannot distinguish scheduler-to-worker handoff,
+KV allocation/cache pressure, graph capture or batch-shape transition, and
+device prefill execution. The profiler nevertheless changes the next step:
+instead of rerunning a broad latency sweep, the frozen follow-up must record
+scheduler dispatch and worker-start timestamps, KV allocation duration and
+free-block counts, graph key/capture duration and batch shapes, and device
+prefill start/end timing. Only a controlled graph-mode rerun with those fields
+could promote one candidate cause.
 
-\section{Claim Boundary}
+\subsection{Overhead evidence}
 
-The current evidence supports trace schema feasibility, synthetic attribution
-coverage, live client-observed lifecycle export, derived proxy-stage diagnosis,
-controlled client-visible slow-stream discrimination, a narrow client-probe
-event-construction overhead smoke, full internal lifecycle capture on a small
-NPU6 smoke workload, bounded runtime-hook overhead on that smoke, runtime-hook
-coverage during known slow-stream and decode-heavy faults, and a derived
-decision-impact view over the same proxy traces. The new prompt-heavy
-low-output fault adds a valid prefill-dominant live case with runtime-hook
-coverage, and the concurrency sweep adds a concrete non-monotonic
-prefill/TTFT tail that is confirmed inside runtime prefill but not yet
-decomposed into KV, graph, batch, or kernel mechanisms. The decision-impact
-table is
-not a new online measurement: it summarizes which follow-up optimization
-experiment each proxy diagnosis justifies. The artifact does not yet support
-claims about internal-only diagnosis accuracy on live faults, memory overhead,
-TPOT overhead, broad workload generality, or root-cause time improvement. Those
-claims require finer decomposition of the concurrency-2 runtime prefill
-anomaly, causal-rule comparison against raw timers, TPOT/HBM overhead evidence
-beyond the smoke workload, and a larger workload matrix.
+The repository contains two small paired probes, but neither supports a broad
+overhead claim. A client-side pair changes TTFT p95 by +4.07\,ms when proxy
+event construction is enabled; this is client-probe overhead, not runtime-hook
+overhead. A separate 12-request runtime-hook pair changes TTFT p95 by
+-2.14\,ms and latency p95 by +0.93\,ms. Its size and workload do not support
+TPOT, CPU, host-memory, NPU-HBM, or general-workload conclusions. We therefore
+exclude overhead from the headline results.
 
-\begin{table}[t]
-\centering
-\caption{Synthetic lifecycle fault-injection matrix with known ground truth.
-This is simulation/model evidence for attribution logic, not a live diagnosis
-accuracy claim.}
-\label{tab:synthetic-faults}
-\input{tables/generated/synthetic_fault_injection.tex}
-\end{table}
+\section{Limitations and Required Evidence}
+
+The current evaluation has four submission blockers. First, the server process
+was not launched by the benchmark harness, so configuration custody and graph
+mode are not established by the manifests. Second, queue, KV-pressure, and
+cleanup ground truth are missing. Third, raw-log, rules-disabled, and timed
+manual baselines have not been measured. Fourth, the overhead pair is too small
+to characterize TPOT or memory costs.
+
+These are evidence blockers, not writing tasks. The project should remain a
+research draft until a frozen, repository-controlled protocol produces
+graph-mode online runs for the missing fault classes and baselines. A hardware
+run is warranted only after the exact protocol, admission checks, device
+availability across NPU0--6, and output manifests are fixed. NPU7 is outside
+scope. Until those conditions hold, further claim polishing would only hide the
+evaluation gap.
+
+\section{Related Work}
+
+LLM serving systems focus on scheduling, batching, cache management, and
+program execution. Orca's iteration-level scheduling, vLLM's paged KV-cache
+management, and SGLang's structured execution runtime expose why a request can
+accumulate latency in different stages \cite{orca2022,vllm2023,sglang2024}.
+Clockwork studies predictable model-serving latency under controlled execution
+\cite{clockwork2020}. Our work does not propose a competing scheduler or cache
+policy; it asks how to determine which of these mechanisms should be examined
+for a particular request.
+
+Distributed tracing systems such as Dapper correlate work across services
+while controlling instrumentation cost \cite{dapper2010}. LDB uses event tags
+to find functions associated with tail latency in multithreaded applications
+\cite{ldb2024}. Our profiler adopts their request-centric viewpoint and adds
+serving stages, completeness rules, and controlled-fault correspondence.
+Whether these additions improve diagnosis time or accuracy over general
+tracing remains an evaluation question, not a result of this artifact.
+
+\section{Conclusion}
+
+Ordered lifecycle events can separate streaming, decode, and prefill behavior
+in three controlled existing-server probes, and can narrow a severe
+concurrency-sensitive tail to a coarse prefill interval. The latter result is
+useful precisely because it stops short of naming an unsupported KV, graph,
+scheduler, or kernel cause and instead defines the next measurements. Missing
+online ground truth and baselines mean the paper is a research draft, not a
+submission candidate.
+
+\section*{Generative AI Disclosure}
+
+Generative AI tools assisted with code and prose drafting. The authors reviewed
+the resulting changes, checked claims against repository artifacts, and remain
+responsible for the scientific content and any errors.
 
 \bibliographystyle{ACM-Reference-Format}
 \bibliography{references}

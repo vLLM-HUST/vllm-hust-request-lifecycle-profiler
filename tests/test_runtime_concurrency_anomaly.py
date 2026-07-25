@@ -151,6 +151,26 @@ def test_runtime_concurrency_anomaly_finds_c2_prefill_outlier(tmp_path: Path) ->
     assert result["summary"]["measured_chain_count"] == 27
     assert result["summary"]["prefill_outlier_count"] == 1
     assert result["summary"]["prefill_outlier_concurrency_values"] == [2]
+    assert result["summary"]["diagnosis"] == {
+        "stage_localization": "prefill",
+        "stage_localization_status": "localized",
+        "root_cause_status": "unresolved",
+        "root_cause_candidates_not_distinguished": [
+            "scheduler_to_prefill",
+            "kv_allocation_cache_pressure",
+            "graph_batch_transition",
+            "prefill_kernel_execution",
+        ],
+    }
+    requirements = result["summary"]["required_subprefill_instrumentation"]
+    assert {row["component"] for row in requirements} == {
+        "scheduler_to_prefill",
+        "kv_allocation_cache_pressure",
+        "graph_batch_transition",
+        "prefill_kernel_execution",
+    }
+    assert all(row["status"] == "missing" for row in requirements)
+    assert all(row["missing_fields"] for row in requirements)
     c2 = result["summary"]["per_concurrency"][1]
     assert c2["prompt_token_values"] == [100]
     assert c2["generation_token_values"] == [8]

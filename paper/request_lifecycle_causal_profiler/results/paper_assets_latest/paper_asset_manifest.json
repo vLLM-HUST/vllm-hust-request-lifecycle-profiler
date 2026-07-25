@@ -101,6 +101,18 @@
     {
       "evidence_label": "derived-artifact",
       "kind": "csv",
+      "path": "results/paper_assets_latest/npu6_controlled_fault_matrix.csv",
+      "rows": 7
+    },
+    {
+      "evidence_label": "derived-artifact",
+      "kind": "table",
+      "path": "tables/generated/npu6_controlled_fault_matrix.tex",
+      "rows": 7
+    },
+    {
+      "evidence_label": "derived-artifact",
+      "kind": "csv",
       "path": "results/paper_assets_latest/npu6_diagnosis_decision_impact.csv",
       "rows": 2
     },

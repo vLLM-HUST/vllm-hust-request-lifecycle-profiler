@@ -1,0 +1,18 @@
+{
+  "claim_boundary": "Benchmark-owned aggregation over checked-in NPU6 existing-server probe and diagnosis artifacts. It is not a repo-launched real-online controlled-fault matrix and must not be used as internal-only diagnosis accuracy.",
+  "command": [
+    "analyze_controlled_fault_matrix.py"
+  ],
+  "evidence_label": "derived-artifact",
+  "repo": {
+    "branch": "main",
+    "commit": "f648c44f50fe3a0cda890a37b222dd55e967d4e4",
+    "dirty": true,
+    "dirty_excluding_output_dir": true,
+    "dirty_exclusion_dir": "/home/shuhao/vllm-request-lifecycle-profiler-plugin/.benchmarks/results/npu6_controlled_fault_matrix",
+    "path": "/home/shuhao/vllm-request-lifecycle-profiler-plugin"
+  },
+  "result_valid_for_real_online_accuracy_claims": false,
+  "result_valid_for_speedup_claims": false,
+  "timestamp_utc": "2026-07-25T17:45:48.254347+00:00"
+}

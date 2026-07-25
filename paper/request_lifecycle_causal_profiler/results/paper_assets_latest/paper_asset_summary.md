@@ -41,5 +41,7 @@
 - `tables/generated/npu6_runtime_hook_pair_plan.tex` (table, derived-artifact)
 - `results/paper_assets_latest/npu6_runtime_concurrency_anomaly.csv` (csv, derived-artifact)
 - `tables/generated/npu6_runtime_concurrency_anomaly.tex` (table, derived-artifact)
+- `results/paper_assets_latest/npu6_controlled_fault_matrix.csv` (csv, derived-artifact)
+- `tables/generated/npu6_controlled_fault_matrix.tex` (table, derived-artifact)
 - `results/paper_assets_latest/npu6_diagnosis_decision_impact.csv` (csv, derived-artifact)
 - `tables/generated/npu6_diagnosis_decision_impact.tex` (table, derived-artifact)

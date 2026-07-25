@@ -28,6 +28,51 @@ SPAN_DEFINITIONS = (
     ("runtime_total", "received", "cleanup_done"),
 )
 
+REQUIRED_SUBPREFILL_INSTRUMENTATION = (
+    {
+        "component": "scheduler_to_prefill",
+        "fields": (
+            "scheduler_dispatch_timestamp_ms",
+            "worker_prefill_start_timestamp_ms",
+            "scheduled_batch_size",
+            "scheduled_prefill_tokens",
+        ),
+        "question": "Is the tail in scheduler-to-worker handoff or after prefill starts?",
+    },
+    {
+        "component": "kv_allocation_cache_pressure",
+        "fields": (
+            "kv_allocation_duration_ms",
+            "kv_blocks_requested",
+            "kv_blocks_allocated",
+            "kv_free_blocks_before",
+            "kv_free_blocks_after",
+        ),
+        "question": "Does KV allocation or cache pressure consume the prefill span?",
+    },
+    {
+        "component": "graph_batch_transition",
+        "fields": (
+            "execution_mode",
+            "graph_key",
+            "graph_capture_or_compile_duration_ms",
+            "previous_batch_shape",
+            "current_batch_shape",
+        ),
+        "question": "Does a graph capture, compile, or batch-shape transition explain the tail?",
+    },
+    {
+        "component": "prefill_kernel_execution",
+        "fields": (
+            "prefill_kernel_start_timestamp_ms",
+            "prefill_kernel_end_timestamp_ms",
+            "prefill_device_duration_ms",
+            "attention_backend",
+        ),
+        "question": "Is the delay inside device execution, and on which prefill path?",
+    },
+)
+
 
 def _git(args: list[str], *, cwd: Path = REPO_ROOT) -> str:
     try:
@@ -151,6 +196,17 @@ def _assign_by_order(rows: list[dict[str, Any]], blocks: list[tuple[int, float, 
 
 def build_analysis(args: argparse.Namespace) -> dict[str, Any]:
     events = _load_events(args.runtime_trace)
+    observed_metadata_fields = sorted(
+        {
+            str(key)
+            for event in events
+            for key in (
+                event.get("metadata", {}).keys()
+                if isinstance(event.get("metadata"), dict)
+                else ()
+            )
+        }
+    )
     by_chain: dict[str, list[dict[str, Any]]] = defaultdict(list)
     for row in events:
         by_chain[_chain_id(row)].append(row)
@@ -203,6 +259,21 @@ def build_analysis(args: argparse.Namespace) -> dict[str, Any]:
         for row in measured_rows
         if (row["spans_ms"].get("prefill") or 0.0) >= outlier_threshold_ms
     ]
+    instrumentation_requirements = []
+    for requirement in REQUIRED_SUBPREFILL_INSTRUMENTATION:
+        missing_fields = [
+            field
+            for field in requirement["fields"]
+            if field not in observed_metadata_fields
+        ]
+        instrumentation_requirements.append(
+            {
+                **requirement,
+                "fields": list(requirement["fields"]),
+                "missing_fields": missing_fields,
+                "status": "missing" if missing_fields else "available",
+            }
+        )
 
     per_concurrency: list[dict[str, Any]] = []
     for concurrency in sorted({int(row["assigned_concurrency"]) for row in measured_rows}):
@@ -262,6 +333,17 @@ def build_analysis(args: argparse.Namespace) -> dict[str, Any]:
         "summary": {
             "chain_count": len(rows),
             "measured_chain_count": len(measured_rows),
+            "diagnosis": {
+                "stage_localization": "prefill",
+                "stage_localization_status": "localized",
+                "root_cause_status": "unresolved",
+                "root_cause_candidates_not_distinguished": [
+                    requirement["component"]
+                    for requirement in REQUIRED_SUBPREFILL_INSTRUMENTATION
+                ],
+            },
+            "observed_metadata_fields": observed_metadata_fields,
+            "required_subprefill_instrumentation": instrumentation_requirements,
             "outlier_threshold_ms": outlier_threshold_ms,
             "prefill_outlier_count": len(outliers),
             "prefill_outlier_concurrency_values": sorted(
@@ -324,6 +406,26 @@ def write_outputs(args: argparse.Namespace, result: dict[str, Any]) -> None:
                 cached_p50=cached["p50"],
                 outliers=row["prefill_outlier_count"],
             )
+        )
+    lines.extend(
+        [
+            "",
+            "## Diagnostic Status",
+            "",
+            "- Localized lifecycle stage: `prefill`.",
+            "- Root-cause status: `unresolved`.",
+            "- The current `scheduled` to `prefill_done` span does not separate scheduler handoff, KV/cache work, graph or batch transitions, and device kernel execution.",
+            "",
+            "## Required Sub-prefill Instrumentation",
+            "",
+            "| Component | Required fields absent from this trace | Disambiguating question |",
+            "| --- | --- | --- |",
+        ]
+    )
+    for requirement in result["summary"]["required_subprefill_instrumentation"]:
+        missing = ", ".join(f"`{field}`" for field in requirement["missing_fields"])
+        lines.append(
+            f"| `{requirement['component']}` | {missing or 'None'} | {requirement['question']} |"
         )
     lines.extend(
         [
