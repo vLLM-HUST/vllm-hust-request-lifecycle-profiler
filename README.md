@@ -5,6 +5,14 @@ lifecycle tracing in LLM serving. It targets a single-NPU first implementation
 on NPU6 and follows the optimization-repository workflow used by the
 `llm-optimizations` workspace.
 
+## 2026-07-27 research focus
+
+The profiler directly owns the low-overhead state feedback and causal
+attribution questions. It may export inputs to roofline and statistical-gate
+projects, but trace ownership alone does not make those contributions complete.
+The immediate gate remains controlled intervention-based attribution. See
+[`RESEARCH_UPGRADE_20260727.md`](RESEARCH_UPGRADE_20260727.md).
+
 ## Research Question
 
 Can request-level lifecycle traces be converted into causal bottleneck
