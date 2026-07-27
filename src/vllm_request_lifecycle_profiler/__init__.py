@@ -1,5 +1,11 @@
 from __future__ import annotations
 
+from vllm_request_lifecycle_profiler.causal_attribution import (
+    evaluate_intervention_fixture,
+)
+from vllm_request_lifecycle_profiler.causal_attribution import (
+    load_intervention_fixture,
+)
 from vllm_request_lifecycle_profiler.plugin import register_plugin
 from vllm_request_lifecycle_profiler.runtime_hooks import RuntimeLifecycleHooks
 from vllm_request_lifecycle_profiler.runtime_hooks import RuntimeTraceConfig
@@ -24,6 +30,8 @@ __all__ = [
     "attribute_bottleneck",
     "build_shared_workload_report",
     "compute_spans",
+    "evaluate_intervention_fixture",
+    "load_intervention_fixture",
     "register_plugin",
     "supported_shared_case_ids",
 ]

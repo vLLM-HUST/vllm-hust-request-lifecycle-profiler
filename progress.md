@@ -63,3 +63,14 @@
   internal readiness strings, or unreadable tables remain.
 - Updated the central workspace PDF at
   `/home/shuhao/llm-optimizations/docs/papers/08-vllm-request-lifecycle-profiler-plugin__request_lifecycle_causal_profiler.pdf`.
+
+## 2026-07-27
+
+- Added a CPU-only intervention-linked lifecycle fixture and evaluator.
+- Added tests proving that matched single-stage intervention support is
+  distinct from dominant-span localization and that unintended second-stage
+  changes invalidate support.
+- Focused CPU checks passed (13 tests). No NPU, service, port, Docker, network
+  experiment, runtime code, or submodule pointer was touched.
+- Evidence status: `simulation/model`; controlled live causal M0 is
+  `NOT_M0_PROVEN`.

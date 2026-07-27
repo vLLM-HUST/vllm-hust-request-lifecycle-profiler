@@ -21,7 +21,7 @@ PAPER_DIR := paper/request_lifecycle_causal_profiler
 
 .DEFAULT_GOAL := help
 
-.PHONY: help bootstrap-shared-env install-dev smoke test shared-workloads-smoke shared-workloads-test synthetic-fault-injection trace-diagnosis npu6-controlled-fault-matrix npu6-runtime-hook-pair-plan npu6-runtime-concurrency-anomaly-analysis top-tier-readiness npu6-trace-preflight npu6-existing-server-trace-probe npu6-existing-server-trace-suite-smoke npu6-existing-server-slow-stream-trace-smoke npu6-slow-stream-trace-diagnosis npu6-existing-server-trace-overhead-smoke managed-install managed-start managed-restart managed-stop managed-status managed-health managed-logs managed-foreground lint format build bench paper paper-assets paper-pdf paper-clean clean
+.PHONY: help bootstrap-shared-env install-dev smoke test shared-workloads-smoke shared-workloads-test offline-intervention-gate synthetic-fault-injection trace-diagnosis npu6-controlled-fault-matrix npu6-runtime-hook-pair-plan npu6-runtime-concurrency-anomaly-analysis top-tier-readiness npu6-trace-preflight npu6-existing-server-trace-probe npu6-existing-server-trace-suite-smoke npu6-existing-server-slow-stream-trace-smoke npu6-slow-stream-trace-diagnosis npu6-existing-server-trace-overhead-smoke managed-install managed-start managed-restart managed-stop managed-status managed-health managed-logs managed-foreground lint format build bench paper paper-assets paper-pdf paper-clean clean
 
 help:
 	@printf '%s\n' \
@@ -33,6 +33,7 @@ help:
 		'  make test         Run the unit test suite' \
 		'  make shared-workloads-smoke Run the repo-local shared workload compatibility sweep' \
 		'  make shared-workloads-test  Run unit tests plus the shared workload compatibility sweep' \
+		'  make offline-intervention-gate Evaluate the CPU-only matched-intervention fixture' \
 		'  make synthetic-fault-injection Run no-NPU controlled lifecycle attribution checks' \
 		'  make trace-diagnosis Derive client-visible stage diagnosis from checked-in NPU6 trace probe' \
 		'  make npu6-controlled-fault-matrix Aggregate checked-in NPU6 controlled-fault artifacts and gaps' \
@@ -87,6 +88,9 @@ shared-workloads-smoke:
 		--output-markdown .benchmarks/results/shared_workloads_smoke.md
 
 shared-workloads-test: test shared-workloads-smoke
+
+offline-intervention-gate:
+	PYTHONPATH=src $(PYTHON) .benchmarks/evaluate_offline_intervention_fixture.py
 
 synthetic-fault-injection:
 	PYTHONPATH=src $(PYTHON) .benchmarks/run_synthetic_fault_injection.py \

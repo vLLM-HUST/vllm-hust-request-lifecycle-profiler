@@ -42,6 +42,13 @@ computes complete stage spans. The first attribution rule reports the dominant
 lifecycle span with a reason code. This is intentionally deterministic so
 controlled fault-injection experiments can validate it.
 
+`make offline-intervention-gate` additionally evaluates a CPU-only matched
+control/intervention fixture. Its output keeps `dominant_span_localization`
+separate from `causal_evidence`: an unpaired long span remains
+`localization_only`, while a declared single-stage intervention must produce
+the target delta without changing other spans. This is `simulation/model`
+readiness and remains `NOT_M0_PROVEN`; it is not controlled live attribution.
+
 ## NPU and Environment
 
 - Reserved device: NPU6.

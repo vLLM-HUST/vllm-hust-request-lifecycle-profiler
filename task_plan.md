@@ -27,6 +27,7 @@ synthetic or existing-server-probe results.
 | 4. Add 12.2s tail root-cause analysis/ablation scaffold | complete | Tail remains localized only to coarse prefill; four candidate substages and required fields are explicit and tested. |
 | 5. Run safe tests/probes | complete | Lint, 32 tests, shared-workload smoke, readiness gates, two stable PDF builds, and three-page visual audit passed; no hardware used. |
 | 6. Update claims/paper/artifacts/handoff | complete | Paper and ledger are evidence-scoped; repo audit and central PDF are complete. Verdict: research draft, not a submission candidate. |
+| 7. Offline causal-contract readiness | complete | Matched intervention fixture/evaluator separates longest-span localization from intervention support; controlled live gate remains `NOT_M0_PROVEN` |
 
 ## Errors Encountered
 

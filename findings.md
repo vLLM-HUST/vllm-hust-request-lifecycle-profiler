@@ -93,3 +93,15 @@
   replacing the file preserves embedded fonts and produces stable bytes.
   Two complete builds match at SHA-256
   `b4da67d59a466b107bd5e8a4d3e3236b39ed1b397415d7099ad5dcba6543cf71`.
+
+## 2026-07-27 Offline Intervention Contract
+
+- Added a matched control/intervention fixture and evaluator that reports
+  dominant-span localization independently from causal support.
+- A dominant prefill span without intervention linkage remains
+  `localization_only`. A deterministic decode intervention is supported only
+  when the target delta clears the threshold and every non-target span remains
+  unchanged.
+- The fixture is `simulation/model`; it validates evaluator semantics, not a
+  server or Ascend causal claim. Controlled graph-mode live attribution remains
+  `NOT_M0_PROVEN`.

@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "evidence_label": "simulation/model",
+  "fixture_scope": "CPU-only contract test; not a captured serving run",
+  "cases": [
+    {
+      "case_id": "decode_delay_pair",
+      "control_durations_ms": {
+        "tokenization": 2.0,
+        "queueing": 3.0,
+        "prefill": 4.0,
+        "decode": 5.0,
+        "streaming": 2.0,
+        "cleanup": 1.0
+      },
+      "observed_durations_ms": {
+        "tokenization": 2.0,
+        "queueing": 3.0,
+        "prefill": 4.0,
+        "decode": 55.0,
+        "streaming": 2.0,
+        "cleanup": 1.0
+      },
+      "intervention": {
+        "intervention_id": "offline-delay-decode-50ms",
+        "target_span": "decode",
+        "assignment": "deterministic",
+        "only_intentional_change": ["decode"]
+      }
+    },
+    {
+      "case_id": "prefill_observation_without_intervention",
+      "observed_durations_ms": {
+        "tokenization": 2.0,
+        "queueing": 3.0,
+        "prefill": 80.0,
+        "decode": 5.0,
+        "streaming": 2.0,
+        "cleanup": 1.0
+      }
+    }
+  ]
+}
