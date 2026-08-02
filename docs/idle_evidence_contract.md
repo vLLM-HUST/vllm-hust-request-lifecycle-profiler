@@ -1,6 +1,6 @@
 # Idle Evidence Contract (M0)
 
-Status: Draft v4.1 (proposed for M0 approval)
+Status: Draft v4.2 (proposed for M0 approval)
 
 Target: cross-layer device idle-gap and synchronization evidence, as defined in
 intellistream/vllm-request-lifecycle-profiler-plugin#2 (M0) and
@@ -22,6 +22,16 @@ v4.1 changes from v4: `host_sync_api_present` now requires robust temporal
 overlap after calibrated mapping; `exact_connection_id` is supporting
 evidence only and can never replace robust overlap. Clock-model error fields
 unified to `absolute_residual_*`.
+
+v4.2 changes from v4.1: analysis span and stream universe defined per logical
+`(run_id, device_id)` after split-shard merge; fit/holdout calibration
+requires a non-empty validation set (else `alignment_status = invalid`);
+host-sync emitted slice = robust interval ∩ remaining gap; versioned, hashed
+host-API allowlist ruleset; fixed `scale` serialization and deterministic
+timestamp rounding; interval conventions scoped to interval-bearing tables;
+`synthetic_only` permitted for correlation-mechanism validation on controlled
+fixtures; zero-gap coverage shares defined as `NA`; run-level metadata record
+carries `analysis_status` and nullable span boundaries.
 
 ## 1. Purpose and Scope
 
@@ -45,8 +55,12 @@ conservative cross-layer **localization** evidence only.
 
 ## 2. Normative Terminology
 
-- `analysis span`: the analyzed time range of one `(db, device_id)`.
-  Default: `[first productive task start, last productive task end)`, or an
+- `analysis span`: the analyzed time range of one logical `(run_id,
+  device_id)` pair, constructed AFTER all split profile shards for that
+  device are imported and merged. Database identity is retained for lineage
+  only; per-shard spans are never used (they would silently omit gaps at
+  shard boundaries and break monolithic/split equivalence). Default:
+  `[first productive task start, last productive task end)`, or an
   explicitly configured anchor-scoped range. Gaps are defined only inside the
   analysis span.
 - `interval`: a half-open integer-nanosecond range `[start_ns, end_ns)` with
@@ -55,9 +69,10 @@ conservative cross-layer **localization** evidence only.
   (taxonomy in section 4).
 - `gap`: a maximal connected interval in `complement(productive timeline)
   ∩ analysis span`.
-- `stream universe`: for one `(db, device_id)`, the set of streams that have
-  at least one profiler-visible event inside the analysis span. This is an
-  **observed universe**, not the set of all runtime streams.
+- `stream universe`: for one logical `(run_id, device_id)` after shard
+  merge, the set of streams that have at least one profiler-visible event
+  inside the analysis span. This is an **observed universe**, not the set of
+  all runtime streams.
 - `collection status`: completeness attestation of the input capture
   (`complete` / `incomplete` / `unknown` / `invalid`), from external or
   collection-side evidence. Not derivable from the trace content alone.
@@ -214,6 +229,12 @@ Rules:
   projecting host intervals onto device gaps across clock domains still
   requires calibrated mapping. Without calibration, the link MAY be
   displayed but cross-domain time coverage MUST NOT be computed.
+- The host API allowlist (`host_sync` and `enqueue` families) lives in a
+  versioned, hashed ruleset `idle_evidence_host_api_rules.tsv` (fields:
+  `api_pattern`, `family` in {`host_sync`, `enqueue`}, `note`), analogous to
+  the device semantic rules. Its `host_api_rules_version` and
+  `host_api_rules_sha256` MUST be reported per run. Categories that depend on
+  the allowlist MUST NOT be enabled without it.
 
 ## 6. Evidence Levels and Relations
 
@@ -401,8 +422,10 @@ return_status
   goes to the holdout set; the remaining markers form the fit set; the first
   and last markers MUST remain in the fit set. Fitting and reporting the
   final error on the same markers is forbidden (optimistic error estimates).
-  Run at least 3 repeated captures; report per-capture and pooled
-  distributions.
+  A calibration REQUIRES at least 6 markers and a non-empty validation set;
+  otherwise `alignment_status` MUST be `invalid` and no calibrated
+  cross-clock explanation may be emitted. Run at least 3 repeated captures;
+  report per-capture and pooled distributions.
 - Frozen fit formulas:
 
 ```text
@@ -424,8 +447,12 @@ f(h) = d_ref + a * (h - h_ref)
 - Determinism statement: the fit procedure is deterministic under the
   numerical and median rules defined here. Implementations MUST match
   golden-fixture tolerances; bit-identical output across languages and float
-  implementations is NOT claimed. Serialization precision or tolerance for
-  `scale` MUST be fixed in the output contract.
+  implementations is NOT claimed.
+- `scale` serialization is fixed: decimal with 12 fractional digits (the
+  scale is a ns/ns ratio; ppm-level drift needs ~6 digits, 12 leaves
+  headroom). Mapped timestamps `f(h)` MUST be rounded to integer nanoseconds
+  with round-half-to-even before any overlap or delay comparison, and golden
+  fixtures MUST use the same rounding.
 
 ### 7.3 Overlap and delay windows
 
@@ -450,7 +477,9 @@ epsilon = validation_p95_residual + bracket_uncertainty_device_ns
 - **Robust overlap**:
   `[f(hs) + epsilon, f(he) - epsilon)` intersects the gap. Only robust
   overlap MAY produce `host_sync_api_present` (`correlated`,
-  `temporal_overlap`).
+  `temporal_overlap`), and the emitted explanation slice MUST be the
+  intersection of the robust interval and the remaining gap: a one-nanosecond
+  intersection must not classify the whole gap.
 - If the robust interval is empty (`host interval < 2*epsilon`), the host
   event is candidate-only and MUST NOT produce a correlated explanation.
   Short host events are inherently unrecognizable at this alignment quality;
@@ -468,9 +497,9 @@ robust_delay   = [f(he) + epsilon, ts)
 `queued_visible_task_delay` MAY be emitted only when ALL hold:
 
 1. the link is unique and exact (`link_status == unique`);
-2. the API belongs to the approved enqueue family
-   (`aclrtLaunchKernel*`, `aclrtMemcpyAsync*`, and other explicitly
-   allowlisted enqueue APIs);
+2. the API belongs to the enqueue family defined by the versioned, hashed
+   host-API allowlist ruleset `idle_evidence_host_api_rules.tsv` (initial
+   entries: `aclrtLaunchKernel*`, `aclrtMemcpyAsync*`);
 3. `robust_delay` is non-empty (`ts > f(he) + epsilon`);
 4. the emitted explanation is the intersection of `robust_delay` and the
    gap.
@@ -496,6 +525,10 @@ Behavior when `uncalibrated`:
 - API-to-task delay MUST NOT be computed.
 - Synthetic clock fixtures prove the algorithm implementation, not real-trace
   calibration; `synthetic_only` MUST NOT be reported as `calibrated`.
+- `synthetic_only` MAY support correlation-mechanism validation on controlled
+  synthetic fixtures (their clock model and epsilon are known by
+  construction), but MUST NOT support any real-trace cross-clock claim;
+  correlation rows from synthetic fixtures are mechanism evidence only.
 
 ### 7.5 Deliverable set under the current environment constraint
 
@@ -544,11 +577,19 @@ hyperparameter.
 
 ## 9. Output Schema
 
-Frozen interval conventions for all tables: `[start_ns, end_ns)` half-open,
-integer nanoseconds, `end_ns > start_ns`, `clock_domain` column, and the
-version columns `contract_version`, `semantic_rules_version`,
+Frozen interval conventions apply to interval-bearing tables
+(`traceloom_device_interval`, `traceloom_stream_state`,
+`traceloom_idle_explanation`): `[start_ns, end_ns)` half-open, integer
+nanoseconds, `end_ns > start_ns`, `clock_domain` column, and the version
+columns `contract_version`, `semantic_rules_version`,
 `attribution_rule_version` (distinct: contract revision, taxonomy revision,
 algorithm revision), and `run_id`.
+
+Non-interval tables (`traceloom_clock_model`, which has two clock domains and
+no interval of its own) are exempt from interval columns.
+`traceloom_evidence_link` overlap fields are nullable: relations without a
+temporal extent (`pattern_context`, `none`) carry null `overlap_start_ns` /
+`overlap_end_ns`.
 
 `run_id` MUST be `lowercase_hex(SHA-256(JCS(metadata_without_run_id)))`:
 the `run_metadata.json` file canonicalized with RFC 8785 JSON
@@ -559,7 +600,8 @@ Tables (engineering implements these; semantics here take precedence over the
 RFC where they differ):
 
 - `traceloom_device_interval` — `interval_kind`: `productive_active` |
-  `visible_productive_idle`; `analysis_status`.
+  `visible_productive_idle` (`analysis_status` lives in
+  `traceloom_run_metadata`).
 - `traceloom_stream_state` — observable per-stream states with
   `stream_universe_kind`, `stream_universe_size`, `observed_stream_count`,
   `observed_universe_scan_complete`, `collection_status`.
@@ -619,9 +661,28 @@ source_table
 source_key
 relation
 evidence_level
-overlap_start_ns
-overlap_end_ns
+overlap_start_ns        # nullable: null for relations without temporal
+overlap_end_ns          # extent (pattern_context, none)
 ```
+
+- `traceloom_run_metadata` (run-level record; new):
+
+```text
+run_id
+analysis_status         # ok | no_productive_span | invalid_analysis_span |
+                        # empty_input | invalid_input
+span_start_ns           # nullable
+span_end_ns             # nullable
+contract_version
+semantic_rules_version
+semantic_rules_sha256
+host_api_rules_version
+host_api_rules_sha256
+```
+
+  `traceloom_run_metadata` carries the required `analysis_status` even when
+  no device-interval rows exist (e.g. `no_productive_span`, `empty_input`,
+  `invalid_input`).
 
 Engineering note: the current `NativeIr` has no `host_api_events`,
 `clock_models`, `task_api_links`, `device_intervals`, `stream_states`, or
@@ -695,6 +756,10 @@ In M0 there are no official `inferred` explanations, so these three shares
 exhaust the gap time. The stacked bar is `direct | correlated | residual`.
 Per-category coverage (each explanation category's share of `T_all-gap`)
 MUST also be reported for hotspot analysis.
+
+When `T_all-gap == 0` (fully productive span, or no valid span), the three
+shares and `C_explained` are `NA` (not 0, and not silently omitted); pooled
+aggregates MUST exclude NA rows and MUST report the number of NA runs.
 
 ### 11.2 False attribution
 
