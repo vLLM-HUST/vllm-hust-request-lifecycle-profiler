@@ -305,6 +305,9 @@ def _blockers(metadata: dict[str, Any]) -> list[str]:
 
 
 def _write_blocked(output_dir: Path, blockers: list[str], metadata: dict[str, Any]) -> None:
+    stale_ready = output_dir / "READY.txt"
+    if stale_ready.exists():
+        stale_ready.unlink()
     lines = [
         "BLOCKED: NPU6 existing-server trace probe preflight did not pass.",
         "",

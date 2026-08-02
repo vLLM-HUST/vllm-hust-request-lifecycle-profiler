@@ -37,6 +37,14 @@ stage instead of correlated symptoms?
 
 ## Current Mechanism
 
+For
+[benchmark #134](https://github.com/vLLM-HUST/vllm-hust-benchmark/issues/134),
+`kv_recovery.py` adds an optional pressure-episode schema alongside the base
+lifecycle trace. It validates stable request/sequence/block identity and
+decomposes copy, restore-to-wakeup, wakeup-to-admission, admission-to-first-
+compute, and requeue time. Keeping this optional avoids making historical
+non-pressure traces appear incomplete.
+
 The initial profiler represents each request as ordered lifecycle events and
 computes complete stage spans. The first attribution rule reports the dominant
 lifecycle span with a reason code. This is intentionally deterministic so

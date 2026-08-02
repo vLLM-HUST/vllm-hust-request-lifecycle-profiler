@@ -7,6 +7,10 @@ from vllm_request_lifecycle_profiler.causal_attribution import (
     load_intervention_fixture,
 )
 from vllm_request_lifecycle_profiler.plugin import register_plugin
+from vllm_request_lifecycle_profiler.kv_recovery import KVRecoveryDecomposition
+from vllm_request_lifecycle_profiler.kv_recovery import KVRecoveryEvent
+from vllm_request_lifecycle_profiler.kv_recovery import KVRecoveryStage
+from vllm_request_lifecycle_profiler.kv_recovery import decompose_kv_recovery
 from vllm_request_lifecycle_profiler.runtime_hooks import RuntimeLifecycleHooks
 from vllm_request_lifecycle_profiler.runtime_hooks import RuntimeTraceConfig
 from vllm_request_lifecycle_profiler.runtime_hooks import TRACE_EXPORT_ENV
@@ -23,6 +27,9 @@ __all__ = [
     "BottleneckAttribution",
     "BottleneckKind",
     "LifecycleStage",
+    "KVRecoveryDecomposition",
+    "KVRecoveryEvent",
+    "KVRecoveryStage",
     "RuntimeLifecycleHooks",
     "RuntimeTraceConfig",
     "TRACE_EXPORT_ENV",
@@ -30,6 +37,7 @@ __all__ = [
     "attribute_bottleneck",
     "build_shared_workload_report",
     "compute_spans",
+    "decompose_kv_recovery",
     "evaluate_intervention_fixture",
     "load_intervention_fixture",
     "register_plugin",
