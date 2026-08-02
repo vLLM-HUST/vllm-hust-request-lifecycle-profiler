@@ -91,3 +91,15 @@ def test_blockers_include_missing_trace_and_npu_process() -> None:
         "trace_export_invalid:trace_export_path_not_found",
         "no_process_on_npu6",
     ]
+
+
+def test_blocked_preflight_removes_stale_ready_marker(tmp_path: Path) -> None:
+    ready = tmp_path / "READY.txt"
+    ready.write_text("stale readiness\n", encoding="utf-8")
+    metadata = {}
+
+    preflight._write_blocked(tmp_path, ["models_endpoint_failed"], metadata)
+
+    assert not ready.exists()
+    assert (tmp_path / "BLOCKED.txt").exists()
+    assert metadata["preflight_passed"] is False

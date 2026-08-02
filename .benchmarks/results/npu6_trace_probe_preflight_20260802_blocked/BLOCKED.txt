@@ -1,0 +1,9 @@
+BLOCKED: NPU6 existing-server trace probe preflight did not pass.
+
+Blocking checks:
+- models_endpoint_failed
+- trace_export_invalid:trace_export_path_not_found
+- no_process_on_npu6
+
+This directory is invalid for paper claims. It records readiness gaps only.
+API token values are intentionally not written to metadata.
