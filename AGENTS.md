@@ -1571,3 +1571,99 @@ Continue from step 2 of the preceding sequence: run final validation, publish
 only the profiler G0 branch and update Draft PR #7, then request issue-2
 re-review of mapping Items 1-3, 4A, and 5-8. Do not request issue-2 approval of
 Item 4B, and do not push either G1 branch.
+
+### Issue-2 mapping authority approval recorded (2026-08-03)
+
+This subsection is the latest authority memory and supersedes every earlier
+statement that issue-2 mapping approval or re-review is still pending. It does
+not supersede any Item 4B runtime-owner, configuration, conformance,
+joint-admission, activation, hardware, service, experiment, performance, M0,
+or remote-G1-publication gate.
+
+Authenticated profiler issue #2 comment `5166814016`, authored by `Luqhhh`
+with GitHub association `MEMBER` at `2026-08-03T13:17:57Z`, approved the exact
+re-review request without changing the candidate bytes:
+
+- mapping `issue2:kv-recovery-v1alpha1`, SHA-256
+  `095944bbbb1a3ad3518aebfdd61c820ade3affdebd6024b47389cdaec24a3fa3`;
+- mapping approval candidate, SHA-256
+  `a686243ffd9c650790e6421e5f976a2a5c010a5d2480e7a30ad8722a9218f3f7`;
+- accepted candidate Items `1-3`, `4A`, and `5-8`; and
+- excluded Item `4B`, which the issue-2 authority acknowledged only as a
+  separate activation prerequisite.
+
+The exact authenticated source is
+`https://github.com/intellistream/vllm-request-lifecycle-profiler-plugin/issues/2#issuecomment-5166814016`.
+Its API body, including two trailing LF bytes, has SHA-256
+`c868775cbbe70b2f3979224224c6f1f57bfc4de41c532542f81d0342e39d0839`.
+The durable downstream record is
+`contracts/p1/issue2-kv-recovery-mapping-authority-approval.json`, SHA-256
+`42b761177c4bea13833be19ddc143f89c32eee02fbbb98afc2c03249c2783fe5`.
+It is a leaf record: do not edit the approved mapping or candidate to embed the
+record or to change their historical `pending` review labels.
+
+The now-frozen mapping semantics are exactly:
+
+- `h2d_restore`: one base span and three explicit base edges; endpoint IDs,
+  cross-process handoffs, and emitters are explicit, and no timestamp-derived
+  edge is allowed;
+- `d2h_preserve`: zero base spans and zero base edges, profile evidence only;
+- `transfer_wait`: zero base spans and zero base edges, profile evidence only;
+- the E3 sentinel-plus-point intersection is accepted fail-closed; and
+- audited PR #15's mismatch is accepted as a **known conformance gap**, not as
+  a waiver. Executable case-4 conformance remains required before activation.
+
+`tests/test_issue2_mapping_authority_approval.py`, SHA-256
+`18b52e163ba9519a82ff85177adef1450ac0af5afd78a2bd43a2176011de65e5`,
+is a new downstream test and does not alter any G0-result-bound test file. It
+binds the authenticated comment, exact mapping/candidate bytes, accepted and
+excluded items, asymmetric operation roster, E3/PR-#15 status, independent
+owner records, leaf direction, and closed activation gates. Its initial
+focused result is `4 passed in 0.07s`; JSON parsing and targeted Ruff check
+also passed. The broader approval/remediation/G0-focused set passed `19` tests
+in `0.27s`, and the complete CPU suite passed `154` tests in `42.27s`. All P1
+JSON parsing, targeted Ruff check/format, digest revalidation, and
+`git diff --check` passed without rewriting an approved contract or earlier
+immutable evidence.
+
+The current global state is therefore:
+
+- `issue2_mapping_frozen=true` by the new authority record;
+- `Item4B_profile_P0_owner_items_approved=true` by the independent record
+  `322df19a...`;
+- `P0_overlay_frozen=true` by the independent record `50d7deb8...`; and
+- `G1_CPU_side_source_work_reauthorized_for_current_digests=true` by the
+  independent record `448ff68c...`.
+
+Do not combine those four facts into an activation claim. The following remain
+closed: Item 4B runtime implementation-owner Items 6-8 and full policy
+ratification; complete resolved configuration and its authority approval;
+executable runtime/whole-trace conformance; joint admission; `G0_complete`;
+`communication_mode != none`; runtime activation; device-plugin changes; NPU;
+service launch; experiments; performance/M0 conclusions; remote runtime or
+profiler G1 publication; and merge.
+
+Continue in this updated order:
+
+1. Validate and publish only this new profiler G0 approval-record slice on the
+   existing `feature/kv-recovery-profile-v1alpha1` branch, and update existing
+   Draft PR #7. Do not post another issue-2 approval request; the mapping
+   decision is complete.
+2. Continue the already authorized local, isolated, default-off G1 CPU source
+   and test work in both repositories. Keep `communication_mode=none`, serving
+   fail-open, formal evidence fail-closed, and the disabled serving path
+   unchanged. Do not publish either G1 branch remotely.
+3. Finish exact runtime call-site IDs, sidecars, H2D receipts/emitters,
+   prepared/pending/receipt capacities, invalidation/cleanup, profiler
+   adapter/normalizer/loss ledger, and CPU whole-trace tests. The normalizer
+   must validate but never infer or repair missing recovery edges.
+4. With exact implementation commits and executable attestations available,
+   obtain the independent Item 4B runtime implementation-owner Items 6-8
+   decision. Approval cannot be recorded before that evidence exists.
+5. Resolve all remaining #134 inputs, create and approve one complete resolved
+   configuration, close PR #15/runtime conformance, and create the required
+   multi-authority joint-admission record.
+6. Request a separate runtime-activation authorization only after every prior
+   gate is satisfied. Non-`none` communication, NPU preflight, service launch,
+   performance experiments, and performance/M0 conclusions remain later,
+   separately authorized stages.
