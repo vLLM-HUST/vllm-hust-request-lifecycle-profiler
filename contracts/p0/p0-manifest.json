@@ -1,0 +1,208 @@
+{
+  "schema": "request-lifecycle-profiler/p0-minimal-manifest/v1alpha1",
+  "status": "owner_frozen",
+  "evidence_status": "NOT_M0_PROVEN",
+  "generated_at": "2026-08-02T05:07:37Z",
+  "owner": "Remygred",
+  "owner_freeze": {
+    "status": "approved",
+    "recorded_at": "2026-08-02T05:07:37Z",
+    "record": "owner-freeze-approval.json",
+    "approval_record_items_accepted": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ],
+    "minimum_runtime_contract_sha256": "122963930919073179d4844422d21e85da3a522def3ace723eb992eac43cdade",
+    "phase_taxonomy_sha256": "82aae94c5d124b846f77684e239714d51791115608e786079c4ea4bd4ca05abd",
+    "p1_communication_mode": "none"
+  },
+  "task_source": {
+    "repository": "intellistream/vllm-request-lifecycle-profiler-plugin",
+    "issue": 1,
+    "assignment_comment_id": 5141244636,
+    "authenticated_read_reverified_date": "2026-08-02",
+    "m0_goal": "unified phase DAG plus structured trace diff and counterfactual-validated blind causal localization"
+  },
+  "inherited_research_contract": {
+    "source_repository": "vLLM-HUST/vllm-hust",
+    "source_issue": 185,
+    "status": "historical_source_migrated_to_task_source_issue",
+    "exposed_retrospective_candidates": [
+      "vLLM-HUST/vllm-hust#163",
+      "vLLM-HUST/vllm-hust#151",
+      "vLLM-HUST/vllm-ascend-hust#145"
+    ],
+    "required_metrics": [
+      "critical-path share",
+      "attribution precision",
+      "time-to-localize",
+      "trace overhead",
+      "cross-run variance",
+      "throughput",
+      "TTFT",
+      "TPOT/TBT",
+      "P95/P99",
+      "error rate",
+      "peak device memory",
+      "mechanism-specific metrics"
+    ],
+    "formal_run_requirements": [
+      "fixed core/plugin/model/CANN/torch_npu/device/execution-mode/workload configuration",
+      "matched alternating A/B with at least three independent service lifecycles per side",
+      "raw JSON, service logs, environment manifest, and exact commits for every repetition",
+      "correctness gate and both positive and negative artifacts",
+      "default recommendation only when mechanism and end-to-end evidence agree"
+    ],
+    "ownership_boundary": "Reproduction owners and Team A prepare or rotate opaque evidence; Remygred owns normalization, ranking, counterfactual evaluation, and uncertainty/residual reporting without duplicating the underlying optimization."
+  },
+  "performance_evidence_policy": {
+    "source_repository": "vLLM-HUST/vllm-hust",
+    "source_issue": 193,
+    "source_status": "closed_not_planned_after_execution_tracking_moved_to_cross_repository_policy; policy_not_repealed",
+    "composition": {
+      "benchmark_issue_95": "canonical artifact admission, target provenance, real-online data source, and fail-closed artifact eligibility",
+      "inherited_vllm_hust_issue_185": "matched alternating repetitions, independent service starts, correctness, and research metrics"
+    },
+    "applies_at": "merge gate for every performance implementation PR; local development and draft review may precede evidence completion",
+    "minimum_independent_service_lifecycles_per_side": 3,
+    "run_order": "alternating matched base/head",
+    "canonical_merge_gate": {
+      "repository": "vLLM-HUST/vllm-hust-benchmark",
+      "issue": 95,
+      "status_at_reverification": "open"
+    },
+    "official_registry_contract": {
+      "repository": "vLLM-HUST/vllm-hust-benchmark",
+      "issue": 104,
+      "status_at_reverification": "completed"
+    },
+    "target_classes": [
+      "official-fixed-target",
+      "specialty-target"
+    ],
+    "required_fields": [
+      "target class, target_id, target_version, profile_id, and registry/spec hash",
+      "workload identity and fully resolved server/client configuration",
+      "matched base/head plus exact paired core/plugin SHAs",
+      "canonical artifact paths or URLs",
+      "raw request and runtime artifacts plus environment manifest",
+      "metadata.data_source starts with real-online or is an explicitly allowlisted CI real-online source; artifact-local leaderboard_manifest.json and run_leaderboard.json are present",
+      "at least three independent service lifecycles per side in alternating order",
+      "every repetition plus median and IQR",
+      "correctness gate, reported error rate, and target-specific acceptance threshold",
+      "deviation and reason an official target cannot answer a specialty question"
+    ]
+  },
+  "repository_baseline": {
+    "profiler_parent": {
+      "path": ".",
+      "base_branch": "main",
+      "candidate_branch": "feature/m0-protocol-freeze",
+      "base_commit": "84261a2458e1f961b0279b70780ca9497bad3f2e",
+      "origin_main": "84261a2458e1f961b0279b70780ca9497bad3f2e",
+      "clean_before_candidate_changes": true,
+      "transport": "authenticated SSH Git CLI"
+    },
+    "submodules": [
+      {
+        "path": "third_party/llm-serving-workloads",
+        "gitlink": "76e24c85bcab76ecfabb831c9444002b6efffd58",
+        "actual_head": "76e24c85bcab76ecfabb831c9444002b6efffd58",
+        "expected_branch": "feat/request-lifecycle-profiler-llm-serving-workloads",
+        "clean": true
+      },
+      {
+        "path": "third_party/vllm-hust",
+        "gitlink": "0daab7a300fb91efebd35b221b9a6f6c6d7486f8",
+        "actual_head": "0daab7a300fb91efebd35b221b9a6f6c6d7486f8",
+        "expected_branch": "feat/request-lifecycle-profiler-vllm-hust",
+        "clean": true,
+        "role": "historical prototype and call-site reference only"
+      }
+    ],
+    "current_runtime_main": "f229ba7cad21a4dba58681af6738a9fd947388e2",
+    "current_device_plugin_main": "cafad89a5e103f31ea517c1edb56130578c3cd56",
+    "device_plugin_previous_audited_snapshot": "590855422839c1e885eee19339b7a015687215e5",
+    "device_plugin_delta_from_previous_snapshot": "GitHub Actions setup-python dependency only; no runtime source change",
+    "benchmark_registry": {
+      "repository": "vLLM-HUST/vllm-hust-benchmark",
+      "commit": "0858cdb326e88ebaf8027966ba754da5ea800db4",
+      "previous_audited_snapshot": "12c6e13142c0cbb6d70243475eaa42671792e500",
+      "path": "leaderboard-data/official-targets.json",
+      "schema": "official-target-registry/v1",
+      "version": "1.0.0",
+      "sha256": "2073283467797cbe4a74682249b4e40c7c5ded4ebd393392161e038dd9bdb94c",
+      "source_set_sha256": "54d31914a6ceae39fb5a58b972b979f417dd654ff51aa72d1b4b4b8535dc0d36",
+      "active_target_count": 9,
+      "active_targets_with_enforce_eager": 9,
+      "delta_from_previous_snapshot": "aggregation admission logic only; registry bytes unchanged"
+    }
+  },
+  "candidate_deliverables": {
+    "long_term_agent_memory": "../../AGENTS.md",
+    "owner_freeze_approval": "owner-freeze-approval.json",
+    "phase_taxonomy": "runtime/phase-taxonomy.v0-draft.md",
+    "minimum_runtime_contract": "runtime/minimum-runtime-contract.v0-draft.md",
+    "development_case_table": "evaluation/development-cases/development-case-table.md",
+    "development_case_inventory": "evaluation/development-cases/development-case-inventory.json"
+  },
+  "case_eligibility": {
+    "checked_in_historical_cases": "contaminated_development_only",
+    "primary_blind_metrics_eligible": false,
+    "fresh_primary_cases_required": {
+      "positive_minimum": 2,
+      "negative_minimum": 1,
+      "curator": "Team A",
+      "team_b_access_before_diagnosis_lock": false
+    }
+  },
+  "target_classification": {
+    "blind_localization": {
+      "class": "specialty-target",
+      "exact_spec_frozen": false
+    },
+    "observer_overhead": {
+      "class": "specialty-target",
+      "exact_spec_frozen": false,
+      "reason": "the audited active official reference enables enforce_eager while formal evidence requires graph mode"
+    }
+  },
+  "validation": {
+    "parent_and_gitlinks_verified": true,
+    "submodule_fsck_verified": true,
+    "runtime_source_changed": false,
+    "npu_run_started": false,
+    "project_test_status": "not_run",
+    "project_test_blocker": "the mandated vllm-request-lifecycle-profiler-exp conda environment is absent from this container"
+  },
+  "gates": {
+    "authenticated_recursive_checkout_verified": true,
+    "phase_taxonomy_drafted": true,
+    "phase_taxonomy_owner_approved": true,
+    "historical_development_cases_recorded": true,
+    "minimum_runtime_contract_drafted": true,
+    "minimum_runtime_api_owner_approved": true,
+    "p1_communication_mode_none_frozen": true,
+    "communication_issue_2_subtype_contract_frozen": false,
+    "current_runtime_device_pair_owner_approved": true,
+    "current_runtime_device_pair_revalidated": false,
+    "formal_target_specs_frozen": false,
+    "fresh_blind_cases_sealed": false,
+    "p0_complete": true,
+    "p1_local_implementation_unblocked_by_owner_freeze": true,
+    "formal_p2_p3_scored_run_unblocked": false
+  },
+  "deferred_from_minimal_candidate": [
+    "extended runtime and experiment review drafts",
+    "sixteen unvalidated custody and reveal record templates",
+    "formal detached digests and signatures",
+    "runtime implementation",
+    "hardware experiments"
+  ]
+}
