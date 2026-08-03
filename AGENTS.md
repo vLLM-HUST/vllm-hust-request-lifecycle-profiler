@@ -1667,3 +1667,101 @@ Continue in this updated order:
    gate is satisfied. Non-`none` communication, NPU preflight, service launch,
    performance experiments, and performance/M0 conclusions remain later,
    separately authorized stages.
+
+### Local default-off G1 implementation checkpoint (2026-08-03)
+
+This subsection is the latest local G1 source memory. It supersedes earlier
+statements that no G1 source implementation has been performed, but it does
+not supersede any approval, activation, publication, hardware, service, or
+performance gate. Both G1 branches remain local and must not be pushed.
+
+Exact local source commits:
+
+- runtime worktree `/root/vllm-hust-g1-default-off-f229ba7`, branch
+  `feature/rlp-kv-recovery-g1-default-off`, final local implementation commit
+  `b8d8869e0507dc50b6cf293de58dce202fe2db3e`, based on audited runtime
+  `f229ba7cad21a4dba58681af6738a9fd947388e2`;
+- profiler worktree
+  `/root/vllm-request-lifecycle-profiler-plugin-g1-default-off`, branch
+  `feature/kv-recovery-g1-default-off`, source implementation commit
+  `091afd76557a44f9b7e2d795b5f11200ad0f552f`, based on published G0 commit
+  `5bdfeab15d8d4f35df126860ab26b19c1f4d3860`; and
+- device plugin remains unchanged at audited commit
+  `cafad89a5e103f31ea517c1edb56130578c3cd56`.
+
+The runtime implementation now has four distinct constants, all `4096`, for
+prepared transfer attempts, pending H2D, pending D2H, and per-step H2D
+receipts. The scheduler/worker connector path propagates the exact recovery
+identity sidecar, creates and validates the H2D receipt, accepts that receipt
+before the next real resumed admission callbacks, and invalidates formal
+worker contexts through the existing exact `jobs_to_flush` EngineCore-to-
+worker handoff. New preemption, terminal, reset, flush, duplicate, malformed,
+capacity, and close paths preserve serving fail-open behavior and make formal
+evidence fail closed. The disabled serving path and the source-level
+`KV_RECOVERY_RUNTIME_ACTIVATION_AUTHORIZED=False` gate are unchanged.
+
+The profiler source now contains:
+
+- a late-bound runtime ABI and observer factory adapter;
+- the worker-owned H2D start/done and edge-1/edge-2 emitters;
+- the EngineCore-owned receipt/admission edge-3 emitter;
+- closed D2H/wait base behavior (`0 span + 0 edge`);
+- a bounded producer-side profile `record_seq` ledger with maximal loss
+  intervals for all four profile data categories;
+- exact late-receipt behavior retaining immutable start/done and edges 1-2
+  while forbidding receipt/edge 3;
+- a strict H2D normalizer that rejects loss, missing/duplicate/extra edges,
+  identity drift, another base operation, and invalid order, and never infers
+  or repairs an endpoint or edge; and
+- an explicit source-conformance seam for the specialty mode. Normal
+  environment construction still rejects every non-`none` mode with
+  `unsupported_mode`; therefore this source is executable in CPU tests but is
+  not runtime activation.
+
+The exact partial attestation is
+`contracts/p1/g1-default-off-cpu-implementation-attestation.r0.json`, SHA-256
+`1c845650941f041f7cced7b03696ec30704f6adf1e17cbe5d4626a9d8b86940c`.
+It binds the two local implementation commits, all changed source/test hashes,
+the approved semantic chain, exact commands/results, closed gates, and the
+remaining gaps. Its status is deliberately
+`PARTIAL_EXECUTABLE_ATTESTATION_PROFILE_PERSISTENCE_AND_BASE_EMITTER_INTEGRATION_PENDING`;
+it grants no authority and is not a runtime-owner approval request.
+
+Stable executable results at the exact commits above:
+
+- runtime focused default-off CPU set: `72 passed, 15 warnings in 34.59s`;
+- actual-runtime-ABI cross-repository tests: `5 passed in 4.90s`; these cover
+  the successful three-edge chain, prepared/H2D/D2H capacity loss, and late
+  receipt immutable-prefix behavior;
+- complete profiler suite using the actual local runtime ABI:
+  `169 passed, 1 warning in 44.12s`;
+- downstream partial-attestation integrity: `4 passed in 0.04s`; and
+- targeted Ruff check, Ruff format check, JSON parse, and `git diff --check`:
+  passed.
+
+Do not request Item 4B runtime-owner Items 6-8 approval yet. Item 6 has useful
+candidate coverage, but Items 7-8 are not complete because all of these exact
+gaps remain:
+
+1. parameterize the existing bounded exporter so that the profile producer
+   ledger drains to the required paired mode-0600 profile JSONL shard under the
+   same writer owner, with exact `profile_start`, persisted loss intervals,
+   `profile_summary`, balanced counts/content digest, and an immutable
+   committed-profile-shard receipt;
+2. connect `BaseLifecycleBridge` to the real P0 `preempted`,
+   `admission_started`, and `resumed` emitters. Current whole-trace CPU tests
+   use explicitly injected exact base event IDs; no request/time/file-order
+   inference is allowed as a replacement;
+3. finish the complete seven-stage recovery profile, including post-wakeup
+   reasoned requeue and the first real worker model-forward child observation,
+   plus paired base/profile/process-roster normalization; and
+4. rerun content-addressed CPU conformance against the resulting exact commits
+   and replace the partial attestation before asking the independent runtime
+   implementation owner to decide Items 6-8.
+
+The next execution order is exactly the four items above. Only after the
+replacement attestation is complete may runtime-owner review be requested.
+Complete resolved configuration, configuration approval, runtime conformance,
+joint admission, and separate runtime activation still follow that review.
+`communication_mode != none`, remote G1 publication, device-plugin edits, NPU,
+service launch, performance experiments/claims, and M0 all remain forbidden.
