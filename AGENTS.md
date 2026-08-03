@@ -64,9 +64,17 @@ or root-cause task merely to construct profiler evidence.
 
 - The feature branch's historical parent baseline is
   `84261a2458e1f961b0279b70780ca9497bad3f2e`. Its committed P0/P1 checkpoint is
-  `9f1464b8d017ef48e66b8b4c9bd4a5a37fdc563d`. Authenticated upstream `main`
-  and the fetched local `origin/main` both point through merged PR #4 at
-  `15717eae2630e80c11b113ccaeb3422871b35b40` as verified on 2026-08-03.
+  `9f1464b8d017ef48e66b8b4c9bd4a5a37fdc563d`. PR #4 integration was based on
+  upstream `main` at
+  `15717eae2630e80c11b113ccaeb3422871b35b40`. After Draft PR #5 was opened,
+  authenticated remote `main` and fetched `origin/main` advanced through
+  merged PR #3 to `7e10622eb5755e1af544546e93e3f63a91214ffc`, then merged
+  Draft PR #5 at `a27794afa9f3fba11c6da17f06df7ed41e6fee3f` on 2026-08-03.
+  PR #5's exact head is the local branch base
+  `06c8fa96ff056d3326d79b2756b106af7f916749`; the merge commit adds history,
+  not missing PR-#5 content. PR #3 adds only
+  `docs/idle_evidence_contract.md`. Do not rewrite the immutable checkpoints
+  or silently rebase this branch because remote `main` moved.
 - Its pinned workload gitlink is
   `76e24c85bcab76ecfabb831c9444002b6efffd58`.
 - Its pinned vLLM gitlink is
@@ -288,6 +296,513 @@ does not freeze the optional KV-recovery profile, integrate runtime/device
 call sites, admit NPU6, produce a controlled recovery trace, or prove a
 performance result. Those remain the next gates.
 
+## Active execution plan after PR #4 composition (2026-08-03)
+
+Draft PR #5 ends the PR #4 offline-composition slice at
+`06c8fa96ff056d3326d79b2756b106af7f916749`. Keep that PR focused and in Draft
+until reviewed; do not append the next profile/runtime slice to its branch.
+Follow-on work starts locally from that commit on
+`feature/kv-recovery-profile-v1alpha1`. Creating this branch does not authorize
+a push, review request, merge, issue comment, runtime edit, or hardware run.
+
+Execute the remaining work in this order. A later gate never compensates for
+a failed or unapproved earlier gate.
+
+### G0 — profile freeze and pinned-pair compatibility (no hardware)
+
+1. Reread the authoritative issue comments with authenticated access before
+   changing a contract derived from them. Treat the frozen P0 bytes as inputs,
+   not edit targets.
+2. Produce a versioned optional KV-recovery profile draft plus an exact
+   runtime/device call-site map. The draft must specify all seven stage owners
+   and boundaries, the base-DAG mapping, request/sequence/recovery/block and
+   transfer identities, clock conversion, privacy/capacity limits, requeue
+   reasons, completeness rules, and fail-closed rejection behavior.
+3. Keep the proposed profile separate from `rlp.trace/v1alpha1`. It may adapt
+   a validated recovery episode into PR #4's typed offline model, but it may
+   not silently add event names, arrays, floats, or sequence fields to the
+   frozen wire contract. Record a new profile ID, exact digest, dependency
+   versions, review state, and an owner-approval candidate.
+4. Consume, rather than duplicate, issue #2's communication taxonomy. Freeze
+   the recovery-side profile with Remygred first, then create a separate
+   content-addressed specialty mapping that binds that digest and closes the
+   H2D, D2H, and transfer-wait span/edge roster. It needs issue-2-owner or
+   explicitly delegated authority approval. HBM-only may retain
+   `communication_mode=none`; any tiering/offload candidate with D2H/H2D or
+   synchronization remains blocked until both approval records exist.
+5. Revalidate runtime
+   `f229ba7cad21a4dba58681af6738a9fd947388e2` and device plugin
+   `cafad89a5e103f31ea517c1edb56130578c3cd56`. Trace the selected benchmark
+   #134 implementation from configuration to scheduler and connector classes.
+   Prove it avoids the incompatible `RecomputeScheduler.schedule(self)` path,
+   or prepare a minimal compatibility proposal/new paired SHA plus an
+   interface-level CPU test. Do not silently patch an approved pin.
+
+G0 exits only when the profile bytes, stage/call-site mapping, communication
+dependency, and scheduler outcome are reviewable and the owner has explicitly
+accepted the applicable digest and compatibility decision. A profile draft or
+static audit alone is not a freeze.
+
+Authenticated issue revalidation on 2026-08-03 found that profiler PR #3 is
+merged at `7e10622eb5755e1af544546e93e3f63a91214ffc` and contributes Idle Evidence
+Contract **Draft v4.3 (proposed for M0 approval)**. The latest issue-#2 comment
+records its checked-in counterexample/CI contract and says the next acceptance
+item is runtime matched A/B at one workload and collection boundary. v4.3
+specifies proposed conservative idle-evidence vocabulary, interval algebra,
+communication-interval canonicalization, clock alignment, and forbidden
+claims; its checked-in fixture/CI boundary is real, but the document remains a
+draft and does not define the closed runtime H2D/D2H operation roster,
+`issue2:<version>:<subtype>` evidence codes, or KV-recovery call-site adapter
+required by the frozen P0 protocol. Therefore it is a normative dependency and
+useful design input, but it is not by itself authorization to enable a
+non-`none` communication mode. Tiering remains blocked pending an explicit
+issue-2-owner approval or an explicitly delegated specialty-profile authority;
+the recovery-profile owner cannot unilaterally mint an active `issue2:*` code.
+
+### G1 — controlled CPU whole-chain integration (no hardware)
+
+Only after G0 approval, extend the existing bounded hook/exporter path with a
+thin adapter and reviewed call sites. Do not create another exporter or add
+file/log-handler I/O to producer paths. Preserve disabled-mode behavior,
+fail-open serving, fail-closed evidence, explicit edges, exact IDs, process
+receipts, terminal/cleanup ordering, and all frozen bounds.
+
+The minimum exit evidence is one complete fake recovery episode and one valid
+no-pressure trace, with tracing disabled and enabled. Tests must cover stage
+loss/duplication/inversion, request/sequence/block drift, zero/overflow bytes,
+zero/one/multiple reasoned requeues, prefill/decode resume, exact monotonic-ns
+to offline-ms decomposition, version mismatch, exporter loss, incomplete
+process rosters, and every selected scheduler/connector interface. Rerun any
+CPU gate or independent review whose bound bytes change.
+
+### G2 — read-only NPU6 admission
+
+Run a version-aware whole-trace preflight only after G1 passes. Admission
+requires exactly one marker: `READY.txt` with no `BLOCKED.txt`. Any missing,
+ambiguous, incompatible, busy, stale-endpoint, wrong-model/device, schema,
+profile, process-roster, or trace-export condition produces only
+`BLOCKED.txt`; stop without launching or changing a service.
+
+### G3 — one controlled online recovery smoke
+
+After explicit service authorization and G2 READY, induce exactly one minimal
+pressure episode and verify the complete request/sequence/logical-block/stage
+chain plus copy/wait/requeue fields. Label the result `real-online` and
+`smoke-only`. It proves capture coverage only, not speedup, representativeness,
+or M0.
+
+### G4 — fixed-8-GiB matched mechanism experiment
+
+Only after a valid G3 trace, freeze mutually exclusive resolved configurations
+for tiering-disabled, tiering-enabled, and HBM-only. Follow benchmark #134's
+fixed model/hardware/context/workload settings and the combined performance
+merge gate. Use the same requests and at least three independent service
+lifecycles per mode in rotating/alternating order; report every repetition,
+median/IQR, correctness, errors, raw artifacts, exact paired SHAs, environment,
+profile, and resolved configuration. Observer tracing disabled/enabled and any
+copy optimization on/off comparison are separate one-variable pairs.
+
+### G5 — capacity/workload surface
+
+After the fixed-8-GiB mechanism result is valid, expand to 8/16/24/32 GiB over
+random-online, ShareGPT-online, and prefix-repetition-online at the frozen
+arrival rate. An attempted row without a real recovery episode is negative
+coverage, not tiering evidence.
+
+### G6 — rank-one counterfactual and formal evaluation preparation
+
+For every non-abstained top attribution, change only the predicted mechanism
+and run a matched counterfactual. Formal P2/P3 scoring still requires Team-A
+custody, fresh sealed positive/negative cases, frozen specialty targets,
+comparator budgets, thresholds, and reveal rules; public #134 development
+evidence does not satisfy blind scoring by itself.
+
+### Immediate next deliverables
+
+The active task is G0 only. Before any runtime source edit, create and review:
+
+- `contracts/p1/kv-recovery-profile.v0-draft.md`: proposed profile and complete
+  validation grammar;
+- `docs/kv_recovery_runtime_callsite_map.md`: exact pinned-SHA symbols,
+  state transitions, owners, identities, and evidence boundaries;
+- `docs/pinned_pair_scheduler_compatibility.md`: configuration-to-connector-
+  to-scheduler resolution, signature evidence, and GO/BLOCKED outcome; and
+- a content-addressed approval candidate that clearly remains unapproved until
+  the owner accepts its digest and decisions.
+
+Static repository inspection and CPU-only contract tests are authorized for
+this task. Runtime/device source edits, remote publication, NPU admission, and
+service launch remain separate later actions.
+
+### G0 static-audit checkpoint (2026-08-03)
+
+The required read-only audit and candidate drafting are complete locally on
+`feature/kv-recovery-profile-v1alpha1`; nothing from this branch has been
+pushed. The proposed artifacts are:
+
+- `contracts/p1/kv-recovery-profile.v0-draft.md`, SHA-256
+  `b363532884d1cae8049ab080d2b85a629f3b33a75f6621788d1e4c8f30737666`;
+- `docs/kv_recovery_runtime_callsite_map.md`, SHA-256
+  `c518c031e0e4c73002e9c85777024771a10dce22d99587d71d08cf5b3b41d634`;
+- `docs/pinned_pair_scheduler_compatibility.md`, SHA-256
+  `3dea1d4dc9731122d9bd36b59da161a236e15680f4920051ce26ea07d8996a16`;
+  and
+- `contracts/p1/kv-recovery-profile-approval-candidate.json`, SHA-256
+  `15a121505c413da6c8c90a0ce21c44ebe853b2db5fa3f81f6735e9185fedc612`,
+  whose status is
+  `profile_owner_review_required_and_issue2_mapping_pending` and whose gate
+  effects are all false until an explicit profile-owner approval statement is
+  recorded.
+
+The profile proposes a separate `rlp.kv-recovery/v1alpha1` stream for one
+host, TP=1, PP=1, rank 0, one pressure-preemption epoch, and one successful H2D
+restore. It specifies candidate identities, the base-epoch-to-recovery-epoch
+relation, seven stage boundaries, a worker child observation that does not
+move the frozen base compute boundary, reasoned requeues, logical block sets,
+run/process-scoped exact wait sets, transfer scope, monotonic-ns conversion, a
+profile-specific loss ledger, process receipts, and fail-closed behavior
+without changing `rlp.trace/v1alpha1`. It records `d2h_preserve`,
+`h2d_restore`, and `transfer_wait` as proposed recovery-side operation labels
+and contains only an H2D mapping fragment. They are not active issue-2 evidence
+codes. A separate mapping artifact must bind the approved profile digest,
+close all three span/edge grammars, and receive issue-2-owner (or explicitly
+delegated specialty-authority) approval. Until then
+`issue2:kv-recovery-v1alpha1` remains disabled. HBM-only/no-connector remains
+the only candidate allowed to retain the existing `communication_mode=none`.
+
+The static compatibility outcome is `BLOCKED`, with a narrower recommended
+candidate rather than a blanket rejection of the source pins:
+
+- runtime `f229ba7...` requires
+  `schedule(self, throttle_prefills: bool = False)` and both EngineCore paths
+  pass the boolean; device `cafad89...` implements
+  `RecomputeScheduler.schedule(self)`, so installing it is incompatible and a
+  one-argument cosmetic patch is insufficient;
+- the device `NPUOffloadingSpec`/`NPUTieringOffloadingSpec` imports the removed
+  `vllm.v1.kv_offload.worker.worker` module and uses old handler and
+  `SharedOffloadRegion` APIs, so those classes cannot run on the pinned
+  runtime;
+- runtime `f229ba7...` already has its own `TieringOffloadingSpec` and Ascend
+  `OffloadingWorker`. A full config that selects runtime-core
+  `OffloadingConnector/TieringOffloadingSpec`, omits the device spec module,
+  and explicitly keeps `recompute_scheduler_enable=false` statically avoids
+  both known specialty blockers, but it is not a runtime GO until frozen and
+  CPU/startup-tested; and
+- benchmark `0858cdb...` contains no content-addressed issue-#134 14B,
+  max-model-length-32768, 8-GiB three-mode configuration. Historical PR #124
+  used 7B, 4608 context, 256 MiB device KV, 1 GiB CPU, and different SHAs; only
+  its no-connector versus runtime-OffloadingConnector structure is reusable.
+
+The audited runtime also distinguishes a real pressure preemption from
+invalid-KV-load recovery. The latter does not necessarily enter
+`PREEMPTED` or increment `num_preemptions`, so it must not be padded into a
+seven-stage positive episode. Physical CPU/device block IDs, connector job
+IDs, and scheduler step counters are local/reusable and cannot replace the
+profile's explicit request/lifecycle/recovery/transfer/logical-block joins.
+
+G0 has not exited. The next Remygred decision is to accept or replace approval
+candidate items 1–8 and the profile digest; communication item 7 is only an
+endorsement to prepare the separate content-addressed issue-2 mapping. Profile-
+owner approval at most unlocks the remaining G0 work: draft that mapping,
+freeze mutually exclusive issue-#134 resolved config bytes for HBM-only,
+tiering-disabled, and tiering-enabled candidates, and then run import/
+scheduler-interface/fake-handoff tests before any runtime source edit. The
+mapping still needs its distinct issue-2-authority approval. Profile approval
+does not itself unlock G1 wiring. Do not begin G1, NPU preflight, or a
+performance run from the existence of these drafts.
+
+## G0 owner approval and post-approval execution checkpoint (2026-08-03)
+
+This section supersedes the “next Remygred decision” paragraph in the earlier
+static-audit checkpoint. It records the exact approval and all work completed
+from it; it does not rewrite the historical checkpoint.
+
+### Exact owner approval and scope
+
+Remygred supplied this exact statement:
+
+> 批准按 SHA-256 b363532884d1cae8049ab080d2b85a629f3b33a75f6621788d1e4c8f30737666 冻结 rlp.kv-recovery/v1alpha1 恢复侧 profile 候选，并接受 SHA-256 15a121505c413da6c8c90a0ce21c44ebe853b2db5fa3f81f6735e9185fedc612 的 Approval candidate 第 1-8 项，其中第 7 项仅表示同意将 operation labels 和 H2D mapping fragment 提交 issue-2 authority 形成独立完整映射并联签；选择 runtime-core OffloadingConnector/TieringOffloadingSpec，recompute_scheduler_enable=false。该批准仅解锁剩余 G0 配置冻结和 CPU 兼容性测试，不授权 communication_mode 非 none、G1 runtime wiring、NPU 或性能实验。
+
+The durable local record is
+`contracts/p1/kv-recovery-profile-owner-approval.json`, SHA-256
+`2831ce52802e7cbe4ec092431c71c18de05491da7ac8d48512014b1d43b3cb0c`.
+It freezes these previously reviewed bytes without editing them:
+
+- recovery profile
+  `b363532884d1cae8049ab080d2b85a629f3b33a75f6621788d1e4c8f30737666`;
+- profile approval candidate
+  `15a121505c413da6c8c90a0ce21c44ebe853b2db5fa3f81f6735e9185fedc612`;
+- runtime call-site map
+  `c518c031e0e4c73002e9c85777024771a10dce22d99587d71d08cf5b3b41d634`;
+  and
+- pinned-pair scheduler decision
+  `3dea1d4dc9731122d9bd36b59da161a236e15680f4920051ce26ea07d8996a16`.
+
+The owner's later instruction to work more aggressively means use available
+G0 autonomy, parallel read-only audit, explicit candidates, and proportionate
+CPU validation to advance quickly. It does **not** broaden the enumerated
+authorization boundary. In particular, it is not permission to enable
+non-`none` communication, edit runtime/device sources, start G1, touch NPU,
+launch a service, run performance experiments, publish remotely, or make
+performance/M0 claims.
+
+### Latest authenticated authority facts
+
+Authenticated revalidation after the approval found:
+
+- profiler issue #1 comment `5162001363`: PR #5 is merged; the order remains
+  profile/communication freeze, resolve the pinned scheduler API mismatch,
+  CPU whole-chain work, then read-only preflight. No tiering/HBM experiment
+  precedes those gates;
+- profiler issue #2 comment `5162001498`: observed stream universes and scan
+  completeness are per-device before run aggregation; an unassigned-stream
+  sentinel creates no timeline and forces incomplete scan status; legal
+  zero-duration wait/control/record observations are points only; productive
+  or unknown zero-duration intervals are invalid; checked-in fixtures do not
+  replace runtime-matched A/B;
+- remote profiler `main` is
+  `a27794afa9f3fba11c6da17f06df7ed41e6fee3f`, the PR-#5 merge. The local
+  branch remains intentionally based on PR-#5 head
+  `06c8fa96ff056d3326d79b2756b106af7f916749`; do not silently rebase;
+- benchmark #134 still has no comments and requires Qwen2.5-14B-Instruct,
+  FP16, one 910B2, `max_model_len=32768`, device KV 8/16/24/32 GiB, three
+  named online workloads at 1 RPS, at least three independent service
+  processes, and the fixed-8-GiB three-mode state-machine comparison; and
+- benchmark #89 keeps the mainline defaults
+  `gpu_memory_utilization=0.6`, `max_model_len=32768`, 14B/one-910B2/FP16,
+  while specialty comparisons must remain separate and explicitly resolved.
+
+### Issue-2 mapping result and independent P0 blocker
+
+The complete specialty candidate is
+`contracts/p1/issue2-kv-recovery-mapping.v0-draft.md`, SHA-256
+`dca914f989f3a98d43fb9fa2538f7c43a375e8f22f5deb7e09343aee5ee7bc19`.
+An independent read-only review gave it GO for authority submission, not for
+activation. Its approval candidate is
+`contracts/p1/issue2-kv-recovery-mapping-approval-candidate.json`, SHA-256
+`f3cfdd6d9463251fdc27e01164d9f33a1efcc6c155f6d51959e0e1989d23a350`.
+Luqhhh or an explicitly delegated issue-2 specialty authority must accept or
+replace all eight items while citing both digests.
+
+The closed mapping roster is deliberately asymmetric:
+
+- `h2d_restore`: exactly one base start/done span and three edges:
+  closing `preempted(e)` to `communication_started(e+1)`, start to done, and
+  done to the first `admission_started(e+1)` after successful scheduler
+  wakeup;
+- `d2h_preserve`: exact successful profile submit/done facts, zero base spans,
+  and zero base edges; and
+- `transfer_wait`: one process/run-scoped wait-entry point with exact member
+  chunks, zero base spans/edges, no request fan-out, and no invented duration.
+
+The wait mapping resolves/fixes membership and captures `wait_entry_ns` before
+the existing call, enqueues chunks only after normal return, gives every chunk
+that entry timestamp, and derives `wait_call_observation_id` from the first
+chunk's unique `record_id`. Repeated identical member sets remain distinct
+without adding a wire field. Missing/interleaved/drifting chunks fail closed.
+
+The H2D internal edge additionally requires explicit propagation through a
+bounded process-local pending table keyed by `transfer_id`; timestamp/process
+order alone is insufficient. The hard limit is
+`max_pending_h2d_contexts_per_process=4096`. A full table does not reject,
+delay, cancel, or resize the real KV transfer. It consumes one attempted
+profile `transfer_event` `record_seq`, opens/extends the exact
+`serialization_failure` loss interval, emits no corresponding base pair/edge,
+and fails only formal evidence closed.
+
+Issue-2 approval is necessary but not sufficient. Frozen P0 allows only
+`kv_cache_mode=disabled|local_homogeneous`, requires no KVConnector for the
+latter, lists connector-backed caches as diagnostic-only, and gives generic
+paired-operation/execution-child wording. Therefore the connector path also
+needs a P0-owner mode overlay that explicitly accepts:
+
+1. one truthful connector-capable mode;
+2. the H2D-only base-operation roster while D2H/wait remain profile-only; and
+3. the cross-epoch `preempted -> H2D -> next admission` recovery bridge.
+
+The minimal proposal is
+`contracts/p1/kv-offload-base-mode-overlay.v0-draft.md`, SHA-256
+`6e035c29664038cdc93b545538cee6fc31abfb79e455d994851f8c9dbfd1c734`.
+It proposes `kv_cache_mode=local_offload` under
+`rlp.trace-mode/kv-offload-v1alpha1`, binds the P0/profile/mapping/final-config
+digests, covers only the proposed `tiering_enabled` TieringOffloadingSpec row,
+and otherwise preserves P0. Its independent content review is GO for authority
+submission, not approval. The P0-owner approval candidate is
+`contracts/p1/kv-offload-base-mode-overlay-approval-candidate.json`, SHA-256
+`169c1923ed2d37fe0ea5f88d05bcc9e35424742bb53892408ac5059485609cb5`.
+It remains `p0_owner_review_required`; do not use its digest as a runtime
+binding until explicit P0-owner approval is recorded.
+
+Activation later requires a separate joint admission record binding the
+overlay and overlay-approval-record SHA, mapping and issue-2-approval-record
+SHA, complete config and config-approval-record SHA, profile/owner-record SHA,
+and P0 contract/taxonomy approvals. Remygred/P0 owner and the #134
+configuration authority must co-sign that record; their signatures cannot
+substitute for the separate issue-2 authority.
+
+### Fixed-8-GiB configuration candidate
+
+The reviewable but deliberately incomplete candidate is
+`contracts/p1/benchmark-134-fixed-8gib-config-candidate.json`, SHA-256
+`b57fed50aa067e937728fe6f618a37246c50becd5ac94bd8eef3bc2ee7184b3a`.
+Its status is `BLOCKED_INCOMPLETE_NOT_RUNNABLE_NOT_FROZEN`; its nulls are
+intentional and must never be replaced silently. Its formal-dependency block
+binds the final mapping/approval-candidate and overlay/approval-candidate
+digests while accurately recording that issue-2/P0 approval records, the
+complete config, and the joint admission record do not yet exist. The overlay
+references only this candidate's path as non-normative input, so there is no
+digest cycle.
+
+Known common choices include:
+
+- device KV is exactly 8 IEC GiB per device = `8589934592` bytes;
+- TP=PP=DP=1, Qwen2.5-14B-Instruct, FP16,
+  `max_model_len=32768`, and recorded `gpu_memory_utilization=0.6`;
+- `recompute_scheduler_enable=false`,
+  `SLO_limits_for_dynamic_batch=-1` as a pinned-source compatibility candidate,
+  and default/null runtime scheduler class;
+- HBM-only has no connector and retains `communication_mode=none`;
+- tiering-enabled resolves through runtime-core
+  `OffloadingConnector/TieringOffloadingSpec/AscendCPUOffloadingWorker`, omits
+  both connector/spec module override paths, and never uses device NPU specs;
+- `max_num_batched_tokens=4096` and `max_num_seqs=512` are explicit nondefault
+  design candidates, not claimed Ascend defaults (the pinned fallback remains
+  2048/256);
+- 200 requests, 1 RPS, seed 0, with proposed random 1024/256 and prefix
+  10×3840-prefix/256-suffix/256-output shapes derived from pinned canonical
+  references; exact request manifests remain required, and repetitions are at
+  least three independent services for every workload/mode pair;
+- required metric coverage is unresolved; `disable_log_stats=false` is only a
+  candidate, and profiler-disabled/enabled overhead is a separate future axis
+  that is not authorized; and
+- the current runtime has no unique copy-optimization Boolean. Staging-buffer
+  size and layout permutation are not substitutes, so the optional pair is
+  `BLOCKED_NO_UNIQUE_ON_OFF_SWITCH`.
+
+The unresolved authority inputs are:
+
+1. one exact positive `cpu_bytes_to_use`, identical across connector modes;
+2. explicit acceptance or replacement of
+   `tiering_disabled = OffloadingConnector + CPUOffloadingSpec` so it does not
+   duplicate HBM-only; this family is outside the current profile-owner choice
+   and needs a new profile digest or separately reviewed compatible-pair owner
+   record plus a new/expanded overlay;
+3. exact model revision/local snapshot approval. The local complete candidate
+   is `cf98f3b3bbb457ad9e2bb7baf9a0125b6b88caa8`, but observation is not a
+   freeze;
+4. content-addressed random, ShareGPT, and prefix request manifests, including
+   arrival schedule and sampling/`ignore_eos` choices;
+5. an exact metric source for every #134 metric and the separate profiler
+   overhead axis;
+6. a real copy switch or explicit acceptance that the optional comparison is
+   unavailable; and
+7. the issue-2 mapping plus P0 overlay approvals for connector modes.
+
+No complete server/client argv exists while those values are unresolved.
+Do not launch from this candidate.
+
+### CPU pinned-pair evidence
+
+`scripts/verify_g0_pinned_pair.py`, SHA-256
+`3e5c666f63969f523f8f70c07ed8c5141706887b11a775c757b4dc12cf69df3f`,
+reads exact Git objects rather than either dirty sibling worktree. Its tests are
+`tests/test_g0_pinned_pair_probe.py`, SHA-256
+`4ad8e5162f0c91f3fcd188a78ba602dd576d97c322cd8f596d545c674f6ace4f`.
+Configuration and cross-artifact tests are respectively
+`tests/test_g0_benchmark_134_config_candidate.py`, SHA-256
+`5b4823a90e022b4463d2f2899f9aae522bbb62185826d7ee1b8fa55604372e85`,
+and `tests/test_g0_contract_candidate_integrity.py`, SHA-256
+`e1e41b48f36e6afc17444d5f659a3824d953430706c94c3878002d97289e729c`.
+
+The local G0 run verified 19 exact blob SHA-256 values (13 runtime and 6
+device-plugin blobs) and passed:
+
+- runtime `SchedulerInterface.schedule` and `Scheduler.schedule` are
+  `(self, throttle_prefills=False)` and EngineCore passes the Boolean at both
+  pinned call sites;
+- device `RecomputeScheduler.schedule(self)` and
+  `SchedulerDynamicBatch.schedule(self)` remain incompatible negative
+  controls. Both must be disabled, not merely the recompute path;
+- runtime registries resolve `OffloadingConnector` and
+  `TieringOffloadingSpec`, the device plugin neither removes nor overrides the
+  connector, and the Ascend branch selects runtime
+  `AscendCPUOffloadingWorker`;
+- the device NPU spec still imports removed
+  `vllm.v1.kv_offload.worker.worker`, whose path is absent at the runtime pin;
+  and
+- a controlled-stub execution of the pinned worker preserves only connector
+  job ID, runtime request ID, source/destination specs, and wait-set job IDs;
+  a separate observer ledger validates synthetic trace/lifecycle/epoch/
+  transfer/block identities, 8192 bytes, 12,500,000 ns, and negative cases.
+  This does not prove the pinned worker propagates recovery-profile identity.
+
+The probe binds both the exact candidate byte digest above and canonical
+semantic digest
+`d6520a785d566b6509532c59de01c33abdee7ebbfee41f1cba76c42b695dc54d`.
+Any byte drift fails at the file entry and any semantic drift fails at the
+in-memory entry, including added authorization keys or changed connector/spec
+fields.
+
+The final results are 27 probe tests, 5 config tests, and 6 cross-artifact
+integrity tests (38 focused total); the complete repository suite is 132
+passed. Targeted Ruff check and format check pass. The durable result is
+`contracts/p1/g0-pinned-pair-cpu-result.json`, SHA-256
+`8fb3a1aa5f912c2b43a68cef6952d4d6ff365d1154008287a21306bc7241ee5c`.
+The direct probe intentionally exits 2 with:
+
+```text
+static_source_contract_status=PASS_STATIC_ONLY
+overall_status=BLOCKED
+reason_code=REAL_PINNED_IMPORT_ENVIRONMENT_UNPROVEN
+```
+
+The prescribed profiler Conda environment has no `vllm`, `vllm_ascend`,
+`torch`, or `torch_npu`. The available `/root/vllm-hust/.venv` points to dirty,
+newer runtime/device heads and conflicting plugin metadata, so it must not be
+used as pinned-pair evidence. AST and controlled-stub results do not prove a
+genuine full pinned import, platform startup, sidecar integration, producer
+no-I/O behavior, or runtime wiring. Those remain blocked; never relabel
+`PASS_STATIC_ONLY` as GO.
+
+The local-pin pytest cases require sibling repositories containing both pinned
+commits and explicitly skip when those repositories/objects are absent;
+portable config/integrity cases still run. A future CI result must report such
+skips and must never claim the pinned-source audit passed unless the exact
+objects were provisioned.
+
+### Current gate table and next order
+
+The current formal status is:
+
+- recovery-side profile: **FROZEN** by Remygred;
+- issue-2 mapping content: **GO FOR AUTHORITY SUBMISSION**, not approved;
+- P0 connector-mode overlay content: **GO FOR AUTHORITY SUBMISSION**, not
+  approved;
+- #134 fixed-8-GiB config: **REVIEWABLE INCOMPLETE CANDIDATE**;
+- pinned source/scheduler/factory/controlled-stub handoff:
+  **PASS_STATIC_ONLY**;
+- genuine pinned import/startup: **BLOCKED**;
+- `communication_mode` non-`none`, G1, NPU, service, performance, M0:
+  **NOT AUTHORIZED**.
+
+Continue in this order:
+
+1. obtain Luqhhh/delegated issue-2 approval of the mapping digest and eight
+   decisions;
+2. obtain Remygred/P0-owner approval of the overlay digest and eight decisions;
+3. resolve the #134 CPU capacity, tiering-disabled semantics, model revision,
+   workload manifests, metric coverage, and copy-toggle decision; then produce
+   complete self-contained per-mode configs, obtain configuration-authority
+   approval, and create the required joint admission record with new digests;
+4. provision an isolated exact-pinned CPU import environment and rerun import,
+   interface, config-resolution, and controlled-stub handoff checks without
+   importing the device NPU spec or allocating hardware; and
+5. only after every G0 authority and CPU record is complete, request separate
+   authorization for G1 runtime wiring.
+
+No issue/PR comment, commit, push, rebase, service, NPU command, or performance
+run is implied by this local checkpoint.
+
 ## Local P1 checkpoint (2026-08-02)
 
 The parent-side candidate is committed on `feature/m0-protocol-freeze` at
@@ -412,8 +927,11 @@ this checkpoint.
   observe the returned EngineCoreOutput. Never delay KV release for tracing.
 - P1 completeness is decoder-only, local homogeneous KV-cache, `n=1`, and no
   frontend stop-string path; excluded modes emit a bounded diagnostic.
-- P1 is restricted to `communication_mode=none`. A non-`none` `issue2:*` mode
-  is out of scope until issue #2 supplies a separately frozen profile.
+- Formal P1 traces remain restricted to `communication_mode=none` for the
+  HBM-only/no-connector control. The approved recovery-side profile is not
+  sufficient to enable a non-`none` mode: connector traces additionally need
+  the separately frozen issue-2 mapping, the P0 base-mode overlay, a complete
+  resolved configuration, and later authorized implementation gates.
 - Respect the exact record sizes, queue bounds, terminal precedence, cleanup
   roster, supported-mode grammar, loss accounting, and compatibility behavior
   in the digest-bound
@@ -434,7 +952,7 @@ The interactive shell carries unrelated Ascend `PYTHONPATH` and
 ```bash
 env -u PYTHONPATH -u LD_LIBRARY_PATH \
   PYTHONNOUSERSITE=1 \
-  PYTHONPATH=/root/vllm-request-lifecycle-profiler-plugin/src \
+  PYTHONPATH=/root/vllm-request-lifecycle-profiler-plugin-kv-integration/src \
   PYTHONDONTWRITEBYTECODE=1 \
   /home/shuhao/miniconda3/envs/vllm-request-lifecycle-profiler-exp/bin/python -B \
   -m pytest -q

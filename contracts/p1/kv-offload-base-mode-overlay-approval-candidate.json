@@ -1,0 +1,103 @@
+{
+  "schema": "request-lifecycle-profiler/kv-offload-base-mode-overlay-approval-candidate/v1",
+  "status": "P0_OWNER_REVIEW_REQUIRED_AND_OTHER_AUTHORITIES_PENDING",
+  "evidence_status": "NOT_M0_PROVEN",
+  "generated_at": "2026-08-03T00:00:00Z",
+  "candidate_effect": "none_until_explicit_P0_owner_approval_of_the_overlay_digest",
+  "candidate_authority": "Remygred_as_P0_base_mode_owner",
+  "proposed_artifact": {
+    "overlay_id": "rlp.trace-mode/kv-offload-v1alpha1",
+    "path": "kv-offload-base-mode-overlay.v0-draft.md",
+    "sha256": "6e035c29664038cdc93b545538cee6fc31abfb79e455d994851f8c9dbfd1c734",
+    "review_result": "INDEPENDENT_CONTENT_REVIEW_GO_FOR_AUTHORITY_SUBMISSION",
+    "activation_status": "BLOCKED_PENDING_P0_APPROVAL_ISSUE2_APPROVAL_COMPLETE_CONFIG_AND_IMPLEMENTATION"
+  },
+  "immutable_dependencies": {
+    "minimum_runtime_contract_sha256": "122963930919073179d4844422d21e85da3a522def3ace723eb992eac43cdade",
+    "phase_taxonomy_sha256": "82aae94c5d124b846f77684e239714d51791115608e786079c4ea4bd4ca05abd",
+    "recovery_profile_sha256": "b363532884d1cae8049ab080d2b85a629f3b33a75f6621788d1e4c8f30737666",
+    "profile_owner_approval_record_sha256": "2831ce52802e7cbe4ec092431c71c18de05491da7ac8d48512014b1d43b3cb0c",
+    "issue2_mapping_sha256": "dca914f989f3a98d43fb9fa2538f7c43a375e8f22f5deb7e09343aee5ee7bc19",
+    "issue2_mapping_approval_candidate_sha256": "f3cfdd6d9463251fdc27e01164d9f33a1efcc6c155f6d51959e0e1989d23a350",
+    "runtime_commit": "f229ba7cad21a4dba58681af6738a9fd947388e2",
+    "device_plugin_commit": "cafad89a5e103f31ea517c1edb56130578c3cd56"
+  },
+  "review_items": [
+    {
+      "item": 1,
+      "status": "pending",
+      "decision": "Accept overlay ID rlp.trace-mode/kv-offload-v1alpha1, every exact dependency digest, and preservation of the frozen P0 bytes."
+    },
+    {
+      "item": 2,
+      "status": "pending",
+      "decision": "Accept the single kv_cache_mode=local_offload value only for one-host TP=PP=DP=1 tiering_enabled runtime-core OffloadingConnector/TieringOffloadingSpec, excluding tiering_disabled CPUOffloadingSpec and all NPU specs."
+    },
+    {
+      "item": 3,
+      "status": "pending",
+      "decision": "Accept the exact root binding metadata and require a later joint admission record binding the approved overlay, issue2 mapping and approval record, complete configuration and approval record, profile and owner record, and frozen P0 records, co-signed by the P0 owner and issue-134 configuration authority."
+    },
+    {
+      "item": 4,
+      "status": "pending",
+      "decision": "Accept the closed H2D-only base-operation roster: zero or one H2D pair per lifecycle, exactly three edges for a positive episode, and zero base spans/edges for D2H and transfer_wait; require at least one positive lifecycle in a formal state-machine run."
+    },
+    {
+      "item": 5,
+      "status": "pending",
+      "decision": "Accept the exact cross-epoch preempted-to-H2D-to-next-admission bridge and its bounded transfer_id pending-context requirement."
+    },
+    {
+      "item": 6,
+      "status": "pending",
+      "decision": "Accept the deterministic existing-P0 unsupported-reason mapping, unchanged validation/loss/receipt rules, serving fail-open behavior, and formal-evidence fail-closed behavior."
+    },
+    {
+      "item": 7,
+      "status": "pending",
+      "decision": "Accept that issue2 mapping approval, complete configuration approval, CPU/G1 checks, and later hardware gates remain independent and cannot be substituted by this overlay approval."
+    },
+    {
+      "item": 8,
+      "status": "pending",
+      "decision": "Accept content-addressed immutability and that this approval does not authorize communication-mode activation, G1, source edits, NPU, service launch, an experiment, a performance claim, or M0."
+    }
+  ],
+  "independent_requirements": {
+    "issue2_mapping_authority_approval_record": null,
+    "complete_resolved_configuration_sha256": null,
+    "complete_configuration_authority_approval_record": null,
+    "joint_admission_record": null,
+    "runtime_implementation": "NOT_STARTED",
+    "all_required_before_activation": true
+  },
+  "gate_effects_before_approval": {
+    "overlay_frozen": false,
+    "issue2_mapping_frozen": false,
+    "complete_configuration_frozen": false,
+    "communication_mode_non_none_authorized": false,
+    "G0_complete": false,
+    "G1_runtime_wiring_authorized": false,
+    "NPU_authorized": false,
+    "service_launch_authorized": false,
+    "performance_experiment_authorized": false,
+    "performance_claim_authorized": false,
+    "M0_proven": false
+  },
+  "gate_effects_after_P0_approval_without_other_requirements": {
+    "overlay_frozen": true,
+    "issue2_mapping_frozen": false,
+    "complete_configuration_frozen": false,
+    "communication_mode_non_none_authorized": false,
+    "G0_complete": false,
+    "G1_runtime_wiring_authorized": false,
+    "NPU_authorized": false,
+    "service_launch_authorized": false,
+    "performance_experiment_authorized": false,
+    "performance_claim_authorized": false,
+    "M0_proven": false
+  },
+  "approval_statement_template": "批准按 SHA-256 6e035c29664038cdc93b545538cee6fc31abfb79e455d994851f8c9dbfd1c734 冻结 rlp.trace-mode/kv-offload-v1alpha1 P0 base-mode overlay，并接受 SHA-256 <FINAL_APPROVAL_CANDIDATE_SHA256> 的 Approval candidate 第 1-8 项。该批准仅冻结 overlay；issue-2 mapping、完整配置及其联签记录仍须独立完成，不授权 communication_mode 非 none、G1、源码修改、NPU、服务、实验、性能结论或 M0。",
+  "integrity_rule": "This candidate grants no authority. Explicit P0-owner approval must cite the final overlay digest and this candidate digest. The approved overlay remains independently blocked by issue2 authority, a complete approved configuration, the joint admission record, and later implementation gates."
+}

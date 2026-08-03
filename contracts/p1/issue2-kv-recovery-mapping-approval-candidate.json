@@ -1,0 +1,122 @@
+{
+  "schema": "request-lifecycle-profiler/issue2-kv-recovery-mapping-approval-candidate/v1",
+  "status": "ISSUE2_AUTHORITY_REVIEW_REQUIRED_AND_P0_OVERLAY_PENDING",
+  "evidence_status": "NOT_M0_PROVEN",
+  "generated_at": "2026-08-03T05:22:13Z",
+  "candidate_effect": "none_until_explicit_issue2_authority_approval_of_the_mapping_digest",
+  "candidate_authority": "Luqhhh_or_an_explicitly_delegated_issue2_specialty_profile_authority",
+  "proposed_artifact": {
+    "mapping_id": "issue2:kv-recovery-v1alpha1",
+    "path": "issue2-kv-recovery-mapping.v0-draft.md",
+    "sha256": "dca914f989f3a98d43fb9fa2538f7c43a375e8f22f5deb7e09343aee5ee7bc19",
+    "review_result": "INDEPENDENT_CONTENT_REVIEW_GO_FOR_AUTHORITY_SUBMISSION",
+    "activation_status": "BLOCKED_PENDING_ISSUE2_APPROVAL_AND_SEPARATE_P0_BASE_MODE_OVERLAY"
+  },
+  "profile_owner_endorsement": {
+    "owner": "Remygred",
+    "approval_record_path": "kv-recovery-profile-owner-approval.json",
+    "approval_record_sha256": "2831ce52802e7cbe4ec092431c71c18de05491da7ac8d48512014b1d43b3cb0c",
+    "approved_profile_path": "kv-recovery-profile.v0-draft.md",
+    "approved_profile_sha256": "b363532884d1cae8049ab080d2b85a629f3b33a75f6621788d1e4c8f30737666",
+    "scope": "preparation_and_submission_of_operation_labels_and_complete_mapping_only",
+    "does_not_approve_issue2_namespace": true
+  },
+  "immutable_dependencies": {
+    "minimum_runtime_contract_sha256": "122963930919073179d4844422d21e85da3a522def3ace723eb992eac43cdade",
+    "phase_taxonomy_sha256": "82aae94c5d124b846f77684e239714d51791115608e786079c4ea4bd4ca05abd",
+    "idle_evidence_contract_v4_3_sha256": "8edb42b706b6cab14dfde2b109841cb8af090883c9ea86696ee779de21d0c9ed",
+    "runtime_commit": "f229ba7cad21a4dba58681af6738a9fd947388e2",
+    "device_plugin_commit": "cafad89a5e103f31ea517c1edb56130578c3cd56"
+  },
+  "authenticated_issue2_inputs": {
+    "repository": "intellistream/vllm-request-lifecycle-profiler-plugin",
+    "issue": 2,
+    "comment_ids": [
+      5141244947,
+      5157931735,
+      5161902781,
+      5162001498
+    ],
+    "latest_comment_effect": "per_device_scan_completeness_unassigned_stream_and_zero_duration_point_rules_included",
+    "runtime_matched_ab_status": "NOT_PERFORMED"
+  },
+  "review_items": [
+    {
+      "item": 1,
+      "status": "pending",
+      "decision": "Accept mapping ID issue2:kv-recovery-v1alpha1, the final mapping SHA-256, every bound dependency SHA, the authenticated issue-2 input snapshot, and the stated authority boundary."
+    },
+    {
+      "item": 2,
+      "status": "pending",
+      "decision": "Freeze only this specialty mapping and keep it non-activatable until a separately content-addressed P0-owner base-mode overlay is approved."
+    },
+    {
+      "item": 3,
+      "status": "pending",
+      "decision": "Accept the closed asymmetric base roster: h2d_restore emits exactly one span and three edges; d2h_preserve and transfer_wait emit zero base spans and zero base edges; issue2:kv-recovery-v1alpha1:h2d_restore is the only active P0 evidence code in this mapping."
+    },
+    {
+      "item": 4,
+      "status": "pending",
+      "decision": "Accept the H2D request, lifecycle, epoch, transfer, block-set, rank-0 process and clock identities; bound profile/mapping metadata; strict positive duration and bytes; e-to-e+1 relation; exact three edges; the transfer_id pending context with max_pending_h2d_contexts_per_process=4096 that alone justifies the internal instrumented-execution-context edge; deterministic attempted-record record_seq consumption plus serialization_failure loss and no base pair/edge when that table is full; fail-open serving; and the first admission_started after successful scheduler wakeup as the return target."
+    },
+    {
+      "item": 5,
+      "status": "pending",
+      "decision": "Accept D2H as exact profile submit/done evidence only, with no inferred request return edge, and fail closed on failure, orphan, duplicate, retry, nonpositive duration or bytes, or identity drift."
+    },
+    {
+      "item": 6,
+      "status": "pending",
+      "decision": "Accept transfer_wait as one run/process-scoped point and exact member relation: capture the wait-entry timestamp, enqueue contiguous chunks only after normal return, derive wait_call_observation_id from the first chunk record ID, forbid request fan-out, and do not fabricate a wait duration."
+    },
+    {
+      "item": 7,
+      "status": "pending",
+      "decision": "Accept the SHA-bound Draft v4.3 device semantics used here, including per-device completeness, unassigned-stream behavior, legal point-only zero-duration records, productive zero-duration rejection, canonicalization, clock calibration, four evidence layers, and the matched-runtime-A/B claim boundary; this does not approve global M0."
+    },
+    {
+      "item": 8,
+      "status": "pending",
+      "decision": "Accept content-addressed immutability and gate boundaries: any byte or dependency change requires a new digest; a D2H base span or paired wait interval requires a new version; this approval cannot activate the P0 overlay or authorize G1, NPU, service launch, an experiment, a performance claim, or M0."
+    }
+  ],
+  "separate_p0_owner_decision_required": {
+    "status": "pending",
+    "minimum_overlay_scope": [
+      "one exact connector-capable kv_cache_mode value and validation grammar",
+      "binding to the base contract, recovery profile, issue2 mapping, and resolved configuration digests",
+      "explicit acceptance that only h2d_restore is in the base paired-operation roster while d2h_preserve and transfer_wait remain profile-only zero mappings",
+      "explicit acceptance of the preempted-to-communication-to-next-admission recovery bridge as the specialty child-edge interpretation"
+    ],
+    "issue2_authority_substitution_allowed": false,
+    "mapping_approval_substitution_allowed": false
+  },
+  "gate_effects_before_approval": {
+    "mapping_frozen": false,
+    "base_mode_overlay_frozen": false,
+    "communication_mode_non_none_authorized": false,
+    "G0_complete": false,
+    "G1_runtime_wiring_authorized": false,
+    "NPU_authorized": false,
+    "service_launch_authorized": false,
+    "performance_experiment_authorized": false,
+    "performance_claim_authorized": false,
+    "M0_proven": false
+  },
+  "gate_effects_after_issue2_approval_without_p0_overlay": {
+    "mapping_frozen": true,
+    "base_mode_overlay_frozen": false,
+    "communication_mode_non_none_authorized": false,
+    "G0_complete": false,
+    "G1_runtime_wiring_authorized": false,
+    "NPU_authorized": false,
+    "service_launch_authorized": false,
+    "performance_experiment_authorized": false,
+    "performance_claim_authorized": false,
+    "M0_proven": false
+  },
+  "approval_statement_template": "批准按 SHA-256 dca914f989f3a98d43fb9fa2538f7c43a375e8f22f5deb7e09343aee5ee7bc19 冻结 issue2:kv-recovery-v1alpha1 mapping，并接受 SHA-256 <FINAL_APPROVAL_CANDIDATE_SHA256> 的 Approval candidate 第 1-8 项；确认 H2D 为 1 span/3 edges，D2H 与 transfer-wait 的 base mapping 均为 0/0，仅保留 profile evidence。该批准只冻结 issue-2 specialty mapping，不批准 P0 base-mode overlay、communication mode 激活、G1、NPU、服务、实验或 M0。",
+  "integrity_rule": "This candidate grants no authority. Explicit issue-2 approval must cite the final mapping digest and this candidate digest. The approved mapping remains independently blocked by the P0 base-mode overlay and cannot be used to activate non-none communication or to claim runtime, device, performance, or M0 evidence."
+}
