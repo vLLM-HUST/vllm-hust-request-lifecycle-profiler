@@ -1,5 +1,126 @@
 # Experiment Plan
 
+> **Current gate (2026-08-03):** treat the checked-in runs below as historical
+> development evidence. Upstream profiler PR #4 is merged at
+> `15717eae2630e80c11b113ccaeb3422871b35b40`; committed local P0/P1 checkpoint
+> `9f1464b8d017ef48e66b8b4c9bd4a5a37fdc563d` does not yet contain
+> `kv_recovery.py`. Preserve that checkpoint, reconcile PR #4
+> safely, freeze a versioned KV-recovery adapter, CPU-test the complete ID/stage
+> chain, and obtain a READY preflight before any controlled runtime or matched
+> performance run. The frozen P0 protocol and runtime/device pins remain in
+> force.
+
+## 2026-08-03 KV-Recovery Plan Correction
+
+Faculty comments `5157885904` and `5157931714` assign the next concrete work:
+connect PR #4's `preempt`, `restore_start`, `restore_done`,
+`scheduler_wakeup`, `requeue`, `admission`, and
+`first_prefill_or_decode` fields to a controlled runtime trace while retaining
+the complete request ID and its stage association. Only after that trace is
+valid should tiering/HBM-only matched runs begin.
+
+This changes the immediate experiment priority, not the M0 research goal or
+the approved P0 bytes. `restore_start`, `restore_done`, and
+`scheduler_wakeup` are not frozen v1alpha1 event names; PR #4 also uses float
+milliseconds and array-valued block IDs while P0 uses monotonic uint64
+nanoseconds and scalar bounded metadata. The runtime integration therefore
+requires a reviewed, versioned optional adapter/profile. It must define exact
+stage boundaries, request/sequence/block-ID bounds, requeue reasons, clock
+conversion, and fail-closed handling before adding call sites. An actual
+tiering/offload trace also needs an approved communication or specialty
+profile; it cannot be mislabeled as the currently frozen
+`communication_mode=none`.
+
+Execute the corrected ladder in order:
+
+1. **G0 — upstream reconciliation, no hardware.** Preserve P0/P1 checkpoint
+   `9f1464b8d017ef48e66b8b4c9bd4a5a37fdc563d` and its recorded hashes.
+   Reconcile PR #4's additive module, tests, exports, and
+   READY/BLOCKED fix through a reviewed patch or isolated worktree, not a blind
+   pull/rebase/cherry-pick. Recompute affected hashes and rerun the parent CPU,
+   PR #4, Ruff, build, and required independent-review gates.
+   Resolve the pinned-pair scheduler API check before choosing a tiering mode:
+   runtime `f229ba7...` passes `throttle_prefills` to `schedule()`, whereas
+   device `cafad89...`'s `RecomputeScheduler.schedule()` accepts no such
+   argument. Prove the selected connector avoids that scheduler or obtain an
+   approved compatibility patch/new pair and test it on CPU.
+2. **G1 — CPU controlled trace.** Produce at least one complete synthetic/fake
+   runtime recovery episode and one valid trace with no pressure episode.
+   Verify an untruncated request-ID association to canonical `trace_id`, engine
+   request/sequence identity, recovery stages, and a stable scoped logical
+   block association; seven-stage order; repeated requeue reason/count; exact latency
+   decomposition; monotonic-ns conversion; zero unaccounted loss; and one
+   committed receipt for every expected process.
+3. **G2 — read-only NPU6 admission.** Use a version-aware whole-trace preflight.
+   `READY.txt` must exist only when `BLOCKED.txt` is absent and every endpoint,
+   model, device-owner, schema/profile, expected-process, and trace-export check
+   passes. If either marker state is ambiguous or any check fails, stop without
+   starting a service or collecting performance data.
+4. **G3 — minimum online trace smoke.** Start only an authorized controlled
+   service and induce one recovery episode. Confirm client request ID through
+   engine sequence and every recovery stage, plus complete copy/wait/requeue
+   fields. Label it `real-online` with `smoke-only` validity; it proves capture,
+   not speedup or representative performance.
+5. **G4 — fixed-8-GiB matched modes.** Freeze nonoverlapping resolved meanings
+   for `tiering_disabled`, `tiering_enabled`, and `HBM-only`. Use the same
+   request set/seed and all fixed #134 settings below. Run each mode in at least
+   three independent service lifecycles in rotating/alternating order and
+   publish every repetition plus median/IQR. If supported, test copy
+   optimization on/off as a separate one-variable pair. Measure tracing
+   disabled/enabled separately to quantify observer overhead.
+   Do not run a `RecomputeScheduler`-based row until the G0 signature mismatch
+   has been resolved and the exact tested pair is recorded.
+   For the local #134 path, freeze exactly one tiering implementation; do not
+   mix the device plugin's NPU tiering spec with the runtime's separate spec.
+   HBM-only removes `--kv-transfer-config` rather than using zero CPU capacity.
+   If `tiering_disabled` and HBM-only resolve to the same configuration, stop
+   and obtain the intended mode definitions instead of publishing duplicate
+   controls under different names. An FS tier must use a run-owned root,
+   `PYTHONHASHSEED=0`, and a frozen cold/warm-cache policy so state cannot leak
+   across independent service lifecycles.
+6. **G5 — full capacity surface.** Run the #134 8/16/24/32-GiB capacity and
+   workload matrix after the fixed-8-GiB mechanism comparison is sound.
+7. **G6 — counterfactual.** If causal ranking selects copy, restore/wakeup,
+   admission/requeue, or another mechanism, change only the rank-one predicted
+   mechanism and rerun a matched pair. The public #134 experiment is mechanism
+   evidence; it counts toward blind M0 scoring only under the separately frozen
+   Team-A custody and reveal protocol.
+
+Stop and fail the run closed on stage loss/duplication/inversion, request or
+sequence ID drift, restore block drift, unreasoned requeue, trace loss, missing
+committed process receipt, correctness failure, or unmatched resolved
+configuration. If no real preempt/recovery episode occurs, report negative
+coverage rather than a tiering or attribution result.
+
+### Benchmark #134 fixed matrix and measurements
+
+- Model/hardware: `Qwen2.5-14B-Instruct`, Ascend 910B2 x1, FP16,
+  `max_model_len=32768`, identical request set, and fully resolved parameters.
+- Capacity surface: device KV 8/16/24/32 GiB; `random-online`,
+  `sharegpt-online`, and `prefix-repetition-online`; steady 1 RPS; at least
+  three independent service processes per point in alternating order.
+- Fixed-8-GiB modes: tiering disabled, tiering enabled, HBM-only, and, only if
+  supported, copy optimization on/off.
+- Service metrics: throughput; mean/P50/P95/P99 TTFT, TPOT, and ITL; error rate;
+  running/waiting; batch size; per-step prefill/decode tokens; KV usage, prefix
+  hit, preemption, and eviction; episode start/end and affected-request count.
+- Per recovery: stable request/sequence/logical-block association, with raw
+  physical block IDs explicitly process/rank/allocator scoped; block count,
+  bytes, and direction; H2D/D2H copy; inflight migration and budget wait; full stage
+  timestamps; copy time; restore-to-wakeup, wakeup-to-admission,
+  restore-to-admission, admission-to-first-compute, and total recovery; requeue
+  count/reason; CPU-tier-hit-but-waiting duration; copy/decode overlap.
+- Statistics/evidence: every repetition, median/IQR, exact parent/core/plugin
+  SHAs, model revision, CANN/driver/torch-npu versions, raw artifacts,
+  environment and resolved-config manifests, trace schema/profile version,
+  request-ID association artifact, expected-process receipts, observer
+  overhead, and #89 status `canonical-admitted`, `negative-result`, or
+  `blocked` as applicable.
+
+The existing Qwen2.5-7B NPU6 smoke and concurrency-2 prefill-tail artifacts are
+useful development triggers only. They do not substitute for #134's 14B,
+32K-context, fixed-capacity matched target.
+
 ## Phase 0: Trace Schema Validation
 
 - Unit-test lifecycle event ordering, missing stages, and bottleneck
@@ -41,6 +162,14 @@ path, Ascend runtime root, NPU6 process ownership, trace export schema, and the
 pinned workload submodule commit. If a runtime trace hook is missing, the
 preflight records the missing hook as `trace_export_invalid:*` rather than
 claiming an online measurement.
+
+Do not conflate two different readiness snapshots. The historical checked-in
+`.benchmarks/results/npu6_trace_probe_preflight/` below was READY for its older
+client-proxy run. PR #4's newer read-only preflight was BLOCKED by a failed
+models endpoint, missing trace export path, and no process on NPU6; it launched
+no service and produced no latency or throughput evidence. That BLOCKED state
+does not invalidate the old historical run, but the old READY marker also does
+not prove that the current environment is admitted.
 
 Current live trace evidence:
 
@@ -192,13 +321,13 @@ workload matrix.
   output, KV pressure boundary, slow streaming client, and cleanup stall
   conditions.
 - Measure whether attribution matches injected ground truth.
-- For the next NPU6 pass, prioritize repo-launched graph-mode rows for queue
-  pressure, KV pressure, and cleanup, then add raw logs, simple timers,
-  causal-rules-disabled diagnosis, and a timed manual diagnosis baseline.
-- Extend the runtime hook beyond the coarse prefill span with scheduler
-  dispatch/start timestamps, KV allocation/cache-pressure counters, graph or
-  batch transition fields, and prefill kernel timing before making a KV/graph
-  root-cause claim for the concurrency-2 tail.
+- For the next NPU6 pass, follow G0-G4 above: validate one complete KV-recovery
+  pressure episode before a fixed-8-GiB tiering/HBM-only matched run. Do not
+  begin by rerunning the older coarse concurrency-2 experiment.
+- Split the recovery interval into copy, restore-to-wakeup,
+  wakeup-to-admission, admission-to-first-compute, requeue/wait, and total
+  recovery. Keep scheduler-output/batch shape, KV pressure, graph transition,
+  and prefill/decode timing as supporting mechanism fields.
 
 Evidence label: `real-online` only when the runtime actually serves requests on
 NPU6; otherwise use `replay` or `simulation/model`.
@@ -208,3 +337,12 @@ NPU6; otherwise use `replay` or `simulation/model`.
 Every run directory must include `run_metadata.json` with parent commit,
 environment, NPU id, model, runtime, workload source, injected fault, command,
 dirty state, and evidence label.
+
+For KV-recovery work it must additionally record the PR #4 merge commit, exact
+runtime-core and device-plugin SHAs, model revision, CANN/driver/torch-npu
+versions, all resolved server/client parameters, target/spec hash, trace
+schema and optional-profile version, request-ID association artifact,
+expected-process roster and committed receipts, preflight marker/admission
+status, correctness result, trace-loss result, and a separate validity status.
+Readiness (`READY` or `BLOCKED`) is orthogonal to the six source labels and is
+never itself a performance measurement.

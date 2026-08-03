@@ -5,12 +5,18 @@ lifecycle tracing in LLM serving. It targets a single-NPU first implementation
 on NPU6 and follows the optimization-repository workflow used by the
 `llm-optimizations` workspace.
 
-## 2026-07-27 research focus
+## 2026-08-03 research focus
 
 The profiler directly owns the low-overhead state feedback and causal
 attribution questions. It may export inputs to roofline and statistical-gate
 projects, but trace ownership alone does not make those contributions complete.
-The immediate gate remains controlled intervention-based attribution. See
+The minimal M0 phase/runtime protocol in `contracts/p0/` is owner-frozen. The
+parent exporter has an audited local CPU checkpoint. Following the two newest
+faculty comments on issue #1, the immediate gate is to reconcile merged PR #4,
+freeze a compatible optional KV-recovery profile, and connect its complete
+request/stage chain to a controlled runtime trace before any tiering/HBM-only
+matched experiment. Controlled intervention-based attribution remains the
+formal evaluation gate after P1 instrumentation. See
 [`RESEARCH_UPGRADE_20260727.md`](RESEARCH_UPGRADE_20260727.md).
 
 ## Research Question
@@ -21,12 +27,17 @@ stage instead of correlated symptoms?
 
 ## Repository Map
 
+- `AGENTS.md`: durable assignment, ownership, environment, evidence, and merge
+  policy for all later work.
 - `src/vllm_request_lifecycle_profiler/`: trace schema, attribution logic, and
   plugin code.
+- `contracts/p0/`: owner-frozen minimum M0 phase/runtime protocol, approval
+  record, and historical development-case inventory.
 - `.benchmarks/`: trace probes and controlled fault-injection entrypoints.
 - `third_party/llm-serving-workloads/`: pinned shared workload suite.
-- `third_party/vllm-hust/`: pinned vLLM-HUST runtime carrier with optional
-  lifecycle hook sites on `feature/request-lifecycle-profiler-runtime-hooks-faculty`.
+- `third_party/vllm-hust/`: pinned historical vLLM-HUST hook carrier used only
+  as a reviewed patch/evidence reference; new integration starts from current
+  runtime main.
 - `tests/`: no-NPU trace and repository tests.
 - `docs/research_logic.md`: seven-step research framing.
 - `docs/experiment_plan.md`: evaluation plan and evidence labels.
@@ -88,14 +99,27 @@ make shared-workloads-smoke PYTHON=python3
 
 ## Next Gate
 
-The hook-enabled NPU6 runtime gate is now satisfied for the smoke path:
-`.benchmarks/results/npu6_runtime_hook_pair_plan/summary.json` reports complete
-chains for all observed request chains and bounded TTFT/latency overhead on the
-matched hook-disabled/enabled workload shape.
+The P0 owner freeze is recorded in
+[`owner-freeze-approval.json`](contracts/p0/owner-freeze-approval.json). It
+pins the minimum runtime contract SHA-256
+`122963930919073179d4844422d21e85da3a522def3ace723eb992eac43cdade`,
+phase taxonomy SHA-256
+`82aae94c5d124b846f77684e239714d51791115608e786079c4ea4bd4ca05abd`,
+runtime `f229ba7cad21a4dba58681af6738a9fd947388e2`, device plugin
+`cafad89a5e103f31ea517c1edb56130578c3cd56`, and
+`communication_mode=none`. Those pins remain valid for the existing P1
+checkpoint, but actual tiering/offload is outside the frozen mode. The next
+gate is controlled reconciliation of upstream profiler PR #4 merge
+`15717eae2630e80c11b113ccaeb3422871b35b40`, followed by a reviewed optional
+KV-recovery plus communication/specialty profile, CPU whole-chain validation,
+and a version-aware READY preflight. Checkpoint
+`9f1464b8d017ef48e66b8b4c9bd4a5a37fdc563d` preserves the P0/P1 work but does
+not yet contain PR #4; integrate from an upstream-main worktree rather than
+rewriting that checkpoint.
 
-The next gate is controlled live attribution. Use the pinned
-`third_party/vllm-hust` runtime hook branch on NPU6, inject one fault class at a
-time, and compare internal runtime spans against client-observed anchors. Start
-with slow streaming, long-prompt prefill pressure, or decode-heavy output; then
-add KV-pressure and cleanup stalls. Run `make top-tier-readiness` before and
-after each evidence batch.
+The checked-in hook-enabled NPU6 artifacts remain useful contaminated
+development evidence: the smoke pair has complete historical chains and a
+small-workload smoke delta observed once per mode. They are not primary
+blind-localization cases and do not prove M0. P1 should extend the existing
+hook/export path; formal controlled-live scoring additionally requires fresh
+opaque cases and frozen graph-mode specialty targets.

@@ -1,5 +1,8 @@
 # Agent Handoff
 
+The authoritative repository instructions are in `AGENTS.md`; keep this file
+as a short compatibility handoff only.
+
 ## Mission
 
 Advance this repository as the single-NPU NPU6 observability line for causal
@@ -18,9 +21,14 @@ request-lifecycle tracing in LLM serving.
 
 ## Current Focus
 
-Upgrade client-observed lifecycle traces into runtime-stage attribution, then
-validate the attribution with controlled long-prompt, decode-heavy, streaming,
-and KV-pressure cases.
+Follow the 2026-08-03 KV-recovery correction in `AGENTS.md`: preserve committed
+P1 checkpoint `9f1464b8d017ef48e66b8b4c9bd4a5a37fdc563d`, reconcile merged profiler PR #4,
+freeze the optional KV-recovery and required communication/specialty profile, then attach
+the full request/sequence/recovery chain to the approved runtime/device pair.
+Do not run tiering under the existing `communication_mode=none`, and do not
+treat a BLOCKED preflight as performance evidence. The first hardware work is
+a single admitted pressure-episode trace smoke; matched #134 runs follow only
+after all CPU, compatibility, and readiness gates pass.
 
 ## Useful Entry Points
 
