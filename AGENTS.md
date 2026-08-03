@@ -832,6 +832,151 @@ portable config/integrity cases still run. A future CI result must report such
 skips and must never claim the pinned-source audit passed unless the exact
 objects were provisioned.
 
+### G1 default-off runtime transfer-spine checkpoint (2026-08-03)
+
+The authorized isolated runtime checkpoint is now implemented, independently
+reviewed, and committed **locally only**:
+
+- repository/worktree: `/root/vllm-hust-g1-default-off-f229ba7`;
+- branch: `feature/rlp-kv-recovery-g1-default-off`;
+- exact base: `f229ba7cad21a4dba58681af6738a9fd947388e2`;
+- local head: `0141462f82fb32f78129acccc996212296129eac`;
+- commit subject: `kv offload: add default-off recovery identity spine`; and
+- remote status: **not pushed; no G1 PR exists and no merge is authorized**.
+
+This is a reviewed **G1 transfer-spine WIP**, not a completed or activated G1
+implementation. It adds the runtime-side identity/transport seam needed for a
+future profiler adapter while keeping the production activation gate closed.
+It does not implement the real profiler evidence sink/exporter, the complete
+seven-stage recovery instrumentation, configuration/joint admission, or a
+formal run manifest.
+
+The committed source/test SHA-256 values are:
+
+- `vllm/v1/kv_recovery_profile.py`:
+  `f971272aa076c669c27a2f64a81f024f7593a77c5210c546f862e7e30ee62074`;
+- `vllm/distributed/kv_transfer/kv_connector/v1/offloading/common.py`:
+  `88051c44fc9ae7b73381971f02f532d65e52bbad9e2f97674abfbddb285bd77c`;
+- `vllm/distributed/kv_transfer/kv_connector/v1/offloading/scheduler.py`:
+  `88039706eb91ac63cd31dbc9967b4c616522adbaf58fc7bc7e6bd826f237a0c9`;
+- `vllm/distributed/kv_transfer/kv_connector/v1/offloading/worker.py`:
+  `2da4857a7f7607d10aa15124e734384b3b2b06dff2e3abdfe048fd4135f5aa6c`;
+- `vllm/distributed/kv_transfer/kv_connector/v1/offloading_connector.py`:
+  `7cfd4a1eb716c2b2669c375bb2dfc50479e330526112e8d76c2daf7aba9916d6`;
+- `tests/v1/test_kv_recovery_profile.py`:
+  `971deca636cdec181cf6574f2ccd7b715a64658c7bad09d53ac9b7ce29991033`;
+- `tests/v1/kv_connector/unit/offloading_connector/test_kv_recovery_scheduler.py`:
+  `8c8925c523c378a368eaedfd526219d5c30c80bc40ba5d8e1f20c8999717b3e0`;
+- `tests/v1/kv_connector/unit/offloading_connector/test_kv_recovery_worker.py`:
+  `0507227ebad9c567f230866b59a75b2a0ac2937235c3e778c200154090e67c74`;
+  and
+- `tests/v1/kv_connector/unit/offloading_connector/test_worker_metadata.py`:
+  `0cdbf72e54a169dbcfb21a2b3bd48b87d07bceda504e7d7c8a74aef7e64eb5e2`.
+
+Any byte change invalidates the review result below. Rerun the full focused
+suite, targeted regressions, Ruff/format/diff checks, and independent scope
+review before replacing this checkpoint.
+
+#### Implemented transfer-spine behavior
+
+- `KV_RECOVERY_RUNTIME_ACTIVATION_AUTHORIZED` is false. The effective gate
+  additionally requires the binding's activation bit, approved issue-2
+  mapping status, approved P0-overlay status, and
+  `communication_mode == communication_mapping_id`. The committed binding is
+  `false / pending / pending / none`; changing only one Boolean cannot
+  activate it.
+- Even after a future joint gate opens, observer creation is limited to exact
+  `type(spec) is TieringOffloadingSpec` with an explicitly resolved
+  `recompute_scheduler_enable is False`. `CPUOffloadingSpec`, subclasses,
+  custom specs, device NPU specs, a missing value, and `True` fail closed.
+- No production code registers a factory. With the gate closed, registration,
+  creation, fork preparation, and reinitialization return before touching the
+  factory lock or plugin. `worker_base.py` has no diff. The normal scheduler
+  and worker hold no recovery context/attempt tables and do not read the
+  profile clock or call an evidence sink.
+- Scheduler D2H/H2D logical coordinates are canonicalized and capped at 4096
+  plus one bounded overflow sentinel. Contexts travel in optional connector
+  metadata rather than changing `TransferJob`. Over-bound or malformed
+  observer results fail evidence closed while the real transfer path proceeds.
+- The worker allocates a process-scoped transfer ID before backend submission,
+  captures the submit point immediately after accepted backend return, and
+  captures completion at the first successful raw `TransferResult`
+  observation. A clock or submit-observer failure cannot retain an attempt or
+  later emit a receipt.
+- The reference worker observer binds exact process UUID, run ID, clock domain,
+  rank/world, job/transfer/context/block identities, strict uint domains, and
+  exact bytes/timestamps. Python `bool` and `float` cannot pass integer fields.
+  Forked children replace inherited locks, reinitialize an inherited factory
+  once, clear it on failure, and may register a fresh child factory without
+  weakening same-process single registration.
+- H2D pending contexts and transported receipts have hard 4096 limits. The
+  4097th real H2D transfer still submits and completes for serving, consumes
+  one bounded `serialization_failure` evidence attempt, emits no base receipt,
+  and disables affected formal evidence without an unbounded tombstone table.
+- D2H remains profile-only and cannot emit an H2D/base receipt. Equal H2D host
+  timestamps may reach the profile sink as diagnostic point evidence but
+  cannot emit a zero-length base span; equal D2H submit/done timestamps fail
+  before formal profile completion.
+- Worker wait membership is resolved before the existing backend wait and
+  copied only up to a 4097-member overflow sentinel. The original backend set
+  is never truncated. A valid wait captures one entry timestamp immediately
+  before the call and is recorded only after normal return; there is no return
+  timestamp or invented duration. Missing, failed, foreign-run/process, mixed,
+  malformed, or over-bound membership fails evidence closed.
+- Observer/factory/sink exceptions and malformed returns never reject, delay,
+  cancel, resize, or alter the real submit/wait/completion result. Scheduler
+  reset and shutdown and worker shutdown close observers best-effort; serving
+  exceptions from the real backend retain their original behavior.
+
+#### Validation and review evidence
+
+The final focused CPU command covered the new ABI, scheduler/worker sidecar,
+metadata, hard-off, fork, close-race, strict identity, capacity, overflow,
+clock ordering, wait, reset, malformed-observer, and fail-open cases:
+
+```text
+66 passed, 15 warnings
+```
+
+Seven unchanged reset/event/metadata regression cases also passed. Targeted
+Ruff check, Ruff format check, Python compilation, and `git diff --check`
+passed. Three independent read-only reviews returned GO only for the local
+default-hard-off CPU transfer-spine WIP and found no remaining blocker in the
+closed path, fail-open serving behavior, bounds, identity, time points, fork,
+or authorization scope.
+
+Two pre-existing Tiering end-to-end tests remain unavailable because
+`meta-llama/Llama-3.2-1B-Instruct` returns Hugging Face 401 gated-repository
+errors. The exact two failures reproduce at unmodified base
+`f229ba7cad21a4dba58681af6738a9fd947388e2`; do not attribute them to this
+commit and do not claim those end-to-end tests passed. An earlier broader
+offloading-directory checkpoint reported 125 passed, 13 failed, and 2 skipped;
+the 13 failures were the pinned CPU/environment baseline lookup and
+multi-group/Eagle fixture failures, not a green full-suite gate.
+
+#### Remaining gates and next work
+
+This checkpoint remains NO-GO for all of the following:
+
+1. issue-2 mapping approval by Luqhhh or explicitly delegated authority;
+2. explicit P0-owner overlay ratification citing both required final digests
+   and accepting items 1–8;
+3. a complete resolved #134 configuration, configuration-authority approval,
+   and the multi-authority joint-admission record;
+4. real profiler observer/sink serialization, loss/export receipts, complete
+   seven-stage recovery joins, and whole-trace/DAG CPU validation;
+5. an isolated genuine pinned startup/import result;
+6. a separate reviewed runtime-activation authorization; and
+7. any remote G1 push/PR, merge, non-`none` communication, device-plugin edit,
+   NPU command, service launch, performance experiment/claim, or M0 claim.
+
+Do not activate by editing the gate or binding in place. After authorities and
+complete config exist, create new content-addressed admission records, update
+the binding in a separately reviewed change, rerun all CPU/startup checks, and
+request activation explicitly. Until then, further authorized work must stay
+on isolated local branches, default off, CPU-only, bounded, and independently
+reviewed.
+
 ### Current gate table and next order
 
 The current formal status is:
@@ -843,8 +988,9 @@ The current formal status is:
 - #134 fixed-8-GiB config: **REVIEWABLE INCOMPLETE CANDIDATE**;
 - pinned source/scheduler/factory/controlled-stub handoff:
   **PASS_STATIC_ONLY**;
-- G1 CPU-side default-off source implementation on an isolated branch:
-  **AUTHORIZED**;
+- G1 CPU-side default-off transfer-spine source implementation on an isolated
+  branch: **LOCALLY COMMITTED AND REVIEWED WIP** at runtime
+  `0141462f82fb32f78129acccc996212296129eac`, not pushed;
 - genuine pinned import/startup and G1 runtime activation: **BLOCKED**;
 - `communication_mode` non-`none`, device-plugin edits, NPU, service,
   performance, M0:
@@ -852,12 +998,15 @@ The current formal status is:
 
 Continue in this order:
 
-1. publish the G0 Draft PR and request Luqhhh/delegated issue-2 approval of the
-   mapping digest and eight decisions;
+1. keep G0 Draft PR #7 unchanged while following up the already-published
+   issue-2 request for Luqhhh/delegated approval of the mapping digest and
+   eight decisions;
 2. obtain the exact Remygred/P0-owner digest-and-items ratification preserved
    in the pending overlay record;
-3. in parallel, implement the authorized default-off G1 CPU wiring in an
-   isolated worktree at the exact runtime pin, with CPU-only tests;
+3. preserve the reviewed runtime transfer-spine commit above; any continuation
+   toward the real profiler observer/sink and seven-stage joins must remain
+   default-off, isolated, CPU-only, bounded, locally committed, and separately
+   reviewed without claiming complete G1;
 4. resolve the #134 CPU capacity, tiering-disabled semantics, model revision,
    workload manifests, metric coverage, and copy-toggle decision; then produce
    complete self-contained per-mode configs, obtain configuration-authority
