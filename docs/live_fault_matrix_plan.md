@@ -1,5 +1,12 @@
 # Live Fault Matrix Plan
 
+> **Priority correction (2026-08-03):** faculty comments on profiler issue #1
+> supersede the old “rerun concurrency-2 next” instruction. Preserve that
+> artifact as a development trigger, but first complete PR #4 reconciliation,
+> the versioned KV-recovery/communication profile, controlled runtime-trace
+> validation, and the G0-G3 gates in `experiment_plan.md`. The next matched
+> candidate is benchmark #134's fixed-8-GiB tiering/HBM-only comparison.
+
 The current artifact proves that lifecycle traces can be collected and that
 client-visible diagnosis changes under known slow-stream and decode-heavy
 faults. That is not yet enough for a systems-paper diagnosis claim. The next
@@ -131,22 +138,15 @@ Do not use these terms yet:
 
 ## Suggested Next NPU6 Run
 
-Start from the concurrency sweep that succeeds, then split the concurrency-2
-runtime prefill tail while keeping the prompt below the current 4096-token
-service boundary:
+Do not launch another coarse-prefill run yet. After G0-G2 admit the environment,
+run one minimal controlled pressure episode and split its chain into D2H/H2D
+copy, restore-to-wakeup, wakeup-to-admission, admission-to-first-compute,
+requeue/wait, and total recovery while preserving explicit request/sequence/
+block and transfer handoffs. Then execute the fixed-8-GiB matched modes defined
+in `experiment_plan.md`.
 
-- use `shared_scenario_structured_agent_decode` or a repo-local prompt around
-  2300-3300 prompt tokens;
-- request 4-16 output tokens;
-- repeat concurrency 2 enough times to determine whether the 12.3 s runtime
-  prefill tail is reproducible or a rare scheduler transition;
-- add internal request-level fields when available: prompt tokens, generation
-  tokens, batch size, prefill batch composition, KV allocation status, graph
-  capture size, and scheduler wait;
-- run the same shape at concurrency 1 and 3 as controls after adding those
-  fields;
-- preserve both client proxy and runtime hook traces.
-
-If no valid prefill/KV candidate is found, commit all failed attempts with
-`FAILED.txt` and update the plan with the observed service boundary instead of
-silently deleting them.
+The old concurrency-2 shape may be reused later as a pressure trigger or
+secondary control after the recovery profile is live, but it cannot substitute
+for #134's Qwen2.5-14B, 32K-context target. If a run has no real recovery
+episode, mark negative coverage; if admission or trace validation fails, keep
+the exact BLOCKED/FAILED artifact rather than silently deleting it.
