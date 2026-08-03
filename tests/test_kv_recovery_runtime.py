@@ -94,6 +94,8 @@ class FakeComputeContext:
     block_set_id: str
     bytes_moved: int
     admission_profile_record_id: str
+    compute_kind: str
+    base_phase_start_event_id: str
 
 
 @dataclass(frozen=True)
@@ -188,6 +190,23 @@ class FakeBridge:
     ) -> BaseEventRef | None:
         if runtime_request_id == RUNTIME_REQUEST_ID and recovery_epoch == 1:
             return BaseEventRef(FIRST_COMPUTE_EVENT_ID, 150)
+        return None
+
+    def emit_first_compute(
+        self,
+        runtime_request_id: str,
+        recovery_epoch: int,
+        *,
+        timestamp_ns: int,
+        compute_kind: str,
+    ) -> BaseEventRef | None:
+        if (
+            runtime_request_id == RUNTIME_REQUEST_ID
+            and recovery_epoch == 1
+            and timestamp_ns >= 140
+            and compute_kind in {"prefill", "decode"}
+        ):
+            return BaseEventRef(FIRST_COMPUTE_EVENT_ID, timestamp_ns)
         return None
 
 
@@ -287,14 +306,9 @@ def run_complete_episode(tmp_path: Path):
     scheduler.consume_h2d_receipts((receipt,), False)
     scheduler.request_admission_started(RUNTIME_REQUEST_ID, 1)
     scheduler.request_requeued(RUNTIME_REQUEST_ID, 1, "token_budget")
-    compute_context = scheduler.request_admitted(RUNTIME_REQUEST_ID, 1)
+    compute_context = scheduler.request_admitted(RUNTIME_REQUEST_ID, 1, "prefill")
     assert isinstance(compute_context, FakeComputeContext)
-    worker.first_compute(
-        compute_context,
-        150,
-        "prefill",
-        FIRST_COMPUTE_EVENT_ID,
-    )
+    worker.first_compute(compute_context, 150)
     records = base_endpoint_records() + read_committed_records(hooks)
     expected = ExpectedH2DRecovery(
         trace_id=TRACE_ID,

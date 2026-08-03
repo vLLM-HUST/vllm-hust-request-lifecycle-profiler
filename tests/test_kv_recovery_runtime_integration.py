@@ -204,21 +204,10 @@ def test_actual_runtime_abi_completes_profiler_whole_trace(tmp_path: Path) -> No
         prompt_tokens_to_compute=2,
     )
     assert resumed is not None
-    compute_context = scheduler.request_admitted(REQUEST_ID, 1)
+    compute_context = scheduler.request_admitted(REQUEST_ID, 1, "prefill")
     assert isinstance(compute_context, runtime.KVRecoveryComputeContext)
-    first_compute = bridge.emit_first_compute(
-        REQUEST_ID,
-        1,
-        timestamp_ns=150,
-        compute_kind="prefill",
-    )
-    assert first_compute is not None
-    worker.first_compute(
-        compute_context,
-        150,
-        "prefill",
-        first_compute.event_id,
-    )
+    assert compute_context.compute_kind == "prefill"
+    worker.first_compute(compute_context, 150)
     worker.close()
     scheduler.close()
 
@@ -294,7 +283,7 @@ def test_actual_runtime_abi_completes_profiler_whole_trace(tmp_path: Path) -> No
             run_id=RUN_ID,
             runtime_request_id=REQUEST_ID,
             resumed_event_id=resumed.event_id,
-            first_compute_base_event_id=first_compute.event_id,
+            first_compute_base_event_id=(compute_context.base_phase_start_event_id),
             compute_kind="prefill",
             requeue_reasons=("token_budget",),
             process_uuids=(WORKER_UUID,),
@@ -323,7 +312,7 @@ def test_actual_runtime_abi_completes_profiler_whole_trace(tmp_path: Path) -> No
                 run_id=RUN_ID,
                 runtime_request_id=REQUEST_ID,
                 resumed_event_id=resumed.event_id,
-                first_compute_base_event_id=first_compute.event_id,
+                first_compute_base_event_id=(compute_context.base_phase_start_event_id),
                 compute_kind="prefill",
                 requeue_reasons=("token_budget",),
                 process_uuids=(WORKER_UUID,),

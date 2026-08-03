@@ -116,6 +116,15 @@ class BaseLifecycleBridge(Protocol):
         self, runtime_request_id: str, recovery_epoch: int
     ) -> BaseEventRef | None: ...
 
+    def emit_first_compute(
+        self,
+        runtime_request_id: str,
+        recovery_epoch: int,
+        *,
+        timestamp_ns: int,
+        compute_kind: str,
+    ) -> BaseEventRef | None: ...
+
 
 @dataclass
 class _EmittedBaseEpisode:
@@ -976,8 +985,6 @@ class KVRecoveryWorkerEvidenceAdapter:
         self,
         context: Any,
         timestamp_ns: int,
-        compute_kind: str,
-        base_event_id: str,
     ) -> None:
         """Write the worker child observation with its scheduler predecessor."""
 
@@ -985,10 +992,13 @@ class KVRecoveryWorkerEvidenceAdapter:
             if (
                 context.binding != self._abi.binding
                 or context.identity.recovery_epoch is None
-                or compute_kind not in {"prefill", "decode"}
+                or context.compute_kind not in {"prefill", "decode"}
             ):
                 raise ValueError("invalid first-compute sidecar")
-            _require_event_id(base_event_id, "base_event_id")
+            _require_event_id(
+                context.base_phase_start_event_id,
+                "base_phase_start_event_id",
+            )
             identity = context.identity
             self._profile.write(
                 "recovery_event",
@@ -996,14 +1006,14 @@ class KVRecoveryWorkerEvidenceAdapter:
                 **self._request_fields(identity),
                 stage="first_prefill_or_decode",
                 occurrence=0,
-                base_event_id=base_event_id,
+                base_event_id=context.base_phase_start_event_id,
                 base_admission_started_event_id=None,
                 from_profile_event_id=context.admission_profile_record_id,
                 transfer_id=context.transfer_id,
                 block_set_id=context.block_set_id,
                 bytes_moved=context.bytes_moved,
                 requeue_reason=None,
-                compute_kind=compute_kind,
+                compute_kind=context.compute_kind,
                 child_observation_kind="worker_model_forward_entry",
                 base_association_kind="phase_child_observation",
                 base_association_evidence="instrumented_execution_context",
@@ -1375,7 +1385,10 @@ class KVRecoverySchedulerAdapter:
             episode.requeue_occurrence += 1
 
     def request_admitted(
-        self, runtime_request_id: str, recovery_epoch: int
+        self,
+        runtime_request_id: str,
+        recovery_epoch: int,
+        compute_kind: str,
     ) -> Any | None:
         episode = self._episodes.get(runtime_request_id)
         if (
@@ -1387,6 +1400,7 @@ class KVRecoverySchedulerAdapter:
             or episode.predecessor_profile_record_id is None
             or episode.admission_profile_record_id is not None
             or recovery_epoch != episode.recovery_epoch
+            or compute_kind not in {"prefill", "decode"}
         ):
             return None
         resumed_event = self._bridge.resumed_event(runtime_request_id, recovery_epoch)
@@ -1438,6 +1452,18 @@ class KVRecoverySchedulerAdapter:
             return None
         episode.admission_profile_record_id = profile_id
         try:
+            first_compute_timestamp_ns = max(
+                resumed_event.timestamp_ns,
+                self._clock_ns(),
+            )
+            first_compute_event = self._bridge.emit_first_compute(
+                runtime_request_id,
+                recovery_epoch,
+                timestamp_ns=first_compute_timestamp_ns,
+                compute_kind=compute_kind,
+            )
+            if first_compute_event is None:
+                raise ValueError("base first-compute event was not emitted")
             context = self._abi.compute_context_type(
                 binding=self._abi.binding,
                 identity=episode.receipt.identity,
@@ -1445,6 +1471,8 @@ class KVRecoverySchedulerAdapter:
                 block_set_id=episode.receipt.block_set_id,
                 bytes_moved=episode.receipt.bytes_moved,
                 admission_profile_record_id=profile_id,
+                compute_kind=compute_kind,
+                base_phase_start_event_id=first_compute_event.event_id,
             )
         except Exception:  # noqa: BLE001 - serving-side evidence is fail-open.
             self._profile.drop("recovery_event", resumed_event.timestamp_ns)
