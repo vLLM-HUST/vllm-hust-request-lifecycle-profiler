@@ -594,6 +594,17 @@ default-off G1 source implementation is open. It passes 2 focused tests; the
 repository suite after adding these records is 134 passed. This later result
 does not rewrite the content-addressed 132-test G0 CPU result.
 
+The G0 evidence package is published as Draft PR
+`intellistream/vllm-request-lifecycle-profiler-plugin#7` from
+`feature/kv-recovery-profile-v1alpha1`; its first authorization-record head is
+`a80f2f69de0bd042eff4c3b53d8b606c78df7961`. Profiler issue #2 comment
+`5163670652` requests Luqhhh/delegated authority review of mapping SHA-256
+`dca914f989f3a98d43fb9fa2538f7c43a375e8f22f5deb7e09343aee5ee7bc19`
+and approval-candidate SHA-256
+`f3cfdd6d9463251fdc27e01164d9f33a1efcc6c155f6d51959e0e1989d23a350`.
+The PR and request are publication/review facts only; neither is an approval or
+activation record.
+
 ### Latest authenticated authority facts
 
 Authenticated revalidation after the approval found:
