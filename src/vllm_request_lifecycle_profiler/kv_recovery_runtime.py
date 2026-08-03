@@ -1605,6 +1605,42 @@ class NormalizedH2DRecovery:
     edge_ids: tuple[str, str, str]
 
 
+@dataclass(frozen=True)
+class ExpectedKVRecoveryEpisode:
+    """Exact joins required for one paired seven-stage recovery episode."""
+
+    h2d: ExpectedH2DRecovery
+    run_id: str
+    runtime_request_id: str
+    resumed_event_id: str
+    first_compute_base_event_id: str
+    compute_kind: str
+    requeue_reasons: tuple[str, ...]
+    process_uuids: tuple[str, ...]
+
+    def __post_init__(self) -> None:
+        _require_hex32(self.run_id, "run_id")
+        _require_event_id(self.resumed_event_id, "resumed_event_id")
+        _require_event_id(
+            self.first_compute_base_event_id, "first_compute_base_event_id"
+        )
+        if self.compute_kind not in {"prefill", "decode"}:
+            raise ValueError("compute_kind must be prefill or decode")
+        if not self.process_uuids or len(set(self.process_uuids)) != len(
+            self.process_uuids
+        ):
+            raise ValueError("process_uuids must be a nonempty unique roster")
+        for process_uuid in self.process_uuids:
+            _require_hex32(process_uuid, "process_uuid")
+
+
+@dataclass(frozen=True)
+class NormalizedKVRecoveryEpisode:
+    h2d: NormalizedH2DRecovery
+    profile_event_ids: tuple[str, ...]
+    requeue_count: int
+
+
 def normalize_h2d_recovery(
     records: Iterable[Mapping[str, object]],
     expected: ExpectedH2DRecovery,
@@ -1618,11 +1654,14 @@ def normalize_h2d_recovery(
     rows = tuple(records)
     if any(row.get("record_type") == "loss_interval" for row in rows):
         raise ValueError("base evidence contains loss")
+    event_rows = [row for row in rows if row.get("record_type") == "event"]
     events = {
         row.get("event_id"): row
-        for row in rows
-        if row.get("record_type") == "event" and isinstance(row.get("event_id"), str)
+        for row in event_rows
+        if isinstance(row.get("event_id"), str)
     }
+    if len(events) != len(event_rows):
+        raise ValueError("base event IDs are missing or duplicated")
     edges = [row for row in rows if row.get("record_type") == "edge"]
     preempted = events.get(expected.preempted_event_id)
     admission = events.get(expected.admission_started_event_id)
@@ -1774,19 +1813,276 @@ def normalize_h2d_recovery(
     )
 
 
+def normalize_kv_recovery_episode(
+    base_records: Iterable[Mapping[str, object]],
+    profile_records: Iterable[Mapping[str, object]],
+    expected: ExpectedKVRecoveryEpisode,
+    *,
+    profile_evidence_complete: bool,
+) -> NormalizedKVRecoveryEpisode:
+    """Validate a paired process roster and explicit seven-stage profile chain."""
+
+    base_rows = tuple(base_records)
+    profile_rows = tuple(profile_records)
+    h2d = normalize_h2d_recovery(
+        base_rows,
+        expected.h2d,
+        profile_evidence_complete=profile_evidence_complete,
+    )
+    expected_processes = set(expected.process_uuids)
+    _validate_process_roster(base_rows, "process_start", expected_processes)
+    _validate_process_roster(base_rows, "process_summary", expected_processes)
+    _validate_process_roster(profile_rows, "profile_start", expected_processes)
+    _validate_process_roster(profile_rows, "profile_summary", expected_processes)
+    if any(row.get("record_type") == "loss_interval" for row in profile_rows):
+        raise ValueError("profile evidence contains loss")
+    _validate_profile_ledgers(profile_rows, expected_processes)
+
+    profile_data = [
+        row
+        for row in profile_rows
+        if row.get("record_type")
+        in {"block_set_chunk", "wait_set_chunk", "transfer_event", "recovery_event"}
+    ]
+    record_ids = [row.get("record_id") for row in profile_data]
+    if any(not isinstance(record_id, str) for record_id in record_ids) or len(
+        set(record_ids)
+    ) != len(record_ids):
+        raise ValueError("profile record IDs are missing or duplicated")
+
+    episode_id = f"{expected.h2d.engine_lifecycle_id}:k:{expected.h2d.recovery_epoch}"
+    milestones = [
+        row
+        for row in profile_data
+        if row.get("record_type") == "recovery_event"
+        and row.get("run_id") == expected.run_id
+        and row.get("trace_id") == expected.h2d.trace_id
+        and row.get("engine_lifecycle_id") == expected.h2d.engine_lifecycle_id
+        and row.get("runtime_request_id") == expected.runtime_request_id
+        and row.get("recovery_epoch") == expected.h2d.recovery_epoch
+        and row.get("episode_id") == episode_id
+    ]
+    by_stage: dict[str, list[Mapping[str, object]]] = {}
+    for row in milestones:
+        stage = row.get("stage")
+        if not isinstance(stage, str):
+            raise TypeError("recovery event stage is missing")
+        by_stage.setdefault(stage, []).append(row)
+    unique_stages = (
+        "preempt",
+        "restore_start",
+        "restore_done",
+        "scheduler_wakeup",
+        "admission",
+        "first_prefill_or_decode",
+    )
+    if any(len(by_stage.get(stage, ())) != 1 for stage in unique_stages):
+        raise ValueError("unique recovery stage is missing or duplicated")
+    if set(by_stage) - {*unique_stages, "requeue"}:
+        raise ValueError("recovery episode contains an unknown stage")
+    requeues = sorted(
+        by_stage.get("requeue", ()), key=lambda row: row.get("occurrence")
+    )
+    if [row.get("occurrence") for row in requeues] != list(range(len(requeues))):
+        raise ValueError("requeue occurrence sequence is not contiguous")
+    if tuple(row.get("requeue_reason") for row in requeues) != (
+        expected.requeue_reasons
+    ):
+        raise ValueError("requeue reasons differ from the exact expectation")
+    chain = [
+        by_stage["preempt"][0],
+        by_stage["restore_start"][0],
+        by_stage["restore_done"][0],
+        by_stage["scheduler_wakeup"][0],
+        *requeues,
+        by_stage["admission"][0],
+        by_stage["first_prefill_or_decode"][0],
+    ]
+    previous_id: object = None
+    previous_timestamp = 0
+    for index, row in enumerate(chain):
+        if row.get("from_profile_event_id") != previous_id:
+            raise ValueError("profile predecessor chain is broken")
+        timestamp = row.get("timestamp_ns")
+        if not _is_uint64(timestamp) or (index and timestamp < previous_timestamp):
+            raise ValueError("profile stage timestamps are inverted")
+        previous_timestamp = timestamp
+        previous_id = row.get("record_id")
+
+    preempt, restore_start, restore_done, wakeup = chain[:4]
+    admission, first_compute = chain[-2:]
+    if preempt.get("base_event_id") != expected.h2d.preempted_event_id:
+        raise ValueError("profile preempt base association differs")
+    if restore_start.get("base_event_id") != h2d.start_event_id:
+        raise ValueError("restore_start base association differs")
+    if restore_done.get("base_event_id") != h2d.done_event_id:
+        raise ValueError("restore_done base association differs")
+    if wakeup.get("base_event_id") is not None or any(
+        row.get("base_event_id") is not None for row in requeues
+    ):
+        raise ValueError("profile-only stage contains a base association")
+    if (
+        admission.get("base_event_id") != expected.resumed_event_id
+        or admission.get("base_admission_started_event_id")
+        != expected.h2d.admission_started_event_id
+    ):
+        raise ValueError("admission base associations differ")
+    if (
+        first_compute.get("base_event_id") != expected.first_compute_base_event_id
+        or first_compute.get("compute_kind") != expected.compute_kind
+        or first_compute.get("child_observation_kind") != "worker_model_forward_entry"
+        or first_compute.get("base_association_kind") != "phase_child_observation"
+        or first_compute.get("base_association_evidence")
+        != "instrumented_execution_context"
+    ):
+        raise ValueError("first compute child association differs")
+
+    events = {
+        row.get("event_id"): row
+        for row in base_rows
+        if row.get("record_type") == "event"
+    }
+    for event_id, event_name in (
+        (expected.resumed_event_id, "resumed"),
+        (expected.first_compute_base_event_id, f"{expected.compute_kind}_started"),
+    ):
+        event = events.get(event_id)
+        if (
+            event is None
+            or event.get("event_name") != event_name
+            or event.get("trace_id") != expected.h2d.trace_id
+            or event.get("lifecycle_id") != expected.h2d.engine_lifecycle_id
+            or event.get("preemption_epoch") != expected.h2d.recovery_epoch
+        ):
+            raise ValueError("later base phase association is missing or drifted")
+
+    transfer_rows = [
+        row
+        for row in profile_data
+        if row.get("record_type") == "transfer_event"
+        and row.get("transfer_id") == expected.h2d.transfer_id
+    ]
+    if [row.get("transfer_phase") for row in transfer_rows] != ["submit", "done"]:
+        raise ValueError("profile transfer pair is missing, reordered, or duplicated")
+    if (
+        transfer_rows[0].get("timestamp_ns") != restore_start.get("timestamp_ns")
+        or transfer_rows[1].get("timestamp_ns") != restore_done.get("timestamp_ns")
+        or transfer_rows[1].get("bytes_moved") != h2d.bytes_moved
+    ):
+        raise ValueError("restore milestones differ from transfer evidence")
+    for row in chain[1:]:
+        if (
+            row.get("transfer_id") != expected.h2d.transfer_id
+            or row.get("block_set_id") != expected.h2d.block_set_id
+            or (
+                row.get("stage") != "restore_start"
+                and row.get("bytes_moved") != h2d.bytes_moved
+            )
+        ):
+            raise ValueError("recovery stage transfer identity drifted")
+    if restore_start.get("bytes_moved") is not None:
+        raise ValueError("restore_start must not report bytes")
+
+    block_chunks = [
+        row
+        for row in profile_data
+        if row.get("record_type") == "block_set_chunk"
+        and row.get("block_set_id") == expected.h2d.block_set_id
+        and row.get("episode_id") == episode_id
+    ]
+    if not block_chunks:
+        raise ValueError("logical recovery block set is missing")
+    block_chunks.sort(key=lambda row: row.get("chunk_index"))
+    chunk_count = len(block_chunks)
+    if [row.get("chunk_index") for row in block_chunks] != list(range(chunk_count)):
+        raise ValueError("block chunks are not contiguous")
+    if any(row.get("chunk_count") != chunk_count for row in block_chunks):
+        raise ValueError("block chunk count differs")
+    blocks = [block for row in block_chunks for block in row.get("blocks", ())]
+    if (
+        not blocks
+        or any(row.get("total_block_count") != len(blocks) for row in block_chunks)
+        or len({(row.get("group_index"), row.get("logical_ordinal")) for row in blocks})
+        != len(blocks)
+        or len({row.get("logical_block_id") for row in blocks}) != len(blocks)
+    ):
+        raise ValueError("logical recovery block rows are incomplete or duplicated")
+    return NormalizedKVRecoveryEpisode(
+        h2d=h2d,
+        profile_event_ids=tuple(row["record_id"] for row in chain),
+        requeue_count=len(requeues),
+    )
+
+
+def _validate_process_roster(
+    rows: tuple[Mapping[str, object], ...],
+    record_type: str,
+    expected_processes: set[str],
+) -> None:
+    observed = [
+        row.get("process_uuid") for row in rows if row.get("record_type") == record_type
+    ]
+    if len(observed) != len(expected_processes) or set(observed) != expected_processes:
+        raise ValueError(f"{record_type} process roster differs")
+
+
+def _validate_profile_ledgers(
+    rows: tuple[Mapping[str, object], ...], expected_processes: set[str]
+) -> None:
+    categories = (
+        "block_set_chunk",
+        "wait_set_chunk",
+        "transfer_event",
+        "recovery_event",
+    )
+    for process_uuid in expected_processes:
+        data = [
+            row
+            for row in rows
+            if row.get("process_uuid") == process_uuid
+            and row.get("record_type") in categories
+        ]
+        summaries = [
+            row
+            for row in rows
+            if row.get("process_uuid") == process_uuid
+            and row.get("record_type") == "profile_summary"
+        ]
+        assert len(summaries) == 1
+        summary = summaries[0]
+        if (
+            summary.get("close_outcome") != "drained"
+            or summary.get("dropped_data_count") != 0
+            or summary.get("dropped_control_count") != 0
+            or summary.get("writer_failure_count") != 0
+            or summary.get("attempted_data_count") != len(data)
+            or sorted(row.get("record_seq") for row in data) != list(range(len(data)))
+        ):
+            raise ValueError("profile process ledger is incomplete")
+        for category in categories:
+            key = f"written_{category}_count"
+            if summary.get(key) != sum(
+                row.get("record_type") == category for row in data
+            ):
+                raise ValueError("profile summary category count differs")
+
+
 __all__ = [
     "BaseEventRef",
     "BaseLifecycleBridge",
     "BoundedKVRecoveryProfileLedger",
     "ExpectedH2DRecovery",
+    "ExpectedKVRecoveryEpisode",
     "KVRecoveryObserverFactoryAdapter",
     "KVRecoveryRuntimeABI",
     "KVRecoverySchedulerAdapter",
     "KVRecoveryWorkerEvidenceAdapter",
     "NormalizedH2DRecovery",
+    "NormalizedKVRecoveryEpisode",
     "ProfileLossInterval",
     "ProfileRecord",
     "RequestLifecycleIdentity",
     "RuntimeBaseLifecycleBridge",
     "normalize_h2d_recovery",
+    "normalize_kv_recovery_episode",
 ]

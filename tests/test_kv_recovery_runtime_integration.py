@@ -15,11 +15,13 @@ from vllm_request_lifecycle_profiler.kv_recovery_profile_protocol import (
 from vllm_request_lifecycle_profiler.kv_recovery_runtime import (
     BaseEventRef,
     ExpectedH2DRecovery,
+    ExpectedKVRecoveryEpisode,
     KVRecoveryObserverFactoryAdapter,
     KVRecoveryRuntimeABI,
     RequestLifecycleIdentity,
     RuntimeBaseLifecycleBridge,
     normalize_h2d_recovery,
+    normalize_kv_recovery_episode,
 )
 from vllm_request_lifecycle_profiler.runtime_hooks import (
     JsonlTraceSink,
@@ -270,16 +272,32 @@ def test_actual_runtime_abi_completes_profiler_whole_trace(tmp_path: Path) -> No
         ledger.evidence_complete for ledger in factory.profile_ledgers
     )
 
+    h2d_expected = ExpectedH2DRecovery(
+        trace_id=TRACE_ID,
+        engine_lifecycle_id=f"{TRACE_ID}:e:0",
+        recovery_epoch=1,
+        transfer_id=receipt.transfer_id,
+        block_set_id=receipt.block_set_id,
+        preempted_event_id=preempted.event_id,
+        admission_started_event_id=admission_started.event_id,
+    )
     normalized = normalize_h2d_recovery(
         records,
-        ExpectedH2DRecovery(
-            trace_id=TRACE_ID,
-            engine_lifecycle_id=f"{TRACE_ID}:e:0",
-            recovery_epoch=1,
-            transfer_id=receipt.transfer_id,
-            block_set_id=receipt.block_set_id,
-            preempted_event_id=preempted.event_id,
-            admission_started_event_id=admission_started.event_id,
+        h2d_expected,
+        profile_evidence_complete=profile_complete,
+    )
+    episode = normalize_kv_recovery_episode(
+        records,
+        profile_records,
+        ExpectedKVRecoveryEpisode(
+            h2d=h2d_expected,
+            run_id=RUN_ID,
+            runtime_request_id=REQUEST_ID,
+            resumed_event_id=resumed.event_id,
+            first_compute_base_event_id=first_compute.event_id,
+            compute_kind="prefill",
+            requeue_reasons=("token_budget",),
+            process_uuids=(WORKER_UUID,),
         ),
         profile_evidence_complete=profile_complete,
     )
@@ -287,6 +305,31 @@ def test_actual_runtime_abi_completes_profiler_whole_trace(tmp_path: Path) -> No
     assert normalized.duration_ns == 20
     assert normalized.bytes_moved == 256
     assert len(normalized.edge_ids) == 3
+    assert episode.h2d == normalized
+    assert episode.requeue_count == 1
+    assert len(episode.profile_event_ids) == 7
+
+    broken_profile = [dict(row) for row in profile_records]
+    admission_row = next(
+        row for row in broken_profile if row.get("stage") == "admission"
+    )
+    admission_row["from_profile_event_id"] = milestones[3]["record_id"]
+    with pytest.raises(ValueError, match="predecessor chain"):
+        normalize_kv_recovery_episode(
+            records,
+            broken_profile,
+            ExpectedKVRecoveryEpisode(
+                h2d=h2d_expected,
+                run_id=RUN_ID,
+                runtime_request_id=REQUEST_ID,
+                resumed_event_id=resumed.event_id,
+                first_compute_base_event_id=first_compute.event_id,
+                compute_kind="prefill",
+                requeue_reasons=("token_budget",),
+                process_uuids=(WORKER_UUID,),
+            ),
+            profile_evidence_complete=True,
+        )
 
 
 @pytest.mark.parametrize(
