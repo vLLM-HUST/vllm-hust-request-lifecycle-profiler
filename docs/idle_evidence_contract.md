@@ -740,6 +740,21 @@ independent fixtures. Every fixture ships `run_metadata.json` (parent commit,
 fixture class, injected perturbation, ground-truth reference, evidence label;
 `simulation/model` for synthetic).
 
+Checked-in fixture and CI check: the counterexample "host wait exists but
+visible idle is zero" (a host sync API event present in the capture while the
+device productive timeline covers the whole analysis span) is a REQUIRED
+executable check. It lives in the engineering repository at
+`native/tests/fixtures/idle_evidence/host_wait_zero_visible_idle/` (synthetic
+msprof-schema SQLite database + `ground_truth.json` + `run_metadata.json`,
+fixture class `positive`) and is verified by
+`traceloom_native_idle_evidence_golden_fixture_tests`, which runs in CI
+(`.github/workflows/native-deb.yml`, job `idle-evidence-golden-check`). The
+check asserts BOTH sides of the counterexample: the fixture's host-side sync
+API row exists (host wait), and the analyzer reports zero
+`visible_productive_idle` over the same fixture (device timeline fully
+productive). Fixture results are contract/example evidence and MUST NOT be
+presented as a matched A/B of runtime traces.
+
 ## 11. Evaluation Metrics
 
 ### 11.1 Coverage (mutually exclusive shares)
