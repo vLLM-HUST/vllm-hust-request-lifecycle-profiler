@@ -1765,3 +1765,85 @@ Complete resolved configuration, configuration approval, runtime conformance,
 joint admission, and separate runtime activation still follow that review.
 `communication_mode != none`, remote G1 publication, device-plugin edits, NPU,
 service launch, performance experiments/claims, and M0 all remain forbidden.
+
+### Replacement G1 executable-attestation candidate (2026-08-03)
+
+This subsection supersedes only the incomplete local implementation state in
+the preceding **Local default-off G1 implementation checkpoint**. The r0
+record remains immutable historical evidence. No authority or downstream gate
+is changed by this source checkpoint, and both G1 branches remain local.
+
+The exact final implementation commits are:
+
+- runtime `43509bcf1bd6db470537c1400fce390580f0603b` on
+  `feature/rlp-kv-recovery-g1-default-off`, still based on audited runtime
+  `f229ba7cad21a4dba58681af6738a9fd947388e2`;
+- profiler `b2a28988ba9610c23d95c955e006f7ba92a3c750` on
+  `feature/kv-recovery-g1-default-off`, still based on published G0
+  `5bdfeab15d8d4f35df126860ab26b19c1f4d3860`; and
+- unchanged device plugin
+  `cafad89a5e103f31ea517c1edb56130578c3cd56`.
+
+The prior r0 gaps are now closed at the authorized default-off CPU
+source-conformance level:
+
+1. The bounded exporter owns paired mode-0600 base/profile JSONL shards and
+   jointly publishes or retracts them. The profile shard contains
+   `profile_start`, bounded data/loss records, `profile_summary`, balanced
+   attempted/written/dropped counts, content digest, and a committed-shard
+   receipt.
+2. The adapter uses real base `preempted`, `requeued`,
+   `admission_started`, `resumed`, and `prefill_started`/`decode_started`
+   emitters; endpoint IDs are returned by those emitters rather than injected
+   or inferred from time/file order.
+3. The recovery profile has the exact seven-stage predecessor chain, explicit
+   reason and occurrence for every post-wakeup requeue, and exact transfer,
+   block-set, byte, request, epoch, and base-event associations.
+4. Scheduler admission freezes `compute_kind` and the engine-owned base phase
+   ID into the scheduler-to-worker sidecar. MRV1 and MRV2 call the observer
+   immediately before the actual model invocation with the exact
+   `SchedulerOutput.num_scheduled_tokens` request roster. The worker consumes
+   each admitted sidecar once; roster mismatch or a missing forward
+   observation leaves serving fail-open but formal evidence fail-closed.
+5. The paired normalizer validates the base/profile/process roster, per-process
+   ledger summaries, seven-stage uniqueness and order, requeue reasons,
+   predecessor chain, base associations, H2D pair/bytes/timestamps, and logical
+   block chunks. It rejects loss, drift, missing, duplicate, extra, inferred,
+   or repaired evidence.
+
+The replacement record is
+`contracts/p1/g1-default-off-cpu-implementation-attestation.r1.json`, SHA-256
+`5d15e1b231c60fd18d5a42c849eed2c2c1fb48ecc4b75c949223cf4224c06048`.
+Its exact status is
+`EXECUTABLE_ATTESTATION_CANDIDATE_READY_FOR_INDEPENDENT_RUNTIME_OWNER_ITEMS_6_8_REVIEW`.
+It binds both final commits, all relevant source/test Git blobs, the frozen
+authority chain, exact configuration boundary, executed results, honest
+non-gating diagnostics, review coverage, and every still-closed gate. Its
+`authority_effect` is `none`: “ready for review” is not Items 6-8 approval.
+
+Stable executable results bound by r1 are:
+
+- runtime focused default-off CPU and real forward observer:
+  `81 passed, 15 warnings in 39.85s`;
+- isolated MRV1/MRV2 forward-roster observer:
+  `4 passed, 14 warnings in 1.55s`;
+- complete profiler suite using the exact runtime ABI:
+  `181 passed in 43.36s`;
+- r1 downstream commit/blob/gate/call-site integrity:
+  `5 passed in 0.20s`; and
+- targeted Ruff check/format, JSON parse, and `git diff --check`: passed.
+
+The expanded generic model-runner diagnostic is deliberately not a green
+gate: it produced `5 failed, 34 passed, 2 skipped, 14 warnings in 83.85s`.
+Those failures were CPU-backend shape/default-fixture model-config failures
+with no changed G1 stack frame. Keep the exact result visible; do not count it
+as passing evidence or conceal it in an approval request.
+
+The next authorized action is now to request independent Item 4B runtime
+implementation-owner review of r1 Items 6-8. Do not modify the candidate while
+it is under review; any byte or result change requires r2. Even if Items 6-8
+are approved, complete resolved configuration and authority approval, runtime
+conformance, and joint admission must still be completed before requesting a
+separate runtime-activation authorization. `communication_mode != none`,
+remote G1 publication, device-plugin edits, NPU, service launch, performance
+experiments/claims, and M0 remain unauthorized.
