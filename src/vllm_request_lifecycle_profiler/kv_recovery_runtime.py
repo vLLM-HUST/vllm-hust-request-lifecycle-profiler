@@ -14,8 +14,18 @@ import threading
 import time
 from collections.abc import Callable, Iterable, Mapping
 from dataclasses import dataclass
-from typing import Any, Literal, Protocol
+from typing import Any, Protocol
 
+from vllm_request_lifecycle_profiler.kv_recovery_profile_protocol import (
+    MAPPING_SHA256,
+    MAX_PROFILE_DATA_RECORDS,
+    PROFILE_ID,
+    PROFILE_SHA256,
+    LossReason,
+    ProfileLossInterval,
+    ProfileRecord,
+    ProfileRecordType,
+)
 from vllm_request_lifecycle_profiler.runtime_hooks import RuntimeLifecycleHooks
 from vllm_request_lifecycle_profiler.runtime_protocol import (
     KV_RECOVERY_COMMUNICATION_MODE,
@@ -24,20 +34,9 @@ from vllm_request_lifecycle_profiler.runtime_protocol import (
     EventDraft,
 )
 
-PROFILE_ID = "rlp.kv-recovery/v1alpha1"
-PROFILE_SHA256 = "b363532884d1cae8049ab080d2b85a629f3b33a75f6621788d1e4c8f30737666"
-MAPPING_SHA256 = "095944bbbb1a3ad3518aebfdd61c820ade3affdebd6024b47389cdaec24a3fa3"
-MAX_PROFILE_DATA_RECORDS = 4096
-
 _HEX32 = re.compile(r"^[0-9a-f]{32}$")
 _EVENT_ID = re.compile(r"^[0-9a-f]{32}:e:(0|[1-9][0-9]{0,19})$")
 _UINT64_MAX = 2**64 - 1
-ProfileRecordType = Literal[
-    "block_set_chunk", "wait_set_chunk", "transfer_event", "recovery_event"
-]
-LossReason = Literal[
-    "serialization_failure", "queue_overflow", "writer_failure", "close_timeout"
-]
 
 
 def _require_hex32(value: object, field_name: str) -> str:
@@ -142,29 +141,6 @@ class KVRecoveryRuntimeABI:
         )
 
 
-@dataclass(frozen=True)
-class ProfileRecord:
-    record_type: ProfileRecordType
-    record_seq: int
-    record_id: str
-    timestamp_ns: int
-    fields: Mapping[str, object]
-
-
-@dataclass(frozen=True)
-class ProfileLossInterval:
-    reason: LossReason
-    first_record_seq: int
-    last_record_seq: int
-    counts: Mapping[ProfileRecordType, int]
-    first_timestamp_ns: int
-    last_timestamp_ns: int
-
-    @property
-    def dropped_count(self) -> int:
-        return self.last_record_seq - self.first_record_seq + 1
-
-
 class BoundedKVRecoveryProfileLedger:
     """Thread-safe producer ledger for the future paired profile exporter.
 
@@ -174,11 +150,18 @@ class BoundedKVRecoveryProfileLedger:
     producer ordering.
     """
 
-    def __init__(self, process_uuid: str, *, capacity: int = MAX_PROFILE_DATA_RECORDS):
+    def __init__(
+        self,
+        process_uuid: str,
+        *,
+        capacity: int = MAX_PROFILE_DATA_RECORDS,
+        hooks: RuntimeLifecycleHooks | None = None,
+    ):
         self.process_uuid = _require_hex32(process_uuid, "process_uuid")
         if not isinstance(capacity, int) or isinstance(capacity, bool) or capacity < 1:
             raise ValueError("capacity must be a positive integer")
         self.capacity = capacity
+        self._hooks = hooks
         self._lock = threading.Lock()
         self._next_record_seq = 0
         self._records: list[ProfileRecord] = []
@@ -186,11 +169,15 @@ class BoundedKVRecoveryProfileLedger:
 
     @property
     def evidence_complete(self) -> bool:
+        if self._hooks is not None:
+            return self._hooks.kv_recovery_profile_evidence_complete
         with self._lock:
             return not self._losses
 
     @property
     def attempted_data_count(self) -> int:
+        if self._hooks is not None:
+            return self._hooks.kv_recovery_profile_attempted_data_count
         with self._lock:
             return self._next_record_seq
 
@@ -209,6 +196,11 @@ class BoundedKVRecoveryProfileLedger:
             "recovery_event",
         }:
             raise ValueError("record_type is not in the recovery profile roster")
+        if self._hooks is not None:
+            reference = self._hooks.emit_kv_recovery_profile(
+                record_type, timestamp_ns, **fields
+            )
+            return reference.record_id if reference is not None else None
         with self._lock:
             record_seq = self._allocate_locked()
             if not _is_uint64(timestamp_ns):
@@ -239,6 +231,11 @@ class BoundedKVRecoveryProfileLedger:
     ) -> int:
         """Consume one exact attempted sequence and extend a maximal loss."""
 
+        if self._hooks is not None:
+            record_seq = self._hooks.drop_kv_recovery_profile(
+                record_type, timestamp_ns, reason
+            )
+            return record_seq if record_seq is not None else -1
         with self._lock:
             record_seq = self._allocate_locked()
             observed = timestamp_ns if _is_uint64(timestamp_ns) else 0
@@ -248,6 +245,8 @@ class BoundedKVRecoveryProfileLedger:
     def snapshot(
         self,
     ) -> tuple[tuple[ProfileRecord, ...], tuple[ProfileLossInterval, ...]]:
+        if self._hooks is not None:
+            return self._hooks.kv_recovery_profile_snapshot()
         with self._lock:
             return tuple(self._records), tuple(self._losses)
 

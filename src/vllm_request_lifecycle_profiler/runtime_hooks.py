@@ -11,9 +11,24 @@ import threading
 import time
 from collections import deque
 from collections.abc import Callable, Mapping
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 
+from vllm_request_lifecycle_profiler.kv_recovery_profile_protocol import (
+    KVRecoveryProfileConfig,
+    ProfileLossInterval,
+    ProfileRecord,
+    ProfileRecordRef,
+    ProfileRecordType,
+    build_profile_data_record,
+    build_profile_loss_interval_record,
+    build_profile_start_record,
+    build_profile_summary_record,
+    profile_record_line,
+)
+from vllm_request_lifecycle_profiler.kv_recovery_profile_protocol import (
+    LossReason as ProfileLossReason,
+)
 from vllm_request_lifecycle_profiler.runtime_protocol import (
     CLOSE_TIMEOUT_MS,
     DATA_CAPACITY_RECORDS,
@@ -68,6 +83,7 @@ class RuntimeTraceConfig:
     provenance: RuntimeProvenance | None = None
     communication_mode: str = "none"
     invalid_reason: str | None = None
+    kv_recovery_profile_config: KVRecoveryProfileConfig | None = None
 
     @classmethod
     def from_env(cls, env: Mapping[str, str] | None = None) -> RuntimeTraceConfig:
@@ -124,6 +140,10 @@ class CloseResult:
     written_edge_count: int
     dropped_data_count: int
     dropped_control_count: int
+    profile_summary_written: bool = False
+    profile_attempted_data_count: int = 0
+    profile_dropped_data_count: int = 0
+    profile_dropped_control_count: int = 0
 
 
 @dataclass(frozen=True)
@@ -133,6 +153,7 @@ class _QueuedRecord:
     record_seq: int | None
     reserved: bool
     observed_timestamp_ns: int | None = None
+    stream: str = "base"
 
 
 @dataclass
@@ -144,6 +165,44 @@ class _OpenLoss:
     edge_count: int
     first_timestamp_ns: int
     last_timestamp_ns: int
+
+
+@dataclass
+class _OpenProfileLoss:
+    reason: ProfileLossReason
+    first_record_seq: int
+    last_record_seq: int
+    counts: dict[ProfileRecordType, int]
+    first_timestamp_ns: int
+    last_timestamp_ns: int
+
+
+@dataclass
+class _ProfileWriterState:
+    config: KVRecoveryProfileConfig
+    shard_path: Path
+    incomplete_shard_path: Path | None = None
+    reservation_identity: tuple[int, int] | None = None
+    fd: int = -1
+    queued_bytes: int = 0
+    ordinary_queued: int = 0
+    reserved_queued: int = 0
+    next_record_seq: int = 0
+    next_loss_interval_seq: int = 0
+    open_loss: _OpenProfileLoss | None = None
+    attempted_data_count: int = 0
+    written_block_set_chunk_count: int = 0
+    written_wait_set_chunk_count: int = 0
+    written_transfer_event_count: int = 0
+    written_recovery_event_count: int = 0
+    written_loss_interval_count: int = 0
+    dropped_data_count: int = 0
+    dropped_control_count: int = 0
+    writer_failure_count: int = 0
+    summary_written: bool = False
+    records: list[ProfileRecord] = field(default_factory=list)
+    losses: list[ProfileLossInterval] = field(default_factory=list)
+    content_hash: object = field(default_factory=hashlib.sha256)
 
 
 WriteFunction = Callable[[int, bytes | memoryview], int]
@@ -166,6 +225,7 @@ class JsonlTraceSink:
         provenance: RuntimeProvenance,
         *,
         communication_mode: str = "none",
+        kv_recovery_profile_config: KVRecoveryProfileConfig | None = None,
         clock_ns: ClockFunction = time.monotonic_ns,
         clock_domain_reader: Callable[[], str] = read_clock_domain_id,
         process_uuid_factory: ProcessUuidFactory = new_process_uuid,
@@ -174,6 +234,11 @@ class JsonlTraceSink:
     ) -> None:
         if communication_mode not in {"none", KV_RECOVERY_COMMUNICATION_MODE}:
             raise ValueError("communication_mode is not implemented")
+        if (
+            kv_recovery_profile_config is not None
+            and communication_mode != kv_recovery_profile_config.communication_mode
+        ):
+            raise ValueError("profile config and communication mode differ")
         self.base_path = Path(base_path)
         self.provenance = provenance
         self.communication_mode = communication_mode
@@ -192,6 +257,11 @@ class JsonlTraceSink:
         self._reservation_identity: tuple[int, int] | None = None
         self._fd = -1
         self._staging_fd = -1
+        self._profile = (
+            _ProfileWriterState(kv_recovery_profile_config, self.base_path)
+            if kv_recovery_profile_config is not None
+            else None
+        )
 
         self._condition = threading.Condition()
         self._close_lock = threading.Lock()
@@ -381,6 +451,182 @@ class JsonlTraceSink:
                 return None
             return reference
 
+    def write_kv_recovery_profile(
+        self,
+        record_type: ProfileRecordType,
+        timestamp_ns: int,
+        **fields: object,
+    ) -> ProfileRecordRef | None:
+        """Serialize and enqueue one profile record on the shared writer."""
+
+        if not self._usable_in_current_process():
+            return None
+        with self._condition:
+            profile = self._profile
+            if profile is None or self._closing or self._closed:
+                self._count_diagnostic_locked("schema_incompatible")
+                return None
+            record_seq = self._allocate_profile_record_seq_locked(profile)
+            if not isinstance(timestamp_ns, int) or isinstance(timestamp_ns, bool):
+                observed_ns = self._profile_fallback_timestamp_locked()
+                self._note_profile_drop_locked(
+                    profile,
+                    record_seq,
+                    record_type,
+                    "serialization_failure",
+                    observed_ns,
+                )
+                return None
+            observed_ns = timestamp_ns
+            if observed_ns < 0 or observed_ns > 2**64 - 1:
+                fallback_ns = self._profile_fallback_timestamp_locked()
+                self._note_profile_drop_locked(
+                    profile,
+                    record_seq,
+                    record_type,
+                    "serialization_failure",
+                    fallback_ns,
+                )
+                return None
+            if self._writer_failed:
+                self._note_profile_drop_locked(
+                    profile,
+                    record_seq,
+                    record_type,
+                    "writer_failure",
+                    observed_ns,
+                )
+                return None
+            try:
+                record, reference = build_profile_data_record(
+                    record_type=record_type,
+                    process_uuid=self.process_uuid,
+                    record_seq=record_seq,
+                    timestamp_ns=observed_ns,
+                    clock_domain_id=self.clock_domain_id,
+                    config=profile.config,
+                    fields=fields,
+                )
+                raw = profile_record_line(record)
+            except Exception:  # noqa: BLE001 - serving must remain fail-open.
+                self._note_profile_drop_locked(
+                    profile,
+                    record_seq,
+                    record_type,
+                    "serialization_failure",
+                    observed_ns,
+                )
+                return None
+            if not self._can_enqueue_locked(raw, reserved=False, stream="profile"):
+                self._note_profile_drop_locked(
+                    profile,
+                    record_seq,
+                    record_type,
+                    "queue_overflow",
+                    observed_ns,
+                )
+                return None
+            self._seal_profile_loss_locked(profile)
+            queued = _QueuedRecord(
+                raw,
+                record_type,
+                record_seq,
+                False,
+                observed_ns,
+                "profile",
+            )
+            if not self._enqueue_locked(queued):
+                self._note_profile_drop_locked(
+                    profile,
+                    record_seq,
+                    record_type,
+                    "queue_overflow",
+                    observed_ns,
+                )
+                return None
+            common_keys = {
+                "schema",
+                "record_type",
+                "process_uuid",
+                "record_seq",
+                "record_id",
+                "run_id",
+                "timestamp_ns",
+                "clock_domain_id",
+                "profile_id",
+                "profile_sha256",
+            }
+            assert profile.records is not None
+            profile.records.append(
+                ProfileRecord(
+                    record_type=record_type,
+                    record_seq=record_seq,
+                    record_id=reference.record_id,
+                    timestamp_ns=observed_ns,
+                    fields={
+                        key: value
+                        for key, value in record.items()
+                        if key not in common_keys
+                    },
+                )
+            )
+            return reference
+
+    def drop_kv_recovery_profile(
+        self,
+        record_type: ProfileRecordType,
+        timestamp_ns: int | None,
+        reason: ProfileLossReason = "serialization_failure",
+    ) -> int | None:
+        """Consume one profile sequence and account the exact failed category."""
+
+        if not self._usable_in_current_process():
+            return None
+        with self._condition:
+            profile = self._profile
+            if profile is None or self._closing or self._closed:
+                return None
+            record_seq = self._allocate_profile_record_seq_locked(profile)
+            observed_ns = (
+                timestamp_ns
+                if type(timestamp_ns) is int and 0 <= timestamp_ns <= 2**64 - 1
+                else self._profile_fallback_timestamp_locked()
+            )
+            self._note_profile_drop_locked(
+                profile, record_seq, record_type, reason, observed_ns
+            )
+            return record_seq
+
+    @property
+    def kv_recovery_profile_enabled(self) -> bool:
+        return self._profile is not None and self._usable_in_current_process()
+
+    @property
+    def kv_recovery_profile_evidence_complete(self) -> bool:
+        with self._condition:
+            profile = self._profile
+            return bool(
+                profile is not None
+                and profile.dropped_data_count == 0
+                and profile.dropped_control_count == 0
+                and profile.writer_failure_count == 0
+            )
+
+    @property
+    def kv_recovery_profile_attempted_data_count(self) -> int:
+        with self._condition:
+            return self._profile.attempted_data_count if self._profile else 0
+
+    def kv_recovery_profile_snapshot(
+        self,
+    ) -> tuple[tuple[ProfileRecord, ...], tuple[ProfileLossInterval, ...]]:
+        with self._condition:
+            profile = self._profile
+            if profile is None:
+                return (), ()
+            assert profile.records is not None and profile.losses is not None
+            return tuple(profile.records), tuple(profile.losses)
+
     def close(self) -> CloseResult:
         requested_deadline_ns = time.monotonic_ns() + CLOSE_TIMEOUT_MS * 1_000_000
         if os.getpid() != self._owner_pid:
@@ -412,6 +658,8 @@ class JsonlTraceSink:
                     return result
                 self._close_deadline_ns = requested_deadline_ns
                 self._seal_loss_locked()
+                if self._profile is not None:
+                    self._seal_profile_loss_locked(self._profile)
                 self._closing = True
                 self._condition.notify_all()
             finally:
@@ -497,6 +745,22 @@ class JsonlTraceSink:
             return self.shard_path
         return None
 
+    @property
+    def committed_kv_recovery_profile_shard_path(self) -> Path | None:
+        """Return the paired profile path only after one immutable close win."""
+
+        result = self._claimed_close_result()
+        profile = self._profile
+        if (
+            profile is not None
+            and result is not None
+            and result.close_outcome == "drained"
+            and result.summary_written
+            and result.profile_summary_written
+        ):
+            return profile.shard_path
+        return None
+
     def defer_diagnostic(self, reason: str) -> None:
         """Schedule one bounded diagnostic without running a producer handler."""
 
@@ -519,6 +783,12 @@ class JsonlTraceSink:
         for _ in range(3):
             process_uuid = self._process_uuid_factory()
             shard_path = Path(f"{self.base_path}.rlp.{process_uuid}.jsonl")
+            profile_path = Path(
+                f"{self.base_path}.rlp-kv-recovery.{process_uuid}.jsonl"
+            )
+            fd = -1
+            profile_fd = -1
+            profile_created = False
             try:
                 flags = os.O_CREAT | os.O_EXCL | os.O_APPEND | os.O_WRONLY
                 flags |= getattr(os, "O_CLOEXEC", 0)
@@ -529,6 +799,10 @@ class JsonlTraceSink:
                 )
                 try:
                     os.fchmod(fd, 0o600)
+                    if self._profile is not None:
+                        profile_fd = os.open(profile_path, flags, 0o600)
+                        profile_created = True
+                        os.fchmod(profile_fd, 0o600)
                 except Exception:
                     try:
                         os.close(fd)
@@ -538,10 +812,32 @@ class JsonlTraceSink:
                         shard_path.unlink(missing_ok=True)
                     except OSError:
                         pass
+                    if profile_fd >= 0:
+                        try:
+                            os.close(profile_fd)
+                        except OSError:
+                            pass
+                    if profile_created:
+                        try:
+                            profile_path.unlink(missing_ok=True)
+                        except OSError:
+                            pass
                     raise
+                if self._profile is not None:
+                    self._profile.shard_path = profile_path
+                    self._profile.fd = profile_fd
                 return process_uuid, shard_path, fd
             except FileExistsError as exc:
                 last_error = exc
+                if fd >= 0:
+                    try:
+                        os.close(fd)
+                    except OSError:
+                        pass
+                    try:
+                        shard_path.unlink(missing_ok=True)
+                    except OSError:
+                        pass
         raise FileExistsError(
             "could not allocate a unique process shard"
         ) from last_error
@@ -551,6 +847,24 @@ class JsonlTraceSink:
         self._next_record_seq += 1
         self._attempted_data_count += 1
         return record_seq
+
+    @staticmethod
+    def _allocate_profile_record_seq_locked(profile: _ProfileWriterState) -> int:
+        if profile.next_record_seq > 2**64 - 1:
+            raise OverflowError("profile record sequence exhausted")
+        record_seq = profile.next_record_seq
+        profile.next_record_seq += 1
+        profile.attempted_data_count += 1
+        return record_seq
+
+    def _profile_fallback_timestamp_locked(self) -> int:
+        try:
+            value = self._clock_ns()
+            if type(value) is int and 0 <= value <= 2**64 - 1:
+                return value
+        except Exception:  # noqa: BLE001, S110 - evidence-only fallback.
+            pass
+        return time.monotonic_ns()
 
     def _producer_clock_or_drop_locked(
         self, record_seq: int, record_type: str
@@ -576,8 +890,19 @@ class JsonlTraceSink:
             )
             return None
 
-    def _can_enqueue_locked(self, raw: bytes, *, reserved: bool) -> bool:
+    def _can_enqueue_locked(
+        self, raw: bytes, *, reserved: bool, stream: str = "base"
+    ) -> bool:
         if self._writer_failed or self._closing or self._closed:
+            return False
+        if stream == "profile":
+            profile = self._profile
+            if profile is None or profile.queued_bytes + len(raw) > MAX_QUEUED_BYTES:
+                return False
+            if reserved:
+                return profile.reserved_queued < RESERVED_CAPACITY_RECORDS
+            return profile.ordinary_queued < DATA_CAPACITY_RECORDS
+        if stream != "base":
             return False
         if self._queued_bytes + len(raw) > MAX_QUEUED_BYTES:
             return False
@@ -586,14 +911,24 @@ class JsonlTraceSink:
         return self._ordinary_queued < DATA_CAPACITY_RECORDS
 
     def _enqueue_locked(self, queued: _QueuedRecord) -> bool:
-        if not self._can_enqueue_locked(queued.raw, reserved=queued.reserved):
+        if not self._can_enqueue_locked(
+            queued.raw, reserved=queued.reserved, stream=queued.stream
+        ):
             return False
         self._queue.append(queued)
-        self._queued_bytes += len(queued.raw)
-        if queued.reserved:
-            self._reserved_queued += 1
+        if queued.stream == "profile":
+            assert self._profile is not None
+            self._profile.queued_bytes += len(queued.raw)
+            if queued.reserved:
+                self._profile.reserved_queued += 1
+            else:
+                self._profile.ordinary_queued += 1
         else:
-            self._ordinary_queued += 1
+            self._queued_bytes += len(queued.raw)
+            if queued.reserved:
+                self._reserved_queued += 1
+            else:
+                self._ordinary_queued += 1
         self._condition.notify()
         return True
 
@@ -657,6 +992,98 @@ class JsonlTraceSink:
             _QueuedRecord(raw, "loss_interval", None, True, None)
         ):
             self._dropped_control_count += 1
+
+    def _note_profile_drop_locked(
+        self,
+        profile: _ProfileWriterState,
+        record_seq: int,
+        record_type: ProfileRecordType,
+        reason: ProfileLossReason,
+        observed_ns: int,
+    ) -> None:
+        profile.dropped_data_count += 1
+        self._count_diagnostic_locked(reason)
+        counts: dict[ProfileRecordType, int] = {
+            "block_set_chunk": 0,
+            "wait_set_chunk": 0,
+            "transfer_event": 0,
+            "recovery_event": 0,
+        }
+        counts[record_type] = 1
+        current = profile.open_loss
+        if (
+            current is not None
+            and current.reason == reason
+            and record_seq == current.last_record_seq + 1
+        ):
+            current.last_record_seq = record_seq
+            current.counts[record_type] += 1
+            current.last_timestamp_ns = observed_ns
+            assert profile.losses is not None
+            profile.losses[-1] = ProfileLossInterval(
+                reason=current.reason,
+                first_record_seq=current.first_record_seq,
+                last_record_seq=current.last_record_seq,
+                counts=dict(current.counts),
+                first_timestamp_ns=current.first_timestamp_ns,
+                last_timestamp_ns=current.last_timestamp_ns,
+            )
+            return
+        self._seal_profile_loss_locked(profile)
+        profile.open_loss = _OpenProfileLoss(
+            reason=reason,
+            first_record_seq=record_seq,
+            last_record_seq=record_seq,
+            counts=counts,
+            first_timestamp_ns=observed_ns,
+            last_timestamp_ns=observed_ns,
+        )
+        assert profile.losses is not None
+        profile.losses.append(
+            ProfileLossInterval(
+                reason=reason,
+                first_record_seq=record_seq,
+                last_record_seq=record_seq,
+                counts=dict(counts),
+                first_timestamp_ns=observed_ns,
+                last_timestamp_ns=observed_ns,
+            )
+        )
+
+    def _seal_profile_loss_locked(self, profile: _ProfileWriterState) -> None:
+        current = profile.open_loss
+        if current is None:
+            return
+        loss_seq = profile.next_loss_interval_seq
+        profile.next_loss_interval_seq += 1
+        profile.open_loss = None
+        try:
+            record = build_profile_loss_interval_record(
+                process_uuid=self.process_uuid,
+                config=profile.config,
+                loss_interval_seq=loss_seq,
+                reason=current.reason,
+                first_dropped_record_seq=current.first_record_seq,
+                last_dropped_record_seq=current.last_record_seq,
+                counts=current.counts,
+                first_observed_timestamp_ns=current.first_timestamp_ns,
+                last_observed_timestamp_ns=current.last_timestamp_ns,
+            )
+            raw = profile_record_line(record)
+        except Exception:  # noqa: BLE001 - control loss invalidates evidence.
+            profile.dropped_control_count += 1
+            return
+        if not self._enqueue_locked(
+            _QueuedRecord(
+                raw,
+                "loss_interval",
+                None,
+                True,
+                None,
+                "profile",
+            )
+        ):
+            profile.dropped_control_count += 1
 
     def _writer_main(self) -> None:
         initialized = False
@@ -723,7 +1150,7 @@ class JsonlTraceSink:
                             finish_timeout = True
                             break
                     try:
-                        self._write_all(queued.raw)
+                        self._write_queued_all(queued)
                     except Exception:  # noqa: BLE001 - writer is fail-open.
                         self._mark_writer_failure()
                         return
@@ -773,8 +1200,9 @@ class JsonlTraceSink:
                 self._writer_outcome = "timeout"
 
         staging_closed = self._close_staging_fd()
+        profile_closed = self._close_profile_fd()
         persistent_closed = self._close_fd()
-        if not staging_closed or not persistent_closed:
+        if not staging_closed or not profile_closed or not persistent_closed:
             with self._condition:
                 self._mark_writer_failure_locked()
                 self._summary_written = False
@@ -795,10 +1223,11 @@ class JsonlTraceSink:
         self.process_uuid = process_uuid
         self.shard_path = shard_path
         self._fd = fd
+        started_timestamp_ns = self._clock_ns()
         start_record = build_process_start_record(
             process_uuid=self.process_uuid,
             pid=self._owner_pid,
-            started_timestamp_ns=self._clock_ns(),
+            started_timestamp_ns=started_timestamp_ns,
             clock_domain_id=self.clock_domain_id,
             provenance=self.provenance,
         )
@@ -806,6 +1235,23 @@ class JsonlTraceSink:
         if not self._write_reserved_control_in_writer(start_raw, count_drop=False):
             raise OSError("process_start reserved capacity is unavailable")
         self._content_hash.update(start_raw)
+        profile = self._profile
+        if profile is not None:
+            profile_start = build_profile_start_record(
+                process_uuid=self.process_uuid,
+                pid=self._owner_pid,
+                started_timestamp_ns=started_timestamp_ns,
+                clock_domain_id=self.clock_domain_id,
+                provenance=self.provenance,
+                config=profile.config,
+            )
+            profile_raw = profile_record_line(profile_start)
+            if not self._write_profile_reserved_control_in_writer(
+                profile_raw, count_drop=False
+            ):
+                raise OSError("profile_start reserved capacity is unavailable")
+            assert profile.content_hash is not None
+            profile.content_hash.update(profile_raw)
 
     def _wait_for_writer_gate(self) -> bool:
         gate = self._writer_start_gate
@@ -834,14 +1280,24 @@ class JsonlTraceSink:
         for queued in controls:
             if self._close_deadline_reached():
                 with self._condition:
-                    self._dropped_control_count += len(self._inflight_batch)
+                    for pending_control in self._inflight_batch:
+                        if (
+                            pending_control.stream == "profile"
+                            and self._profile is not None
+                        ):
+                            self._profile.dropped_control_count += 1
+                        else:
+                            self._dropped_control_count += 1
                     self._inflight_batch.clear()
                     self._queued_bytes = 0
                     self._reserved_queued = 0
+                    if self._profile is not None:
+                        self._profile.queued_bytes = 0
+                        self._profile.reserved_queued = 0
                 self._writer_outcome = "timeout"
                 return
             try:
-                self._write_all(queued.raw)
+                self._write_queued_all(queued)
             except Exception:  # noqa: BLE001 - evidence fails closed.
                 self._mark_writer_failure()
                 return
@@ -859,6 +1315,8 @@ class JsonlTraceSink:
             self._writer_outcome = "timeout"
             return
         self._move_formal_shard_to_incomplete_in_writer()
+        if self._profile is not None:
+            self._move_profile_shard_to_incomplete_in_writer()
         if self._close_deadline_reached():
             self._writer_outcome = "timeout"
             return
@@ -882,6 +1340,37 @@ class JsonlTraceSink:
             self._writer_outcome = "timeout"
             self._append_timeout_invalidation_in_writer()
             return
+        profile = self._profile
+        if profile is not None:
+            assert profile.content_hash is not None
+            profile_summary = build_profile_summary_record(
+                process_uuid=self.process_uuid,
+                config=profile.config,
+                ended_timestamp_ns=self._clock_ns(),
+                attempted_data_count=profile.attempted_data_count,
+                written_counts={
+                    "block_set_chunk": profile.written_block_set_chunk_count,
+                    "wait_set_chunk": profile.written_wait_set_chunk_count,
+                    "transfer_event": profile.written_transfer_event_count,
+                    "recovery_event": profile.written_recovery_event_count,
+                },
+                written_loss_interval_count=profile.written_loss_interval_count,
+                dropped_data_count=profile.dropped_data_count,
+                dropped_control_count=profile.dropped_control_count,
+                writer_failure_count=profile.writer_failure_count,
+                close_outcome=close_outcome,
+                content_sha256=profile.content_hash.hexdigest(),
+            )
+            if not self._write_profile_reserved_control_in_writer(
+                profile_record_line(profile_summary)
+            ):
+                self._writer_outcome = close_outcome
+                return
+            if self._close_deadline_reached():
+                self._writer_outcome = "timeout"
+                self._append_timeout_invalidation_in_writer()
+                return
+            profile.summary_written = True
         self._summary_written = True
         self._writer_outcome = close_outcome
 
@@ -934,8 +1423,59 @@ class JsonlTraceSink:
                         pass
                 raise
 
+    def _move_profile_shard_to_incomplete_in_writer(self) -> None:
+        """Hide profile summary bytes under the same writer/quarantine owner."""
+
+        profile = self._profile
+        if profile is None:
+            return
+        with self._quarantine_lock:
+            if profile.incomplete_shard_path is not None:
+                return
+            if not self.process_uuid or not profile.shard_path.exists():
+                raise OSError("formal profile shard is unavailable before summary")
+            target = Path(f"{profile.shard_path}.incomplete.{time.monotonic_ns()}")
+            reservation = Path(
+                f"{profile.shard_path}.reservation.{time.monotonic_ns()}"
+            )
+            reservation_fd = -1
+            linked = False
+            try:
+                os.link(profile.shard_path, target)
+                linked = True
+                flags = os.O_CREAT | os.O_EXCL | os.O_WRONLY
+                flags |= getattr(os, "O_CLOEXEC", 0)
+                reservation_fd = os.open(reservation, flags, 0o600)
+                os.fchmod(reservation_fd, 0o600)
+                reservation_stat = os.fstat(reservation_fd)
+                os.close(reservation_fd)
+                reservation_fd = -1
+                os.replace(reservation, profile.shard_path)
+                formal_stat = os.stat(profile.shard_path, follow_symlinks=False)
+                identity = (reservation_stat.st_dev, reservation_stat.st_ino)
+                if (formal_stat.st_dev, formal_stat.st_ino) != identity:
+                    raise OSError("formal profile reservation identity changed")
+                profile.reservation_identity = identity
+                profile.incomplete_shard_path = target
+            except Exception:
+                if reservation_fd >= 0:
+                    try:
+                        os.close(reservation_fd)
+                    except OSError:
+                        pass
+                try:
+                    reservation.unlink(missing_ok=True)
+                except OSError:
+                    pass
+                if linked and profile.incomplete_shard_path is None:
+                    try:
+                        target.unlink(missing_ok=True)
+                    except OSError:
+                        pass
+                raise
+
     def _publish_completed_shard_in_writer(self) -> bool:
-        """Atomically publish only a closed, drained shard before the deadline."""
+        """Publish the base/profile pair before one immutable close claim."""
 
         with self._condition:
             eligible = (
@@ -944,37 +1484,59 @@ class JsonlTraceSink:
                 and not self._writer_failed
                 and not self._abandoned
                 and not self._close_deadline_reached()
+                and (self._profile is None or self._profile.summary_written)
             )
         if not eligible:
             return False
         with self._quarantine_lock:
-            source = self.incomplete_shard_path
-            try:
-                formal_stat = os.stat(self.shard_path, follow_symlinks=False)
-            except OSError:
-                formal_stat = None
-            identity = self._reservation_identity
-            if (
-                source is None
-                or not source.exists()
-                or formal_stat is None
-                or identity is None
-                or (formal_stat.st_dev, formal_stat.st_ino) != identity
-            ):
+            targets: list[tuple[str, Path, Path, tuple[int, int]]] = []
+            base_source = self.incomplete_shard_path
+            base_identity = self._reservation_identity
+            if base_source is None or base_identity is None:
                 self._mark_publication_failure()
                 return False
+            targets.append(("base", base_source, self.shard_path, base_identity))
+            profile = self._profile
+            if profile is not None:
+                if (
+                    profile.incomplete_shard_path is None
+                    or profile.reservation_identity is None
+                ):
+                    self._mark_publication_failure()
+                    return False
+                targets.append(
+                    (
+                        "profile",
+                        profile.incomplete_shard_path,
+                        profile.shard_path,
+                        profile.reservation_identity,
+                    )
+                )
+            for _stream, source, formal, identity in targets:
+                try:
+                    formal_stat = os.stat(formal, follow_symlinks=False)
+                except OSError:
+                    formal_stat = None
+                if (
+                    not source.exists()
+                    or formal_stat is None
+                    or (formal_stat.st_dev, formal_stat.st_ino) != identity
+                ):
+                    self._mark_publication_failure()
+                    return False
+
+            published: list[tuple[str, Path, Path, tuple[int, int]]] = []
             try:
-                # The formal target is the sentinel owned by this sink for the
-                # UUID's full lifetime; no second sink can pass O_EXCL here.
-                os.replace(source, self.shard_path)
+                for target in targets:
+                    _stream, source, formal, _identity = target
+                    os.replace(source, formal)
+                    published.append(target)
             except OSError:
+                for stream, source, formal, _identity in reversed(published):
+                    self._retract_published_shard_in_writer(stream, formal, source)
                 self._mark_publication_failure()
                 return False
 
-            # Commit the on-disk publication and public close result in the
-            # same condition critical section. The timeout caller can win
-            # before this point (forcing retraction) or observe this immutable
-            # drained result; it can never cache timeout in between them.
             with self._condition:
                 if self._abandoned or self._close_deadline_reached():
                     publication_expired = True
@@ -986,17 +1548,55 @@ class JsonlTraceSink:
                     if won:
                         self.incomplete_shard_path = None
                         self._reservation_identity = None
+                        if profile is not None:
+                            profile.incomplete_shard_path = None
+                            profile.reservation_identity = None
                         self._closed = True
                         self._close_result = result
                         self._condition.notify_all()
             if publication_expired:
-                self._retract_late_publication_in_writer(source)
+                for stream, source, formal, _identity in reversed(published):
+                    self._retract_published_shard_in_writer(stream, formal, source)
                 with self._condition:
                     self._summary_written = False
+                    if profile is not None:
+                        profile.summary_written = False
                     self._writer_outcome = "timeout"
                     self._count_diagnostic_locked("close_timeout")
                 return False
             return True
+
+    def _retract_published_shard_in_writer(
+        self, stream: str, formal: Path, target: Path
+    ) -> None:
+        if stream == "profile":
+            profile = self._profile
+            if profile is not None:
+                profile.reservation_identity = None
+        else:
+            self._reservation_identity = None
+        try:
+            os.replace(formal, target)
+            if stream == "profile" and self._profile is not None:
+                self._profile.incomplete_shard_path = target
+            else:
+                self.incomplete_shard_path = target
+            return
+        except OSError:
+            pass
+        try:
+            formal.unlink(missing_ok=True)
+            if stream == "profile" and self._profile is not None:
+                self._profile.incomplete_shard_path = None
+            else:
+                self.incomplete_shard_path = None
+            return
+        except OSError:
+            pass
+        if stream == "profile":
+            self._append_profile_invalidation_to_path_in_writer(formal)
+        else:
+            self._append_invalidation_to_path_in_writer(formal)
 
     def _mark_publication_failure(self) -> None:
         with self._condition:
@@ -1034,6 +1634,15 @@ class JsonlTraceSink:
             self._write_reserved_control_via_in_writer(raw, self._write_persistent_all)
         except Exception:  # noqa: BLE001, S110 - quarantine already fails closed.
             pass
+        profile = self._profile
+        if profile is not None:
+            try:
+                raw = self._profile_invalidation_summary_raw()
+                self._write_profile_reserved_control_via_in_writer(
+                    raw, self._write_profile_persistent_all
+                )
+            except Exception:  # noqa: BLE001, S110 - pair already fails closed.
+                pass
 
     def _append_invalidation_to_path_in_writer(self, path: Path) -> None:
         try:
@@ -1067,6 +1676,38 @@ class JsonlTraceSink:
         except Exception:  # noqa: BLE001, S110 - last-resort invalidation.
             pass
 
+    def _append_profile_invalidation_to_path_in_writer(self, path: Path) -> None:
+        try:
+            raw = self._profile_invalidation_summary_raw()
+
+            def write_path(accepted_raw: bytes) -> None:
+                fd = -1
+                try:
+                    flags = os.O_APPEND | os.O_WRONLY
+                    flags |= getattr(os, "O_CLOEXEC", 0)
+                    fd = os.open(path, flags)
+                    view = memoryview(accepted_raw)
+                    while view:
+                        written = os.write(fd, view)
+                        if (
+                            isinstance(written, bool)
+                            or not isinstance(written, int)
+                            or written <= 0
+                            or written > len(view)
+                        ):
+                            raise OSError("profile invalidation made invalid progress")
+                        view = view[written:]
+                finally:
+                    if fd >= 0:
+                        try:
+                            os.close(fd)
+                        except OSError:
+                            pass
+
+            self._write_profile_reserved_control_via_in_writer(raw, write_path)
+        except Exception:  # noqa: BLE001, S110 - last-resort invalidation.
+            pass
+
     def _invalidation_summary_raw(self) -> bytes:
         invalidating_summary = build_process_summary_record(
             process_uuid=self.process_uuid,
@@ -1082,6 +1723,30 @@ class JsonlTraceSink:
             content_sha256=self._content_hash.hexdigest(),
         )
         return canonical_json_line(invalidating_summary)
+
+    def _profile_invalidation_summary_raw(self) -> bytes:
+        profile = self._profile
+        if profile is None or profile.content_hash is None:
+            raise OSError("profile state is unavailable")
+        summary = build_profile_summary_record(
+            process_uuid=self.process_uuid,
+            config=profile.config,
+            ended_timestamp_ns=self._clock_ns(),
+            attempted_data_count=profile.attempted_data_count,
+            written_counts={
+                "block_set_chunk": profile.written_block_set_chunk_count,
+                "wait_set_chunk": profile.written_wait_set_chunk_count,
+                "transfer_event": profile.written_transfer_event_count,
+                "recovery_event": profile.written_recovery_event_count,
+            },
+            written_loss_interval_count=profile.written_loss_interval_count,
+            dropped_data_count=profile.dropped_data_count,
+            dropped_control_count=profile.dropped_control_count,
+            writer_failure_count=profile.writer_failure_count,
+            close_outcome="timeout",
+            content_sha256=profile.content_hash.hexdigest(),
+        )
+        return profile_record_line(summary)
 
     def _write_reserved_control_in_writer(
         self, raw: bytes, *, count_drop: bool = True
@@ -1121,62 +1786,151 @@ class JsonlTraceSink:
                 self._queued_bytes = max(0, self._queued_bytes - len(raw))
         return True
 
+    def _write_profile_reserved_control_in_writer(
+        self, raw: bytes, *, count_drop: bool = True
+    ) -> bool:
+        return self._write_profile_reserved_control_via_in_writer(
+            raw, self._write_profile_all, count_drop=count_drop
+        )
+
+    def _write_profile_reserved_control_via_in_writer(
+        self,
+        raw: bytes,
+        write_raw: Callable[[bytes], None],
+        *,
+        count_drop: bool = True,
+    ) -> bool:
+        profile = self._profile
+        if profile is None:
+            return False
+        with self._condition:
+            if (
+                profile.reserved_queued >= RESERVED_CAPACITY_RECORDS
+                or profile.queued_bytes + len(raw) > MAX_QUEUED_BYTES
+            ):
+                if count_drop:
+                    profile.dropped_control_count += 1
+                return False
+            profile.reserved_queued += 1
+            profile.queued_bytes += len(raw)
+        try:
+            write_raw(raw)
+        except Exception:
+            if count_drop:
+                with self._condition:
+                    profile.dropped_control_count += 1
+            raise
+        finally:
+            with self._condition:
+                if profile.reserved_queued > 0:
+                    profile.reserved_queued -= 1
+                profile.queued_bytes = max(0, profile.queued_bytes - len(raw))
+        return True
+
     def _prepare_timeout_controls_locked(self) -> list[_QueuedRecord]:
         timeout_observed_ns = time.monotonic_ns()
         pending = [*self._inflight_batch, *self._queue]
         existing_controls = [
             queued for queued in pending if queued.record_type == "loss_interval"
         ]
-        pending_data = [
-            queued for queued in pending if queued.record_type in {"event", "edge"}
+        base_data = [
+            queued
+            for queued in pending
+            if queued.stream == "base" and queued.record_type in {"event", "edge"}
         ]
-        self._dropped_control_count += (
-            len(pending) - len(existing_controls) - len(pending_data)
-        )
+        profile_types = {
+            "block_set_chunk",
+            "wait_set_chunk",
+            "transfer_event",
+            "recovery_event",
+        }
+        profile_data = [
+            queued
+            for queued in pending
+            if queued.stream == "profile" and queued.record_type in profile_types
+        ]
+        recognized = {
+            *map(id, existing_controls),
+            *map(id, base_data),
+            *map(id, profile_data),
+        }
+        for queued in pending:
+            if id(queued) not in recognized:
+                if queued.stream == "profile" and self._profile is not None:
+                    self._profile.dropped_control_count += 1
+                else:
+                    self._dropped_control_count += 1
         self._inflight_batch.clear()
         self._queue.clear()
         self._queued_bytes = 0
         self._ordinary_queued = 0
         self._reserved_queued = 0
+        if self._profile is not None:
+            self._profile.queued_bytes = 0
+            self._profile.ordinary_queued = 0
+            self._profile.reserved_queued = 0
 
         controls: list[_QueuedRecord] = []
-        control_bytes = 0
+        control_bytes = {"base": 0, "profile": 0}
+        control_counts = {"base": 0, "profile": 0}
 
         def admit_control(queued: _QueuedRecord) -> None:
-            nonlocal control_bytes
+            stream = queued.stream
             if (
-                len(controls) >= RESERVED_CAPACITY_RECORDS
-                or control_bytes + len(queued.raw) > MAX_QUEUED_BYTES
+                control_counts[stream] >= RESERVED_CAPACITY_RECORDS
+                or control_bytes[stream] + len(queued.raw) > MAX_QUEUED_BYTES
             ):
-                self._dropped_control_count += 1
+                if stream == "profile" and self._profile is not None:
+                    self._profile.dropped_control_count += 1
+                else:
+                    self._dropped_control_count += 1
                 return
             controls.append(queued)
-            control_bytes += len(queued.raw)
+            control_counts[stream] += 1
+            control_bytes[stream] += len(queued.raw)
 
         for queued in existing_controls:
             admit_control(queued)
-        group: list[_QueuedRecord] = []
-        for queued in pending_data:
-            if (
-                group
-                and queued.record_seq is not None
-                and group[-1].record_seq is not None
-                and queued.record_seq != group[-1].record_seq + 1
-            ):
-                control = self._timeout_loss_control_locked(group, timeout_observed_ns)
+        for stream, pending_data in (("base", base_data), ("profile", profile_data)):
+            group: list[_QueuedRecord] = []
+            for queued in pending_data:
+                if (
+                    group
+                    and queued.record_seq is not None
+                    and group[-1].record_seq is not None
+                    and queued.record_seq != group[-1].record_seq + 1
+                ):
+                    control = (
+                        self._timeout_profile_loss_control_locked(
+                            group, timeout_observed_ns
+                        )
+                        if stream == "profile"
+                        else self._timeout_loss_control_locked(
+                            group, timeout_observed_ns
+                        )
+                    )
+                    if control is not None:
+                        admit_control(control)
+                    group = []
+                group.append(queued)
+            if group:
+                control = (
+                    self._timeout_profile_loss_control_locked(
+                        group, timeout_observed_ns
+                    )
+                    if stream == "profile"
+                    else self._timeout_loss_control_locked(group, timeout_observed_ns)
+                )
                 if control is not None:
                     admit_control(control)
-                group = []
-            group.append(queued)
-        if group:
-            control = self._timeout_loss_control_locked(group, timeout_observed_ns)
-            if control is not None:
-                admit_control(control)
         self._count_diagnostic_locked("close_timeout")
         self._writer_outcome = "timeout"
         self._inflight_batch = list(controls)
-        self._reserved_queued = len(controls)
-        self._queued_bytes = sum(len(control.raw) for control in controls)
+        self._reserved_queued = control_counts["base"]
+        self._queued_bytes = control_bytes["base"]
+        if self._profile is not None:
+            self._profile.reserved_queued = control_counts["profile"]
+            self._profile.queued_bytes = control_bytes["profile"]
         return controls
 
     def _timeout_loss_control_locked(
@@ -1210,6 +1964,53 @@ class JsonlTraceSink:
             self._dropped_control_count += 1
             return None
 
+    def _timeout_profile_loss_control_locked(
+        self, group: list[_QueuedRecord], timeout_observed_ns: int
+    ) -> _QueuedRecord | None:
+        profile = self._profile
+        if profile is None:
+            return None
+        first = group[0]
+        last = group[-1]
+        assert first.record_seq is not None and last.record_seq is not None
+        counts: dict[ProfileRecordType, int] = {
+            "block_set_chunk": 0,
+            "wait_set_chunk": 0,
+            "transfer_event": 0,
+            "recovery_event": 0,
+        }
+        for queued in group:
+            if queued.record_type not in counts:
+                profile.dropped_control_count += 1
+                return None
+            counts[queued.record_type] += 1  # type: ignore[literal-required]
+        profile.dropped_data_count += len(group)
+        loss_seq = profile.next_loss_interval_seq
+        profile.next_loss_interval_seq += 1
+        try:
+            record = build_profile_loss_interval_record(
+                process_uuid=self.process_uuid,
+                config=profile.config,
+                loss_interval_seq=loss_seq,
+                reason="close_timeout",
+                first_dropped_record_seq=first.record_seq,
+                last_dropped_record_seq=last.record_seq,
+                counts=counts,
+                first_observed_timestamp_ns=timeout_observed_ns,
+                last_observed_timestamp_ns=timeout_observed_ns,
+            )
+            return _QueuedRecord(
+                profile_record_line(record),
+                "loss_interval",
+                None,
+                True,
+                None,
+                "profile",
+            )
+        except Exception:  # noqa: BLE001 - control loss invalidates evidence.
+            profile.dropped_control_count += 1
+            return None
+
     def _close_cutoff_reached_locked(self) -> bool:
         return (
             self._closing
@@ -1227,35 +2028,61 @@ class JsonlTraceSink:
     def _force_timeout_accounting_locked(self) -> None:
         if self._writer_outcome == "timeout":
             for queued in [*self._inflight_batch, *self._queue]:
-                if queued.record_type in {"event", "edge"}:
-                    self._dropped_data_count += 1
-                else:
-                    self._dropped_control_count += 1
+                self._account_unwritten_queued_locked(queued)
             self._inflight_batch.clear()
             self._queue.clear()
             self._queued_bytes = 0
             self._ordinary_queued = 0
             self._reserved_queued = 0
+            if self._profile is not None:
+                self._profile.queued_bytes = 0
+                self._profile.ordinary_queued = 0
+                self._profile.reserved_queued = 0
             return
         for queued in [*self._inflight_batch, *self._queue]:
-            if queued.record_type in {"event", "edge"}:
-                self._dropped_data_count += 1
-            else:
-                self._dropped_control_count += 1
+            self._account_unwritten_queued_locked(queued)
         self._inflight_batch.clear()
         self._queue.clear()
         self._queued_bytes = 0
         self._ordinary_queued = 0
         self._reserved_queued = 0
+        if self._profile is not None:
+            self._profile.queued_bytes = 0
+            self._profile.ordinary_queued = 0
+            self._profile.reserved_queued = 0
         self._writer_failed = True
         self._writer_outcome = "timeout"
         self._count_diagnostic_locked("close_timeout")
 
+    def _account_unwritten_queued_locked(self, queued: _QueuedRecord) -> None:
+        profile_types = {
+            "block_set_chunk",
+            "wait_set_chunk",
+            "transfer_event",
+            "recovery_event",
+        }
+        if queued.stream == "profile" and self._profile is not None:
+            if queued.record_type in profile_types:
+                self._profile.dropped_data_count += 1
+            else:
+                self._profile.dropped_control_count += 1
+        elif queued.record_type in {"event", "edge"}:
+            self._dropped_data_count += 1
+        else:
+            self._dropped_control_count += 1
+
     def _remove_failed_initialization_shard(self) -> None:
+        self._close_profile_fd()
         self._close_fd()
         if self.process_uuid and self.shard_path != self.base_path:
             try:
                 self.shard_path.unlink(missing_ok=True)
+            except OSError:
+                pass
+        profile = self._profile
+        if profile is not None and profile.shard_path != self.base_path:
+            try:
+                profile.shard_path.unlink(missing_ok=True)
             except OSError:
                 pass
 
@@ -1279,18 +2106,40 @@ class JsonlTraceSink:
                 self._mark_writer_failure_locked()
                 return
             self._inflight_batch.pop(0)
-            self._queued_bytes -= len(queued.raw)
-            if queued.reserved:
-                self._reserved_queued -= 1
+            if queued.stream == "profile":
+                profile = self._profile
+                if profile is None or profile.content_hash is None:
+                    self._mark_writer_failure_locked()
+                    return
+                profile.queued_bytes -= len(queued.raw)
+                if queued.reserved:
+                    profile.reserved_queued -= 1
+                else:
+                    profile.ordinary_queued -= 1
+                profile.content_hash.update(queued.raw)
+                if queued.record_type == "block_set_chunk":
+                    profile.written_block_set_chunk_count += 1
+                elif queued.record_type == "wait_set_chunk":
+                    profile.written_wait_set_chunk_count += 1
+                elif queued.record_type == "transfer_event":
+                    profile.written_transfer_event_count += 1
+                elif queued.record_type == "recovery_event":
+                    profile.written_recovery_event_count += 1
+                elif queued.record_type == "loss_interval":
+                    profile.written_loss_interval_count += 1
             else:
-                self._ordinary_queued -= 1
-            self._content_hash.update(queued.raw)
-            if queued.record_type == "event":
-                self._written_event_count += 1
-            elif queued.record_type == "edge":
-                self._written_edge_count += 1
-            elif queued.record_type == "loss_interval":
-                self._written_loss_interval_count += 1
+                self._queued_bytes -= len(queued.raw)
+                if queued.reserved:
+                    self._reserved_queued -= 1
+                else:
+                    self._ordinary_queued -= 1
+                self._content_hash.update(queued.raw)
+                if queued.record_type == "event":
+                    self._written_event_count += 1
+                elif queued.record_type == "edge":
+                    self._written_edge_count += 1
+                elif queued.record_type == "loss_interval":
+                    self._written_loss_interval_count += 1
 
     def _mark_writer_failure(self) -> None:
         with self._condition:
@@ -1298,19 +2147,28 @@ class JsonlTraceSink:
 
     def _mark_writer_failure_locked(self) -> None:
         self._writer_failure_count += 1
+        if self._profile is not None:
+            self._profile.writer_failure_count += 1
         self._writer_failed = True
         self._count_diagnostic_locked("writer_failure")
         for queued in [*self._inflight_batch, *self._queue]:
-            if queued.record_type in {"event", "edge"}:
-                self._dropped_data_count += 1
-            else:
-                self._dropped_control_count += 1
+            self._account_unwritten_queued_locked(queued)
         self._inflight_batch.clear()
         self._queue.clear()
         self._queued_bytes = 0
         self._ordinary_queued = 0
         self._reserved_queued = 0
+        if self._profile is not None:
+            self._profile.queued_bytes = 0
+            self._profile.ordinary_queued = 0
+            self._profile.reserved_queued = 0
         self._condition.notify_all()
+
+    def _write_queued_all(self, queued: _QueuedRecord) -> None:
+        if queued.stream == "profile":
+            self._write_profile_all(queued.raw)
+        else:
+            self._write_all(queued.raw)
 
     def _write_all(self, raw: bytes) -> None:
         with self._condition:
@@ -1374,14 +2232,53 @@ class JsonlTraceSink:
                 raise OSError("persistent writer made invalid progress")
             view = view[written:]
 
+    def _write_profile_all(self, raw: bytes) -> None:
+        with self._condition:
+            if self._abandoned:
+                raise OSError("trace writer was abandoned at close timeout")
+        if not self._uses_native_write:
+            self._exercise_injected_write(raw)
+            with self._condition:
+                if self._abandoned:
+                    raise OSError("trace writer was abandoned at close timeout")
+        self._write_profile_persistent_all(raw)
+
+    def _write_profile_persistent_all(self, raw: bytes) -> None:
+        profile = self._profile
+        if profile is None or profile.fd < 0:
+            raise OSError("profile writer descriptor is unavailable")
+        view = memoryview(raw)
+        while view:
+            written = os.write(profile.fd, view)
+            if (
+                isinstance(written, bool)
+                or not isinstance(written, int)
+                or written <= 0
+                or written > len(view)
+            ):
+                raise OSError("persistent profile writer made invalid progress")
+            view = view[written:]
+
     def _counts_reconcile(self) -> bool:
-        return self._attempted_data_count == (
+        base_reconciles = self._attempted_data_count == (
             self._written_event_count
             + self._written_edge_count
             + self._dropped_data_count
         )
+        profile = self._profile
+        if profile is None:
+            return base_reconciles
+        profile_reconciles = profile.attempted_data_count == (
+            profile.written_block_set_chunk_count
+            + profile.written_wait_set_chunk_count
+            + profile.written_transfer_event_count
+            + profile.written_recovery_event_count
+            + profile.dropped_data_count
+        )
+        return base_reconciles and profile_reconciles
 
     def _result(self, close_outcome: str, summary_written: bool) -> CloseResult:
+        profile = self._profile
         return CloseResult(
             close_outcome=close_outcome,
             summary_written=summary_written,
@@ -1390,6 +2287,18 @@ class JsonlTraceSink:
             written_edge_count=self._written_edge_count,
             dropped_data_count=self._dropped_data_count,
             dropped_control_count=self._dropped_control_count,
+            profile_summary_written=(
+                bool(profile.summary_written) if profile is not None else False
+            ),
+            profile_attempted_data_count=(
+                profile.attempted_data_count if profile is not None else 0
+            ),
+            profile_dropped_data_count=(
+                profile.dropped_data_count if profile is not None else 0
+            ),
+            profile_dropped_control_count=(
+                profile.dropped_control_count if profile is not None else 0
+            ),
         )
 
     def _count_diagnostic_locked(self, reason: str) -> None:
@@ -1455,6 +2364,13 @@ class JsonlTraceSink:
             except OSError:
                 pass
             self._staging_fd = -1
+        profile = self._profile
+        if profile is not None and profile.fd >= 0:
+            try:
+                os.close(profile.fd)
+            except OSError:
+                pass
+            profile.fd = -1
         self._queue = deque()
         self._inflight_batch = []
         self._pending_diagnostics = set()
@@ -1462,6 +2378,10 @@ class JsonlTraceSink:
         self._queued_bytes = 0
         self._ordinary_queued = 0
         self._reserved_queued = 0
+        if profile is not None:
+            profile.queued_bytes = 0
+            profile.ordinary_queued = 0
+            profile.reserved_queued = 0
         # A lock may have been held by a vanished parent thread at fork.
         self._condition = threading.Condition()
         self._close_lock = threading.Lock()
@@ -1480,6 +2400,17 @@ class JsonlTraceSink:
                 return False
             finally:
                 self._fd = -1
+        return True
+
+    def _close_profile_fd(self) -> bool:
+        profile = self._profile
+        if profile is not None and profile.fd >= 0:
+            try:
+                os.close(profile.fd)
+            except Exception:  # noqa: BLE001 - shutdown is fail-open.
+                return False
+            finally:
+                profile.fd = -1
         return True
 
     def _close_staging_fd(self) -> bool:
@@ -1509,6 +2440,10 @@ class NullTraceSink:
     def committed_shard_path(self) -> None:
         return None
 
+    @property
+    def committed_kv_recovery_profile_shard_path(self) -> None:
+        return None
+
     def new_trace_id(self) -> None:
         return None
 
@@ -1520,6 +2455,19 @@ class NullTraceSink:
 
     def write_edge(self, draft: EdgeDraft) -> None:
         del draft
+
+    def write_kv_recovery_profile(
+        self, record_type: ProfileRecordType, timestamp_ns: int, **fields: object
+    ) -> None:
+        del record_type, timestamp_ns, fields
+
+    def drop_kv_recovery_profile(
+        self,
+        record_type: ProfileRecordType,
+        timestamp_ns: int | None,
+        reason: ProfileLossReason = "serialization_failure",
+    ) -> None:
+        del record_type, timestamp_ns, reason
 
     def close(self) -> None:
         return None
@@ -1555,6 +2503,7 @@ class RuntimeLifecycleHooks:
                     config.export_path,
                     config.provenance,
                     communication_mode=config.communication_mode,
+                    kv_recovery_profile_config=config.kv_recovery_profile_config,
                 )
             except Exception:  # noqa: BLE001 - initialization is fail-open.
                 self._log_disabled_once("init_failure")
@@ -1579,6 +2528,44 @@ class RuntimeLifecycleHooks:
         """Receipt-gated path for the explicit run manifest."""
 
         return self._current_sink().committed_shard_path
+
+    @property
+    def committed_kv_recovery_profile_shard_path(self) -> Path | None:
+        """Receipt-gated paired profile path for the run manifest."""
+
+        return self._current_sink().committed_kv_recovery_profile_shard_path
+
+    @property
+    def kv_recovery_profile_enabled(self) -> bool:
+        sink = self._current_sink()
+        return isinstance(sink, JsonlTraceSink) and sink.kv_recovery_profile_enabled
+
+    @property
+    def kv_recovery_profile_evidence_complete(self) -> bool:
+        sink = self._current_sink()
+        return (
+            isinstance(sink, JsonlTraceSink)
+            and sink.kv_recovery_profile_evidence_complete
+        )
+
+    @property
+    def kv_recovery_profile_attempted_data_count(self) -> int:
+        sink = self._current_sink()
+        return (
+            sink.kv_recovery_profile_attempted_data_count
+            if isinstance(sink, JsonlTraceSink)
+            else 0
+        )
+
+    def kv_recovery_profile_snapshot(
+        self,
+    ) -> tuple[tuple[ProfileRecord, ...], tuple[ProfileLossInterval, ...]]:
+        sink = self._current_sink()
+        return (
+            sink.kv_recovery_profile_snapshot()
+            if isinstance(sink, JsonlTraceSink)
+            else ((), ())
+        )
 
     @property
     def process_uuid(self) -> str | None:
@@ -1622,6 +2609,34 @@ class RuntimeLifecycleHooks:
             self._defer_diagnostic("serialization_failure")
             return None
 
+    def emit_kv_recovery_profile(
+        self,
+        record_type: ProfileRecordType,
+        timestamp_ns: int,
+        **fields: object,
+    ) -> ProfileRecordRef | None:
+        try:
+            return self._current_sink().write_kv_recovery_profile(
+                record_type, timestamp_ns, **fields
+            )
+        except Exception:  # noqa: BLE001 - runtime emission is fail-open.
+            self._defer_diagnostic("serialization_failure")
+            return None
+
+    def drop_kv_recovery_profile(
+        self,
+        record_type: ProfileRecordType,
+        timestamp_ns: int | None,
+        reason: ProfileLossReason = "serialization_failure",
+    ) -> int | None:
+        try:
+            return self._current_sink().drop_kv_recovery_profile(
+                record_type, timestamp_ns, reason
+            )
+        except Exception:  # noqa: BLE001 - runtime emission is fail-open.
+            self._defer_diagnostic("serialization_failure")
+            return None
+
     def close(self) -> CloseResult | None:
         try:
             result = self._current_sink().close()
@@ -1658,6 +2673,7 @@ class RuntimeLifecycleHooks:
                     self.config.export_path,
                     self.config.provenance,
                     communication_mode=self.config.communication_mode,
+                    kv_recovery_profile_config=(self.config.kv_recovery_profile_config),
                 )
             except Exception:  # noqa: BLE001 - worker bootstrap is fail-open.
                 self._sink = NullTraceSink("init_failure")

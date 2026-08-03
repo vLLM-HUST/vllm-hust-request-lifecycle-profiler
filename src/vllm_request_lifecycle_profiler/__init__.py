@@ -10,6 +10,12 @@ from vllm_request_lifecycle_profiler.kv_recovery import (
     KVRecoveryStage,
     decompose_kv_recovery,
 )
+from vllm_request_lifecycle_profiler.kv_recovery_profile_protocol import (
+    KVRecoveryProfileConfig,
+    ProfileLossInterval,
+    ProfileRecord,
+    ProfileRecordRef,
+)
 from vllm_request_lifecycle_profiler.kv_recovery_runtime import (
     BaseEventRef,
     BoundedKVRecoveryProfileLedger,
@@ -61,10 +67,14 @@ __all__ = [
     "KVRecoveryDecomposition",
     "KVRecoveryEvent",
     "KVRecoveryObserverFactoryAdapter",
+    "KVRecoveryProfileConfig",
     "KVRecoveryRuntimeABI",
     "KVRecoveryStage",
     "LifecycleStage",
     "NormalizedH2DRecovery",
+    "ProfileLossInterval",
+    "ProfileRecord",
+    "ProfileRecordRef",
     "RecordRef",
     "RequestLifecycleIdentity",
     "RuntimeLifecycleHooks",
