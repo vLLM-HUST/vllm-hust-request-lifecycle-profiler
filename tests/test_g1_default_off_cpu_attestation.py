@@ -14,8 +14,12 @@ ATTESTATION_PATH = (
 )
 
 
-def sha256(path: Path) -> str:
-    return hashlib.sha256(path.read_bytes()).hexdigest()
+def git_blob_sha256(commit: str, path: str) -> str:
+    blob = subprocess.check_output(
+        ["git", "show", f"{commit}:{path}"],
+        cwd=REPO_ROOT,
+    )
+    return hashlib.sha256(blob).hexdigest()
 
 
 def load_attestation() -> dict[str, object]:
@@ -49,14 +53,20 @@ def test_attestation_binds_exact_local_implementation_commits() -> None:
     )
 
 
-def test_attestation_profiler_source_hashes_match_implementation_bytes() -> None:
+def test_attestation_profiler_hashes_match_bound_commit_blobs() -> None:
     record = load_attestation()
+    implementation_commit = record["source_baselines"]["profiler"][
+        "implementation_commit"
+    ]
 
     for artifact in [
         *record["profiler_source_files"],
         *record["profiler_test_files"],
     ]:
-        assert sha256(REPO_ROOT / artifact["path"]) == artifact["sha256"]
+        assert (
+            git_blob_sha256(implementation_commit, artifact["path"])
+            == artifact["sha256"]
+        )
 
 
 def test_attestation_is_explicitly_partial_and_keeps_every_gate_closed() -> None:

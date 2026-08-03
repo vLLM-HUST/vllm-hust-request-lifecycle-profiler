@@ -24,6 +24,7 @@ from vllm_request_lifecycle_profiler.kv_recovery_runtime import (
     KVRecoveryRuntimeABI,
     NormalizedH2DRecovery,
     RequestLifecycleIdentity,
+    RuntimeBaseLifecycleBridge,
     normalize_h2d_recovery,
 )
 from vllm_request_lifecycle_profiler.plugin import register_plugin
@@ -77,6 +78,7 @@ __all__ = [
     "ProfileRecordRef",
     "RecordRef",
     "RequestLifecycleIdentity",
+    "RuntimeBaseLifecycleBridge",
     "RuntimeLifecycleHooks",
     "RuntimeProvenance",
     "RuntimeTraceConfig",

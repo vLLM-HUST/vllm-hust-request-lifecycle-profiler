@@ -464,7 +464,7 @@ def _validate_block_fields(fields: Mapping[str, object]) -> None:
             raise ValueError("block row differs from the closed roster")
         group = _require_uint(block["group_index"], _UINT32_MAX, "group_index")
         ordinal = _require_uint(
-            block["logical_ordinal"], _UINT32_MAX, "logical_ordinal"
+            block["logical_ordinal"], _UINT64_MAX, "logical_ordinal"
         )
         logical_id = _require_hex(block["logical_block_id"], 32, "logical_block_id")
         coordinate = (group, ordinal)

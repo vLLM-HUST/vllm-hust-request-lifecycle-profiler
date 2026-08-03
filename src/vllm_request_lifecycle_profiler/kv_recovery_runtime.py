@@ -21,6 +21,7 @@ from vllm_request_lifecycle_profiler.kv_recovery_profile_protocol import (
     MAX_PROFILE_DATA_RECORDS,
     PROFILE_ID,
     PROFILE_SHA256,
+    KVRecoveryProfileConfig,
     LossReason,
     ProfileLossInterval,
     ProfileRecord,
@@ -111,6 +112,353 @@ class BaseLifecycleBridge(Protocol):
         self, runtime_request_id: str, recovery_epoch: int
     ) -> BaseEventRef | None: ...
 
+    def first_compute_event(
+        self, runtime_request_id: str, recovery_epoch: int
+    ) -> BaseEventRef | None: ...
+
+
+@dataclass
+class _EmittedBaseEpisode:
+    preempted: BaseEventRef
+    requeued: BaseEventRef
+    queue_span_id: str
+    admission_started: BaseEventRef | None = None
+    admission_span_id: str | None = None
+    resumed: BaseEventRef | None = None
+    first_compute: BaseEventRef | None = None
+
+
+class RuntimeBaseLifecycleBridge:
+    """Emit and retain the exact P0 recovery boundaries used by the adapter."""
+
+    def __init__(
+        self, hooks: RuntimeLifecycleHooks, *, capacity: int = MAX_PROFILE_DATA_RECORDS
+    ) -> None:
+        if type(capacity) is not int or capacity < 1:
+            raise ValueError("capacity must be a positive integer")
+        self._hooks = hooks
+        self._capacity = capacity
+        self._lock = threading.Lock()
+        self._identities: dict[str, RequestLifecycleIdentity] = {}
+        self._episodes: dict[tuple[str, int], _EmittedBaseEpisode] = {}
+
+    def register_request(self, identity: RequestLifecycleIdentity) -> bool:
+        with self._lock:
+            current = self._identities.get(identity.runtime_request_id)
+            if current is not None:
+                return current == identity
+            if len(self._identities) >= self._capacity:
+                return False
+            self._identities[identity.runtime_request_id] = identity
+            return True
+
+    def request_identity(
+        self, runtime_request_id: str
+    ) -> RequestLifecycleIdentity | None:
+        with self._lock:
+            return self._identities.get(runtime_request_id)
+
+    def emit_preempted_and_requeued(
+        self,
+        runtime_request_id: str,
+        recovery_epoch: int,
+        *,
+        timestamp_ns: int,
+        active_span_start_event_id: str,
+        active_span_id: str,
+        prompt_tokens_computed: int,
+        prefill_chunk_count: int,
+    ) -> BaseEventRef | None:
+        """Emit the committed old-epoch close and new-epoch queue start."""
+
+        with self._lock:
+            identity = self._identities.get(runtime_request_id)
+            key = (runtime_request_id, recovery_epoch)
+            if (
+                identity is None
+                or recovery_epoch < 1
+                or key in self._episodes
+                or len(self._episodes) >= self._capacity
+            ):
+                return None
+            queue_span_id = self._hooks.new_span_id()
+            if queue_span_id is None:
+                return None
+            preempted = self._hooks.emit_event(
+                EventDraft(
+                    trace_id=identity.trace_id,
+                    lifecycle_id=identity.engine_lifecycle_id,
+                    parent_lifecycle_id=f"{identity.trace_id}:r",
+                    scope="engine_sample",
+                    component="engine_core",
+                    event_name="preempted",
+                    timestamp_ns=timestamp_ns,
+                    preemption_epoch=recovery_epoch - 1,
+                    end_span_id=active_span_id,
+                    sample_index=identity.sample_index,
+                    metadata={
+                        "prompt_tokens_computed": prompt_tokens_computed,
+                        "prefill_chunk_count": prefill_chunk_count,
+                    },
+                )
+            )
+            if preempted is None:
+                return None
+            if (
+                self._hooks.emit_edge(
+                    EdgeDraft(
+                        trace_id=identity.trace_id,
+                        from_event_id=active_span_start_event_id,
+                        to_event_id=preempted.record_id,
+                        edge_kind="program_order",
+                        evidence_source="instrumented_execution_context",
+                    )
+                )
+                is None
+            ):
+                return None
+            requeued = self._hooks.emit_event(
+                EventDraft(
+                    trace_id=identity.trace_id,
+                    lifecycle_id=identity.engine_lifecycle_id,
+                    parent_lifecycle_id=f"{identity.trace_id}:r",
+                    scope="engine_sample",
+                    component="engine_core",
+                    event_name="requeued",
+                    timestamp_ns=timestamp_ns,
+                    preemption_epoch=recovery_epoch,
+                    start_span_id=queue_span_id,
+                    sample_index=identity.sample_index,
+                )
+            )
+            if requeued is None:
+                return None
+            if (
+                self._hooks.emit_edge(
+                    EdgeDraft(
+                        trace_id=identity.trace_id,
+                        from_event_id=preempted.record_id,
+                        to_event_id=requeued.record_id,
+                        edge_kind="program_order",
+                        evidence_source="instrumented_execution_context",
+                    )
+                )
+                is None
+            ):
+                return None
+            preempted_ref = BaseEventRef(preempted.record_id, timestamp_ns)
+            self._episodes[key] = _EmittedBaseEpisode(
+                preempted=preempted_ref,
+                requeued=BaseEventRef(requeued.record_id, timestamp_ns),
+                queue_span_id=queue_span_id,
+            )
+            return preempted_ref
+
+    def emit_admission_started(
+        self,
+        runtime_request_id: str,
+        recovery_epoch: int,
+        *,
+        timestamp_ns: int,
+    ) -> BaseEventRef | None:
+        with self._lock:
+            identity = self._identities.get(runtime_request_id)
+            episode = self._episodes.get((runtime_request_id, recovery_epoch))
+            if (
+                identity is None
+                or episode is None
+                or episode.admission_started is not None
+            ):
+                return None
+            admission_span_id = self._hooks.new_span_id()
+            if admission_span_id is None:
+                return None
+            emitted = self._hooks.emit_event(
+                EventDraft(
+                    trace_id=identity.trace_id,
+                    lifecycle_id=identity.engine_lifecycle_id,
+                    parent_lifecycle_id=f"{identity.trace_id}:r",
+                    scope="engine_sample",
+                    component="engine_core",
+                    event_name="admission_started",
+                    timestamp_ns=timestamp_ns,
+                    preemption_epoch=recovery_epoch,
+                    start_span_id=admission_span_id,
+                    end_span_id=episode.queue_span_id,
+                    sample_index=identity.sample_index,
+                )
+            )
+            if emitted is None:
+                return None
+            if (
+                self._hooks.emit_edge(
+                    EdgeDraft(
+                        trace_id=identity.trace_id,
+                        from_event_id=episode.requeued.event_id,
+                        to_event_id=emitted.record_id,
+                        edge_kind="program_order",
+                        evidence_source="instrumented_execution_context",
+                    )
+                )
+                is None
+            ):
+                return None
+            result = BaseEventRef(emitted.record_id, timestamp_ns)
+            episode.admission_started = result
+            episode.admission_span_id = admission_span_id
+            return result
+
+    def emit_resumed(
+        self,
+        runtime_request_id: str,
+        recovery_epoch: int,
+        *,
+        timestamp_ns: int,
+        prompt_tokens_total: int,
+        prompt_tokens_cached: int,
+        prompt_tokens_to_compute: int,
+    ) -> BaseEventRef | None:
+        with self._lock:
+            identity = self._identities.get(runtime_request_id)
+            episode = self._episodes.get((runtime_request_id, recovery_epoch))
+            if (
+                identity is None
+                or episode is None
+                or episode.admission_started is None
+                or episode.admission_span_id is None
+                or episode.resumed is not None
+            ):
+                return None
+            emitted = self._hooks.emit_event(
+                EventDraft(
+                    trace_id=identity.trace_id,
+                    lifecycle_id=identity.engine_lifecycle_id,
+                    parent_lifecycle_id=f"{identity.trace_id}:r",
+                    scope="engine_sample",
+                    component="engine_core",
+                    event_name="resumed",
+                    timestamp_ns=timestamp_ns,
+                    preemption_epoch=recovery_epoch,
+                    end_span_id=episode.admission_span_id,
+                    sample_index=identity.sample_index,
+                    metadata={
+                        "prompt_tokens_total": prompt_tokens_total,
+                        "prompt_tokens_cached": prompt_tokens_cached,
+                        "prompt_tokens_to_compute": prompt_tokens_to_compute,
+                    },
+                )
+            )
+            if emitted is None:
+                return None
+            if (
+                self._hooks.emit_edge(
+                    EdgeDraft(
+                        trace_id=identity.trace_id,
+                        from_event_id=episode.admission_started.event_id,
+                        to_event_id=emitted.record_id,
+                        edge_kind="program_order",
+                        evidence_source="instrumented_execution_context",
+                    )
+                )
+                is None
+            ):
+                return None
+            result = BaseEventRef(emitted.record_id, timestamp_ns)
+            episode.resumed = result
+            return result
+
+    def emit_first_compute(
+        self,
+        runtime_request_id: str,
+        recovery_epoch: int,
+        *,
+        timestamp_ns: int,
+        compute_kind: str,
+    ) -> BaseEventRef | None:
+        """Emit the engine-owned base phase start referenced by the worker."""
+
+        with self._lock:
+            identity = self._identities.get(runtime_request_id)
+            episode = self._episodes.get((runtime_request_id, recovery_epoch))
+            if (
+                identity is None
+                or episode is None
+                or episode.resumed is None
+                or episode.first_compute is not None
+                or compute_kind not in {"prefill", "decode"}
+            ):
+                return None
+            span_id = self._hooks.new_span_id()
+            if span_id is None:
+                return None
+            emitted = self._hooks.emit_event(
+                EventDraft(
+                    trace_id=identity.trace_id,
+                    lifecycle_id=identity.engine_lifecycle_id,
+                    parent_lifecycle_id=f"{identity.trace_id}:r",
+                    scope="engine_sample",
+                    component="engine_core",
+                    event_name=f"{compute_kind}_started",
+                    timestamp_ns=timestamp_ns,
+                    preemption_epoch=recovery_epoch,
+                    start_span_id=span_id,
+                    sample_index=identity.sample_index,
+                )
+            )
+            if emitted is None:
+                return None
+            if (
+                self._hooks.emit_edge(
+                    EdgeDraft(
+                        trace_id=identity.trace_id,
+                        from_event_id=episode.resumed.event_id,
+                        to_event_id=emitted.record_id,
+                        edge_kind="program_order",
+                        evidence_source="instrumented_execution_context",
+                    )
+                )
+                is None
+            ):
+                return None
+            result = BaseEventRef(emitted.record_id, timestamp_ns)
+            episode.first_compute = result
+            return result
+
+    def preempted_event(
+        self, runtime_request_id: str, recovery_epoch: int
+    ) -> BaseEventRef | None:
+        with self._lock:
+            episode = self._episodes.get((runtime_request_id, recovery_epoch))
+            return episode.preempted if episode is not None else None
+
+    def admission_started_event(
+        self, runtime_request_id: str, recovery_epoch: int
+    ) -> BaseEventRef | None:
+        with self._lock:
+            episode = self._episodes.get((runtime_request_id, recovery_epoch))
+            return episode.admission_started if episode is not None else None
+
+    def resumed_event(
+        self, runtime_request_id: str, recovery_epoch: int
+    ) -> BaseEventRef | None:
+        with self._lock:
+            episode = self._episodes.get((runtime_request_id, recovery_epoch))
+            return episode.resumed if episode is not None else None
+
+    def first_compute_event(
+        self, runtime_request_id: str, recovery_epoch: int
+    ) -> BaseEventRef | None:
+        with self._lock:
+            episode = self._episodes.get((runtime_request_id, recovery_epoch))
+            return episode.first_compute if episode is not None else None
+
+    def request_terminal(self, runtime_request_id: str) -> None:
+        with self._lock:
+            self._identities.pop(runtime_request_id, None)
+            for key in tuple(self._episodes):
+                if key[0] == runtime_request_id:
+                    self._episodes.pop(key, None)
+
 
 @dataclass(frozen=True)
 class KVRecoveryRuntimeABI:
@@ -120,6 +468,7 @@ class KVRecoveryRuntimeABI:
     identity_type: Callable[..., Any]
     logical_block_type: Callable[..., Any]
     transfer_context_type: Callable[..., Any]
+    compute_context_type: Callable[..., Any]
     receipt_type: Callable[..., Any]
     bounded_worker_observer_type: Callable[..., Any]
     canonical_block_set_id: Callable[[Any, Any, tuple[Any, ...]], str]
@@ -135,6 +484,7 @@ class KVRecoveryRuntimeABI:
             identity_type=runtime.KVRecoveryIdentity,
             logical_block_type=runtime.KVRecoveryLogicalBlock,
             transfer_context_type=runtime.KVRecoveryTransferContext,
+            compute_context_type=runtime.KVRecoveryComputeContext,
             receipt_type=runtime.KVRecoveryH2DReceipt,
             bounded_worker_observer_type=runtime.BoundedKVRecoveryWorkerObserver,
             canonical_block_set_id=runtime.canonical_block_set_id,
@@ -306,6 +656,7 @@ class _WorkerPending:
     submit_timestamp_ns: int
     start_event_id: str | None
     span_id: str | None
+    restore_start_profile_record_id: str | None
 
 
 class KVRecoveryWorkerEvidenceAdapter:
@@ -316,10 +667,12 @@ class KVRecoveryWorkerEvidenceAdapter:
         hooks: RuntimeLifecycleHooks,
         profile: BoundedKVRecoveryProfileLedger,
         abi: KVRecoveryRuntimeABI,
+        run_id: str,
     ) -> None:
         self._hooks = hooks
         self._profile = profile
         self._abi = abi
+        self._run_id = _require_hex32(run_id, "run_id")
         self._pending: dict[str, _WorkerPending] = {}
         self._closed = False
 
@@ -329,6 +682,7 @@ class KVRecoveryWorkerEvidenceAdapter:
         context = attempt.context
         start_event_id: str | None = None
         span_id: str | None = None
+        restore_start_profile_record_id: str | None = None
         if context.operation == "h2d_restore":
             span_id = self._hooks.new_span_id()
             if span_id is not None:
@@ -369,34 +723,57 @@ class KVRecoveryWorkerEvidenceAdapter:
         transfer_record_id = self._profile.write(
             "transfer_event",
             timestamp_ns,
+            **self._request_fields(context.identity),
             transfer_id=attempt.transfer_id,
             connector_job_id=attempt.connector_job_id,
+            rank=0,
+            world_size=1,
             operation=context.operation,
-            transfer_phase="submit",
-            trace_id=context.identity.trace_id,
-            recovery_epoch=context.identity.recovery_epoch,
+            direction="h2d" if context.operation == "h2d_restore" else "d2h",
+            src_medium=(
+                "host_cpu" if context.operation == "h2d_restore" else "device_hbm"
+            ),
+            dst_medium=(
+                "device_hbm" if context.operation == "h2d_restore" else "host_cpu"
+            ),
             block_set_id=context.block_set_id,
-            base_event_id=start_event_id,
+            transfer_phase="submit",
+            bytes_moved=None,
+            device_duration_ns=None,
+            success=None,
+            failure_code=None,
         )
         if transfer_record_id is None:
             return
         if context.operation == "h2d_restore":
-            recovery_id = self._profile.write(
+            restore_start_profile_record_id = self._profile.write(
                 "recovery_event",
                 timestamp_ns,
+                **self._request_fields(context.identity),
                 stage="restore_start",
-                transfer_id=attempt.transfer_id,
-                transfer_record_id=transfer_record_id,
+                occurrence=0,
                 base_event_id=start_event_id,
+                base_admission_started_event_id=None,
+                from_profile_event_id=context.identity.preempt_profile_record_id,
+                transfer_id=attempt.transfer_id,
                 block_set_id=context.block_set_id,
+                bytes_moved=None,
+                requeue_reason=None,
+                compute_kind=None,
+                child_observation_kind=None,
+                base_association_kind=None,
+                base_association_evidence=None,
+                request_status_before=None,
+                request_status_after=None,
             )
-            if recovery_id is None:
+            if restore_start_profile_record_id is None:
                 return
         self._pending[attempt.transfer_id] = _WorkerPending(
             attempt=attempt,
             submit_timestamp_ns=timestamp_ns,
             start_event_id=start_event_id,
             span_id=span_id,
+            restore_start_profile_record_id=restore_start_profile_record_id,
         )
 
     def transfer_not_submitted(self, attempt: Any) -> None:
@@ -468,29 +845,47 @@ class KVRecoveryWorkerEvidenceAdapter:
         transfer_record_id = self._profile.write(
             "transfer_event",
             timestamp_ns,
+            **self._request_fields(context.identity),
             transfer_id=attempt.transfer_id,
             connector_job_id=attempt.connector_job_id,
+            rank=0,
+            world_size=1,
             operation=context.operation,
+            direction="h2d" if context.operation == "h2d_restore" else "d2h",
+            src_medium=(
+                "host_cpu" if context.operation == "h2d_restore" else "device_hbm"
+            ),
+            dst_medium=(
+                "device_hbm" if context.operation == "h2d_restore" else "host_cpu"
+            ),
+            block_set_id=context.block_set_id,
             transfer_phase="done",
-            success=True,
             bytes_moved=bytes_moved,
             device_duration_ns=device_duration_ns,
-            trace_id=context.identity.trace_id,
-            recovery_epoch=context.identity.recovery_epoch,
-            block_set_id=context.block_set_id,
-            base_event_id=done_event_id,
+            success=True,
+            failure_code=None,
         )
         if transfer_record_id is None or context.operation == "d2h_preserve":
             return None
         restore_done_id = self._profile.write(
             "recovery_event",
             timestamp_ns,
+            **self._request_fields(context.identity),
             stage="restore_done",
-            transfer_id=attempt.transfer_id,
-            transfer_record_id=transfer_record_id,
+            occurrence=0,
             base_event_id=done_event_id,
+            base_admission_started_event_id=None,
+            from_profile_event_id=pending.restore_start_profile_record_id,
+            transfer_id=attempt.transfer_id,
             block_set_id=context.block_set_id,
             bytes_moved=bytes_moved,
+            requeue_reason=None,
+            compute_kind=None,
+            child_observation_kind=None,
+            base_association_kind=None,
+            base_association_evidence=None,
+            request_status_before=None,
+            request_status_after=None,
         )
         process_uuid = self._hooks.process_uuid
         clock_domain_id = self._hooks.clock_domain_id
@@ -544,17 +939,82 @@ class KVRecoveryWorkerEvidenceAdapter:
     def wait_completed(self, attempt: Any) -> None:
         if self._closed:
             return
-        self._profile.write(
-            "wait_set_chunk",
-            attempt.entry_timestamp_ns,
-            transfer_ids=tuple(attempt.transfer_ids),
-            operation="transfer_wait",
-        )
+        process_uuid = self._hooks.process_uuid
+        if process_uuid is None:
+            self._profile.drop("wait_set_chunk", attempt.entry_timestamp_ns)
+            return
+        transfer_ids = tuple(attempt.transfer_ids)
+        raw = (
+            f"{PROFILE_ID}\0{self._run_id}\0{process_uuid}\0"
+            + "".join(f"{transfer_id}\n" for transfer_id in transfer_ids)
+        ).encode("ascii")
+        wait_set_id = hashlib.sha256(raw).hexdigest()
+        chunk_count = (len(transfer_ids) + 63) // 64
+        for chunk_index in range(chunk_count):
+            chunk = transfer_ids[chunk_index * 64 : (chunk_index + 1) * 64]
+            if (
+                self._profile.write(
+                    "wait_set_chunk",
+                    attempt.entry_timestamp_ns,
+                    operation="transfer_wait",
+                    wait_set_id=wait_set_id,
+                    chunk_index=chunk_index,
+                    chunk_count=chunk_count,
+                    total_transfer_count=len(transfer_ids),
+                    transfer_ids=chunk,
+                )
+                is None
+            ):
+                return
 
     def h2d_receipt_capacity_exhausted(
         self, receipt: Any, loss_reason: LossReason
     ) -> None:
         self._profile.drop("recovery_event", receipt.timestamp_ns, loss_reason)
+
+    def first_compute(
+        self,
+        context: Any,
+        timestamp_ns: int,
+        compute_kind: str,
+        base_event_id: str,
+    ) -> None:
+        """Write the worker child observation with its scheduler predecessor."""
+
+        try:
+            if (
+                context.binding != self._abi.binding
+                or context.identity.recovery_epoch is None
+                or compute_kind not in {"prefill", "decode"}
+            ):
+                raise ValueError("invalid first-compute sidecar")
+            _require_event_id(base_event_id, "base_event_id")
+            identity = context.identity
+            self._profile.write(
+                "recovery_event",
+                timestamp_ns,
+                **self._request_fields(identity),
+                stage="first_prefill_or_decode",
+                occurrence=0,
+                base_event_id=base_event_id,
+                base_admission_started_event_id=None,
+                from_profile_event_id=context.admission_profile_record_id,
+                transfer_id=context.transfer_id,
+                block_set_id=context.block_set_id,
+                bytes_moved=context.bytes_moved,
+                requeue_reason=None,
+                compute_kind=compute_kind,
+                child_observation_kind="worker_model_forward_entry",
+                base_association_kind="phase_child_observation",
+                base_association_evidence="instrumented_execution_context",
+                request_status_before="RUNNING",
+                request_status_after="RUNNING",
+            )
+        except Exception:  # noqa: BLE001 - serving remains fail-open.
+            self._profile.drop(
+                "recovery_event",
+                timestamp_ns if _is_uint64(timestamp_ns) else None,
+            )
 
     def close(self, open_attempts: tuple[Any, ...], evidence_disabled: bool) -> None:
         if self._closed:
@@ -581,15 +1041,32 @@ class KVRecoveryWorkerEvidenceAdapter:
             "rank": 0,
         }
 
+    @staticmethod
+    def _request_fields(identity: Any) -> dict[str, object]:
+        return {
+            "trace_id": identity.trace_id,
+            "engine_lifecycle_id": identity.engine_lifecycle_id,
+            "runtime_request_id": identity.runtime_request_id,
+            "request_id_kind": "engine_internal",
+            "sample_index": 0,
+            "recovery_epoch": identity.recovery_epoch,
+            "episode_id": identity.episode_id,
+        }
+
 
 @dataclass
 class _SchedulerEpisode:
     identity: RequestLifecycleIdentity
     recovery_epoch: int
     preempted_event: BaseEventRef
+    preempt_profile_record_id: str
     context: Any | None = None
     receipt: Any | None = None
     admission_started_event: BaseEventRef | None = None
+    wakeup_profile_record_id: str | None = None
+    predecessor_profile_record_id: str | None = None
+    requeue_occurrence: int = 0
+    admission_profile_record_id: str | None = None
 
 
 class KVRecoverySchedulerAdapter:
@@ -615,32 +1092,55 @@ class KVRecoverySchedulerAdapter:
         self._logical_ids: dict[tuple[str, int, int], str] = {}
         self._closed = False
 
-    def request_preempted(self, runtime_request_id: str, recovery_epoch: int) -> None:
+    def request_preempted(
+        self, runtime_request_id: str, recovery_epoch: int
+    ) -> str | None:
         if self._closed or recovery_epoch < 1:
-            return
+            return None
         identity = self._bridge.request_identity(runtime_request_id)
         base_event = self._bridge.preempted_event(runtime_request_id, recovery_epoch)
         if identity is None or base_event is None:
             self._profile.drop("recovery_event", None)
             self._episodes.pop(runtime_request_id, None)
-            return
+            return None
         if runtime_request_id in self._episodes:
             self._profile.drop("recovery_event", None)
+        profile_id = self._profile.write(
+            "recovery_event",
+            base_event.timestamp_ns,
+            trace_id=identity.trace_id,
+            engine_lifecycle_id=identity.engine_lifecycle_id,
+            runtime_request_id=identity.runtime_request_id,
+            request_id_kind="engine_internal",
+            sample_index=0,
+            recovery_epoch=recovery_epoch,
+            episode_id=f"{identity.engine_lifecycle_id}:k:{recovery_epoch}",
+            stage="preempt",
+            occurrence=0,
+            base_event_id=base_event.event_id,
+            base_admission_started_event_id=None,
+            from_profile_event_id=None,
+            transfer_id=None,
+            block_set_id=None,
+            bytes_moved=None,
+            requeue_reason=None,
+            compute_kind=None,
+            child_observation_kind=None,
+            base_association_kind=None,
+            base_association_evidence=None,
+            request_status_before="RUNNING",
+            request_status_after="PREEMPTED",
+        )
+        if profile_id is None:
+            self._episodes.pop(runtime_request_id, None)
+            return None
         self._episodes[runtime_request_id] = _SchedulerEpisode(
             identity=identity,
             recovery_epoch=recovery_epoch,
             preempted_event=base_event,
+            preempt_profile_record_id=profile_id,
         )
-        profile_id = self._profile.write(
-            "recovery_event",
-            base_event.timestamp_ns,
-            stage="preempt",
-            trace_id=identity.trace_id,
-            recovery_epoch=recovery_epoch,
-            base_event_id=base_event.event_id,
-        )
-        if profile_id is None:
-            self._episodes.pop(runtime_request_id, None)
+        return profile_id
 
     def prepare_transfer_context(
         self,
@@ -680,6 +1180,11 @@ class KVRecoverySchedulerAdapter:
                 recovery_epoch=recovery_epoch,
                 episode_id=episode_id,
                 base_preempted_event_id=preempted_event_id,
+                preempt_profile_record_id=(
+                    episode.preempt_profile_record_id
+                    if operation == "h2d_restore" and episode is not None
+                    else None
+                ),
             )
             logical_blocks = tuple(
                 self._abi.logical_block_type(
@@ -706,23 +1211,39 @@ class KVRecoverySchedulerAdapter:
         except Exception:  # noqa: BLE001 - serving-side evidence is fail-open.
             self._profile.drop("block_set_chunk", None)
             return None
-        block_record = self._profile.write(
-            "block_set_chunk",
-            0,
-            trace_id=base_identity.trace_id,
-            recovery_epoch=recovery_epoch,
-            block_set_id=block_set_id,
-            blocks=tuple(
-                (
-                    block.group_index,
-                    block.logical_ordinal,
-                    block.logical_block_id,
-                )
-                for block in logical_blocks
-            ),
-        )
-        if block_record is None:
+        try:
+            timestamp_ns = self._clock_ns()
+        except Exception:  # noqa: BLE001 - serving-side evidence is fail-open.
+            self._profile.drop("block_set_chunk", None)
             return None
+        chunk_count = (len(logical_blocks) + 63) // 64
+        for chunk_index in range(chunk_count):
+            chunk = logical_blocks[chunk_index * 64 : (chunk_index + 1) * 64]
+            block_record = self._profile.write(
+                "block_set_chunk",
+                timestamp_ns,
+                trace_id=base_identity.trace_id,
+                engine_lifecycle_id=base_identity.engine_lifecycle_id,
+                runtime_request_id=base_identity.runtime_request_id,
+                request_id_kind="engine_internal",
+                sample_index=0,
+                recovery_epoch=recovery_epoch,
+                episode_id=episode_id,
+                block_set_id=block_set_id,
+                chunk_index=chunk_index,
+                chunk_count=chunk_count,
+                total_block_count=len(logical_blocks),
+                blocks=tuple(
+                    {
+                        "group_index": block.group_index,
+                        "logical_ordinal": block.logical_ordinal,
+                        "logical_block_id": block.logical_block_id,
+                    }
+                    for block in chunk
+                ),
+            )
+            if block_record is None:
+                return None
         if episode is not None and operation == "h2d_restore":
             episode.context = context
         return context
@@ -773,31 +1294,108 @@ class KVRecoverySchedulerAdapter:
         profile_id = self._profile.write(
             "recovery_event",
             wakeup_timestamp_ns,
-            stage="scheduler_wakeup",
             trace_id=episode.identity.trace_id,
+            engine_lifecycle_id=episode.identity.engine_lifecycle_id,
+            runtime_request_id=episode.identity.runtime_request_id,
+            request_id_kind="engine_internal",
+            sample_index=0,
             recovery_epoch=recovery_epoch,
+            episode_id=f"{episode.identity.engine_lifecycle_id}:k:{recovery_epoch}",
+            stage="scheduler_wakeup",
+            occurrence=0,
+            base_event_id=None,
+            base_admission_started_event_id=None,
             from_profile_event_id=episode.receipt.restore_done_profile_record_id,
+            transfer_id=episode.receipt.transfer_id,
+            block_set_id=episode.receipt.block_set_id,
+            bytes_moved=episode.receipt.bytes_moved,
+            requeue_reason=None,
+            compute_kind=None,
+            child_observation_kind=None,
+            base_association_kind=None,
+            base_association_evidence=None,
+            request_status_before="WAITING_FOR_REMOTE_KVS",
+            request_status_after="PREEMPTED",
         )
         if profile_id is not None:
             episode.admission_started_event = event
+            episode.wakeup_profile_record_id = profile_id
+            episode.predecessor_profile_record_id = profile_id
 
-    def request_admitted(self, runtime_request_id: str, recovery_epoch: int) -> None:
-        episode = self._episodes.pop(runtime_request_id, None)
+    def request_requeued(
+        self,
+        runtime_request_id: str,
+        recovery_epoch: int,
+        reason: str,
+    ) -> None:
+        episode = self._episodes.get(runtime_request_id)
+        if (
+            self._closed
+            or episode is None
+            or episode.receipt is None
+            or episode.wakeup_profile_record_id is None
+            or episode.predecessor_profile_record_id is None
+            or episode.admission_profile_record_id is not None
+            or recovery_epoch != episode.recovery_epoch
+        ):
+            return
+        try:
+            timestamp_ns = self._clock_ns()
+        except Exception:  # noqa: BLE001 - serving-side evidence is fail-open.
+            self._profile.drop("recovery_event", None)
+            return
+        profile_id = self._profile.write(
+            "recovery_event",
+            timestamp_ns,
+            trace_id=episode.identity.trace_id,
+            engine_lifecycle_id=episode.identity.engine_lifecycle_id,
+            runtime_request_id=episode.identity.runtime_request_id,
+            request_id_kind="engine_internal",
+            sample_index=0,
+            recovery_epoch=recovery_epoch,
+            episode_id=f"{episode.identity.engine_lifecycle_id}:k:{recovery_epoch}",
+            stage="requeue",
+            occurrence=episode.requeue_occurrence,
+            base_event_id=None,
+            base_admission_started_event_id=None,
+            from_profile_event_id=episode.predecessor_profile_record_id,
+            transfer_id=episode.receipt.transfer_id,
+            block_set_id=episode.receipt.block_set_id,
+            bytes_moved=episode.receipt.bytes_moved,
+            requeue_reason=reason,
+            compute_kind=None,
+            child_observation_kind=None,
+            base_association_kind=None,
+            base_association_evidence=None,
+            request_status_before="PREEMPTED",
+            request_status_after="PREEMPTED",
+        )
+        if profile_id is not None:
+            episode.predecessor_profile_record_id = profile_id
+            episode.requeue_occurrence += 1
+
+    def request_admitted(
+        self, runtime_request_id: str, recovery_epoch: int
+    ) -> Any | None:
+        episode = self._episodes.get(runtime_request_id)
         if (
             self._closed
             or episode is None
             or episode.receipt is None
             or episode.admission_started_event is None
+            or episode.wakeup_profile_record_id is None
+            or episode.predecessor_profile_record_id is None
+            or episode.admission_profile_record_id is not None
             or recovery_epoch != episode.recovery_epoch
         ):
-            return
+            return None
         resumed_event = self._bridge.resumed_event(runtime_request_id, recovery_epoch)
         if resumed_event is None:
             self._profile.drop("recovery_event", episode.receipt.timestamp_ns)
-            return
+            return None
         if resumed_event.timestamp_ns < episode.admission_started_event.timestamp_ns:
             self._profile.drop("recovery_event", episode.receipt.timestamp_ns)
-            return
+            return None
         edge = self._hooks.emit_edge(
             EdgeDraft(
                 trace_id=episode.identity.trace_id,
@@ -809,18 +1407,50 @@ class KVRecoverySchedulerAdapter:
         )
         if edge is None:
             self._profile.drop("recovery_event", episode.receipt.timestamp_ns)
-            return
-        self._profile.write(
+            return None
+        profile_id = self._profile.write(
             "recovery_event",
             resumed_event.timestamp_ns,
-            stage="admission",
             trace_id=episode.identity.trace_id,
+            engine_lifecycle_id=episode.identity.engine_lifecycle_id,
+            runtime_request_id=episode.identity.runtime_request_id,
+            request_id_kind="engine_internal",
+            sample_index=0,
             recovery_epoch=recovery_epoch,
+            episode_id=f"{episode.identity.engine_lifecycle_id}:k:{recovery_epoch}",
+            stage="admission",
+            occurrence=0,
             base_event_id=resumed_event.event_id,
             base_admission_started_event_id=(episode.admission_started_event.event_id),
+            from_profile_event_id=episode.predecessor_profile_record_id,
             transfer_id=episode.receipt.transfer_id,
             block_set_id=episode.receipt.block_set_id,
+            bytes_moved=episode.receipt.bytes_moved,
+            requeue_reason=None,
+            compute_kind=None,
+            child_observation_kind=None,
+            base_association_kind=None,
+            base_association_evidence=None,
+            request_status_before="PREEMPTED",
+            request_status_after="RUNNING",
         )
+        if profile_id is None:
+            return None
+        episode.admission_profile_record_id = profile_id
+        try:
+            context = self._abi.compute_context_type(
+                binding=self._abi.binding,
+                identity=episode.receipt.identity,
+                transfer_id=episode.receipt.transfer_id,
+                block_set_id=episode.receipt.block_set_id,
+                bytes_moved=episode.receipt.bytes_moved,
+                admission_profile_record_id=profile_id,
+            )
+        except Exception:  # noqa: BLE001 - serving-side evidence is fail-open.
+            self._profile.drop("recovery_event", resumed_event.timestamp_ns)
+            return None
+        self._episodes.pop(runtime_request_id, None)
+        return context
 
     def request_terminal(self, runtime_request_id: str) -> None:
         episode = self._episodes.pop(runtime_request_id, None)
@@ -912,7 +1542,9 @@ class KVRecoveryObserverFactoryAdapter:
         profile = self._profile_for_current_process()
         if process_uuid is None or clock_domain_id is None or profile is None:
             return None
-        sink = KVRecoveryWorkerEvidenceAdapter(self._hooks, profile, self._abi)
+        sink = KVRecoveryWorkerEvidenceAdapter(
+            self._hooks, profile, self._abi, self._run_id
+        )
         try:
             return self._abi.bounded_worker_observer_type(
                 process_uuid,
@@ -932,6 +1564,9 @@ class KVRecoveryObserverFactoryAdapter:
             binding == self._abi.binding
             and self._hooks.enabled
             and self._hooks.config.communication_mode == KV_RECOVERY_COMMUNICATION_MODE
+            and self._hooks.kv_recovery_profile_enabled
+            and self._hooks.config.kv_recovery_profile_config
+            == KVRecoveryProfileConfig(run_id=self._run_id)
         )
 
     def _profile_for_current_process(
@@ -943,7 +1578,9 @@ class KVRecoveryObserverFactoryAdapter:
         with self._lock:
             profile = self._profiles.get(process_uuid)
             if profile is None:
-                profile = BoundedKVRecoveryProfileLedger(process_uuid)
+                profile = BoundedKVRecoveryProfileLedger(
+                    process_uuid, hooks=self._hooks
+                )
                 self._profiles[process_uuid] = profile
             return profile
 
@@ -1150,5 +1787,6 @@ __all__ = [
     "ProfileLossInterval",
     "ProfileRecord",
     "RequestLifecycleIdentity",
+    "RuntimeBaseLifecycleBridge",
     "normalize_h2d_recovery",
 ]

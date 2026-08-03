@@ -1,19 +1,24 @@
 from __future__ import annotations
 
-import importlib
+import importlib.util
 import json
 import os
 import sys
+from itertools import pairwise
 from pathlib import Path
 
 import pytest
 
+from vllm_request_lifecycle_profiler.kv_recovery_profile_protocol import (
+    KVRecoveryProfileConfig,
+)
 from vllm_request_lifecycle_profiler.kv_recovery_runtime import (
     BaseEventRef,
     ExpectedH2DRecovery,
     KVRecoveryObserverFactoryAdapter,
     KVRecoveryRuntimeABI,
     RequestLifecycleIdentity,
+    RuntimeBaseLifecycleBridge,
     normalize_h2d_recovery,
 )
 from vllm_request_lifecycle_profiler.runtime_hooks import (
@@ -23,6 +28,7 @@ from vllm_request_lifecycle_profiler.runtime_hooks import (
 )
 from vllm_request_lifecycle_profiler.runtime_protocol import (
     KV_RECOVERY_COMMUNICATION_MODE,
+    EventDraft,
     RuntimeProvenance,
 )
 
@@ -78,18 +84,35 @@ def load_runtime_abi():
     source_path = Path(runtime_source).resolve()
     if not (source_path / "vllm" / "v1" / "kv_recovery_profile.py").is_file():
         pytest.fail("VLLM_HUST_G1_SRC does not contain the G1 runtime source")
-    sys.path.insert(0, str(source_path))
-    return KVRecoveryRuntimeABI.load()
+    module_path = source_path / "vllm" / "v1" / "kv_recovery_profile.py"
+    module_name = "_vllm_hust_g1_kv_recovery_profile"
+    spec = importlib.util.spec_from_file_location(module_name, module_path)
+    if spec is None or spec.loader is None:
+        pytest.fail("could not create the exact-runtime ABI module spec")
+    runtime = importlib.util.module_from_spec(spec)
+    sys.modules[module_name] = runtime
+    spec.loader.exec_module(runtime)
+    abi = KVRecoveryRuntimeABI(
+        binding=runtime.KV_RECOVERY_PROFILE_BINDING,
+        identity_type=runtime.KVRecoveryIdentity,
+        logical_block_type=runtime.KVRecoveryLogicalBlock,
+        transfer_context_type=runtime.KVRecoveryTransferContext,
+        compute_context_type=runtime.KVRecoveryComputeContext,
+        receipt_type=runtime.KVRecoveryH2DReceipt,
+        bounded_worker_observer_type=runtime.BoundedKVRecoveryWorkerObserver,
+        canonical_block_set_id=runtime.canonical_block_set_id,
+    )
+    return abi, runtime
 
 
 def test_actual_runtime_abi_completes_profiler_whole_trace(tmp_path: Path) -> None:
-    abi = load_runtime_abi()
-    from vllm.v1.kv_recovery_profile import KVRecoveryBlockCoordinate
+    abi, runtime = load_runtime_abi()
 
     sink = JsonlTraceSink(
         tmp_path / "trace",
         RuntimeProvenance("a" * 40, "b" * 40, "c" * 40),
         communication_mode=KV_RECOVERY_COMMUNICATION_MODE,
+        kv_recovery_profile_config=KVRecoveryProfileConfig(run_id=RUN_ID),
         clock_ns=lambda: 1000,
         clock_domain_reader=lambda: CLOCK_DOMAIN_ID,
         process_uuid_factory=lambda: WORKER_UUID,
@@ -100,13 +123,48 @@ def test_actual_runtime_abi_completes_profiler_whole_trace(tmp_path: Path) -> No
             provenance=RuntimeProvenance("a" * 40, "b" * 40, "c" * 40),
             communication_mode=KV_RECOVERY_COMMUNICATION_MODE,
             invalid_reason="unsupported_mode",
+            kv_recovery_profile_config=KVRecoveryProfileConfig(run_id=RUN_ID),
         ),
         sink=sink,
     )
+    bridge = RuntimeBaseLifecycleBridge(hooks)
+    identity = RequestLifecycleIdentity(
+        TRACE_ID,
+        f"{TRACE_ID}:e:0",
+        REQUEST_ID,
+    )
+    assert bridge.register_request(identity)
+    active_span_id = hooks.new_span_id()
+    assert active_span_id is not None
+    active_start = hooks.emit_event(
+        EventDraft(
+            trace_id=TRACE_ID,
+            lifecycle_id=f"{TRACE_ID}:e:0",
+            parent_lifecycle_id=f"{TRACE_ID}:r",
+            scope="engine_sample",
+            component="engine_core",
+            event_name="prefill_started",
+            timestamp_ns=80,
+            preemption_epoch=0,
+            start_span_id=active_span_id,
+            sample_index=0,
+        )
+    )
+    assert active_start is not None
+    preempted = bridge.emit_preempted_and_requeued(
+        REQUEST_ID,
+        1,
+        timestamp_ns=90,
+        active_span_start_event_id=active_start.record_id,
+        active_span_id=active_span_id,
+        prompt_tokens_computed=1,
+        prefill_chunk_count=1,
+    )
+    assert preempted is not None
     factory = KVRecoveryObserverFactoryAdapter(
         RUN_ID,
         hooks,
-        IntegrationBridge(),
+        bridge,
         abi,
         clock_ns=lambda: 125,
     )
@@ -119,7 +177,10 @@ def test_actual_runtime_abi_completes_profiler_whole_trace(tmp_path: Path) -> No
     context = scheduler.prepare_transfer_context(
         REQUEST_ID,
         "h2d_restore",
-        (KVRecoveryBlockCoordinate(0, 0), KVRecoveryBlockCoordinate(0, 1)),
+        (
+            runtime.KVRecoveryBlockCoordinate(0, 0),
+            runtime.KVRecoveryBlockCoordinate(0, 1),
+        ),
     )
     assert context is not None
     attempt = worker.begin_transfer(7, context)
@@ -128,39 +189,83 @@ def test_actual_runtime_abi_completes_profiler_whole_trace(tmp_path: Path) -> No
     receipt = worker.transfer_completed(7, 120, True, 256, 10)
     assert receipt is not None
     scheduler.consume_h2d_receipts((receipt,), False)
+    admission_started = bridge.emit_admission_started(REQUEST_ID, 1, timestamp_ns=130)
+    assert admission_started is not None
     scheduler.request_admission_started(REQUEST_ID, 1)
-    scheduler.request_admitted(REQUEST_ID, 1)
+    scheduler.request_requeued(REQUEST_ID, 1, "token_budget")
+    resumed = bridge.emit_resumed(
+        REQUEST_ID,
+        1,
+        timestamp_ns=140,
+        prompt_tokens_total=2,
+        prompt_tokens_cached=0,
+        prompt_tokens_to_compute=2,
+    )
+    assert resumed is not None
+    compute_context = scheduler.request_admitted(REQUEST_ID, 1)
+    assert isinstance(compute_context, runtime.KVRecoveryComputeContext)
+    first_compute = bridge.emit_first_compute(
+        REQUEST_ID,
+        1,
+        timestamp_ns=150,
+        compute_kind="prefill",
+    )
+    assert first_compute is not None
+    worker.first_compute(
+        compute_context,
+        150,
+        "prefill",
+        first_compute.event_id,
+    )
     worker.close()
     scheduler.close()
 
     close_result = hooks.close()
     assert close_result is not None
     assert close_result.close_outcome == "drained"
+    assert close_result.profile_summary_written
     shard_path = hooks.committed_shard_path
+    profile_path = hooks.committed_kv_recovery_profile_shard_path
     assert shard_path is not None
+    assert profile_path is not None
     records = [json.loads(line) for line in shard_path.read_text().splitlines()]
-    records.extend(
-        [
-            {
-                "record_type": "event",
-                "event_id": PREEMPTED_ID,
-                "event_name": "preempted",
-                "trace_id": TRACE_ID,
-                "lifecycle_id": f"{TRACE_ID}:e:0",
-                "preemption_epoch": 0,
-                "timestamp_ns": 90,
-            },
-            {
-                "record_type": "event",
-                "event_id": ADMISSION_STARTED_ID,
-                "event_name": "admission_started",
-                "trace_id": TRACE_ID,
-                "lifecycle_id": f"{TRACE_ID}:e:0",
-                "preemption_epoch": 1,
-                "timestamp_ns": 130,
-            },
-        ]
-    )
+    profile_records = [
+        json.loads(line) for line in profile_path.read_text().splitlines()
+    ]
+    assert [row["record_type"] for row in profile_records] == [
+        "profile_start",
+        "recovery_event",
+        "block_set_chunk",
+        "transfer_event",
+        "recovery_event",
+        "transfer_event",
+        "recovery_event",
+        "recovery_event",
+        "recovery_event",
+        "recovery_event",
+        "recovery_event",
+        "profile_summary",
+    ]
+    milestones = [
+        row for row in profile_records if row["record_type"] == "recovery_event"
+    ]
+    assert [row["stage"] for row in milestones] == [
+        "preempt",
+        "restore_start",
+        "restore_done",
+        "scheduler_wakeup",
+        "requeue",
+        "admission",
+        "first_prefill_or_decode",
+    ]
+    for predecessor, milestone in pairwise(milestones):
+        assert milestone["from_profile_event_id"] == predecessor["record_id"]
+    profile_summary = profile_records[-1]
+    assert profile_summary["attempted_data_count"] == 10
+    assert profile_summary["written_block_set_chunk_count"] == 1
+    assert profile_summary["written_transfer_event_count"] == 2
+    assert profile_summary["written_recovery_event_count"] == 7
+    assert profile_summary["dropped_data_count"] == 0
     profile_complete = all(
         ledger.evidence_complete for ledger in factory.profile_ledgers
     )
@@ -173,8 +278,8 @@ def test_actual_runtime_abi_completes_profiler_whole_trace(tmp_path: Path) -> No
             recovery_epoch=1,
             transfer_id=receipt.transfer_id,
             block_set_id=receipt.block_set_id,
-            preempted_event_id=PREEMPTED_ID,
-            admission_started_event_id=ADMISSION_STARTED_ID,
+            preempted_event_id=preempted.event_id,
+            admission_started_event_id=admission_started.event_id,
         ),
         profile_evidence_complete=profile_complete,
     )
@@ -198,13 +303,13 @@ def test_actual_runtime_capacity_paths_consume_exact_profile_loss(
     constant_name: str,
     operation: str,
 ) -> None:
-    abi = load_runtime_abi()
-    runtime = importlib.import_module("vllm.v1.kv_recovery_profile")
+    abi, runtime = load_runtime_abi()
     monkeypatch.setattr(runtime, constant_name, 1)
     sink = JsonlTraceSink(
         tmp_path / "trace",
         RuntimeProvenance("a" * 40, "b" * 40, "c" * 40),
         communication_mode=KV_RECOVERY_COMMUNICATION_MODE,
+        kv_recovery_profile_config=KVRecoveryProfileConfig(run_id=RUN_ID),
         clock_ns=lambda: 1000,
         clock_domain_reader=lambda: CLOCK_DOMAIN_ID,
         process_uuid_factory=lambda: WORKER_UUID,
@@ -215,6 +320,7 @@ def test_actual_runtime_capacity_paths_consume_exact_profile_loss(
             provenance=RuntimeProvenance("a" * 40, "b" * 40, "c" * 40),
             communication_mode=KV_RECOVERY_COMMUNICATION_MODE,
             invalid_reason="unsupported_mode",
+            kv_recovery_profile_config=KVRecoveryProfileConfig(run_id=RUN_ID),
         ),
         sink=sink,
     )
@@ -262,12 +368,12 @@ def test_actual_runtime_capacity_paths_consume_exact_profile_loss(
 def test_actual_runtime_late_receipt_capacity_keeps_two_edge_prefix(
     tmp_path: Path,
 ) -> None:
-    abi = load_runtime_abi()
-    runtime = importlib.import_module("vllm.v1.kv_recovery_profile")
+    abi, runtime = load_runtime_abi()
     sink = JsonlTraceSink(
         tmp_path / "trace",
         RuntimeProvenance("a" * 40, "b" * 40, "c" * 40),
         communication_mode=KV_RECOVERY_COMMUNICATION_MODE,
+        kv_recovery_profile_config=KVRecoveryProfileConfig(run_id=RUN_ID),
         clock_ns=lambda: 1000,
         clock_domain_reader=lambda: CLOCK_DOMAIN_ID,
         process_uuid_factory=lambda: WORKER_UUID,
@@ -278,6 +384,7 @@ def test_actual_runtime_late_receipt_capacity_keeps_two_edge_prefix(
             provenance=RuntimeProvenance("a" * 40, "b" * 40, "c" * 40),
             communication_mode=KV_RECOVERY_COMMUNICATION_MODE,
             invalid_reason="unsupported_mode",
+            kv_recovery_profile_config=KVRecoveryProfileConfig(run_id=RUN_ID),
         ),
         sink=sink,
     )

@@ -7,6 +7,9 @@ from pathlib import Path
 
 import pytest
 
+from vllm_request_lifecycle_profiler.kv_recovery_profile_protocol import (
+    KVRecoveryProfileConfig,
+)
 from vllm_request_lifecycle_profiler.kv_recovery_runtime import (
     BaseEventRef,
     BoundedKVRecoveryProfileLedger,
@@ -38,6 +41,7 @@ RUNTIME_REQUEST_ID = "request-0"
 PREEMPTED_EVENT_ID = f"{ENGINE_UUID}:e:0"
 ADMISSION_STARTED_EVENT_ID = f"{ENGINE_UUID}:e:1"
 RESUMED_EVENT_ID = f"{ENGINE_UUID}:e:2"
+FIRST_COMPUTE_EVENT_ID = f"{ENGINE_UUID}:e:3"
 PROVENANCE = RuntimeProvenance("a" * 40, "b" * 40, "c" * 40)
 
 
@@ -56,6 +60,7 @@ class FakeIdentity:
     recovery_epoch: int | None
     episode_id: str | None
     base_preempted_event_id: str | None
+    preempt_profile_record_id: str | None
 
 
 @dataclass(frozen=True)
@@ -79,6 +84,16 @@ class FakeAttempt:
     connector_job_id: int
     transfer_id: str
     context: FakeContext
+
+
+@dataclass(frozen=True)
+class FakeComputeContext:
+    binding: object
+    identity: FakeIdentity
+    transfer_id: str
+    block_set_id: str
+    bytes_moved: int
+    admission_profile_record_id: str
 
 
 @dataclass(frozen=True)
@@ -128,6 +143,7 @@ FAKE_ABI = KVRecoveryRuntimeABI(
     identity_type=FakeIdentity,
     logical_block_type=FakeLogicalBlock,
     transfer_context_type=FakeContext,
+    compute_context_type=FakeComputeContext,
     receipt_type=FakeReceipt,
     bounded_worker_observer_type=FakeBoundedWorkerObserver,
     canonical_block_set_id=canonical_block_set_id,
@@ -167,12 +183,20 @@ class FakeBridge:
             return BaseEventRef(RESUMED_EVENT_ID, 140)
         return None
 
+    def first_compute_event(
+        self, runtime_request_id: str, recovery_epoch: int
+    ) -> BaseEventRef | None:
+        if runtime_request_id == RUNTIME_REQUEST_ID and recovery_epoch == 1:
+            return BaseEventRef(FIRST_COMPUTE_EVENT_ID, 150)
+        return None
+
 
 def make_hooks(tmp_path: Path) -> RuntimeLifecycleHooks:
     sink = JsonlTraceSink(
         tmp_path / "trace",
         PROVENANCE,
         communication_mode=KV_RECOVERY_COMMUNICATION_MODE,
+        kv_recovery_profile_config=KVRecoveryProfileConfig(run_id=RUN_ID),
         clock_ns=lambda: 1000,
         clock_domain_reader=lambda: CLOCK_DOMAIN_ID,
         process_uuid_factory=lambda: WORKER_UUID,
@@ -185,6 +209,7 @@ def make_hooks(tmp_path: Path) -> RuntimeLifecycleHooks:
             provenance=PROVENANCE,
             communication_mode=KV_RECOVERY_COMMUNICATION_MODE,
             invalid_reason="unsupported_mode",
+            kv_recovery_profile_config=KVRecoveryProfileConfig(run_id=RUN_ID),
         ),
         sink=sink,
     )
@@ -239,7 +264,7 @@ def run_complete_episode(tmp_path: Path):
     scheduler = KVRecoverySchedulerAdapter(
         RUN_ID, hooks, engine_profile, bridge, FAKE_ABI, clock_ns=lambda: 125
     )
-    worker = KVRecoveryWorkerEvidenceAdapter(hooks, worker_profile, FAKE_ABI)
+    worker = KVRecoveryWorkerEvidenceAdapter(hooks, worker_profile, FAKE_ABI, RUN_ID)
 
     scheduler.request_preempted(RUNTIME_REQUEST_ID, 1)
     context = scheduler.prepare_transfer_context(
@@ -261,7 +286,15 @@ def run_complete_episode(tmp_path: Path):
     assert isinstance(receipt, FakeReceipt)
     scheduler.consume_h2d_receipts((receipt,), False)
     scheduler.request_admission_started(RUNTIME_REQUEST_ID, 1)
-    scheduler.request_admitted(RUNTIME_REQUEST_ID, 1)
+    scheduler.request_requeued(RUNTIME_REQUEST_ID, 1, "token_budget")
+    compute_context = scheduler.request_admitted(RUNTIME_REQUEST_ID, 1)
+    assert isinstance(compute_context, FakeComputeContext)
+    worker.first_compute(
+        compute_context,
+        150,
+        "prefill",
+        FIRST_COMPUTE_EVENT_ID,
+    )
     records = base_endpoint_records() + read_committed_records(hooks)
     expected = ExpectedH2DRecovery(
         trace_id=TRACE_ID,
@@ -302,11 +335,13 @@ def test_complete_cpu_adapter_chain_emits_exact_h2d_pair_and_three_edges(
         "restore_start",
         None,
         "restore_done",
+        "first_prefill_or_decode",
     ]
     assert [record.fields.get("stage") for record in engine_records] == [
         "preempt",
         None,
         "scheduler_wakeup",
+        "requeue",
         "admission",
     ]
 
@@ -325,7 +360,7 @@ def test_late_receipt_capacity_keeps_prefix_and_forbids_return_edge(
         FAKE_ABI,
         clock_ns=lambda: 125,
     )
-    worker = KVRecoveryWorkerEvidenceAdapter(hooks, worker_profile, FAKE_ABI)
+    worker = KVRecoveryWorkerEvidenceAdapter(hooks, worker_profile, FAKE_ABI, RUN_ID)
     scheduler.request_preempted(RUNTIME_REQUEST_ID, 1)
     context = scheduler.prepare_transfer_context(
         RUNTIME_REQUEST_ID, "h2d_restore", (FakeCoordinate(0, 0),)
