@@ -1,10 +1,10 @@
 # KV-Recovery Communication Mapping v0 Draft
 
 - Proposed mapping ID: `issue2:kv-recovery-v1alpha1`
-- Review status: `issue2_authority_review_required`
-- Activation status: `BLOCKED_BY_BASE_MODE_GRAMMAR_AND_AUTHORITY`
+- Review status: `issue2_authority_rereview_required_after_request_changes`
+- Activation status: `BLOCKED_BY_ITEM_4B_BASE_MODE_CONFIG_AND_AUTHORITIES`
 - Evidence status: `NOT_M0_PROVEN`
-- Runtime implementation status: `NOT_STARTED`
+- Runtime implementation status: `OUT_OF_SCOPE_FOR_THIS_MAPPING_CANDIDATE`
 
 This is a content-addressing candidate for issue-2 authority review. It does
 not edit the frozen P0 contract, activate a non-`none` communication mode,
@@ -32,7 +32,9 @@ explicitly delegated specialty authority must approve this artifact's final
 digest. That approval still cannot override the separate base-mode blocker in
 section 3.
 
-## 2. Exact dependencies
+## 2. Exact dependencies and execution baselines
+
+### 2.1 Immutable semantic dependencies
 
 | Dependency | Content identity | Status |
 | --- | --- | --- |
@@ -40,17 +42,41 @@ section 3.
 | Phase taxonomy | `contracts/p0/runtime/phase-taxonomy.v0-draft.md`, SHA-256 `82aae94c5d124b846f77684e239714d51791115608e786079c4ea4bd4ca05abd` | owner-frozen, immutable |
 | Recovery profile | `contracts/p1/kv-recovery-profile.v0-draft.md`, SHA-256 `b363532884d1cae8049ab080d2b85a629f3b33a75f6621788d1e4c8f30737666` | profile-owner frozen |
 | Profile approval record | `contracts/p1/kv-recovery-profile-owner-approval.json`, SHA-256 `2831ce52802e7cbe4ec092431c71c18de05491da7ac8d48512014b1d43b3cb0c` | profile-only approval; does not approve this mapping |
-| Idle evidence semantics | profiler commit `7e10622eb5755e1af544546e93e3f63a91214ffc`, `docs/idle_evidence_contract.md` Draft v4.3, SHA-256 `8edb42b706b6cab14dfde2b109841cb8af090883c9ea86696ee779de21d0c9ed` | normative measurement dependency, still marked proposed in its bytes |
-| Runtime | `vLLM-HUST/vllm-hust@f229ba7cad21a4dba58681af6738a9fd947388e2` | audited source anchor |
-| Device plugin | `vLLM-HUST/vllm-ascend-hust@cafad89a5e103f31ea517c1edb56130578c3cd56` | audited source anchor |
+| Idle Evidence Contract v4.3 | profiler commit `7e10622eb5755e1af544546e93e3f63a91214ffc`, `docs/idle_evidence_contract.md`, SHA-256 `8edb42b706b6cab14dfde2b109841cb8af090883c9ea86696ee779de21d0c9ed` | interval, clock, canonicalization, completeness, and claim-boundary dependency; still marked proposed in its bytes |
+| E3 stream-semantics addendum | `contracts/p1/e3-stream-semantics-addendum.v0-draft.md`, SHA-256 `779faa2ef3f344c739d2092b7d4d250d0a4e3a4c5e76ec04ffcfa0d59ac8eddb` | independent post-v4.3 dependency; never attributed to the v4.3 bytes |
+
+### 2.2 Item 4B activation prerequisite
+
+The separately content-addressed
+`contracts/p1/kv-recovery-observer-policy.v0-draft.json`, SHA-256
+`fbee3bc4f74b8c5c20e929c4e37596b06b31c1b9cd02517d8461961a8aedf420`, is the candidate source for the pending-container
+implementation, its proposed finite capacity, profile record/loss treatment,
+connector-result handoff, edge-emitter implementation, and cleanup behavior.
+Issue-2 authority may require an applicable owner-approved Item 4B record and
+executable conformance before activation, but approval of this mapping neither
+approves those implementation choices nor substitutes for their authorities.
+
+### 2.3 Audited source baselines, not immutable semantic dependencies
+
+| Repository | Audited baseline | Meaning |
+| --- | --- | --- |
+| Runtime | `vLLM-HUST/vllm-hust@f229ba7cad21a4dba58681af6738a9fd947388e2` | static call-site and mapping-review anchor |
+| Device plugin | `vLLM-HUST/vllm-ascend-hust@cafad89a5e103f31ea517c1edb56130578c3cd56` | static compatibility and negative-control anchor |
+
+An actual run binds its exact runtime and device-plugin commits through a
+complete resolved configuration and joint-admission record and must pass
+mapping conformance. A later implementation commit does not require a new
+mapping version merely because its Git identity changed. A new mapping version
+and issue-2 review are required only if code changes an observation boundary,
+identity, edge endpoint, cross-process handoff, D2H/wait mapping, or claim
+boundary.
 
 Authenticated source revalidation includes profiler issue #2 comments
-`5141244947`, `5157931735`, `5161902781`, and `5162001498`. The last two
-comments preserve the same boundary: checked-in measurement fixtures and
-implementation hardening are not runtime matched A/B evidence. Comment
-`5162001498` also requires per-device scan completeness, forbids an unassigned-
-stream sentinel from fabricating a timeline, and treats legal zero-duration
-wait/control/record observations as point markers rather than intervals.
+`5141244947`, `5157931735`, `5161902781`, `5162001498`, and the authority
+request-changes decision `5164544402`. Checked-in fixtures and implementation
+hardening are not runtime matched A/B evidence. The E3 rules first summarized
+in comment `5162001498` are frozen only by the independent addendum above; the
+comment itself and the v4.3 bytes do not substitute for that artifact.
 
 ## 3. Independent base-mode blocker
 
@@ -154,58 +180,144 @@ For interval use, `done.timestamp_ns` must be strictly greater than
 `start.timestamp_ns`. Equal host observations remain diagnostic point evidence
 in the recovery profile and cannot become a zero-length communication span.
 
-### 5.2 Exactly three edges
+### 5.2 Exact H2D endpoint handoff and emitter state machine
 
-The runtime emits these three and no duplicate edges for the H2D pair:
+This section freezes semantic identity, endpoint handoff, emitter ownership,
+and fail-closed behavior only. Pending-container fields, its admitted finite
+bound, record-sequence/loss-ledger implementation, capacity failure code,
+result transport, cleanup implementation, and executable runtime attestation
+belong to the separately approved Item 4B dependency in section 2.2. This
+mapping does not itself freeze
+`max_pending_h2d_contexts_per_process=4096` or assign
+`serialization_failure` to observer-context admission failure.
 
-1. closing-epoch base `preempted(e)` to
-   `communication_started(e+1)`: `data_dependency` with
-   `issue2:kv-recovery-v1alpha1:h2d_restore`;
-2. `communication_started(e+1)` to `communication_done(e+1)`:
-   `program_order` with `instrumented_execution_context`; and
-3. `communication_done(e+1)` to the matching next-epoch
-   `admission_started(e+1)`: `data_dependency` with
-   `issue2:kv-recovery-v1alpha1:h2d_restore`.
+#### 5.2.1 Endpoint origin and ownership
 
-The internal `program_order / instrumented_execution_context` edge is not
-justified by process equality, polling order, or timestamp order. A later G1
-adapter must allocate `transfer_id` before accepted submission and insert one
-bounded pending-context entry containing the exact start event ID, request,
-lifecycle, recovery epoch, block set, connector job ID, process/rank, and clock
-domain. The first matching successful raw `TransferResult` atomically consumes
-that entry, emits `communication_done`, and then emits the internal edge. An
-unknown, duplicate, failed, mismatched, already-consumed, or capacity-rejected
-context cannot emit the pair or edge and fails the affected evidence closed.
-The process-local pending table has the exact hard limit
-`max_pending_h2d_contexts_per_process=4096`, in addition to the approved
-per-lifecycle transfer limit, and is drained/rejected at profile close. If the
-observer table is full, the real connector submission and serving path proceed
-unchanged. Capacity exhaustion is one attempted profile `transfer_event`
-construction: it consumes the next profile `record_seq`, emits no corresponding
-base pair or edge, and opens or extends the exact `serialization_failure` loss
-interval required by approved-profile sections 6.2 and 6.7. A
-`queue_overflow` reason or log-only diagnostic is forbidden for this case. The
-affected formal evidence fails closed, but the adapter must never reject,
-delay, cancel, or resize the real KV transfer to create trace capacity. CPU
-tests must prove this explicit propagation, process bound, deterministic loss,
-and fail-open serving behavior before runtime wiring can pass G1; the current
-source does not already provide it.
+| Endpoint | Origin and exact selection | Event component | Event-emitting process |
+| --- | --- | --- | --- |
+| `preempted(e)` | The already-emitted EngineCore base event that closed the exact lifecycle's epoch `e`; its event ID is captured at emission, never recovered by request or time lookup. | `engine_core` | EngineCore process |
+| `communication_started(e+1)` | The rank-0 worker observation immediately after matching backend `submit_load` returns accepted for the exact H2D attempt. | `external_evidence` | rank-0 transfer-worker process |
+| `communication_done(e+1)` | The first matching successful raw `TransferResult`, with strictly later host timestamp and positive bytes. | `external_evidence` | the same rank-0 worker process as the start |
+| `admission_started(e+1)` | The first real EngineCore base admission event for the same request/lifecycle/epoch after the exact H2D receipt is accepted and after the first matching successful profile `scheduler_wakeup`/promotion. An earlier selection attempt is ineligible. | `engine_core` | EngineCore process |
 
-Here the profile relation is exactly `base.preemption_epoch + 1 ==
-recovery_epoch`. The existing P0 `preempted -> requeued` and queue/admission
-edges remain required. The two branches converge at admission without adding a
-timestamp-derived `requeued -> communication_started` edge. All endpoints are
-same-trace, resolve explicitly, and must leave the full graph acyclic.
+The communication pair has one fresh worker-created span ID. Both events have
+the same trace, lifecycle, recovery epoch, worker `process_uuid`, rank, clock
+domain, transfer ID, and block-set ID. Done time is strictly greater than
+start time and `bytes_moved` is a positive uint64.
 
-This is a recovery bridge authorized only by the optional mapping; it does not
-move the base preemption, requeue, admission, prefill, or decode boundaries.
-The H2D span begins after preemption and may not remain open across another
-preemption or terminal.
+#### 5.2.2 Exact sidecar, pending, and receipt identities
 
-The target is the first `admission_started(e+1)` after the first successful
-profile `scheduler_wakeup`/promotion observation for this exact transfer and
-episode, never an earlier queue-selection attempt while the load was pending.
-The complete required order is:
+For one H2D load, the scheduler-to-worker connector envelope is keyed by the
+exact `connector_job_id` and carries one immutable recovery context containing:
+
+- profile ID/SHA, mapping ID/SHA, and admitted resolved-configuration ID;
+- `run_id`, `trace_id`, `engine_lifecycle_id`, and exact runtime request ID;
+- positive `recovery_epoch=e+1` and matching `episode_id`;
+- `base_preempted_event_id`, copied from the actual emitted `preempted(e)`;
+- `operation=h2d_restore`, canonical `block_set_id`, and canonical logical
+  blocks.
+
+The worker allocates one process-scoped `transfer_id` before backend
+submission. Only after exact submission acceptance may it construct
+`communication_started`. An admitted Item 4B pending entry contains at least
+the context above plus `connector_job_id`, `transfer_id`,
+`communication_started_event_id`, worker process/rank/clock identity, start
+timestamp, and an unconsumed state. Request text, timestamps, job-number
+proximity, stage adjacency, or matching block coordinates cannot substitute
+for any field.
+
+Only the first valid successful completion returns a worker-to-EngineCore
+receipt. It carries the same content-addressed binding and recovery identity;
+the exact connector job, transfer, and block-set IDs; worker process/rank/world
+and clock identity; exact `communication_done_event_id`; exact restore-done
+profile record ID; completion timestamp; and positive bytes. The connector
+transports the receipt unchanged. EngineCore accepts it only while that load
+job and episode are live and every field equals scheduler-owned state.
+Truncation, absence, mutation, stale status, or an unprovable handoff makes the
+affected formal evidence incomplete.
+
+#### 5.2.3 Exactly three edges and concrete emitters
+
+1. `preempted(e) -> communication_started(e+1)` is
+   `data_dependency / issue2:kv-recovery-v1alpha1:h2d_restore`. The rank-0
+   worker issue-2 adapter emits it in the worker shard only after it possesses
+   both the exact propagated preempted ID and newly allocated start ID.
+2. `communication_started(e+1) -> communication_done(e+1)` is
+   `program_order / instrumented_execution_context`. The same worker adapter
+   emits it only after atomically consuming the exact pending entry and
+   successfully constructing the matching done endpoint. Process equality,
+   polling order, and timestamps do not justify it.
+3. `communication_done(e+1) -> admission_started(e+1)` is
+   `data_dependency / issue2:kv-recovery-v1alpha1:h2d_restore`. The EngineCore-
+   side issue-2 adapter emits it in the EngineCore shard only after accepting
+   the exact receipt, observing matching successful scheduler wakeup, and
+   receiving the exact event ID from the real admission emitter.
+
+An edge record is attempted only after both endpoint event IDs are explicitly
+known. Each `(from_event_id, to_event_id, edge_kind, evidence_source)` tuple is
+consumed at most once. Edge records have no component field; event components
+and concrete edge-record process ownership above are normative.
+
+#### 5.2.4 Atomic consumption and fail-closed transitions
+
+The admissible state sequence is:
+
+```text
+SIDECAR_READY -> START_RECORDED -> COMPLETION_CONSUMED
+  -> RECEIPT_ACCEPTED -> ADMISSION_EDGE_RECORDED
+```
+
+- A failed or rejected backend submission produces no base communication event
+  or issue-2 edge.
+- Only the first exact successful raw completion may atomically consume the
+  start. Duplicate, retry, already-consumed, unknown/stale job, wrong operation
+  or direction, wrong request/lifecycle/epoch/episode/transfer/block set,
+  foreign run/process/clock, nonpositive bytes, or nonpositive duration emits
+  no new communication event or edge.
+- A missing sidecar field or endpoint ID emits no edge. An already-attempted
+  lost record keeps its `record_seq` consumed under the separately admitted
+  Item 4B loss ledger; later records cannot repair it.
+- A second preemption or effective terminal before done consumes and
+  invalidates the open worker context. A terminal, new preemption, epoch
+  replacement, or request cleanup after receipt but before qualifying
+  admission consumes the EngineCore return context. No later event or edge is
+  backfilled, and a communication span never crosses preemption or terminal.
+- Duplicate receipts or duplicate qualifying admissions never emit another
+  edge. Item 4B must provide an explicit EngineCore-to-worker episode
+  invalidation handoff, or an executable mechanism with the same guarantee,
+  before activation.
+- Exhausting separately admitted prepared-transfer or pending-context capacity
+  never rejects, delays, cancels, or resizes the real transfer. Before
+  `START_RECORDED`, it admits no formal H2D context, emits no new base pair or
+  edge, consumes the applicable attempted profile `record_seq`, and uses only
+  the independently owner-approved failure code and loss semantics.
+- Receipt append/aggregation exhaustion is a later failure: start, done, and
+  the first two edges may already be immutable. The implementation retains
+  every record already written without retraction, rewrite, or duplication;
+  emits no receipt and no third done-to-admission edge; never backfills or
+  infers the missing handoff; consumes the exact profiler loss `record_seq`;
+  and rejects the affected trace. Item 4B must require a CPU test for this
+  timing. An implementation may pre-reserve future receipt capacity before
+  start only if it proves late exhaustion unreachable for every admitted
+  context; a violated reservation still cannot erase earlier records.
+
+#### 5.2.5 Normalizer prohibition and base-DAG relation
+
+The normalizer only validates explicitly written events and edges. It never
+creates, selects, repairs, or deduplicates an H2D endpoint or edge from request
+identity, timestamp or file order, any global/per-process `record_seq`, stage
+or job-number adjacency, common process/rank/clock/direction/block set, or the
+existing `preempted -> requeued` branch. It must not invent
+`requeued -> communication_started`, choose a nearby admission, or treat a
+profile association as a base edge. Missing endpoint, edge, handoff, or
+qualifying wakeup/admission relation rejects the affected trace.
+
+The profile relation remains exactly
+`base.preemption_epoch + 1 == recovery_epoch`. Existing P0
+`preempted -> requeued` and queue/admission edges remain required. The branches
+converge without a timestamp-derived edge and the full same-trace graph remains
+acyclic. This specialty bridge never moves base preemption, requeue, admission,
+prefill, or decode boundaries. Its required order is:
 
 ```text
 preempted(e) <= requeued(e+1) <= communication_started(e+1)
@@ -213,8 +325,8 @@ preempted(e) <= requeued(e+1) <= communication_started(e+1)
   <= admission_started(e+1) <= resumed(e+1)
 ```
 
-The scheduler-wakeup point is profile-only; it constrains endpoint selection
-but does not add a new P0 event or edge.
+The profile-only scheduler-wakeup point selects the return endpoint but adds no
+base event or edge.
 
 ## 6. D2H closed negative mapping
 
@@ -289,7 +401,9 @@ itself a device-clock productive interval and does not establish hardware idle
 or copy/compute overlap. `TransferResult.transfer_time` is a positive duration,
 not a positioned device timestamp interval.
 
-When an Ascend profiler capture is separately available, Draft v4.3 applies:
+When an Ascend profiler capture is separately available, Idle Evidence
+Contract v4.3 applies only to its frozen interval, clock, canonicalization,
+completeness, and claim-boundary rules:
 
 - `MEMCPY`, `MEMCPY_ASYNC`, and `SDMA` are
   `productive_data_move`, retaining H2D/D2H and sync/async granularity;
@@ -299,15 +413,25 @@ When an Ascend profiler capture is separately available, Draft v4.3 applies:
   connection identity when available, time, and metadata;
 - an uncertain duplicate is reported as ambiguous and is never silently
   merged; and
-- host/device overlap or delay claims require the frozen marker calibration,
+- host/device overlap or delay claims require its marker calibration,
   holdout error, and robust-window rules.
 
-Scan completeness is computed independently per device before run-level
-aggregation. An unassigned-stream sentinel contributes no fabricated timeline
-interval and forces `observed_universe_scan_complete=false` for that device and
-therefore for the run. Legal zero-duration wait/control/record observations
-remain point markers only; a zero-duration H2D/D2H productive operation or
-unknown interval is invalid input.
+The separately hashed E3 addendum, not the v4.3 bytes, freezes the post-v4.3
+stream rules: scan completeness is computed independently per device before
+run aggregation; stream `0xFFFFFFFF` is unassigned, creates no fabricated
+timeline, and makes that device's `observed_universe_scan_complete=false`;
+legal zero-duration wait, capture-control, record, and runtime-control rows are
+point markers only; those points create neither a zero-length interval nor
+interval-bearing stream-universe membership; and zero-duration productive or
+unknown observations are invalid input.
+
+The E3 approval decision explicitly includes the intersection where a legal
+zero-duration point carries `0xFFFFFFFF`: it remains point-only but still makes
+the affected device incomplete. The audited PR #15 implementation baseline
+does not yet implement that intersection and therefore cannot be admitted as
+E3 conformance until it changes and passes the addendum's case 4. Issue-2
+approval of this mapping accepts that fail-closed semantic requirement, not a
+claim that the engineering baseline already satisfies it.
 
 One runtime source operation maps to one recovery transfer identity and, only
 for H2D, one base span. The same source must not become multiple productive
@@ -344,10 +468,14 @@ A mapping-complete positive episode requires:
 4. no retry, transfer failure, mixed clock domain, unresolved endpoint,
    duplicate span/edge, graph cycle, or communication across another
    preemption/terminal;
-5. a separately frozen connector-capable base mode and its P0-owner approval;
-6. this mapping's final digest and separate issue-2-authority approval; and
-7. complete configuration, process receipts, and run manifest binding the
-   runtime/device/profile/mapping/base-mode digests.
+5. a separately owner-ratified Item 4B policy, executable conformance for its
+   exact pending/receipt/emitter/loss/cleanup behavior, and an admitted finite
+   capacity/failure-code source;
+6. a separately frozen connector-capable base mode and its P0-owner approval;
+7. this mapping's final digest and separate issue-2-authority approval; and
+8. complete configuration, joint admission, process receipts, and run manifest
+   binding the actual runtime/device commits plus the semantic dependency,
+   profile, mapping, Item 4B, and base-mode digests.
 
 Any violation rejects the entire formal trace. Serving remains fail-open;
 evidence fails closed. Profile-only diagnostic records may be retained but do
@@ -372,17 +500,37 @@ completeness, matched runtime A/B, and the later benchmark gates.
 Issue-2 authority must accept or replace each item while citing the final
 mapping SHA-256:
 
-1. mapping ID and exact dependency digests;
+1. mapping ID, immutable semantic dependency digests, separate Item 4B policy
+   candidate digest, and audited-source-baseline classification;
 2. the independent P0/base-mode blocker and non-activation rule;
 3. the asymmetric closed roster: H2D `1 span + 3 edges`, D2H `0 + 0`, wait
    `0 + 0`;
-4. the exact H2D events, metadata, epoch relation, and edge grammar;
-5. prohibition on D2H return-edge inference and process-wait request fan-out;
-6. v4.3 clock, evidence, canonicalization, zero-duration, and forbidden-claim
-   semantics;
-7. completeness, duplicate suppression, and fail-closed behavior; and
-8. the requirement that any D2H base span or paired process-wait interval use a
-   new content-addressed version rather than altering these bytes.
+4. two authority-separated subitems:
+   - **4A, issue-2 authority:** `h2d_restore` subtype, one span/three explicit
+     edges, exact request/lifecycle/epoch/transfer/block identity, positive
+     duration/bytes, concrete endpoint handoff and emitters, prohibition on
+     timestamp-derived edges, incomplete identity/handoff fail-closed, and no
+     automatic device-idle or performance conclusion;
+   - **4B, separate profile/P0/runtime authorities:** pending fields/container,
+     specific per-process capacity, profile `record_seq` and loss ledger,
+     full-table failure code, runtime sidecar/result handoff, emitter
+     implementation, terminal/preemption invalidation, and close cleanup.
+     Issue-2 approval accepts only that an applicable owner-approved and
+     executable 4B is mandatory before activation; it does not approve 4B.
+5. D2H profile-only evidence, zero base span/edge mapping, and prohibition on
+   inferred request return edges;
+6. transfer-wait as a process/run point with one exact member relation, zero
+   base span/edge mapping, and prohibition on request fan-out or fabricated
+   duration;
+7. separate acceptance of the v4.3 interval/clock/canonicalization/claim
+   dependency and the independent E3 addendum's unassigned-stream and
+   zero-duration point-only semantics, including the sentinel-plus-point
+   fail-closed intersection and the recorded PR #15 conformance gap, together
+   with completeness, duplicate suppression, and fail-closed behavior; and
+8. resolved-run source binding, the exact rule for when a source change needs
+   a new mapping, and the requirement that any D2H base span or paired process-
+   wait interval use a new content-addressed version rather than altering these
+   bytes.
 
 Authority approval freezes only this mapping. It does not approve a base-mode
 overlay, resolved benchmark configuration, G1 implementation, NPU work,

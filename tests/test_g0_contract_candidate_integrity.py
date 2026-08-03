@@ -14,6 +14,21 @@ PROFILE_CANDIDATE_SHA256 = (
 PROFILE_APPROVAL_SHA256 = (
     "2831ce52802e7cbe4ec092431c71c18de05491da7ac8d48512014b1d43b3cb0c"
 )
+HISTORICAL_MAPPING_SHA256 = (
+    "dca914f989f3a98d43fb9fa2538f7c43a375e8f22f5deb7e09343aee5ee7bc19"
+)
+HISTORICAL_MAPPING_CANDIDATE_SHA256 = (
+    "f3cfdd6d9463251fdc27e01164d9f33a1efcc6c155f6d51959e0e1989d23a350"
+)
+HISTORICAL_OVERLAY_SHA256 = (
+    "6e035c29664038cdc93b545538cee6fc31abfb79e455d994851f8c9dbfd1c734"
+)
+HISTORICAL_OVERLAY_CANDIDATE_SHA256 = (
+    "169c1923ed2d37fe0ea5f88d05bcc9e35424742bb53892408ac5059485609cb5"
+)
+HISTORICAL_CONFIG_SHA256 = (
+    "b57fed50aa067e937728fe6f618a37246c50becd5ac94bd8eef3bc2ee7184b3a"
+)
 
 
 def _sha256(path: Path) -> str:
@@ -63,15 +78,15 @@ def test_mapping_approval_candidate_binds_current_mapping_bytes() -> None:
 
 def test_overlay_binds_current_mapping_but_not_incomplete_config_normatively() -> None:
     mapping_sha = _sha256(P1 / "issue2-kv-recovery-mapping.v0-draft.md")
-    config_sha = _sha256(P1 / "benchmark-134-fixed-8gib-config-candidate.json")
+    config_sha = _sha256(P1 / "benchmark-134-fixed-8gib-config-candidate.r2.json")
     overlay = (P1 / "kv-offload-base-mode-overlay.v0-draft.md").read_text(
         encoding="utf-8"
     )
     assert mapping_sha in overlay
     assert config_sha not in overlay
-    assert "benchmark-134-fixed-8gib-config-candidate.json" in overlay
+    assert "benchmark-134-fixed-8gib-config-candidate.r2.json" in overlay
     assert "non-normative design input only" in overlay
-    assert "p0_owner_review_required" in overlay
+    assert "p0_owner_rereview_required" in overlay
     assert "communication_mode=none" in overlay
 
 
@@ -83,9 +98,13 @@ def test_overlay_approval_candidate_binds_current_overlay_and_mapping() -> None:
     overlay_sha = _sha256(P1 / "kv-offload-base-mode-overlay.v0-draft.md")
     candidate = _json(P1 / "kv-offload-base-mode-overlay-approval-candidate.json")
     assert candidate["proposed_artifact"]["sha256"] == overlay_sha
-    assert candidate["immutable_dependencies"]["issue2_mapping_sha256"] == (mapping_sha)
+    assert candidate["separate_authority_prerequisites"]["issue2_mapping"][
+        "sha256"
+    ] == (mapping_sha)
     assert (
-        candidate["immutable_dependencies"]["issue2_mapping_approval_candidate_sha256"]
+        candidate["separate_authority_prerequisites"]["issue2_mapping"][
+            "approval_candidate_sha256"
+        ]
         == mapping_candidate_sha
     )
     assert (
@@ -97,7 +116,7 @@ def test_overlay_approval_candidate_binds_current_overlay_and_mapping() -> None:
 
 
 def test_config_candidate_binds_profile_owner_and_remains_non_runnable() -> None:
-    config = _json(P1 / "benchmark-134-fixed-8gib-config-candidate.json")
+    config = _json(P1 / "benchmark-134-fixed-8gib-config-candidate.r2.json")
     context = config["approved_context"]
     assert context["profile"]["sha256"] == PROFILE_SHA256
     assert context["profile_owner_approval_record"]["sha256"] == (
@@ -122,40 +141,59 @@ def test_config_candidate_binds_profile_owner_and_remains_non_runnable() -> None
         P1 / "kv-offload-base-mode-overlay-approval-candidate.json"
     )
     assert dependencies["p0_base_mode_overlay"]["frozen_by_P0_owner"] is False
+    assert dependencies["item4B_observer_policy"]["sha256"] == _sha256(
+        P1 / "kv-recovery-observer-policy.v0-draft.json"
+    )
+    assert dependencies["item4B_observer_policy"]["fully_ratified"] is False
+    assert dependencies["idle_evidence_semantics"]["e3_addendum_sha256"] == (
+        _sha256(P1 / "e3-stream-semantics-addendum.v0-draft.md")
+    )
     assert dependencies["complete_resolved_configuration"]["sha256"] is None
     assert dependencies["joint_admission_record"] is None
 
 
-def test_cpu_result_binds_final_G0_candidate_and_probe_bytes() -> None:
+def test_pre_remediation_cpu_result_remains_immutable_historical_evidence() -> None:
     result = _json(P1 / "g0-pinned-pair-cpu-result.json")
     candidates = result["review_candidates"]
-    assert candidates["issue2_mapping_sha256"] == _sha256(
-        P1 / "issue2-kv-recovery-mapping.v0-draft.md"
+    assert candidates["issue2_mapping_sha256"] == HISTORICAL_MAPPING_SHA256
+    assert candidates["issue2_mapping_approval_candidate_sha256"] == (
+        HISTORICAL_MAPPING_CANDIDATE_SHA256
     )
-    assert candidates["issue2_mapping_approval_candidate_sha256"] == _sha256(
-        P1 / "issue2-kv-recovery-mapping-approval-candidate.json"
-    )
-    assert candidates["P0_overlay_sha256"] == _sha256(
-        P1 / "kv-offload-base-mode-overlay.v0-draft.md"
-    )
-    assert candidates["P0_overlay_approval_candidate_sha256"] == _sha256(
-        P1 / "kv-offload-base-mode-overlay-approval-candidate.json"
+    assert candidates["P0_overlay_sha256"] == HISTORICAL_OVERLAY_SHA256
+    assert candidates["P0_overlay_approval_candidate_sha256"] == (
+        HISTORICAL_OVERLAY_CANDIDATE_SHA256
     )
     assert candidates["incomplete_config_candidate_sha256"] == _sha256(
         P1 / "benchmark-134-fixed-8gib-config-candidate.json"
     )
+    assert candidates["incomplete_config_candidate_sha256"] == HISTORICAL_CONFIG_SHA256
 
     artifacts = result["probe_artifacts"]
-    assert artifacts["script_sha256"] == _sha256(
-        REPOSITORY_ROOT / "scripts" / "verify_g0_pinned_pair.py"
+    assert artifacts["script_sha256"] == (
+        "3e5c666f63969f523f8f70c07ed8c5141706887b11a775c757b4dc12cf69df3f"
     )
-    assert artifacts["probe_test_sha256"] == _sha256(
-        REPOSITORY_ROOT / "tests" / "test_g0_pinned_pair_probe.py"
+    assert artifacts["probe_test_sha256"] == (
+        "4ad8e5162f0c91f3fcd188a78ba602dd576d97c322cd8f596d545c674f6ace4f"
     )
-    assert artifacts["config_test_sha256"] == _sha256(
-        REPOSITORY_ROOT / "tests" / "test_g0_benchmark_134_config_candidate.py"
+    assert artifacts["config_test_sha256"] == (
+        "5b4823a90e022b4463d2f2899f9aae522bbb62185826d7ee1b8fa55604372e85"
     )
     assert result["direct_cli_result"]["exit_code"] == 2
     assert result["direct_cli_result"]["overall_status"] == "BLOCKED"
     assert result["gate_effects"]["G0_complete"] is False
     assert result["gate_effects"]["NPU_authorized"] is False
+
+
+def test_current_overlay_ratification_candidate_freezes_nothing() -> None:
+    record = _json(
+        P1 / "kv-offload-base-mode-overlay-owner-ratification-candidate.r2.json"
+    )
+    assert record["proposed_artifacts"]["overlay"]["sha256"] == _sha256(
+        P1 / "kv-offload-base-mode-overlay.v0-draft.md"
+    )
+    assert record["proposed_artifacts"]["approval_candidate"]["sha256"] == (
+        _sha256(P1 / "kv-offload-base-mode-overlay-approval-candidate.json")
+    )
+    assert record["candidate_effect"] == "none"
+    assert record["gate_effects"]["P0_overlay_frozen"] is False
+    assert record["gate_effects"]["G1_runtime_activation_authorized"] is False

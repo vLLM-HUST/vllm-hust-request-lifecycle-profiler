@@ -10,7 +10,7 @@ CANDIDATE_PATH = (
     REPOSITORY_ROOT
     / "contracts"
     / "p1"
-    / "benchmark-134-fixed-8gib-config-candidate.json"
+    / "benchmark-134-fixed-8gib-config-candidate.r2.json"
 )
 
 
@@ -143,6 +143,7 @@ def test_all_authority_inputs_remain_explicit_blockers(
         "BLOCKED_TIERING_DISABLED_SEMANTICS",
         "BLOCKED_COPY_OPTIMIZATION_TOGGLE",
         "BLOCKED_COMMUNICATION_MAPPING",
+        "BLOCKED_ITEM4B_OBSERVER_POLICY",
         "BLOCKED_COMMON_PARAMETER_AUTHORITY",
         "BLOCKED_P0_BASE_MODE_OVERLAY",
         "BLOCKED_METRIC_COVERAGE",

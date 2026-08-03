@@ -1,10 +1,10 @@
 # Local KV-Offload Base-Mode Overlay v0 Draft
 
 - Proposed overlay ID: `rlp.trace-mode/kv-offload-v1alpha1`
-- Review status: `p0_owner_review_required`
-- Activation status: `BLOCKED_BY_P0_OWNER_MAPPING_CONFIG_AND_IMPLEMENTATION_GATES`
+- Review status: `p0_owner_rereview_required_after_mapping_request_changes`
+- Activation status: `BLOCKED_BY_P0_OWNER_MAPPING_ITEM4B_CONFIG_AND_IMPLEMENTATION_GATES`
 - Evidence status: `NOT_M0_PROVEN`
-- Runtime implementation status: `NOT_STARTED`
+- Runtime implementation status: `DEFAULT_OFF_WIP_OUT_OF_SCOPE_FOR_OVERLAY_APPROVAL`
 
 This is a minimal, content-addressable conformance overlay for the frozen
 `rlp.trace/v1alpha1` contract. It does not edit either P0 file, approve the
@@ -40,16 +40,22 @@ lying about the connector or manufacturing request-scoped D2H/wait edges.
 | Phase taxonomy | SHA-256 `82aae94c5d124b846f77684e239714d51791115608e786079c4ea4bd4ca05abd` | owner-frozen and byte-immutable |
 | Recovery profile | `rlp.kv-recovery/v1alpha1`, SHA-256 `b363532884d1cae8049ab080d2b85a629f3b33a75f6621788d1e4c8f30737666` | profile-owner frozen |
 | Recovery profile approval | SHA-256 `2831ce52802e7cbe4ec092431c71c18de05491da7ac8d48512014b1d43b3cb0c` | profile-only approval |
-| Specialty mapping candidate | `issue2:kv-recovery-v1alpha1`, SHA-256 `dca914f989f3a98d43fb9fa2538f7c43a375e8f22f5deb7e09343aee5ee7bc19` | separate issue-2-authority approval required |
-| Runtime | `vLLM-HUST/vllm-hust@f229ba7cad21a4dba58681af6738a9fd947388e2` | exact source pin |
-| Device plugin | `vLLM-HUST/vllm-ascend-hust@cafad89a5e103f31ea517c1edb56130578c3cd56` | exact source pin |
+| Idle Evidence Contract v4.3 | profiler commit `7e10622eb5755e1af544546e93e3f63a91214ffc`, `docs/idle_evidence_contract.md`, SHA-256 `8edb42b706b6cab14dfde2b109841cb8af090883c9ea86696ee779de21d0c9ed` | immutable interval/clock/canonicalization/completeness/claim dependency |
+| E3 stream-semantics addendum | SHA-256 `779faa2ef3f344c739d2092b7d4d250d0a4e3a4c5e76ec04ffcfa0d59ac8eddb` | independent semantic dependency; audited PR #15 has a recorded sentinel-plus-point conformance gap |
+| Specialty mapping candidate | `issue2:kv-recovery-v1alpha1`, SHA-256 `095944bbbb1a3ad3518aebfdd61c820ade3affdebd6024b47389cdaec24a3fa3` | separate issue-2-authority approval required |
+| Mapping approval candidate | SHA-256 `a686243ffd9c650790e6421e5f976a2a5c010a5d2480e7a30ad8722a9218f3f7` | issue-2 Items 1-3, 4A, and 5-8 only; no Item 4B approval |
+| Item 4B observer policy candidate | `rlp.kv-recovery-observer-policy/v1alpha1`, SHA-256 `fbee3bc4f74b8c5c20e929c4e37596b06b31c1b9cd02517d8461961a8aedf420` | separate profile/P0/runtime-owner ratification and conformance required |
+| Item 4B approval candidate | SHA-256 `27cb52269fff8f10e376f3128384c4aac37f149ad685b89501f98ba50bc0cf29` | grants no authority |
+| Runtime audited baseline | `vLLM-HUST/vllm-hust@f229ba7cad21a4dba58681af6738a9fd947388e2` | static review anchor; actual run commit is configuration/joint-admission bound |
+| Device-plugin audited baseline | `vLLM-HUST/vllm-ascend-hust@cafad89a5e103f31ea517c1edb56130578c3cd56` | static review anchor; actual run commit is configuration/joint-admission bound |
 
-The mapping row is a normative dependency, not an approval granted by this
-document. If its bytes change, this overlay candidate must be reviewed against
-the new digest.
+The mapping and Item 4B rows are normative dependencies or activation
+prerequisites, not approvals granted by this document. If their bytes or owner
+records change, this overlay candidate must be reviewed against the new
+digests. The source baselines are not permanent semantic pins.
 
 The incomplete #134 configuration candidate at
-`contracts/p1/benchmark-134-fixed-8gib-config-candidate.json` is a
+`contracts/p1/benchmark-134-fixed-8gib-config-candidate.r2.json` is a
 non-normative design input only. Its changing review digest is deliberately
 not embedded here, so refinement of that non-runnable artifact cannot create a
 digest cycle with this overlay. It is not an exact dependency frozen by
@@ -91,8 +97,9 @@ new profile digest, plus a new/expanded P0 overlay digest, before it can become
 a formal connector mode.
 
 Any other connector, spec, topology, rank count, secondary tier, dynamic or
-recompute scheduler override, missing resolved value, or changed source pin is
-diagnostic-only under this overlay. `local_offload` must never be emitted for
+recompute scheduler override, missing resolved value, or actual source commit
+not bound by configuration/joint admission and conformance is diagnostic-only
+under this overlay. `local_offload` must never be emitted for
 HBM-only/no-connector control, CPUOffloadingSpec, RecomputeCPUOffloadConnector,
 NPUOffloadingSpec, or NPUTieringOffloadingSpec.
 
@@ -109,7 +116,8 @@ metadata for `local_offload` contains exactly these overlay bindings:
 kv_cache_mode_profile="rlp.trace-mode/kv-offload-v1alpha1"
 kv_cache_mode_profile_sha256=<final SHA-256 of this overlay artifact>
 kv_recovery_profile_sha256="b363532884d1cae8049ab080d2b85a629f3b33a75f6621788d1e4c8f30737666"
-communication_mapping_sha256="dca914f989f3a98d43fb9fa2538f7c43a375e8f22f5deb7e09343aee5ee7bc19"
+communication_mapping_sha256="095944bbbb1a3ad3518aebfdd61c820ade3affdebd6024b47389cdaec24a3fa3"
+kv_recovery_observer_policy_sha256="fbee3bc4f74b8c5c20e929c4e37596b06b31c1b9cd02517d8461961a8aedf420"
 resolved_configuration_sha256=<approved complete configuration SHA-256>
 ```
 
@@ -166,16 +174,28 @@ preempted(e)
 
 The outer edges are `data_dependency` with the issue-2 code; the inner edge is
 `program_order / instrumented_execution_context`. All event, identity,
-metadata, timestamp, epoch, span, duplicate, graph, and endpoint rules in the
-approved mapping remain mandatory. The internal edge additionally requires
-the mapping's explicit bounded pending context keyed by `transfer_id`; same
-process, poll order, or timestamps alone are insufficient. G1 must prove that
-accepted submission stores the exact start/event/request/epoch/block context
-and that the first matching raw completion atomically consumes it before the
-done event and edge are emitted. This exception does not allow communication
-to remain open across preemption: its start occurs only after the closing
-`preempted(e)` and the span must finish before admission or another
-preemption/terminal.
+metadata, timestamp, epoch, span, duplicate, graph, endpoint, sidecar, receipt,
+and emitter rules in the approved mapping remain mandatory. In particular,
+the worker emits the first two edges only after receiving the exact emitted
+`preempted(e)` event ID and creating the exact communication endpoint IDs; the
+EngineCore emits the third only after accepting the exact completion receipt,
+observing the qualifying scheduler wakeup, and receiving the actual
+`admission_started(e+1)` event ID. Same request text, process, poll order,
+timestamps, or event adjacency are never sufficient and the normalizer may not
+infer or repair an endpoint or edge.
+
+The internal edge also requires the separately admitted Item 4B observer
+policy's finite pending container keyed by the exact transfer identity. G1
+must prove that accepted submission stores the exact
+start/event/request/lifecycle/epoch/episode/block context and that the first
+matching raw completion atomically consumes it before the done event, internal
+edge, and receipt are emitted. The mapping does not own the numeric capacities,
+capacity-failure codes, serialization/loss implementation, cleanup mechanism,
+or cross-process invalidation mechanism; those facts become normative only
+through an approved Item 4B policy and its executable conformance evidence.
+This exception does not allow communication to remain open across preemption:
+its start occurs only after the closing `preempted(e)` and the span must finish
+before admission or another preemption/terminal.
 
 No timestamp-derived edge, D2H return edge, scheduler-wait span, or device-idle
 claim is added by this overlay.
@@ -183,20 +203,27 @@ claim is added by this overlay.
 ## 7. Combined conformance and failure behavior
 
 A `local_offload` trace is formally eligible only when all of these exact
-digests have explicit authority records: P0 contract/taxonomy, this overlay,
-recovery profile, issue-2 mapping, and complete resolved configuration. A
+semantic/configuration digests have explicit applicable authority records: P0
+contract/taxonomy, this overlay, recovery profile, E3 addendum, issue-2
+mapping, Item 4B observer policy, and complete resolved configuration. A
 separate final joint admission record must bind the exact overlay SHA-256 and
-P0-owner overlay-approval-record SHA-256, issue-2 mapping SHA-256 and issue-2
-approval-record SHA-256, complete resolved-configuration SHA-256 and
-configuration-approval-record SHA-256, recovery-profile SHA-256 and profile-
-owner-approval-record SHA-256, and the frozen P0 contract/taxonomy digests plus
-their applicable approval records. That joint record must be co-signed by the
-P0 owner and the #134 configuration authority and must cite the separate
-issue-2-authority approval; neither signer may substitute for issue-2
-authority, and the P0 owner's joint-record signature cannot substitute for the
-separate frozen overlay-approval-record identity. Any byte change, approval-
-record change, or digest mismatch invalidates the joint record and requires a
-new one. The run
+P0-owner overlay-approval-record SHA-256; issue-2 mapping SHA-256 and issue-2
+approval-record SHA-256; Item 4B policy SHA-256 and every required profile/P0/
+runtime-owner approval-record SHA-256; complete resolved-configuration SHA-256
+and configuration-approval-record SHA-256; recovery-profile and E3-addendum
+SHA-256 values plus their applicable approval records; the frozen P0 contract/
+taxonomy digests plus their approval records; and the exact runtime and device-
+plugin source commits used by the run. The audited source baselines in section
+2 are review anchors only and do not substitute for those actual execution
+bindings.
+
+That joint record must be co-signed by the P0 owner and the #134 configuration
+authority and must cite the separate issue-2-authority approval and every Item
+4B owner approval. Neither signer may substitute for issue-2 or runtime-
+implementation authority, and the P0 owner's joint-record signature cannot
+substitute for the separate frozen overlay-approval-record identity. Any byte
+change, approval-record change, actual-source change, or digest mismatch
+invalidates the joint record and requires a new one. The run
 must also pass every unchanged P0 rule through an overlay-aware validator, the
 overlay rules, the complete profile/mapping validators, expected-process
 receipts, scheduler/interface gates, and collection/loss checks.
@@ -236,7 +263,8 @@ a complete recovery capture, speedup, a benchmark result, or M0.
 The P0 owner must accept or replace each item while citing this artifact's
 final SHA-256:
 
-1. overlay ID, exact dependency digests, and non-modification of frozen P0
+1. overlay ID, exact semantic dependency and Item 4B prerequisite digests,
+   audited-source-baseline classification, and non-modification of frozen P0
    bytes;
 2. the single new `kv_cache_mode=local_offload` meaning and exact supported
    topology/`tiering_enabled` implementation family, excluding the unresolved
@@ -245,7 +273,9 @@ final SHA-256:
    configuration admission-record rule;
 4. the H2D-only paired base-operation roster, zero-or-one per-lifecycle
    cardinality exception, and closed zero mappings for D2H and transfer wait;
-5. the exact cross-epoch H2D recovery-bridge interpretation;
+5. the exact cross-epoch H2D recovery-bridge interpretation, explicit endpoint
+   handoff and three edge emitters, normalizer prohibition, and dependency on
+   a separately approved Item 4B observer policy;
 6. unsupported-reason mapping plus preservation of all other P0 grammar,
    validation, loss, receipt, and fail-closed evidence rules;
 7. independent issue-2 mapping, configuration, CPU/G1, and later hardware

@@ -1,0 +1,116 @@
+{
+  "schema": "request-lifecycle-profiler/kv-recovery-observer-policy-approval-candidate/v1",
+  "status": "PROFILE_P0_AND_RUNTIME_OWNER_REVIEW_REQUIRED",
+  "evidence_status": "NOT_M0_PROVEN",
+  "generated_at": "2026-08-03T10:35:16Z",
+  "candidate_effect": "none_until_explicit_scope_specific_owner_approvals",
+  "proposed_artifact": {
+    "policy_id": "rlp.kv-recovery-observer-policy/v1alpha1",
+    "path": "kv-recovery-observer-policy.v0-draft.json",
+    "sha256": "fbee3bc4f74b8c5c20e929c4e37596b06b31c1b9cd02517d8461961a8aedf420",
+    "activation_effect": "none_without_all_later_gates"
+  },
+  "authority_split": {
+    "profile_and_P0_owner": {
+      "owner": "Remygred",
+      "items": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "approval_record": null
+    },
+    "runtime_observer_implementation_owner": {
+      "owner": null,
+      "items": [
+        6,
+        7,
+        8
+      ],
+      "approval_record": null,
+      "must_bind_exact_implementation_and_executable_attestation": true
+    },
+    "issue2_authority_may_substitute": false,
+    "joint_admission_may_substitute_for_missing_policy_owner_approval": false
+  },
+  "immutable_context": {
+    "minimum_runtime_contract_sha256": "122963930919073179d4844422d21e85da3a522def3ace723eb992eac43cdade",
+    "phase_taxonomy_sha256": "82aae94c5d124b846f77684e239714d51791115608e786079c4ea4bd4ca05abd",
+    "approved_recovery_profile_sha256": "b363532884d1cae8049ab080d2b85a629f3b33a75f6621788d1e4c8f30737666",
+    "recovery_profile_owner_approval_sha256": "2831ce52802e7cbe4ec092431c71c18de05491da7ac8d48512014b1d43b3cb0c"
+  },
+  "audited_source_and_attestation_context": {
+    "runtime_baseline_commit": "f229ba7cad21a4dba58681af6738a9fd947388e2",
+    "device_baseline_commit": "cafad89a5e103f31ea517c1edb56130578c3cd56",
+    "local_default_off_runtime_WIP_commit": "0141462f82fb32f78129acccc996212296129eac",
+    "local_focused_attestation": "5_passed_14_warnings_default_off_WIP_only",
+    "runtime_activation_authorized": false
+  },
+  "review_items": [
+    {
+      "item": 1,
+      "authority": "profile_and_P0_owner",
+      "status": "pending",
+      "decision": "Accept the separate non-cyclic Item 4B policy identity, exact digest, authority boundary, and rule that issue-2 mapping approval cannot approve this policy."
+    },
+    {
+      "item": 2,
+      "authority": "profile_and_P0_owner",
+      "status": "pending",
+      "decision": "Accept the four explicit candidate bounds of 4096 for prepared transfer attempts, pending H2D contexts, pending D2H contexts, and H2D receipts per worker step; accept their two exact runtime-constant sources, require content-bound executable attestation for every capacity path and later joint admission, and do not derive any value from issue-2 authority or analogy."
+    },
+    {
+      "item": 3,
+      "authority": "profile_and_P0_owner",
+      "status": "pending",
+      "decision": "Explicitly approve serialization_failure to include bounded prepared-transfer, pending-H2D, pending-D2H, and H2D-receipt admission failure while the real transfer continues unchanged. Pre-start capacity emits no new base pair or edge. Late receipt capacity retains immutable start/done and edges 1-2, emits no receipt or edge 3, never retracts or repairs records, consumes the exact profiler loss record_seq, and fails the affected formal trace closed."
+    },
+    {
+      "item": 4,
+      "authority": "profile_and_P0_owner",
+      "status": "pending",
+      "decision": "Accept the minimum exact pending-context identity using base_preempted_event_id without aliases, the scheduler-to-worker sidecar, worker-to-EngineCore done-event receipt, and prohibition on request/time/stage-derived reconstruction."
+    },
+    {
+      "item": 5,
+      "authority": "profile_and_P0_owner",
+      "status": "pending",
+      "decision": "Accept that all four capacity paths, a CPU test for late receipt failure preserving prior records while forbidding edge 3, terminal/preemption invalidation, bounded receipt transport, record_seq/loss accounting, close cleanup, conformance, complete configuration and joint admission are mandatory before activation and that these decisions do not activate communication or G1."
+    },
+    {
+      "item": 6,
+      "authority": "runtime_observer_implementation_owner",
+      "status": "pending",
+      "decision": "Bind the exact runtime implementation commit and attest that prepared, pending H2D, pending D2H, and receipt capacities, atomic consumption, sidecar/receipt paths, pre-start versus late-receipt failure timing, immutable prefix records, and serving fail-open behavior conform to the policy."
+    },
+    {
+      "item": 7,
+      "authority": "runtime_observer_implementation_owner",
+      "status": "pending",
+      "decision": "Attest the real profiler record_seq and loss ledger, all three mapping-assigned edge emitters, receipt deduplication, EngineCore admission handoff, terminal/preemption invalidation, and close cleanup with whole-trace CPU tests."
+    },
+    {
+      "item": 8,
+      "authority": "runtime_observer_implementation_owner",
+      "status": "pending",
+      "decision": "Accept default-off implementation, no producer-path file or logging-handler I/O, content-addressed conformance evidence, and the requirement for a later resolved configuration, joint admission, and separate runtime-activation authorization."
+    }
+  ],
+  "profile_P0_owner_approval_statement_template": "批准按 SHA-256 fbee3bc4f74b8c5c20e929c4e37596b06b31c1b9cd02517d8461961a8aedf420 冻结 rlp.kv-recovery-observer-policy/v1alpha1 Item 4B policy 候选，并接受 SHA-256 <FINAL_POLICY_APPROVAL_CANDIDATE_SHA256> 的 profile/P0 owner 第 1-5 项；明确批准 serialization_failure 包含 bounded prepared-transfer、pending-H2D、pending-D2H 和 H2D-receipt admission failure，真实 KV transfer 必须 fail-open；pre-start capacity 不产生新 base pair/edge，late receipt capacity 保留已写 start/done 与 edges 1-2、禁止 receipt/edge 3、不得撤销或修复，并精确记 loss。批准四个候选上限均为 4096，且仅在 exact runtime constants、所有容量路径 executable attestation 和 joint admission 联合绑定后可使用。该批准不替代 runtime implementation owner 第 6-8 项、issue-2 mapping、P0 overlay 最终摘要批准、完整配置、joint admission 或 runtime activation，也不授权非 none 通信、NPU、服务、实验、性能结论或 M0。",
+  "gate_effects": {
+    "policy_fully_ratified": false,
+    "profile_P0_owner_items_approved": false,
+    "runtime_owner_items_approved": false,
+    "joint_admission_present": false,
+    "communication_mode_non_none_authorized": false,
+    "G1_runtime_activation_authorized": false,
+    "NPU_authorized": false,
+    "service_launch_authorized": false,
+    "performance_experiment_authorized": false,
+    "performance_claim_authorized": false,
+    "M0_proven": false
+  },
+  "integrity_rule": "This candidate records no approval. Profile/P0 and runtime implementation authorities approve only their listed items while citing the exact policy and candidate digests. Both scope-specific approvals, mapping and overlay approvals, complete resolved configuration, executable conformance, joint admission, and separate runtime activation remain required before use."
+}

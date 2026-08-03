@@ -1283,3 +1283,291 @@ Within `third_party/vllm-hust`, its own `AGENTS.md` and nested instructions take
 precedence for files in that submodule. Resolve any environment conflict with
 the owner before modifying runtime code; do not blend two environment policies
 silently.
+
+## Superseding issue-2 Request-Changes remediation checkpoint (2026-08-03)
+
+This section is the current long-term authority and execution memory for the
+KV-recovery work. It supersedes the earlier sections titled **Latest
+authenticated authority facts**, **Issue-2 mapping result and independent P0
+blocker**, and **Current gate table and next order** wherever they conflict.
+Those sections remain historical evidence only. In particular, do not approve,
+bind, or publish the former mapping/candidate digests
+`dca914f989f3a98d43fb9fa2538f7c43a375e8f22f5deb7e09343aee5ee7bc19` /
+`f3cfdd6d9463251fdc27e01164d9f33a1efcc6c155f6d51959e0e1989d23a350`,
+or the later intermediate mapping/G1 digests `662e555b...` / `0601e765...`.
+
+### Governing authority result
+
+The authenticated authority response is profiler issue #2 comment
+`5164544402`, whose result is **Request changes**, not approval. The remediation
+must answer all five requested changes before asking that authority to review
+the mapping again:
+
+1. Idle Evidence Contract v4.3 and the later E3 stream rules must be separate,
+   content-addressed semantic dependencies. Never attribute E3 bytes to v4.3.
+2. Every H2D edge needs an exact endpoint-ID handoff and a named emitter. No
+   edge may be inferred from timestamp, file order, process order, or matching
+   labels.
+3. Mapping decision Item 4 must remain split: issue-2 authority owns 4A, the
+   base mapping; profile/P0/runtime authorities own 4B, the observer container,
+   capacity, failure, serialization, and cleanup policy.
+4. Every capacity and failure rule must state its source, value, owner,
+   executable status, and serving/evidence semantics.
+5. Runtime and device-plugin revisions are audited source baselines, not
+   immutable semantic dependencies. A complete configuration and later joint
+   admission bind the actual execution commits.
+
+The original issue #1 assignment comments and issue #2 authority are distinct:
+issue #1 defines the work and order; issue #2 alone approves or replaces the
+specialty communication mapping. Remygred/P0-owner approval cannot substitute
+for issue-2 authority, and issue-2 authority cannot substitute for Item 4B
+profile/P0/runtime-owner approval.
+
+### Stable remediated candidate chain
+
+The following LF/UTF-8 bytes are the only current candidates. Any content edit
+invalidates the changed artifact and every downstream digest and requires the
+whole chain to be regenerated in dependency order.
+
+- E3 stream-semantics addendum:
+  `contracts/p1/e3-stream-semantics-addendum.v0-draft.md`, SHA-256
+  `779faa2ef3f344c739d2092b7d4d250d0a4e3a4c5e76ec04ffcfa0d59ac8eddb`.
+- Item 4B observer policy:
+  `contracts/p1/kv-recovery-observer-policy.v0-draft.json`, SHA-256
+  `fbee3bc4f74b8c5c20e929c4e37596b06b31c1b9cd02517d8461961a8aedf420`.
+- Item 4B approval candidate:
+  `contracts/p1/kv-recovery-observer-policy-approval-candidate.json`, SHA-256
+  `27cb52269fff8f10e376f3128384c4aac37f149ad685b89501f98ba50bc0cf29`.
+- Issue-2 mapping:
+  `contracts/p1/issue2-kv-recovery-mapping.v0-draft.md`, SHA-256
+  `095944bbbb1a3ad3518aebfdd61c820ade3affdebd6024b47389cdaec24a3fa3`.
+- Issue-2 mapping approval candidate:
+  `contracts/p1/issue2-kv-recovery-mapping-approval-candidate.json`, SHA-256
+  `a686243ffd9c650790e6421e5f976a2a5c010a5d2480e7a30ad8722a9218f3f7`.
+- P0 base-mode overlay:
+  `contracts/p1/kv-offload-base-mode-overlay.v0-draft.md`, SHA-256
+  `d80771b793a9513cdbd4fc2001e21771c56a59d49340ee88d4381027d70b1d5a`.
+- P0 overlay approval candidate:
+  `contracts/p1/kv-offload-base-mode-overlay-approval-candidate.json`, SHA-256
+  `de889357af659d8e9c1f7daf0aa32656761e80dcf0fea29ef60809912f513694`.
+- Deliberately incomplete #134 fixed-8-GiB configuration R2:
+  `contracts/p1/benchmark-134-fixed-8gib-config-candidate.r2.json`, raw SHA-256
+  `7643fc322f3994ffbb8a3880be4401e0bff4eb5d511815a7f5b9271b547012e5`
+  and canonical JSON SHA-256
+  `16d415d4acdb58938ae6598b24a1f42757ea0eede615e53e455e766e800df1f2`.
+- P0 overlay owner-ratification candidate R2:
+  `contracts/p1/kv-offload-base-mode-overlay-owner-ratification-candidate.r2.json`,
+  SHA-256
+  `ffcdc6ce770906aa98675f630f07caf5c719485ef8f0afbfc4d3e94ae8e87e9a`.
+- G0 remediation CPU result:
+  `contracts/p1/g0-mapping-remediation-cpu-result.json`, SHA-256
+  `4b378d10cef6be10fa3fb5a840402da77b1da755781118127a5d30b1cc4b7eb2`.
+- Current-digest G1 CPU-wiring reauthorization candidate R2:
+  `contracts/p1/g1-cpu-wiring-reauthorization-candidate.r2.json`, SHA-256
+  `a0fbcc863181558fda3d8c82be62dfce4a9594ea1802f053979cae99900597b5`.
+
+The dependency graph is intentionally one-way: policy is a root; mapping binds
+E3 and policy; overlay binds mapping and policy; the incomplete configuration
+binds mapping/overlay/policy; the G0 result aggregates those candidates; G1
+reauthorization is a leaf. No artifact embeds its own digest, and no downstream
+artifact is referenced from an upstream semantic artifact. The historical
+configuration `b57fed50...`, historical G0 result, original G1 authorization,
+and original pending overlay record remain unchanged evidence and do not bind
+the current candidates.
+
+### Remediated semantics that must not drift
+
+- E3 uses a fail-closed sentinel-plus-point intersection. Stream
+  `0xFFFFFFFF` creates no timeline and makes that device's observed-universe
+  scan incomplete. A legal zero-duration point stays point-only and is not an
+  interval or a universe member. The audited PR #15 implementation currently
+  intersects the rules differently and is explicitly **not conformant**; it
+  must be fixed and tested before activation.
+- H2D is exactly one base start/done span and three explicit edges. The exact
+  handoff fields include `base_preempted_event_id`,
+  `communication_started_event_id`, `communication_done_event_id`, and the
+  first successful next-epoch `admission_started` ID. The rank-0 worker emits
+  edges 1 and 2; EngineCore emits edge 3 only after it receives the exact done
+  ID. Missing, duplicate, consumed, malformed, terminal-crossing, or
+  preemption-invalidated contexts emit no inferred replacement edge.
+- D2H preserve and transfer-wait remain profile-only base mappings with zero
+  base spans and zero base edges. The normalizer validates but never creates,
+  repairs, selects, or deduplicates recovery edges.
+- Item 4A is the mapping above. Item 4B is a separate policy and activation
+  prerequisite. Issue-2 approval of 4A acknowledges that prerequisite but does
+  not approve Item 4B.
+- Item 4B has four distinct positive-uint32 candidate bounds, each `4096`:
+  prepared transfer attempts/process, pending H2D contexts/process, pending
+  D2H contexts/process, and H2D receipts/worker step. Their source is the exact
+  runtime baseline `f229ba7...`, local default-off WIP `0141462...`, exact
+  runtime constants/files, and the policy's executable-attestation ledger.
+- A pre-start/pre-admission capacity failure consumes the exact attempted
+  profile record/loss sequence, leaves the real KV transfer fail-open, emits no
+  new base pair or edge, and fails the affected formal evidence closed.
+- A late H2D-receipt capacity failure occurs after an immutable prefix may
+  already exist. It preserves written start/done and edges 1-2, emits no
+  receipt or edge 3, never retracts, rewrites, repairs, duplicates, or infers
+  records, consumes an exact profiler loss `record_seq`, and fails the whole
+  affected trace closed. Atomic pre-reservation is an allowed implementation
+  only if executable tests prove late exhaustion unreachable.
+- The four capacity values and failure semantics are candidates, not runtime
+  facts or activated limits. Existing runtime focused tests prove only named
+  bounded behaviors; prepared/D2H/late-receipt whole-trace integration remains
+  explicitly unproven.
+
+### Current authority and gate state
+
+- Recovery profile `b3635328...` remains frozen by its existing owner record.
+- Item 4B profile/P0-owner Items 1-5 are pending exact-digest approval by
+  Remygred. Runtime implementation-owner Items 6-8 remain separately pending;
+  that owner is not identified by the candidate and must bind the exact future
+  implementation and executable attestation.
+- Mapping Items 1-3, 4A, and 5-8 are pending a new decision from Luqhhh or an
+  explicitly delegated issue-2 authority. Item 4B is excluded from that
+  authority's approval scope.
+- P0 overlay Items 1-8 are pending exact-digest Remygred/P0-owner approval.
+- Configuration R2 is intentionally incomplete, contains nulls, is not
+  runnable, and is not frozen. No complete configuration approval or joint
+  admission exists.
+- The G0 result is a CPU-only candidate-integrity checkpoint. Its own
+  `G0_complete` gate is false.
+- G1 reauthorization has `candidate_effect=none` until an explicit
+  current-digest owner reply is recorded. The old authorization
+  `82386d43...` is historical and cannot authorize the remediated chain.
+- `communication_mode` remains `none`. Mapping/Item 4B/overlay/config/joint
+  admission, G1 activation, device-plugin edits, NPU, service launch,
+  performance experiments/claims, remote G1 PRs, and M0 all remain
+  false/pending/not authorized.
+
+### Stable validation evidence
+
+CPU validation must use the prescribed isolated Conda interpreter above. Bare
+`pytest` is not an acceptable substitute and is not present in the current
+shell. The final stable-byte checkpoints are:
+
+- remediation subset: `20 passed in 0.28s`;
+- pre-result suite excluding the downstream result-integrity test:
+  `141 passed in 42.41s`;
+- downstream result/G1 integrity test: `4 passed in 0.04s`;
+- complete repository suite after the final chain propagation:
+  `145 passed in 42.02s`;
+- targeted Ruff check: passed; five changed test files are already formatted;
+- all candidate JSON parses with `jq`; `git diff --check` passed; and
+- three independent read-only review lanes cover semantic/E3 correctness,
+  runtime failure/gate behavior, and digest/dependency fan-out. All three
+  returned GO on the stable bytes listed above, only for owner/issue-2 review
+  and default-off CPU work within the stated bounds, never for activation.
+
+`tests/test_issue2_mapping_remediation.py` now explicitly checks the policy
+digest embedded in the mapping Markdown. This regression assertion was added
+after a stale intermediate policy digest was found during final fan-out review;
+the entire mapping-to-G1 chain above was regenerated afterward.
+
+### Exact owner replies and execution order
+
+Do not infer a content-addressed approval from a general instruction such as
+“继续”, “按计划做”, or a prior approval of different bytes. Before creating
+owner records, Remygred must explicitly accept the exact current statements
+below (one reply may contain all three):
+
+1. `批准按 SHA-256 fbee3bc4f74b8c5c20e929c4e37596b06b31c1b9cd02517d8461961a8aedf420 冻结 rlp.kv-recovery-observer-policy/v1alpha1 Item 4B policy 候选，并接受 SHA-256 27cb52269fff8f10e376f3128384c4aac37f149ad685b89501f98ba50bc0cf29 的 profile/P0 owner 第 1-5 项；明确批准 serialization_failure 包含 bounded prepared-transfer、pending-H2D、pending-D2H 和 H2D-receipt admission failure，真实 KV transfer 必须 fail-open；pre-start capacity 不产生新 base pair/edge，late receipt capacity 保留已写 start/done 与 edges 1-2、禁止 receipt/edge 3、不得撤销或修复，并精确记 loss。批准四个候选上限均为 4096，且仅在 exact runtime constants、所有容量路径 executable attestation 和 joint admission 联合绑定后可使用。该批准不替代 runtime implementation owner 第 6-8 项、issue-2 mapping、P0 overlay 最终摘要批准、完整配置、joint admission 或 runtime activation，也不授权非 none 通信、NPU、服务、实验、性能结论或 M0。`
+2. `批准按 SHA-256 d80771b793a9513cdbd4fc2001e21771c56a59d49340ee88d4381027d70b1d5a 冻结 rlp.trace-mode/kv-offload-v1alpha1 P0 base-mode overlay，并接受 SHA-256 de889357af659d8e9c1f7daf0aa32656761e80dcf0fea29ef60809912f513694 的 Approval candidate 第 1-8 项。确认 issue-2 mapping 与 Item 4B policy 仅作为独立 authority prerequisites 引用；该批准不替代它们、完整配置、joint admission 或 runtime conformance，不授权 communication_mode 非 none、G1 runtime activation、NPU、服务、实验、性能结论或 M0。`
+3. `批准以 SHA-256 4b378d10cef6be10fa3fb5a840402da77b1da755781118127a5d30b1cc4b7eb2 的 G0 remediation CPU result 和其中 current_candidates 摘要链为当前目标，重新授权在现有独立 runtime 分支和从该 G0 commit 新建的独立 profiler G1 分支分别继续 default-off G1 CPU-side wiring、profiler adapter/normalizer 与测试。两个仓库必须保持 communication_mode=none、服务 fail-open、formal evidence fail-closed，不得改变 disabled serving path；该批准不代表 issue-2、Item 4B、P0 overlay、完整配置或 joint admission 已批准，不授权 runtime activation、device-plugin 修改、NPU、服务、实验、性能结论、远程 G1 PR 或 M0。`
+
+Continue strictly in this order:
+
+1. Obtain the exact owner reply above. Create separate immutable owner records
+   for only the approved scopes; never mutate an approved candidate to embed
+   its own approval.
+2. Rerun candidate-integrity, owner-authorization, full CPU, Ruff, JSON, digest,
+   and diff checks. Any changed candidate digest invalidates the reply and
+   returns to step 1.
+3. Commit the profiler G0 remediation on
+   `feature/kv-recovery-profile-v1alpha1`, push that branch, and update Draft PR
+   #7 with the exact stable digests, Request-Changes response, validation, and
+   remaining gates. Do not push the separate runtime WIP.
+4. Post one issue-2 re-review comment mapping the five requested changes to the
+   published files/digests and request approval of mapping Items 1-3, 4A, and
+   5-8. State explicitly that Item 4B and every activation/performance gate are
+   outside that request.
+5. Record the issue-2 decision without interpreting silence as approval. Obtain
+   the independent runtime implementation-owner Items 6-8 attestation, resolve
+   the remaining #134 inputs, produce and approve a complete configuration,
+   and create the required multi-authority joint-admission record.
+6. Only the exact G1 reauthorization in step 1 permits further local,
+   default-off, CPU-only work in the two isolated repositories. Finish real
+   call-site IDs/sidecars/receipts/emitters/capacity/invalidation plus the
+   profiler exporter/normalizer/loss-ledger and whole-trace tests. It does not
+   permit activation or remote G1 publication.
+7. Request separate runtime activation only after every prior authority,
+   complete configuration, executable conformance, startup, and whole-trace
+   CPU gate is satisfied. NPU preflight and performance experiments remain
+   later, separately authorized stages.
+
+### Exact owner approvals recorded after the stable remediation chain
+
+The user subsequently supplied all three exact statements in the preceding
+section without changing any candidate digest. This subsection supersedes the
+pending Remygred states and step 1 above; it does not supersede any independent
+issue-2, runtime-owner, configuration, joint-admission, activation, hardware,
+or performance gate.
+
+The new downstream, immutable records are:
+
+- Item 4B profile/P0-owner Items 1-5 approval:
+  `contracts/p1/kv-recovery-observer-policy-profile-p0-owner-approval.json`,
+  SHA-256
+  `322df19ade75797fc4c3f43fe96e689404ef60a270c92081afea03683e734c91`.
+  It freezes policy `fbee3bc4...` and accepts approval candidate
+  `27cb5226...` only for Items 1-5. Runtime implementation-owner Items 6-8
+  remain `pending/null/false`; the policy is not fully ratified.
+- P0 overlay owner ratification:
+  `contracts/p1/kv-offload-base-mode-overlay-owner-ratification.r2.json`,
+  SHA-256
+  `50d7deb8f98fcdca36303297a4ce6f7958ae619574d2e1994872936b6fc583a3`.
+  It freezes overlay `d80771b7...` and accepts approval candidate
+  `de889357...` Items 1-8. It records the ratification candidate
+  `ffcdc6ce...` only as procedural context, not as a separately approved
+  artifact. The historical pending record `c17dad09...` is unchanged.
+- Current-digest G1 CPU-source reauthorization:
+  `contracts/p1/g1-cpu-wiring-owner-reauthorization.r2.json`, SHA-256
+  `448ff68cd139077a2f767fd16359bb5dd8f4cf61cfe258fd48f53a26569718f5`.
+  It opens only local, isolated, default-off, CPU-side runtime/profiler source
+  and test work against G0 result `4b378d10...`. The old authorization
+  `82386d43...` remains immutable and cannot authorize the current chain. The
+  future profiler G1 worktree must start from the published profiler commit
+  containing the exact G0 result and this reauthorization; the record does not
+  pretend that the G0 JSON digest is a Git commit.
+
+`tests/test_current_owner_records.py`, SHA-256
+`ab72f5cb73e85e5a821d9e1eb3dc2bc8a3b84b0f6a27e640f543e0b4b56d9b97`,
+is deliberately a new downstream test file. It does not edit any of the four
+test-source bytes bound by the immutable G0 result. Its five focused tests
+bind the exact user statements and dynamic artifact digests, enforce the
+one-way record dependency graph, preserve both historical records, and prove
+that only the three owner-controlled states below opened. The post-approval
+focused result is `5 passed in 0.08s`; the complete repository result is
+`150 passed in 42.18s`. All P1 JSON, targeted Ruff/format, digest, and
+`git diff --check` validations passed.
+
+The current global owner-controlled state is now:
+
+- `Item4B_profile_P0_owner_items_approved=true`;
+- `P0_overlay_frozen=true`; and
+- `G1_CPU_side_source_work_reauthorized_for_current_digests=true`.
+
+The following remain closed regardless of those three approvals:
+
+- Item 4B runtime implementation-owner Items 6-8 and
+  `Item4B_policy_fully_ratified`;
+- issue-2 mapping authority approval;
+- complete configuration, configuration approval, runtime conformance, and
+  joint admission;
+- `G0_complete`, `communication_mode != none`, and runtime activation;
+- device-plugin edits, NPU import/preflight, service launch, experiments,
+  performance/M0 claims, remote runtime or profiler G1 publication, and merge.
+
+Continue from step 2 of the preceding sequence: run final validation, publish
+only the profiler G0 branch and update Draft PR #7, then request issue-2
+re-review of mapping Items 1-3, 4A, and 5-8. Do not request issue-2 approval of
+Item 4B, and do not push either G1 branch.
