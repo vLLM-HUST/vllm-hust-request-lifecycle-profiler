@@ -7,10 +7,11 @@ required check fails, write `BLOCKED.txt` and do not switch devices.
 > **Current-use warning (2026-08-03):** the commands and legacy three-field
 > trace interface below document the earlier Qwen2.5-7B existing-server probe.
 > They are not the launch or admission recipe for the newly assigned PR #4 KV
-> recovery experiment. For that work, first complete G0-G2 in
-> `experiment_plan.md`: reconcile PR #4, freeze the optional profile, validate
-> the frozen runtime/device pair, and run a version-aware whole-trace preflight.
-> Do not launch the historical `0daab7...` hook carrier for the new #134 run.
+> recovery experiment. PR #4 reconciliation is complete; for that work, finish
+> the remaining G0-G2 items in `experiment_plan.md`: freeze the optional
+> profile, validate the frozen runtime/device pair, CPU-test the full chain,
+> and run a version-aware whole-trace preflight. Do not launch the historical
+> `0daab7...` hook carrier for the new #134 run.
 
 ## Required Inputs
 

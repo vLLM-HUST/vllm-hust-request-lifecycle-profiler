@@ -65,9 +65,8 @@ or root-cause task merely to construct profiler evidence.
 - The feature branch's historical parent baseline is
   `84261a2458e1f961b0279b70780ca9497bad3f2e`. Its committed P0/P1 checkpoint is
   `9f1464b8d017ef48e66b8b4c9bd4a5a37fdc563d`. Authenticated upstream `main`
-  advanced through merged PR #4 to
-  `15717eae2630e80c11b113ccaeb3422871b35b40`; do not describe the local
-  `origin/main` ref as current until it has been fetched and verified.
+  and the fetched local `origin/main` both point through merged PR #4 at
+  `15717eae2630e80c11b113ccaeb3422871b35b40` as verified on 2026-08-03.
 - Its pinned workload gitlink is
   `76e24c85bcab76ecfabb831c9444002b6efffd58`.
 - Its pinned vLLM gitlink is
@@ -90,17 +89,18 @@ do not implement against the stale vLLM submodule.
 Preserve unrelated user changes. Do not commit, push, open a PR, comment, or
 alter remote state without explicit authorization.
 
-Because the audited P1 candidate is preserved by checkpoint commit
-`9f1464b8d017ef48e66b8b4c9bd4a5a37fdc563d` and PR #4 overlaps `README.md`,
-`__init__.py`, the NPU6 preflight, and tests, do not rewrite that checkpoint or
-cherry-pick PR #4 blindly. Reconcile the additive `kv_recovery.py`, tests,
-exports, and READY/BLOCKED fix from a new branch/worktree based on upstream
-`main`. Recompute all affected hashes and rerun the relevant gates afterward.
+The audited P1 candidate remains preserved by checkpoint commit
+`9f1464b8d017ef48e66b8b4c9bd4a5a37fdc563d`; do not amend, rebase, or
+force-push it. PR #4 was composed with that checkpoint in a separate worktree
+and branch based on verified upstream `main`. Continue new work only from the
+integration branch described below, unless an owner explicitly chooses a new
+base. Do not repeat the reconciliation or replace the historical checkpoint.
 
 ## KV-recovery assignment update (2026-08-03)
 
-Profiler PR #4 is merged upstream. It adds an optional pressure-episode model
-alongside the base lifecycle trace, with these stages:
+Profiler PR #4 is merged upstream and present on the integration branch. It
+adds an optional pressure-episode model alongside the base lifecycle trace,
+with these stages:
 
 - `preempt`;
 - `restore_start` and `restore_done`;
@@ -238,6 +238,55 @@ topology and selects `RecomputeScheduler`; it hits the pinned-pair signature
 hazard above. Do not mix their configurations or evidence. Both include
 connector/offload transfers and therefore require a profile beyond
 `communication_mode=none`.
+
+## PR #4 integration checkpoint (2026-08-03)
+
+Branch `feature/kv-recovery-integration` starts from upstream merge commit
+`15717eae2630e80c11b113ccaeb3422871b35b40` and composes the frozen parent
+checkpoint as two commits:
+
+- `23195eac51643369c2b8fc287bb714f9a9ddd69d`: P0 protocol and bounded parent
+  exporter; and
+- `bd3950a35cb3f60918179185dd6a5d1206dace51`: experiment gates and durable
+  documentation.
+
+The only cherry-pick conflict was
+`src/vllm_request_lifecycle_profiler/__init__.py`. It was resolved additively
+so both PR #4 KV-recovery exports and the frozen runtime protocol/exporter
+exports remain public. PR #4's preflight and tests were mechanically formatted
+for the repository's current Ruff configuration; no runtime or device-plugin
+call site was changed.
+
+The combined offline CPU gate passed:
+
+- focused parent plus PR #4 tests: 67 passed;
+- complete repository unit suite: 94 passed;
+- targeted Ruff check and format check: passed;
+- dependency/import checks and an isolated sdist/wheel build passed, with
+  `kv_recovery.py` present in both artifacts;
+- the approved P0 contract and taxonomy SHA-256 values remain unchanged; and
+- `runtime_hooks.py`, `runtime_protocol.py`, `test_runtime_hooks.py`, and
+  `test_runtime_protocol.py` remain byte-identical to the limited two-review
+  GO boundary recorded below.
+
+Affected integration SHA-256 values are:
+
+- `__init__.py`:
+  `623f9e2e2ae43f4dde0729f962d7866a7ddea6cfd69af613d967ab50a0ca3209`;
+- `kv_recovery.py`:
+  `9b533e1620d4e282ed33eadcf8f27bb63a71cab5bfe0a6140823d9bb3d6b9849`;
+- `test_kv_recovery.py`:
+  `90f0f65ce1b1cde7e43e228e45950281eb307b1be1be0b642fbce6d49708c01a`;
+- `test_npu6_preflight.py`:
+  `8bbf37214240344a1560c7f2f729ea43edb9bb8c155a9c6e7dc1410738cfedc6`;
+  and
+- `.benchmarks/preflight_npu6_trace_probe.py`:
+  `fbf699c4d1e7063dda48d346031c6a7738612fbebb94bd8a7b80f497c59bd8c4`.
+
+This checkpoint proves offline composition and CPU compatibility only. It
+does not freeze the optional KV-recovery profile, integrate runtime/device
+call sites, admit NPU6, produce a controlled recovery trace, or prove a
+performance result. Those remain the next gates.
 
 ## Local P1 checkpoint (2026-08-02)
 

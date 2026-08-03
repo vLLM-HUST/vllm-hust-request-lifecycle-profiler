@@ -30,12 +30,15 @@ performance result.
 
 ## Verified Repository State
 
-Reverified through authenticated Git/SSH on 2026-08-02:
+Reverified through authenticated Git/SSH on 2026-08-03:
 
 - local profiler-parent feature base:
   `84261a2458e1f961b0279b70780ca9497bad3f2e`;
 - authenticated profiler upstream main after merged PR #4:
   `15717eae2630e80c11b113ccaeb3422871b35b40`;
+- active integration branch: `feature/kv-recovery-integration`, carrying
+  parent composition commits `23195eac51643369c2b8fc287bb714f9a9ddd69d`
+  and `bd3950a35cb3f60918179185dd6a5d1206dace51` on that upstream base;
 - pinned workload feature/gitlink:
   `76e24c85bcab76ecfabb831c9444002b6efffd58`;
 - pinned historical runtime-hook feature/gitlink:
@@ -58,14 +61,14 @@ implementation base. The owner-frozen P1 pair is runtime
 `cafad89a5e103f31ea517c1edb56130578c3cd56`; P1 is restricted to
 `communication_mode=none`.
 
-Committed checkpoint `9f1464b8d017ef48e66b8b4c9bd4a5a37fdc563d` does not yet contain PR #4's
-`src/vllm_request_lifecycle_profiler/kv_recovery.py`. PR #4 overlaps checkpoint
-files including `README.md` and `__init__.py` and also changes preflight code
-and tests. Preserve the checkpoint and integrate from an upstream-main
-branch/worktree; do not claim that the upstream model is already locally
-available there.
+Committed checkpoint `9f1464b8d017ef48e66b8b4c9bd4a5a37fdc563d` remains the immutable pre-PR #4
+audit point. Its controlled composition with PR #4 is complete on
+`feature/kv-recovery-integration`; the only cherry-pick conflict was resolved
+additively in `__init__.py`. Preserve the historical checkpoint and continue
+from the integration branch. Do not repeat the sync, rebase the checkpoint, or
+replace its historical hashes with integration hashes.
 
-## Parent CPU Gate Completed Locally
+## Parent and PR #4 CPU Gates Completed Locally
 
 The prescribed conda environment now exists at
 `/home/shuhao/miniconda3/envs/vllm-request-lifecycle-profiler-exp` and uses
@@ -80,17 +83,24 @@ sdist/wheel build passed. This is a parent/CPU gate only: no NPU service was
 started, no runtime/device call sites were changed, and neither P1 integration
 nor M0 is complete.
 
+On the integration branch, the combined parent plus PR #4 gate passed `67`
+focused tests and `94` full-suite tests plus targeted Ruff check/format. The P0
+contract/taxonomy hashes and the four limited-GO runtime/test files remain
+unchanged; dependency/import checks and isolated sdist/wheel packaging pass,
+and affected integration hashes are recorded in `../AGENTS.md`. This is still
+offline composition only: the optional profile and runtime/device call sites
+are not implemented, no NPU service was started, and M0 is not proven.
+
 ## Work Now — No Hardware
 
 1. Preserve committed parent checkpoint
    `9f1464b8d017ef48e66b8b4c9bd4a5a37fdc563d` and its hashes without amend,
    rebase, or force-push. After any source change, invalidate the affected GO
    and rerun the parent CPU gate.
-2. In a controlled worktree or reviewed patch, reconcile only PR #4's additive
-   KV-recovery model/tests/exports and its stale-marker fix. Resolve overlaps
-   deliberately. `__init__.py`'s recorded hash will change; recompute every
-   affected digest and rerun all corresponding tests/reviews before replacing
-   the checkpoint in `AGENTS.md`.
+2. Continue only from `feature/kv-recovery-integration`. PR #4 reconciliation,
+   conflict resolution, affected digest calculation, and combined CPU/Ruff
+   validation are complete. Keep the historical checkpoint section intact and
+   use the separate integration checkpoint in `AGENTS.md` for current hashes.
 3. Before runtime edits, freeze a versioned optional KV-recovery adapter or
    profile. It must define exact owners/boundaries for all seven stages,
    especially `admission`; complete bounded request-ID association to canonical

@@ -2,9 +2,11 @@ from __future__ import annotations
 
 import pytest
 
-from vllm_request_lifecycle_profiler.kv_recovery import KVRecoveryEvent
-from vllm_request_lifecycle_profiler.kv_recovery import KVRecoveryStage
-from vllm_request_lifecycle_profiler.kv_recovery import decompose_kv_recovery
+from vllm_request_lifecycle_profiler.kv_recovery import (
+    KVRecoveryEvent,
+    KVRecoveryStage,
+    decompose_kv_recovery,
+)
 
 
 def _event(stage, timestamp, **kwargs):
@@ -49,12 +51,8 @@ def test_decomposes_copy_and_restore_to_admission_wait() -> None:
         ([], "empty"),
         (
             [
-                KVRecoveryEvent(
-                    "req-1", "seq-1", KVRecoveryStage.PREEMPT, 0
-                ),
-                KVRecoveryEvent(
-                    "req-2", "seq-1", KVRecoveryStage.RESTORE_START, 1
-                ),
+                KVRecoveryEvent("req-1", "seq-1", KVRecoveryStage.PREEMPT, 0),
+                KVRecoveryEvent("req-2", "seq-1", KVRecoveryStage.RESTORE_START, 1),
             ],
             "stable request/sequence id",
         ),

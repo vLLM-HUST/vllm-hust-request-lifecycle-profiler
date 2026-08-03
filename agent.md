@@ -22,9 +22,10 @@ request-lifecycle tracing in LLM serving.
 ## Current Focus
 
 Follow the 2026-08-03 KV-recovery correction in `AGENTS.md`: preserve committed
-P1 checkpoint `9f1464b8d017ef48e66b8b4c9bd4a5a37fdc563d`, reconcile merged profiler PR #4,
-freeze the optional KV-recovery and required communication/specialty profile, then attach
-the full request/sequence/recovery chain to the approved runtime/device pair.
+P1 checkpoint `9f1464b8d017ef48e66b8b4c9bd4a5a37fdc563d` and continue from the completed
+PR #4 composition on `feature/kv-recovery-integration`. Freeze the optional
+KV-recovery and required communication/specialty profile, then attach the full
+request/sequence/recovery chain to the approved runtime/device pair.
 Do not run tiering under the existing `communication_mode=none`, and do not
 treat a BLOCKED preflight as performance evidence. The first hardware work is
 a single admitted pressure-episode trace smoke; matched #134 runs follow only

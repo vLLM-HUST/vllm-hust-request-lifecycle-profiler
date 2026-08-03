@@ -12,11 +12,12 @@ attribution questions. It may export inputs to roofline and statistical-gate
 projects, but trace ownership alone does not make those contributions complete.
 The minimal M0 phase/runtime protocol in `contracts/p0/` is owner-frozen. The
 parent exporter has an audited local CPU checkpoint. Following the two newest
-faculty comments on issue #1, the immediate gate is to reconcile merged PR #4,
-freeze a compatible optional KV-recovery profile, and connect its complete
-request/stage chain to a controlled runtime trace before any tiering/HBM-only
-matched experiment. Controlled intervention-based attribution remains the
-formal evaluation gate after P1 instrumentation. See
+faculty comments on issue #1, merged PR #4 is now composed with that checkpoint
+on `feature/kv-recovery-integration`. The immediate gate is to freeze a
+compatible optional KV-recovery profile and connect its complete request/stage
+chain to a controlled runtime trace before any tiering/HBM-only matched
+experiment. Controlled intervention-based attribution remains the formal
+evaluation gate after P1 instrumentation. See
 [`RESEARCH_UPGRADE_20260727.md`](RESEARCH_UPGRADE_20260727.md).
 
 ## Research Question
@@ -109,13 +110,13 @@ runtime `f229ba7cad21a4dba58681af6738a9fd947388e2`, device plugin
 `cafad89a5e103f31ea517c1edb56130578c3cd56`, and
 `communication_mode=none`. Those pins remain valid for the existing P1
 checkpoint, but actual tiering/offload is outside the frozen mode. The next
-gate is controlled reconciliation of upstream profiler PR #4 merge
-`15717eae2630e80c11b113ccaeb3422871b35b40`, followed by a reviewed optional
-KV-recovery plus communication/specialty profile, CPU whole-chain validation,
-and a version-aware READY preflight. Checkpoint
-`9f1464b8d017ef48e66b8b4c9bd4a5a37fdc563d` preserves the P0/P1 work but does
-not yet contain PR #4; integrate from an upstream-main worktree rather than
-rewriting that checkpoint.
+gate follows completed offline composition of upstream profiler PR #4 merge
+`15717eae2630e80c11b113ccaeb3422871b35b40`: obtain review for an optional
+KV-recovery plus communication/specialty profile, add CPU whole-chain runtime
+validation, resolve the pinned scheduler compatibility hazard, and pass a
+version-aware READY preflight. Historical checkpoint
+`9f1464b8d017ef48e66b8b4c9bd4a5a37fdc563d` remains immutable; continue from
+`feature/kv-recovery-integration` rather than repeating that reconciliation.
 
 The checked-in hook-enabled NPU6 artifacts remain useful contaminated
 development evidence: the smoke pair has complete historical chains and a

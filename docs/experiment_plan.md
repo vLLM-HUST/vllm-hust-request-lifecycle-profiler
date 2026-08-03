@@ -1,14 +1,14 @@
 # Experiment Plan
 
 > **Current gate (2026-08-03):** treat the checked-in runs below as historical
-> development evidence. Upstream profiler PR #4 is merged at
-> `15717eae2630e80c11b113ccaeb3422871b35b40`; committed local P0/P1 checkpoint
-> `9f1464b8d017ef48e66b8b4c9bd4a5a37fdc563d` does not yet contain
-> `kv_recovery.py`. Preserve that checkpoint, reconcile PR #4
-> safely, freeze a versioned KV-recovery adapter, CPU-test the complete ID/stage
-> chain, and obtain a READY preflight before any controlled runtime or matched
-> performance run. The frozen P0 protocol and runtime/device pins remain in
-> force.
+> development evidence. `feature/kv-recovery-integration` now composes merged
+> profiler PR #4 at `15717eae2630e80c11b113ccaeb3422871b35b40` with immutable
+> local P0/P1 checkpoint `9f1464b8d017ef48e66b8b4c9bd4a5a37fdc563d`.
+> The combined offline gate passed 67 focused and 94 full tests plus targeted
+> Ruff. Next freeze a versioned KV-recovery adapter, resolve runtime/device
+> compatibility, CPU-test the complete ID/stage chain, and obtain a READY
+> preflight before any controlled runtime or matched performance run. The
+> frozen P0 protocol and runtime/device pins remain in force.
 
 ## 2026-08-03 KV-Recovery Plan Correction
 
@@ -33,13 +33,15 @@ profile; it cannot be mislabeled as the currently frozen
 
 Execute the corrected ladder in order:
 
-1. **G0 — upstream reconciliation, no hardware.** Preserve P0/P1 checkpoint
-   `9f1464b8d017ef48e66b8b4c9bd4a5a37fdc563d` and its recorded hashes.
-   Reconcile PR #4's additive module, tests, exports, and
-   READY/BLOCKED fix through a reviewed patch or isolated worktree, not a blind
-   pull/rebase/cherry-pick. Recompute affected hashes and rerun the parent CPU,
-   PR #4, Ruff, build, and required independent-review gates.
-   Resolve the pinned-pair scheduler API check before choosing a tiering mode:
+1. **G0 — offline composition and compatibility, no hardware.** Preserve P0/P1
+   checkpoint `9f1464b8d017ef48e66b8b4c9bd4a5a37fdc563d` and its recorded hashes.
+   PR #4's additive module, tests, exports, and READY/BLOCKED fix are composed
+   on `feature/kv-recovery-integration`; the combined 67-focused/94-full test
+   and targeted Ruff gates pass, affected hashes are recorded, and frozen P0
+   plus the four limited-GO files remain unchanged. Direct imports and isolated
+   sdist/wheel packaging also pass. Do not repeat or rewrite that
+   reconciliation. The remaining G0 work is profile review and the pinned-pair
+   scheduler API check before choosing a tiering mode:
    runtime `f229ba7...` passes `throttle_prefills` to `schedule()`, whereas
    device `cafad89...`'s `RecomputeScheduler.schedule()` accepts no such
    argument. Prove the selected connector avoids that scheduler or obtain an

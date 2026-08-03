@@ -2,10 +2,11 @@
 
 > **Priority correction (2026-08-03):** faculty comments on profiler issue #1
 > supersede the old “rerun concurrency-2 next” instruction. Preserve that
-> artifact as a development trigger, but first complete PR #4 reconciliation,
-> the versioned KV-recovery/communication profile, controlled runtime-trace
-> validation, and the G0-G3 gates in `experiment_plan.md`. The next matched
-> candidate is benchmark #134's fixed-8-GiB tiering/HBM-only comparison.
+> artifact as a development trigger. PR #4 reconciliation is now complete on
+> `feature/kv-recovery-integration`; next complete the versioned
+> KV-recovery/communication profile, controlled runtime-trace validation, and
+> the remaining G0-G3 gates in `experiment_plan.md`. The next matched candidate
+> is benchmark #134's fixed-8-GiB tiering/HBM-only comparison.
 
 The current artifact proves that lifecycle traces can be collected and that
 client-visible diagnosis changes under known slow-stream and decode-heavy

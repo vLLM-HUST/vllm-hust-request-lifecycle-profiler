@@ -1,8 +1,9 @@
 # Runtime Fault Attribution Roadmap
 
 > **Current route (2026-08-03):** the historical evidence below remains valid
-> development context, but the immediate work is now the PR #4 KV-recovery
-> ladder in `experiment_plan.md`, not another direct concurrency-2 rerun.
+> development context. PR #4 is now composed with the frozen parent checkpoint;
+> the immediate work is the remaining KV-recovery profile/runtime ladder in
+> `experiment_plan.md`, not another direct concurrency-2 rerun.
 
 The repository has passed the trace-capture readiness gate: NPU6 hook-disabled
 and hook-enabled source runs are paired, the hook-enabled runtime writes the
