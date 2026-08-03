@@ -10,6 +10,16 @@ from vllm_request_lifecycle_profiler.kv_recovery import (
     KVRecoveryStage,
     decompose_kv_recovery,
 )
+from vllm_request_lifecycle_profiler.kv_recovery_runtime import (
+    BaseEventRef,
+    BoundedKVRecoveryProfileLedger,
+    ExpectedH2DRecovery,
+    KVRecoveryObserverFactoryAdapter,
+    KVRecoveryRuntimeABI,
+    NormalizedH2DRecovery,
+    RequestLifecycleIdentity,
+    normalize_h2d_recovery,
+)
 from vllm_request_lifecycle_profiler.plugin import register_plugin
 from vllm_request_lifecycle_profiler.runtime_hooks import (
     TRACE_EXPORT_ENV,
@@ -39,17 +49,24 @@ from vllm_request_lifecycle_profiler.trace import (
 
 __all__ = [
     "TRACE_EXPORT_ENV",
+    "BaseEventRef",
     "BottleneckAttribution",
     "BottleneckKind",
+    "BoundedKVRecoveryProfileLedger",
     "CloseResult",
     "EdgeDraft",
     "EventDraft",
+    "ExpectedH2DRecovery",
     "JsonlTraceSink",
     "KVRecoveryDecomposition",
     "KVRecoveryEvent",
+    "KVRecoveryObserverFactoryAdapter",
+    "KVRecoveryRuntimeABI",
     "KVRecoveryStage",
     "LifecycleStage",
+    "NormalizedH2DRecovery",
     "RecordRef",
+    "RequestLifecycleIdentity",
     "RuntimeLifecycleHooks",
     "RuntimeProvenance",
     "RuntimeTraceConfig",
@@ -60,6 +77,7 @@ __all__ = [
     "decompose_kv_recovery",
     "evaluate_intervention_fixture",
     "load_intervention_fixture",
+    "normalize_h2d_recovery",
     "register_plugin",
     "supported_shared_case_ids",
 ]

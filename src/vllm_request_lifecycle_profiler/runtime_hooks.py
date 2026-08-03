@@ -17,6 +17,7 @@ from pathlib import Path
 from vllm_request_lifecycle_profiler.runtime_protocol import (
     CLOSE_TIMEOUT_MS,
     DATA_CAPACITY_RECORDS,
+    KV_RECOVERY_COMMUNICATION_MODE,
     MAX_BATCH_BYTES,
     MAX_BATCH_RECORDS,
     MAX_QUEUED_BYTES,
@@ -171,8 +172,8 @@ class JsonlTraceSink:
         write_function: WriteFunction = os.write,
         writer_start_gate: threading.Event | None = None,
     ) -> None:
-        if communication_mode != "none":
-            raise ValueError("P1 supports only communication_mode=none")
+        if communication_mode not in {"none", KV_RECOVERY_COMMUNICATION_MODE}:
+            raise ValueError("communication_mode is not implemented")
         self.base_path = Path(base_path)
         self.provenance = provenance
         self.communication_mode = communication_mode
@@ -291,6 +292,7 @@ class JsonlTraceSink:
                     clock_domain_id=self.clock_domain_id,
                     record_seq=record_seq,
                     default_timestamp_ns=observed_ns,
+                    communication_mode=self.communication_mode,
                 )
                 raw = canonical_json_line(record)
             except Exception:  # noqa: BLE001 - serving must remain fail-open.
@@ -1577,6 +1579,20 @@ class RuntimeLifecycleHooks:
         """Receipt-gated path for the explicit run manifest."""
 
         return self._current_sink().committed_shard_path
+
+    @property
+    def process_uuid(self) -> str | None:
+        """Return the current exporter process identity when enabled."""
+
+        sink = self._current_sink()
+        return sink.process_uuid if isinstance(sink, JsonlTraceSink) else None
+
+    @property
+    def clock_domain_id(self) -> str | None:
+        """Return the current exporter clock identity when enabled."""
+
+        sink = self._current_sink()
+        return sink.clock_domain_id if isinstance(sink, JsonlTraceSink) else None
 
     def new_trace_id(self) -> str | None:
         try:
