@@ -8,12 +8,9 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
-from urllib.error import HTTPError
-from urllib.error import URLError
+from urllib.error import HTTPError, URLError
 from urllib.parse import urljoin
-from urllib.request import Request
-from urllib.request import urlopen
-
+from urllib.request import Request, urlopen
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 WORKLOAD_SUBMODULE = REPO_ROOT / "third_party" / "llm-serving-workloads"
@@ -129,7 +126,11 @@ def _trace_records(path: Path, limit: int = 128) -> list[dict[str, Any]]:
         if isinstance(payload, list):
             return [record for record in payload[:limit] if isinstance(record, dict)]
         if isinstance(payload, dict) and isinstance(payload.get("events"), list):
-            return [record for record in payload["events"][:limit] if isinstance(record, dict)]
+            return [
+                record
+                for record in payload["events"][:limit]
+                if isinstance(record, dict)
+            ]
         if isinstance(payload, dict):
             return [payload]
         return []
@@ -272,8 +273,12 @@ def _metadata(args: argparse.Namespace) -> dict[str, Any]:
         "result_valid_for_paper_claims": False,
     }
     metadata.update(_git_metadata())
-    metadata["ascend_runtime_root"] = _discover_ascend_runtime_root(args.ascend_runtime_root)
-    metadata["model_path_exists"] = bool(args.model_path and Path(args.model_path).exists())
+    metadata["ascend_runtime_root"] = _discover_ascend_runtime_root(
+        args.ascend_runtime_root
+    )
+    metadata["model_path_exists"] = bool(
+        args.model_path and Path(args.model_path).exists()
+    )
     metadata["models_endpoint"] = _request_json(
         args.endpoint,
         args.api_token_env,
@@ -295,7 +300,9 @@ def _blockers(metadata: dict[str, Any]) -> list[str]:
     if not metadata["models_endpoint"]["ok"]:
         blockers.append("models_endpoint_failed")
     if not metadata["trace_export"]["ok"]:
-        blockers.append(f"trace_export_invalid:{metadata['trace_export'].get('error', 'schema')}")
+        blockers.append(
+            f"trace_export_invalid:{metadata['trace_export'].get('error', 'schema')}"
+        )
     npu_smi = metadata["npu_smi"]
     if not npu_smi["ok"]:
         blockers.append("npu_smi_failed")
@@ -304,7 +311,9 @@ def _blockers(metadata: dict[str, Any]) -> list[str]:
     return blockers
 
 
-def _write_blocked(output_dir: Path, blockers: list[str], metadata: dict[str, Any]) -> None:
+def _write_blocked(
+    output_dir: Path, blockers: list[str], metadata: dict[str, Any]
+) -> None:
     stale_ready = output_dir / "READY.txt"
     if stale_ready.exists():
         stale_ready.unlink()
@@ -331,11 +340,24 @@ def main() -> None:
     parser = argparse.ArgumentParser(
         description="Read-only NPU6 existing-server trace-probe preflight."
     )
-    parser.add_argument("--endpoint", default=os.environ.get("VLLM_RLP_ENDPOINT", "http://127.0.0.1:18080"))
-    parser.add_argument("--model-path", default=os.environ.get("VLLM_RLP_MODEL_PATH", ""))
-    parser.add_argument("--trace-export-path", default=os.environ.get("VLLM_RLP_TRACE_EXPORT_PATH", ""))
-    parser.add_argument("--api-token-env", default=os.environ.get("VLLM_RLP_API_TOKEN_ENV", "VLLM_RLP_API_TOKEN"))
-    parser.add_argument("--ascend-runtime-root", default=os.environ.get("VLLM_RLP_ASCEND_RUNTIME_ROOT", ""))
+    parser.add_argument(
+        "--endpoint",
+        default=os.environ.get("VLLM_RLP_ENDPOINT", "http://127.0.0.1:18080"),
+    )
+    parser.add_argument(
+        "--model-path", default=os.environ.get("VLLM_RLP_MODEL_PATH", "")
+    )
+    parser.add_argument(
+        "--trace-export-path", default=os.environ.get("VLLM_RLP_TRACE_EXPORT_PATH", "")
+    )
+    parser.add_argument(
+        "--api-token-env",
+        default=os.environ.get("VLLM_RLP_API_TOKEN_ENV", "VLLM_RLP_API_TOKEN"),
+    )
+    parser.add_argument(
+        "--ascend-runtime-root",
+        default=os.environ.get("VLLM_RLP_ASCEND_RUNTIME_ROOT", ""),
+    )
     parser.add_argument("--npu-id", type=int, default=6)
     parser.add_argument("--timeout-s", type=float, default=5.0)
     parser.add_argument(
@@ -372,7 +394,9 @@ def main() -> None:
                 "output_dir": str(output_dir),
                 "blocked": bool(blockers),
                 "blockers": blockers,
-                "result_valid_for_paper_claims": metadata["result_valid_for_paper_claims"],
+                "result_valid_for_paper_claims": metadata[
+                    "result_valid_for_paper_claims"
+                ],
             },
             indent=2,
             sort_keys=True,

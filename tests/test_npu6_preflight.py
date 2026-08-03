@@ -4,8 +4,11 @@ import importlib.util
 import json
 from pathlib import Path
 
-
-SCRIPT_PATH = Path(__file__).resolve().parents[1] / ".benchmarks" / "preflight_npu6_trace_probe.py"
+SCRIPT_PATH = (
+    Path(__file__).resolve().parents[1]
+    / ".benchmarks"
+    / "preflight_npu6_trace_probe.py"
+)
 SPEC = importlib.util.spec_from_file_location("preflight_npu6_trace_probe", SCRIPT_PATH)
 assert SPEC is not None
 preflight = importlib.util.module_from_spec(SPEC)
@@ -48,7 +51,10 @@ def test_validate_trace_export_accepts_jsonl_lifecycle_schema(tmp_path: Path) ->
 
 def test_validate_trace_export_reports_missing_required_fields(tmp_path: Path) -> None:
     trace_path = tmp_path / "trace.jsonl"
-    trace_path.write_text(json.dumps({"request_id": "req-1", "stage": "received"}) + "\n", encoding="utf-8")
+    trace_path.write_text(
+        json.dumps({"request_id": "req-1", "stage": "received"}) + "\n",
+        encoding="utf-8",
+    )
 
     result = preflight._validate_trace_export(str(trace_path))
 

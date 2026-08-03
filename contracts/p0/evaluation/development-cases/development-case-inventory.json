@@ -1,0 +1,82 @@
+{
+  "schema": "request-lifecycle-profiler/development-case-inventory/v1",
+  "status": "contaminated_development_only",
+  "primary_blind_metrics_eligible": false,
+  "reason": "The causes, workload labels, or conclusions are already present in repository documentation and have been exposed to Team B.",
+  "label_semantics": "Each individual result artifact keeps exactly one repository evidence label. source_evidence_labels lists the distinct labels of multiple artifacts aggregated by a development case; validity is recorded separately.",
+  "cases": [
+    {
+      "development_id": "dev-synthetic-seven-fault-matrix",
+      "source_evidence_labels": ["simulation/model"],
+      "validity": "valid_for_development_only",
+      "use": "schema, normalizer, and deterministic scoring tests only"
+    },
+    {
+      "development_id": "dev-runtime-hook-off-on-smoke-pair",
+      "source_evidence_labels": ["existing-server-probe", "derived-artifact"],
+      "validity": "valid_for_development_only",
+      "use": "exporter readiness and observer-overhead harness development only"
+    },
+    {
+      "development_id": "dev-npu6-slow-stream",
+      "source_evidence_labels": ["existing-server-probe", "derived-artifact"],
+      "validity": "valid_for_development_only",
+      "use": "streaming and client-backpressure instrumentation development only"
+    },
+    {
+      "development_id": "dev-npu6-structured-decode",
+      "source_evidence_labels": ["existing-server-probe", "derived-artifact"],
+      "validity": "valid_for_development_only",
+      "use": "decode-path instrumentation development only"
+    },
+    {
+      "development_id": "dev-npu6-prompt-heavy-low-output",
+      "source_evidence_labels": ["existing-server-probe", "derived-artifact"],
+      "validity": "valid_for_development_only",
+      "use": "prefill-path instrumentation development only"
+    },
+    {
+      "development_id": "dev-npu6-concurrency-2-coarse-prefill-tail",
+      "source_evidence_labels": ["existing-server-probe", "derived-artifact"],
+      "validity": "valid_for_development_only",
+      "use": "coarse prefill decomposition and abstention behavior only",
+      "boundary": "not accepted KV, graph, allocator, or kernel ground truth"
+    },
+    {
+      "development_id": "dev-invalid-long-context-candidates",
+      "source_evidence_labels": ["existing-server-probe"],
+      "validity": "invalid_boundary",
+      "use": "service-boundary and invalid-case handling only"
+    },
+    {
+      "development_id": "dev-public-retrospective-prefix-issue-163",
+      "source_kind": "public_issue_candidate",
+      "source_evidence_labels": [],
+      "source_issue": "vLLM-HUST/vllm-hust#163",
+      "validity": "unverified_and_exposed",
+      "use": "same-spec reproduction and normalizer development only; never identify a primary blind pack with this issue"
+    },
+    {
+      "development_id": "dev-public-retrospective-core-issue-151",
+      "source_kind": "public_issue_candidate",
+      "source_evidence_labels": [],
+      "source_issue": "vLLM-HUST/vllm-hust#151",
+      "validity": "unverified_and_exposed",
+      "use": "same-spec reproduction and normalizer development only; never identify a primary blind pack with this issue"
+    },
+    {
+      "development_id": "dev-public-retrospective-ascend-issue-145",
+      "source_kind": "public_issue_candidate",
+      "source_evidence_labels": [],
+      "source_issue": "vLLM-HUST/vllm-ascend-hust#145",
+      "validity": "unverified_and_exposed",
+      "use": "same-spec reproduction and normalizer development only; never identify a primary blind pack with this issue"
+    }
+  ],
+  "required_fresh_primary_cases": {
+    "positive_minimum": 2,
+    "negative_minimum": 1,
+    "curator": "Team A",
+    "team_b_access_before_lock": false
+  }
+}

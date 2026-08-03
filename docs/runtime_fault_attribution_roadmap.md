@@ -1,5 +1,10 @@
 # Runtime Fault Attribution Roadmap
 
+> **Current route (2026-08-03):** the historical evidence below remains valid
+> development context. PR #4 is now composed with the frozen parent checkpoint;
+> the immediate work is the remaining KV-recovery profile/runtime ladder in
+> `experiment_plan.md`, not another direct concurrency-2 rerun.
+
 The repository has passed the trace-capture readiness gate: NPU6 hook-disabled
 and hook-enabled source runs are paired, the hook-enabled runtime writes the
 full lifecycle schema, and all observed chains contain the required stages.
@@ -27,19 +32,22 @@ broad workload generality.
 
 ## Next Fault Classes
 
-1. Valid prefill pressure: start from the existing concurrency-2 anomaly and
-   add sub-prefill hooks or counters before trying new long-context prompts.
-2. KV-pressure boundary: use long-context/burst cases from
-   `third_party/llm-serving-workloads` and check whether queue, prefill, or KV
-   events become the dominant chain.
-3. Cleanup stall: inject or simulate delayed cleanup only if the runtime hook
-   boundary can label it honestly.
+1. KV recovery: integrate the full preempt/restore/wakeup/requeue/admission/
+   first-compute chain and verify one controlled pressure episode.
+2. Fixed-8-GiB tiering/HBM-only: run only after the profile, compatibility,
+   CPU, and preflight gates pass; split copy from scheduler/admission waiting.
+3. Capacity surface: expand to benchmark #134's 8/16/24/32-GiB by three
+   workloads at steady 1 RPS.
+4. Historical prefill and cleanup: revisit the concurrency-2 anomaly and a
+   cleanup stall only after the KV-recovery priority is complete.
 
 ## Evidence Rules
 
 - Use NPU6 and `vllm-request-lifecycle-profiler-exp`.
-- Keep `third_party/vllm-hust` on `feature/request-lifecycle-profiler-runtime-hooks-faculty`
-  unless deliberately updating the submodule pointer.
+- Treat the old `third_party/vllm-hust`
+  `feature/request-lifecycle-profiler-runtime-hooks-faculty` pointer as a
+  historical reproducer, not the new integration base. Use the approved exact
+  runtime/device pair and record any newly approved compatibility SHA.
 - Run one fault class per result directory and record the injected ground truth
   in `run_metadata.json`.
 - Preserve both client-observed anchors and internal runtime JSONL.

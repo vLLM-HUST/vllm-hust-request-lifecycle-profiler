@@ -4,6 +4,15 @@ This runbook prepares a read-only probe against an already running vLLM-HUST
 OpenAI-compatible server on NPU6. It does not start or stop services. If any
 required check fails, write `BLOCKED.txt` and do not switch devices.
 
+> **Current-use warning (2026-08-03):** the commands and legacy three-field
+> trace interface below document the earlier Qwen2.5-7B existing-server probe.
+> They are not the launch or admission recipe for the newly assigned PR #4 KV
+> recovery experiment. PR #4 reconciliation is complete; for that work, finish
+> the remaining G0-G2 items in `experiment_plan.md`: freeze the optional
+> profile, validate the frozen runtime/device pair, CPU-test the full chain,
+> and run a version-aware whole-trace preflight. Do not launch the historical
+> `0daab7...` hook carrier for the new #134 run.
+
 ## Required Inputs
 
 - Device: NPU6 only.
@@ -29,10 +38,10 @@ export VLLM_RLP_ASCEND_RUNTIME_ROOT=/usr/local/Ascend/ascend-toolkit/latest
 # export VLLM_RLP_API_TOKEN=...  # only if the local endpoint requires it
 ```
 
-## Managed Server Launch
+## Historical Managed Server Launch
 
-The preferred launch path is the vLLM-HUST dev-hub manager with this
-repository's non-secret profile:
+The historical launch path used the vLLM-HUST dev-hub manager with this
+repository's non-secret profile. Preserve it for reproduction only:
 
 ```bash
 cd /home/shuhao/vllm-request-lifecycle-profiler-plugin
@@ -59,10 +68,10 @@ Do not use another NPU. If NPU6 is occupied by unrelated work, record a blocked
 run and stop. `make managed-stop`, `make managed-status`, and
 `make managed-logs` use the same profile.
 
-## Pinned Runtime Hook Submodule
+## Historical Pinned Runtime Hook Submodule
 
-For internal runtime-hook experiments, use the repository-pinned vLLM-HUST
-submodule rather than a sibling checkout:
+The following reproduces old internal runtime-hook experiments. It is not the
+implementation base for the current KV-recovery assignment:
 
 ```bash
 git submodule update --init --recursive third_party/vllm-hust
@@ -120,9 +129,12 @@ The script checks:
 - trace export file existence and schema;
 - `npu-smi info` process ownership on NPU6.
 
-A valid preflight writes `run_metadata.json` without `BLOCKED.txt`. A blocked
-preflight writes both `run_metadata.json` and `BLOCKED.txt`; blocked directories
-are invalid for paper claims.
+A valid preflight writes `run_metadata.json` and `READY.txt`, removes any stale
+`BLOCKED.txt`, and passes only when exactly that marker is present. A blocked
+preflight writes `run_metadata.json` and `BLOCKED.txt`, removes any stale
+`READY.txt`, and is invalid for paper claims. Both markers present or both
+markers absent is an invalid/ambiguous admission state. READY and BLOCKED are
+readiness states, not latency, throughput, or profiler-performance results.
 
 ## Verifying NPU6 Ownership
 
@@ -138,6 +150,15 @@ HTTP proxy is listening but no process appears on NPU6, the probe is not valid
 online evidence.
 
 ## Trace Hook Interface
+
+The interface in this subsection is the historical proxy/legacy interface. A
+valid current P1 trace instead uses versioned `rlp.trace/v1alpha1` records with
+canonical `trace_id`/`lifecycle_id`, `event_name`, uint64
+`CLOCK_MONOTONIC` `timestamp_ns`, clock-domain identity, process provenance,
+loss accounting, and committed process receipts. The PR #4 pressure-episode
+fields require the separately frozen optional KV-recovery profile. A current
+preflight must validate both schemas and their whole-trace grammar; passing the
+legacy `{request_id, stage, timestamp_ms}` check alone is not current READY.
 
 The runtime hook must export one JSON object per lifecycle event, either as
 JSONL or as a JSON object with an `events` array. Required fields:
@@ -183,7 +204,12 @@ The gateway should accept an optional client request id header such as
 `X-Request-Id`. If unavailable, the hook must export the runtime request id and
 the probe client must record the mapping from submitted request to runtime id.
 All lifecycle events for the same user request must share the same
-`request_id`.
+`request_id`. For current KV recovery, retain an auditable, untruncated
+one-to-one association from the client request ID to canonical `trace_id`, root
+lifecycle, engine request/sequence identity, recovery episode, and stable block
+identity. The external ID remains bounded/privacy-reviewed noncanonical data;
+do not replace it with only a hash and then claim that the complete ID was
+preserved.
 
 ## Overhead Measurement Contract
 
