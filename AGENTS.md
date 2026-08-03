@@ -546,6 +546,54 @@ non-`none` communication, edit runtime/device sources, start G1, touch NPU,
 launch a service, run performance experiments, publish remotely, or make
 performance/M0 claims.
 
+### Subsequent P0-overlay and G1 implementation authorization
+
+After the G0 evidence package was committed and pushed, Remygred supplied this
+exact statement in direct response to the immediately preceding permission
+scope:
+
+> 我现在将我能批准的权限全部批准，然后按照你说的做
+
+The immediately preceding incorporated scope was exactly the Chinese G0 Draft
+PR plus separate-branch default-off G1 authorization preserved in the records;
+it did not itself cite the overlay digests or accept items 1–8. The same
+assistant message separately identified the current overlay SHA-256
+`6e035c29664038cdc93b545538cee6fc31abfb79e455d994851f8c9dbfd1c734`
+and approval-candidate SHA-256
+`169c1923ed2d37fe0ea5f88d05bcc9e35424742bb53892408ac5059485609cb5`;
+the pending record keeps those only as resolved context, not owner
+ratification. Preserve the exact reply and incorporated scope; do not interpret
+“all permissions I can approve” as issue-2 authority, digest ratification, or
+approval of unresolved configuration values.
+
+The pending P0-owner ratification record is
+`contracts/p1/kv-offload-base-mode-overlay-owner-approval.json`, SHA-256
+`c17dad09ab005c839ad5cd52c0d65cb0c7ad9064ad9431deed10e8b7a99aa782`.
+The general reply does not itself satisfy the overlay candidate's requirement
+for an explicit reply citing both final digests and accepting items 1–8, so
+this record freezes nothing and carries the exact ratification text still
+required. It also cannot substitute for issue-2, complete-configuration, or
+joint-admission authority.
+
+The independent implementation authorization is
+`contracts/p1/g1-cpu-wiring-owner-authorization.json`, SHA-256
+`82386d4328463c8d7c32ad572f429a350af42bb04f8dda552e049788b88c6ecd`.
+It authorizes an isolated branch/worktree at runtime pin
+`f229ba7cad21a4dba58681af6738a9fd947388e2`, default-off runtime/profiler
+source edits, bounded in-memory H2D context propagation, profile-only D2H/wait
+adapters, and CPU-only tests. It does not authorize device-plugin edits,
+runtime activation, non-`none` communication, NPU import/execution, service
+launch, performance experiments/claims, M0, a remote G1 PR/push, or merge to a
+default branch. Issue-2 mapping changes or approval decisions still require
+revalidation.
+
+`tests/test_owner_authorization_integrity.py`, SHA-256
+`0332976e559c9caae9484121f29abd55d32c824fcba6b8ef766cb4a5d2328523`,
+binds both authorization records to the exact artifacts and proves that only
+default-off G1 source implementation is open. It passes 2 focused tests; the
+repository suite after adding these records is 134 passed. This later result
+does not rewrite the content-addressed 132-test G0 CPU result.
+
 ### Latest authenticated authority facts
 
 Authenticated revalidation after the approval found:
@@ -651,7 +699,10 @@ binds the final mapping/approval-candidate and overlay/approval-candidate
 digests while accurately recording that issue-2/P0 approval records, the
 complete config, and the joint admission record do not yet exist. The overlay
 references only this candidate's path as non-normative input, so there is no
-digest cycle.
+digest cycle. This candidate remains a content-addressed pre-ratification
+snapshot: the later G1 authorization does not make it runnable, and any future
+explicit overlay ratification must be cited by a new replacement configuration
+artifact rather than editing these bytes in place.
 
 Known common choices include:
 
@@ -777,31 +828,39 @@ The current formal status is:
 - recovery-side profile: **FROZEN** by Remygred;
 - issue-2 mapping content: **GO FOR AUTHORITY SUBMISSION**, not approved;
 - P0 connector-mode overlay content: **GO FOR AUTHORITY SUBMISSION**, not
-  approved;
+  yet explicitly digest-ratified by the owner;
 - #134 fixed-8-GiB config: **REVIEWABLE INCOMPLETE CANDIDATE**;
 - pinned source/scheduler/factory/controlled-stub handoff:
   **PASS_STATIC_ONLY**;
-- genuine pinned import/startup: **BLOCKED**;
-- `communication_mode` non-`none`, G1, NPU, service, performance, M0:
+- G1 CPU-side default-off source implementation on an isolated branch:
+  **AUTHORIZED**;
+- genuine pinned import/startup and G1 runtime activation: **BLOCKED**;
+- `communication_mode` non-`none`, device-plugin edits, NPU, service,
+  performance, M0:
   **NOT AUTHORIZED**.
 
 Continue in this order:
 
-1. obtain Luqhhh/delegated issue-2 approval of the mapping digest and eight
-   decisions;
-2. obtain Remygred/P0-owner approval of the overlay digest and eight decisions;
-3. resolve the #134 CPU capacity, tiering-disabled semantics, model revision,
+1. publish the G0 Draft PR and request Luqhhh/delegated issue-2 approval of the
+   mapping digest and eight decisions;
+2. obtain the exact Remygred/P0-owner digest-and-items ratification preserved
+   in the pending overlay record;
+3. in parallel, implement the authorized default-off G1 CPU wiring in an
+   isolated worktree at the exact runtime pin, with CPU-only tests;
+4. resolve the #134 CPU capacity, tiering-disabled semantics, model revision,
    workload manifests, metric coverage, and copy-toggle decision; then produce
    complete self-contained per-mode configs, obtain configuration-authority
    approval, and create the required joint admission record with new digests;
-4. provision an isolated exact-pinned CPU import environment and rerun import,
+5. provision an isolated exact-pinned CPU import environment and rerun import,
    interface, config-resolution, and controlled-stub handoff checks without
    importing the device NPU spec or allocating hardware; and
-5. only after every G0 authority and CPU record is complete, request separate
-   authorization for G1 runtime wiring.
+6. only after every G0 authority, complete config, joint record, and G1 CPU
+   review is complete, request separate runtime-activation authorization.
 
-No issue/PR comment, commit, push, rebase, service, NPU command, or performance
-run is implied by this local checkpoint.
+Except for the explicitly authorized G0 Draft PR publication, issue-2 approval
+request, and independent-branch local G1 source commits, no remote G1 push/PR,
+merge, rebase, service, NPU command, or performance run is authorized by this
+checkpoint.
 
 ## Local P1 checkpoint (2026-08-02)
 

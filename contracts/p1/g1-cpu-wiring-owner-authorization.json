@@ -1,0 +1,90 @@
+{
+  "schema": "request-lifecycle-profiler/g1-cpu-wiring-owner-authorization/v1",
+  "status": "AUTHORIZED_DEFAULT_OFF_CPU_WIRING_IMPLEMENTATION_ONLY",
+  "evidence_status": "NOT_M0_PROVEN",
+  "recorded_date": "2026-08-03",
+  "owner": "Remygred",
+  "authorization_source": {
+    "kind": "interactive_owner_message_accepting_immediately_preceding_scope",
+    "exact_user_statement": "我现在将我能批准的权限全部批准，然后按照你说的做",
+    "incorporated_scope": "创建当前 G0 Draft PR，并批准开始独立分支上的 G1 CPU-side runtime wiring；实现必须默认关闭，绑定当前 mapping/profile/overlay 候选摘要。该授权不激活 communication_mode 非 none，不授权 NPU、服务启动或性能实验。",
+    "interpretation_rule": "The exact user statement incorporates only permissions Remygred can grant. It cannot substitute for issue-2 authority or approve unresolved configuration values."
+  },
+  "authority_chain": {
+    "recovery_profile_sha256": "b363532884d1cae8049ab080d2b85a629f3b33a75f6621788d1e4c8f30737666",
+    "profile_owner_approval_record_sha256": "2831ce52802e7cbe4ec092431c71c18de05491da7ac8d48512014b1d43b3cb0c",
+    "issue2_mapping_candidate_sha256": "dca914f989f3a98d43fb9fa2538f7c43a375e8f22f5deb7e09343aee5ee7bc19",
+    "issue2_mapping_approval_candidate_sha256": "f3cfdd6d9463251fdc27e01164d9f33a1efcc6c155f6d51959e0e1989d23a350",
+    "issue2_mapping_authority_approval_record": null,
+    "P0_overlay_sha256": "6e035c29664038cdc93b545538cee6fc31abfb79e455d994851f8c9dbfd1c734",
+    "P0_overlay_approval_candidate_sha256": "169c1923ed2d37fe0ea5f88d05bcc9e35424742bb53892408ac5059485609cb5",
+    "P0_overlay_pending_ratification_record_sha256": "c17dad09ab005c839ad5cd52c0d65cb0c7ad9064ad9431deed10e8b7a99aa782",
+    "G0_CPU_result_sha256": "8fb3a1aa5f912c2b43a68cef6952d4d6ff365d1154008287a21306bc7241ee5c"
+  },
+  "repository_pins": {
+    "runtime": {
+      "repository": "vLLM-HUST/vllm-hust",
+      "base_commit": "f229ba7cad21a4dba58681af6738a9fd947388e2"
+    },
+    "device_plugin": {
+      "repository": "vLLM-HUST/vllm-ascend-hust",
+      "audit_commit": "cafad89a5e103f31ea517c1edb56130578c3cd56",
+      "source_edits_authorized": false
+    },
+    "profiler": {
+      "repository": "intellistream/vllm-request-lifecycle-profiler-plugin",
+      "G0_commit": "8f7d5ceed798d6f899bf5b8dce928ff86d7bb28e"
+    }
+  },
+  "authorized_work": [
+    "create_an_isolated_runtime_worktree_and_feature_branch_at_the_exact_runtime_pin",
+    "edit_runtime_and_profiler_source_on_non_default_branches_for_default_off_G1_CPU_side_wiring",
+    "implement_bounded_in_memory_H2D_identity_and_pending_context_propagation",
+    "implement_profile_only_D2H_and_transfer_wait_observation_adapters",
+    "add_CPU_only_unit_static_and_controlled_stub_tests",
+    "commit_local_G1_implementation_results_after_validation"
+  ],
+  "implementation_constraints": {
+    "default_enabled": false,
+    "disabled_path_registers_new_hooks": false,
+    "disabled_path_creates_threads": false,
+    "disabled_path_performs_IO": false,
+    "disabled_path_changes_trace_root_metadata": false,
+    "disabled_path_changes_serving_behavior": false,
+    "serving_failure_policy": "fail_open",
+    "formal_evidence_failure_policy": "fail_closed",
+    "max_pending_h2d_contexts_per_process": 4096,
+    "mapping_is_implementation_target_not_yet_issue2_authority_frozen": true,
+    "mapping_change_requires_revalidation": true,
+    "overlay_is_P0_owner_frozen": false,
+    "communication_mode_while_formal_activation_is_blocked": "none",
+    "no_real_KV_transfer_may_be_rejected_delayed_cancelled_or_resized_for_tracing": true
+  },
+  "not_authorized": [
+    "claim_or_record_issue2_authority_approval",
+    "activate_communication_mode_other_than_none",
+    "mark_G0_complete",
+    "edit_device_plugin_source",
+    "import_or_execute_torch_npu_for_this_work",
+    "launch_an_inference_service",
+    "run_an_NPU_preflight",
+    "run_a_performance_experiment",
+    "make_a_performance_or_M0_claim",
+    "push_or_open_a_remote_G1_PR_without_separate_authorization",
+    "merge_to_a_default_branch"
+  ],
+  "gate_effects": {
+    "P0_overlay_frozen": false,
+    "issue2_mapping_frozen": false,
+    "G1_CPU_side_source_implementation_authorized": true,
+    "G1_runtime_activation_authorized": false,
+    "communication_mode_non_none_authorized": false,
+    "device_plugin_source_edits_authorized": false,
+    "NPU_authorized": false,
+    "service_launch_authorized": false,
+    "performance_experiment_authorized": false,
+    "performance_claim_authorized": false,
+    "M0_proven": false
+  },
+  "integrity_rule": "This authorization permits only default-off CPU-side G1 implementation against the exact bound candidates and pins. It is not an issue-2 approval or runtime-activation record. Any bound artifact, repository pin, implementation scope, or gate change requires a new content-addressed authorization and the applicable authority."
+}
