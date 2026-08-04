@@ -11,7 +11,7 @@ SHARED_ENV_SCRIPT ?= /home/shuhao/llm-optimizations/scripts/bootstrap_shared_env
 SHARED_PROFILE ?= vllm-research
 SHARED_ENV_NAME ?= $(CONDA_ENV)
 WORKLOAD_REPO ?= $(abspath $(CURDIR)/third_party/llm-serving-workloads)
-DEV_HUB ?= /home/shuhao/vllm-hust-dev-hub
+DEV_HUB ?= $(abspath $(CURDIR)/third_party/vllm-hust-dev-hub)
 MANAGED_ENV_FILE ?= $(abspath $(CURDIR)/.benchmarks/profiles/npu6_vllm_hust_trace.env)
 TRACE_SUITE_OUTPUT_DIR ?= .benchmarks/results/npu6_existing_server_trace_probe_repeated_smoke
 
