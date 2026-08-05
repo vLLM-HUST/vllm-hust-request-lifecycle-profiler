@@ -6,6 +6,8 @@ import os
 import subprocess
 from pathlib import Path
 
+import pytest
+
 REPO_ROOT = Path(__file__).resolve().parents[1]
 ATTESTATION_PATH = (
     REPO_ROOT
@@ -45,6 +47,15 @@ def runtime_repo(record: dict[str, object]) -> Path:
     return Path(record["source_baselines"]["runtime"]["local_worktree"])
 
 
+def profiler_history_repo() -> Path:
+    override = os.environ.get("RLP_G1_PROFILER_HISTORY_SRC", "").strip()
+    if not override:
+        pytest.skip(
+            "set RLP_G1_PROFILER_HISTORY_SRC to a checkout containing PR #10 history"
+        )
+    return Path(override)
+
+
 def test_r1_binds_exact_local_implementation_commits() -> None:
     record = load_attestation()
     baselines = record["source_baselines"]
@@ -62,7 +73,9 @@ def test_r1_binds_exact_local_implementation_commits() -> None:
     assert_commit_is_local_ancestor(
         runtime_repo(record), runtime["implementation_commit"]
     )
-    assert_commit_is_local_ancestor(REPO_ROOT, profiler["implementation_commit"])
+    assert_commit_is_local_ancestor(
+        profiler_history_repo(), profiler["implementation_commit"]
+    )
 
 
 def test_r1_hashes_match_both_bound_commit_blob_sets() -> None:
@@ -75,7 +88,7 @@ def test_r1_hashes_match_both_bound_commit_blob_sets() -> None:
             (*record["runtime_source_files"], *record["runtime_test_files"]),
         ),
         (
-            REPO_ROOT,
+            profiler_history_repo(),
             baselines["profiler"]["implementation_commit"],
             (*record["profiler_source_files"], *record["profiler_test_files"]),
         ),
