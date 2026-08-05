@@ -397,6 +397,74 @@ def test_actual_runtime_capacity_paths_consume_exact_profile_loss(
     hooks.close()
 
 
+def test_actual_runtime_wait_precedes_explicit_discard_invalidation(
+    tmp_path: Path,
+) -> None:
+    abi, runtime = load_runtime_abi()
+    sink = JsonlTraceSink(
+        tmp_path / "trace",
+        RuntimeProvenance("a" * 40, "b" * 40, "c" * 40),
+        communication_mode=KV_RECOVERY_COMMUNICATION_MODE,
+        kv_recovery_profile_config=KVRecoveryProfileConfig(run_id=RUN_ID),
+        clock_ns=lambda: 1000,
+        clock_domain_reader=lambda: CLOCK_DOMAIN_ID,
+        process_uuid_factory=lambda: WORKER_UUID,
+    )
+    hooks = RuntimeLifecycleHooks(
+        RuntimeTraceConfig(
+            export_path=tmp_path / "trace",
+            provenance=RuntimeProvenance("a" * 40, "b" * 40, "c" * 40),
+            communication_mode=KV_RECOVERY_COMMUNICATION_MODE,
+            invalid_reason="unsupported_mode",
+            kv_recovery_profile_config=KVRecoveryProfileConfig(run_id=RUN_ID),
+        ),
+        sink=sink,
+    )
+    factory = KVRecoveryObserverFactoryAdapter(
+        RUN_ID,
+        hooks,
+        IntegrationBridge(),
+        abi,
+        clock_ns=lambda: 125,
+    )
+    scheduler = factory.create_scheduler_observer(abi.binding)
+    worker = factory.create_worker_observer(abi.binding)
+    assert scheduler is not None and worker is not None
+    context = scheduler.prepare_transfer_context(
+        REQUEST_ID,
+        "d2h_preserve",
+        (runtime.KVRecoveryBlockCoordinate(0, 0),),
+    )
+    assert context is not None
+    attempt = worker.begin_transfer(7, context)
+    assert attempt is not None
+    worker.transfer_submitted(attempt, 100)
+    membership = worker.prepare_wait(frozenset({7}))
+    assert membership is not None
+
+    worker.wait_completed(runtime.KVRecoveryWaitAttempt(membership, 110))
+    worker.invalidate_transfers({7})
+
+    assert worker.evidence_disabled
+    assert worker.pending_d2h_count == 0
+    assert worker.transfer_completed(7, 120, True, 128, 10) is None
+    ledger = factory.profile_ledgers[0]
+    profile_records, losses = ledger.snapshot()
+    assert [record.record_type for record in profile_records] == [
+        "block_set_chunk",
+        "transfer_event",
+        "wait_set_chunk",
+    ]
+    assert len(losses) == 1
+    assert losses[0].reason == "serialization_failure"
+    assert losses[0].counts["transfer_event"] == 1
+    assert not ledger.evidence_complete
+
+    worker.close()
+    scheduler.close()
+    hooks.close()
+
+
 def test_actual_runtime_late_receipt_capacity_keeps_two_edge_prefix(
     tmp_path: Path,
 ) -> None:
