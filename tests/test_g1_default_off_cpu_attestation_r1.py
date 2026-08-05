@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import subprocess
 from pathlib import Path
 
@@ -37,6 +38,13 @@ def assert_commit_is_local_ancestor(repo: Path, commit: str) -> None:
     )
 
 
+def runtime_repo(record: dict[str, object]) -> Path:
+    override = os.environ.get("VLLM_HUST_G1_SRC", "").strip()
+    if override:
+        return Path(override)
+    return Path(record["source_baselines"]["runtime"]["local_worktree"])
+
+
 def test_r1_binds_exact_local_implementation_commits() -> None:
     record = load_attestation()
     baselines = record["source_baselines"]
@@ -52,7 +60,7 @@ def test_r1_binds_exact_local_implementation_commits() -> None:
     assert runtime["remote_publication"] is False
     assert profiler["remote_publication"] is False
     assert_commit_is_local_ancestor(
-        Path(runtime["local_worktree"]), runtime["implementation_commit"]
+        runtime_repo(record), runtime["implementation_commit"]
     )
     assert_commit_is_local_ancestor(REPO_ROOT, profiler["implementation_commit"])
 
@@ -62,7 +70,7 @@ def test_r1_hashes_match_both_bound_commit_blob_sets() -> None:
     baselines = record["source_baselines"]
     groups = (
         (
-            Path(baselines["runtime"]["local_worktree"]),
+            runtime_repo(record),
             baselines["runtime"]["implementation_commit"],
             (*record["runtime_source_files"], *record["runtime_test_files"]),
         ),
@@ -102,16 +110,16 @@ def test_r1_keeps_authority_and_every_downstream_gate_closed() -> None:
 def test_r1_binds_real_model_entry_rosters_and_activation_stays_false() -> None:
     record = load_attestation()
     runtime = record["source_baselines"]["runtime"]
-    runtime_repo = Path(runtime["local_worktree"])
+    runtime_repo_path = runtime_repo(record)
     commit = runtime["implementation_commit"]
     profile_source = git_blob(
-        runtime_repo, commit, "vllm/v1/kv_recovery_profile.py"
+        runtime_repo_path, commit, "vllm/v1/kv_recovery_profile.py"
     ).decode()
     mrv1_source = git_blob(
-        runtime_repo, commit, "vllm/v1/worker/gpu_model_runner.py"
+        runtime_repo_path, commit, "vllm/v1/worker/gpu_model_runner.py"
     ).decode()
     mrv2_source = git_blob(
-        runtime_repo, commit, "vllm/v1/worker/gpu/model_runner.py"
+        runtime_repo_path, commit, "vllm/v1/worker/gpu/model_runner.py"
     ).decode()
 
     assert "KV_RECOVERY_RUNTIME_ACTIVATION_AUTHORIZED = False" in profile_source

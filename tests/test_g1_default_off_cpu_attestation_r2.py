@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import subprocess
 from pathlib import Path
 
@@ -43,6 +44,13 @@ def assert_commit_is_local_ancestor(repo: Path, commit: str) -> None:
     )
 
 
+def runtime_repo(record: dict[str, object]) -> Path:
+    override = os.environ.get("VLLM_HUST_G1_SRC", "").strip()
+    if override:
+        return Path(override)
+    return Path(record["source_baselines"]["runtime"]["local_worktree"])
+
+
 def test_r2_supersedes_but_does_not_mutate_r1() -> None:
     record = load_attestation()
 
@@ -69,7 +77,7 @@ def test_r2_binds_exact_remediation_commits_and_review_anchor() -> None:
         "f43473e78e3636e079518e19eb3ac3aeea21d8fc"
     )
     assert_commit_is_local_ancestor(
-        Path(runtime["local_worktree"]), runtime["implementation_commit"]
+        runtime_repo(record), runtime["implementation_commit"]
     )
     assert_commit_is_local_ancestor(REPO_ROOT, profiler["conformance_commit"])
     assert baselines["shared_workloads"] == {
@@ -85,7 +93,7 @@ def test_r2_hashes_match_both_bound_commit_blob_sets() -> None:
     baselines = record["source_baselines"]
     groups = (
         (
-            Path(baselines["runtime"]["local_worktree"]),
+            runtime_repo(record),
             baselines["runtime"]["implementation_commit"],
             (
                 *record["runtime_source_files"],
@@ -109,15 +117,15 @@ def test_r2_hashes_match_both_bound_commit_blob_sets() -> None:
 def test_r2_binds_completion_fence_before_explicit_discard() -> None:
     record = load_attestation()
     runtime = record["source_baselines"]["runtime"]
-    runtime_repo = Path(runtime["local_worktree"])
+    runtime_repo_path = runtime_repo(record)
     commit = runtime["implementation_commit"]
     worker_source = git_blob(
-        runtime_repo,
+        runtime_repo_path,
         commit,
         "vllm/distributed/kv_transfer/kv_connector/v1/offloading/worker.py",
     ).decode()
     common_source = git_blob(
-        runtime_repo,
+        runtime_repo_path,
         commit,
         "vllm/distributed/kv_transfer/kv_connector/v1/offloading/common.py",
     ).decode()
@@ -145,18 +153,18 @@ def test_r2_binds_completion_fence_before_explicit_discard() -> None:
 def test_r2_keeps_disabled_path_clock_free_and_activation_closed() -> None:
     record = load_attestation()
     runtime = record["source_baselines"]["runtime"]
-    runtime_repo = Path(runtime["local_worktree"])
+    runtime_repo_path = runtime_repo(record)
     commit = runtime["implementation_commit"]
     profile_source = git_blob(
-        runtime_repo, commit, "vllm/v1/kv_recovery_profile.py"
+        runtime_repo_path, commit, "vllm/v1/kv_recovery_profile.py"
     ).decode()
     mrv1_connector = git_blob(
-        runtime_repo,
+        runtime_repo_path,
         commit,
         "vllm/v1/worker/kv_connector_model_runner_mixin.py",
     ).decode()
     mrv2_connector = git_blob(
-        runtime_repo, commit, "vllm/v1/worker/gpu/kv_connector.py"
+        runtime_repo_path, commit, "vllm/v1/worker/gpu/kv_connector.py"
     ).decode()
 
     assert "KV_RECOVERY_RUNTIME_ACTIVATION_AUTHORIZED = False" in profile_source
