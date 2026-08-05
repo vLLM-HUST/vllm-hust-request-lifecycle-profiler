@@ -6,3 +6,7 @@
 	path = third_party/vllm-hust
 	url = git@github.com:vLLM-HUST/vllm-hust.git
 	branch = feat/request-lifecycle-profiler-vllm-hust
+[submodule "third_party/vllm-hust-dev-hub"]
+	path = third_party/vllm-hust-dev-hub
+	url = git@github.com:vLLM-HUST/vllm-hust-dev-hub.git
+	branch = feature/request-lifecycle-profiler-dev-hub
