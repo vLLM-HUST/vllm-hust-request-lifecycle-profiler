@@ -1948,7 +1948,11 @@ direct-history assumption and failed after the squash merge. Do not rewrite
 r0, r1, or r2 to conceal these facts. The downstream reconciliation record is
 `contracts/p1/g1-default-off-cpu-implementation-attestation.r3.json`, SHA-256
 `aa15c2a8930aa109907f092580ca7a18abd151a4278473aa6e26e4afce0b2f88`,
-on branch `codex/g1-attestation-r3`.
+on branch `codex/g1-attestation-r3`. It was published for review as Draft
+profiler PR #11 at
+`https://github.com/intellistream/vllm-request-lifecycle-profiler-plugin/pull/11`;
+the initial candidate commit is
+`eada6b142cdcbba21d7aecd5b5d7ae4fdc3aec6d`.
 
 The portable audit contract is now:
 
@@ -1977,9 +1981,11 @@ activation, service launch, NPU, performance experiments or conclusions, or
 M0. Runtime PR #221 remains Draft at exact head
 `5f7872976bd56a0861bb0072eaac68260ba7d578`, with review decision
 `CHANGES_REQUESTED` and unresolved outdated thread
-`PRRT_kwDORq6LNc6WbsqA`. Publish r3 as a separate Draft follow-up and update
-that runtime review context, but do not resolve the thread, mark the runtime PR
-ready, merge it, or infer runtime-owner approval. The next decision remains an
-explicit independent re-review of the remediated runtime candidate; complete
-configuration, runtime conformance, joint admission, and separate activation
-authorization remain later gates.
+`PRRT_kwDORq6LNc6WbsqA`. The runtime review context was updated without source
+changes or thread resolution at
+`https://github.com/vLLM-HUST/vllm-hust/pull/221#issuecomment-5187733646`.
+Do not resolve the thread, mark the runtime PR ready, merge it, or infer
+runtime-owner approval. The next decision remains an explicit independent
+re-review of the remediated runtime candidate; complete configuration, runtime
+conformance, joint admission, and separate activation authorization remain
+later gates.
