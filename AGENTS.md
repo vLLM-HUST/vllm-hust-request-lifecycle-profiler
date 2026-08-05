@@ -1847,3 +1847,79 @@ conformance, and joint admission must still be completed before requesting a
 separate runtime-activation authorization. `communication_mode != none`,
 remote G1 publication, device-plugin edits, NPU, service launch, performance
 experiments/claims, and M0 remain unauthorized.
+
+## 2026-08-05 PR #221 remediation and r2 review checkpoint
+
+This section supersedes the obsolete publication and implementation-state
+sentences in the preceding r1 checkpoint. It does not alter any frozen mapping,
+policy, overlay, configuration, or activation authority. The two existing
+Draft PRs are review surfaces only, and the user explicitly authorized pushing
+this remediation and replying to the outstanding review; no merge or runtime
+activation is implied.
+
+Runtime PR `vLLM-HUST/vllm-hust#221` review `4858143623`, thread
+`PRRT_kwDORq6LNc6WbsqA`, requested changes because commit `43509bcf...`
+invalidated transfer state before `prepare_wait`, causing a real completion
+fence to erase the H2D/D2H context whose wait evidence should have been
+recorded. The earlier mock did not implement invalidation and therefore did
+not expose this conformance gap.
+
+The exact remediation commits are:
+
+- runtime `5f7872976bd56a0861bb0072eaac68260ba7d578`, based on audited
+  `f229ba7cad21a4dba58681af6738a9fd947388e2`, for Draft PR #221; and
+- profiler conformance `f43473e78e3636e079518e19eb3ac3aeea21d8fc`, based on
+  the reviewed profiler parent `b210bfbadc748a3df343efb258769b3e6de6ad02`,
+  for Draft PR #10.
+
+The corrected runtime semantics are now fixed as follows:
+
+1. `jobs_to_flush` is a normal completion fence. The worker freezes exact
+   membership, observes the clock, performs the real backend wait, and records
+   `wait_completed` only after normal return. It does not invalidate pending
+   transfer state merely because the fence completed.
+2. Explicit discard is transported in the separate bounded
+   `kv_recovery_jobs_to_invalidate` sidecar for preemption, terminal removal,
+   and reset. If a batch contains both operations, successful wait evidence is
+   recorded before fail-closed discard invalidation.
+3. A backend wait exception records neither wait nor invalidation and retains
+   the pending context. Serving stays fail-open while formal evidence remains
+   fail-closed.
+4. Tests use the real `BoundedKVRecoveryWorkerObserver`, not only a mock, and
+   cover H2D/D2H normal completion, combined wait-plus-discard, wait failure,
+   scheduler handoff, and the actual runtime ABI through the profiler adapter.
+5. The disabled path remains allocation-free with respect to observer state
+   and does not read the profile clock. Invalidation scans the four bounded
+   observer tables rather than copying an unbounded backend set.
+
+The immutable r1 record remains at SHA-256
+`5d15e1b231c60fd18d5a42c849eed2c2c1fb48ecc4b75c949223cf4224c06048`.
+The replacement review candidate is
+`contracts/p1/g1-default-off-cpu-implementation-attestation.r2.json`, SHA-256
+`680eb00f7e71cbc7aa4e74b97ebb13b29062d0501d98f2b877a80f3d728b9b68`.
+It binds the exact commits and Git blobs, PR review identity, frozen authority
+chain, `communication_mode=none`, default-off boundary, diagnostics, and
+shared-workload dependency commit
+`76e24c85bcab76ecfabb831c9444002b6efffd58`.
+
+Reproducible evidence bound by r2 is:
+
+- runtime focused default-off CPU and real observer: `89 passed, 15 warnings`;
+- actual runtime ABI across both repositories: `16 passed`;
+- exact profiler implementation suite excluding the r2 self-check:
+  `187 passed, 1 warning`;
+- r2 downstream commit/blob/order/gate integrity: `6 passed`;
+- all changed runtime files passed applicable pre-commit hooks; and
+- non-gating diagnostics remain explicit: the complete offloading connector
+  directory has the exact base-reproducible `13 failed, 150 passed, 2 skipped`
+  set, and the generic model-runner diagnostic has
+  `5 failed, 34 passed, 2 skipped`; neither is presented as passing evidence.
+
+Items 6-8 remain a candidate for independent runtime-owner re-review and are
+not approved until an explicit decision is recorded. After publication, reply
+to the exact PR #221 review thread with both commits, the r2 digest, and the
+validation results, then request re-review. Do not infer approval from thread
+resolution, a green check, or silence. Complete resolved configuration,
+runtime conformance, and joint admission still precede any separate activation
+request. Non-`none` communication, device-plugin changes, NPU, service launch,
+performance experiments or claims, merge authority, and M0 remain closed.

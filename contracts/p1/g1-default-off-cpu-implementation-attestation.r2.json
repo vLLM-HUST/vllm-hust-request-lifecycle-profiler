@@ -1,0 +1,214 @@
+{
+  "schema": "request-lifecycle-profiler/g1-default-off-cpu-implementation-attestation/v1",
+  "status": "REMEDIATED_EXECUTABLE_ATTESTATION_CANDIDATE_READY_FOR_INDEPENDENT_RUNTIME_OWNER_ITEMS_6_8_RE_REVIEW",
+  "evidence_status": "CANDIDATE_NOT_OWNER_APPROVED_NOT_RUNTIME_CONFORMANCE_NOT_JOINT_ADMISSION_NOT_M0_PROVEN",
+  "recorded_date": "2026-08-05",
+  "supersedes_for_future_review": {
+    "path": "contracts/p1/g1-default-off-cpu-implementation-attestation.r1.json",
+    "sha256": "5d15e1b231c60fd18d5a42c849eed2c2c1fb48ecc4b75c949223cf4224c06048",
+    "historical_record_remains_immutable": true
+  },
+  "remediation_target": {
+    "repository": "vLLM-HUST/vllm-hust",
+    "pull_request": 221,
+    "review_id": 4858143623,
+    "review_state": "CHANGES_REQUESTED",
+    "review_thread_id": "PRRT_kwDORq6LNc6WbsqA",
+    "review_comment_id": "PRRC_kwDORq6LNc7dckMp",
+    "review_url": "https://github.com/vLLM-HUST/vllm-hust/pull/221#pullrequestreview-4858143623",
+    "required_behavior": "preserve_real_wait_evidence_and_do_not_treat_normal_completion_fences_as_discard_invalidation"
+  },
+  "candidate_effect": "documents_content_addressed_default_off_CPU_remediation_for_independent_runtime_owner_re_review_only",
+  "authority_effect": "none",
+  "source_baselines": {
+    "runtime": {
+      "repository": "vLLM-HUST/vllm-hust",
+      "local_worktree": "/root/vllm-hust-g1-default-off-f229ba7",
+      "audited_base_commit": "f229ba7cad21a4dba58681af6738a9fd947388e2",
+      "reviewed_parent_commit": "43509bcf1bd6db470537c1400fce390580f0603b",
+      "local_branch": "feature/rlp-kv-recovery-g1-default-off",
+      "remote_review_branch": "feature/request-lifecycle-kv-recovery-g1",
+      "implementation_commit": "5f7872976bd56a0861bb0072eaac68260ba7d578"
+    },
+    "profiler": {
+      "repository": "intellistream/vllm-request-lifecycle-profiler-plugin",
+      "local_worktree": "/root/vllm-request-lifecycle-profiler-plugin-g1-exact-b210",
+      "g0_base_commit": "5bdfeab15d8d4f35df126860ab26b19c1f4d3860",
+      "reviewed_parent_commit": "b210bfbadc748a3df343efb258769b3e6de6ad02",
+      "local_branch": "feature/request-lifecycle-kv-recovery-g1",
+      "remote_review_branch": "feature/request-lifecycle-kv-recovery-g1",
+      "conformance_commit": "f43473e78e3636e079518e19eb3ac3aeea21d8fc"
+    },
+    "shared_workloads": {
+      "repository": "intellistream/llm-serving-workloads",
+      "pinned_commit": "76e24c85bcab76ecfabb831c9444002b6efffd58"
+    },
+    "device_plugin": {
+      "repository": "vLLM-HUST/vllm-ascend-hust",
+      "audited_commit": "cafad89a5e103f31ea517c1edb56130578c3cd56",
+      "modified": false
+    }
+  },
+  "publication_scope": {
+    "runtime_pull_request": "https://github.com/vLLM-HUST/vllm-hust/pull/221",
+    "profiler_pull_request": "https://github.com/intellistream/vllm-request-lifecycle-profiler-plugin/pull/10",
+    "review_only": true,
+    "activation_effect": "none",
+    "merge_effect": "none"
+  },
+  "active_configuration_boundary": {
+    "communication_mode": "none",
+    "runtime_core": "OffloadingConnector/TieringOffloadingSpec",
+    "recompute_scheduler_enable": false,
+    "runtime_activation_authorized": false,
+    "source_conformance_seam_only": true
+  },
+  "content_addressed_authority_context": {
+    "recovery_profile_sha256": "b363532884d1cae8049ab080d2b85a629f3b33a75f6621788d1e4c8f30737666",
+    "observer_policy_sha256": "fbee3bc4f74b8c5c20e929c4e37596b06b31c1b9cd02517d8461961a8aedf420",
+    "observer_policy_profile_P0_owner_approval_sha256": "322df19ade75797fc4c3f43fe96e689404ef60a270c92081afea03683e734c91",
+    "issue2_mapping_sha256": "095944bbbb1a3ad3518aebfdd61c820ade3affdebd6024b47389cdaec24a3fa3",
+    "issue2_mapping_authority_approval_sha256": "42b761177c4bea13833be19ddc143f89c32eee02fbbb98afc2c03249c2783fe5",
+    "P0_overlay_sha256": "d80771b793a9513cdbd4fc2001e21771c56a59d49340ee88d4381027d70b1d5a",
+    "P0_overlay_owner_approval_sha256": "50d7deb8f98fcdca36303297a4ce6f7958ae619574d2e1994872936b6fc583a3",
+    "g0_result_sha256": "4b378d10cef6be10fa3fb5a840402da77b1da755781118127a5d30b1cc4b7eb2",
+    "g1_source_reauthorization_sha256": "448ff68cd139077a2f767fd16359bb5dd8f4cf61cfe258fd48f53a26569718f5"
+  },
+  "runtime_source_files": [
+    {"path": "vllm/distributed/kv_transfer/kv_connector/v1/base.py", "sha256": "2c4216a5e4bcdd10853a0b52f7af947efca224f80872c975b516e09fe4d89481"},
+    {"path": "vllm/distributed/kv_transfer/kv_connector/v1/offloading/common.py", "sha256": "220c813f7d190de5b14475c680f33b0211e542962ec287aa8c7c23a9883e5a48"},
+    {"path": "vllm/distributed/kv_transfer/kv_connector/v1/offloading/scheduler.py", "sha256": "18f813a61c9aaf19154ed53c488034b087a695be8cc91a9f97087de54757181c"},
+    {"path": "vllm/distributed/kv_transfer/kv_connector/v1/offloading/worker.py", "sha256": "e7f4bd28715e9480662e2350583ff99406e6c90d06ef0f87d6281c86e34cdcaf"},
+    {"path": "vllm/distributed/kv_transfer/kv_connector/v1/offloading_connector.py", "sha256": "4839f3e9ac732f2e53b668358162dd28a5ced576bb693bde9c5389b9787c1166"},
+    {"path": "vllm/v1/core/sched/scheduler.py", "sha256": "0025e9f97750d879decc672b36ce448f12ccf52fcc8aca6d44975dc1d9ec11df"},
+    {"path": "vllm/v1/kv_recovery_profile.py", "sha256": "e6cf5769527f5983e9cd492d05fb063418b3cfa9ded99945da464c99f0c98079"},
+    {"path": "vllm/v1/worker/gpu/kv_connector.py", "sha256": "424532cc36e1f5b8ba49d0d2c8610af5f1609b73f32c4822276f4e087ea99ab6"},
+    {"path": "vllm/v1/worker/gpu/model_runner.py", "sha256": "1aa26fe0eb172c6ee31b80207793e11257f7445f65681fa4be4764a014b2b155"},
+    {"path": "vllm/v1/worker/gpu_model_runner.py", "sha256": "51adc366255d2edd3bfbb5bc11e3dd53d9f28131aa6a13679ad8a116162a656d"},
+    {"path": "vllm/v1/worker/kv_connector_model_runner_mixin.py", "sha256": "a1c2eee83ca7ef9e536d2c78921299f9255f477c9049bc78a4157a110949cd03"}
+  ],
+  "runtime_test_and_validation_files": [
+    {"path": "tests/v1/kv_connector/unit/offloading_connector/test_kv_recovery_scheduler.py", "sha256": "f7772fa551747081e553694229c3db15b81108de89d1b5007b9d8722eb831247"},
+    {"path": "tests/v1/kv_connector/unit/offloading_connector/test_kv_recovery_worker.py", "sha256": "a342cadcb9ed7aaf75afae77e6b2a22bb2de79172624afdbbcad6831ed679a70"},
+    {"path": "tests/v1/kv_connector/unit/offloading_connector/test_worker_metadata.py", "sha256": "e2681739326318a93f4999f811e4022a7f25db31c836eca1d637f1bb0b2ccda6"},
+    {"path": "tests/v1/test_kv_recovery_profile.py", "sha256": "2f690488fd79f951d83bdb4938f633093df132cdfce2f5db6cea7176203332c9"},
+    {"path": "tests/v1/worker/test_kv_recovery_forward_observer.py", "sha256": "634455aee3ee2b8e462d12c5876eef2cd6551ddb60a4a3ebf3a2de1361bae862"},
+    {"path": "tools/pre_commit/check_forbidden_imports.py", "sha256": "51226aa26f182a8088f3c8a5b6c16306f7a69da8754e5ee5eef49dabfffdf788"}
+  ],
+  "profiler_source_files": [
+    {"path": "src/vllm_request_lifecycle_profiler/__init__.py", "sha256": "f7cafac26c7cc2d59e0758151af8b0c471b1e9dbde011279e9dc849462c3ea96"},
+    {"path": "src/vllm_request_lifecycle_profiler/kv_recovery_profile_protocol.py", "sha256": "c2a23c505bf06e90cf2652c58e079e7f4800f791da32c69b235475622252084a"},
+    {"path": "src/vllm_request_lifecycle_profiler/kv_recovery_runtime.py", "sha256": "daa78a0da38caf9bc34608958d7e6733b5e7856c1408c7d0122828ded5cd76a3"},
+    {"path": "src/vllm_request_lifecycle_profiler/runtime_hooks.py", "sha256": "0d55b1bfb8f86f56435f2f99c807f92b195f2c4899765924dd39df8964b307db"},
+    {"path": "src/vllm_request_lifecycle_profiler/runtime_protocol.py", "sha256": "b9b2e89a29d931d4f797bd661ca2a50ae8cdda0acaab8ba4c74646f0cd674d64"}
+  ],
+  "profiler_test_files": [
+    {"path": "tests/test_kv_recovery_profile_writer.py", "sha256": "ab93a0de6755bdaf56f198273ce7d1c5f49021186daad2adcfa5733e9d0c61cf"},
+    {"path": "tests/test_kv_recovery_runtime.py", "sha256": "30ca5a7d84c07a2ad66be2ad1dc0577f7f9436114aa76837b0ec99f4dd036556"},
+    {"path": "tests/test_kv_recovery_runtime_integration.py", "sha256": "4d6288cbe36ffdd63127582eac5bf3907e7c2d77928624f335fcd4457e99e72a"}
+  ],
+  "implemented_and_exercised": [
+    "normal_completion_fence_freezes_wait_membership_before_backend_wait_and_records_wait_only_after_normal_return",
+    "normal_completion_fence_retains_pending_H2D_or_D2H_context_until_real_completion",
+    "explicit_preemption_terminal_and_reset_discard_handoff_is_distinct_from_jobs_to_flush",
+    "combined_wait_and_discard_records_wait_before_fail_closed_invalidation",
+    "backend_wait_failure_emits_no_wait_or_invalidation_and_keeps_pending_context",
+    "real_BoundedKVRecoveryWorkerObserver_regressions_cover_H2D_D2H_wait_completion_and_discard",
+    "invalidation_scans_only_the_four_bounded_internal_tables_without_copying_an_unbounded_backend_set",
+    "disabled_worker_and_model_entry_paths_allocate_no_observer_state_and_read_no_profile_clock",
+    "profile_clock_or_roster_freeze_failure_keeps_serving_fail_open_and_marks_formal_first_compute_missing",
+    "all_previously_attested_seven_stage_paired_profile_normalizer_capacity_and_explicit_edge_behaviors_remain_exercised"
+  ],
+  "executable_results": [
+    {
+      "scope": "runtime_focused_default_off_CPU_and_real_forward_observer",
+      "command": ".venv/bin/python -m pytest -q tests/v1/test_kv_recovery_profile.py tests/v1/kv_connector/unit/offloading_connector/test_kv_recovery_scheduler.py tests/v1/kv_connector/unit/offloading_connector/test_kv_recovery_worker.py tests/v1/kv_connector/unit/offloading_connector/test_worker_metadata.py tests/v1/worker/test_kv_recovery_forward_observer.py",
+      "result": "89 passed, 15 warnings in 42.85s"
+    },
+    {
+      "scope": "actual_runtime_ABI_cross_repository_CPU",
+      "command": "PYTHONPATH=<profiler-g1>/src VLLM_HUST_G1_SRC=<runtime-g1> <runtime-g1>/.venv/bin/python -m pytest -q tests/test_kv_recovery_runtime.py tests/test_kv_recovery_runtime_integration.py",
+      "result": "16 passed in 0.29s"
+    },
+    {
+      "scope": "profiler_complete_suite_with_actual_runtime_ABI_and_shared_workloads",
+      "command": "LLM_SERVING_WORKLOADS_SRC=<pinned-workloads>/src VLLM_HUST_G1_SRC=<runtime-g1> PYTHONPATH=<profiler-g1>/src <runtime-g1>/.venv/bin/python -m pytest -q --ignore=tests/test_g1_default_off_cpu_attestation_r2.py",
+      "result": "187 passed, 1 warning in 41.34s"
+    },
+    {
+      "scope": "runtime_changed_file_pre_commit",
+      "command": "pre-commit run --files <all_changed_runtime_files>",
+      "result": "all applicable hooks passed including Ruff format typos mypy forbidden-imports and repository policy checks"
+    }
+  ],
+  "downstream_integrity_validation": {
+    "path": "tests/test_g1_default_off_cpu_attestation_r2.py",
+    "sha256": "c15bd08580f95f855fa695bf7b579808311510464804983e3f4d07f1bcf88970",
+    "command": "VLLM_HUST_G1_SRC=<runtime-g1> PYTHONPATH=<profiler-g1>/src <runtime-g1>/.venv/bin/python -m pytest -q tests/test_g1_default_off_cpu_attestation_r2.py",
+    "result": "6 passed in 0.24s"
+  },
+  "non_gating_diagnostics": [
+    {
+      "scope": "complete_offloading_connector_CPU_directory",
+      "result": "13 failed, 150 passed, 2 skipped, 15 warnings in 164.64s",
+      "classification": "not_used_as_passing_evidence_exact_failure_set_reproduces_at_audited_base_f229ba7",
+      "changed_G1_stack_frames_in_failures": false
+    },
+    {
+      "scope": "expanded_generic_model_runner_CPU_suite",
+      "result": "5 failed, 34 passed, 2 skipped, 14 warnings in 60.89s",
+      "classification": "not_used_as_passing_evidence_existing_CPU_backend_shape_and_default_fixture_failures",
+      "changed_G1_stack_frames_in_failures": false
+    }
+  ],
+  "runtime_owner_review_items": {
+    "item_6": {
+      "status": "remediated_candidate_ready_for_independent_runtime_owner_re_review_not_approved",
+      "coverage": [
+        "exact_completion_fence_and_discard_handoff_state_transitions",
+        "all_four_exact_4096_capacity_paths",
+        "atomic_pending_consumption_cleanup_and_serving_fail_open"
+      ]
+    },
+    "item_7": {
+      "status": "remediated_candidate_ready_for_independent_runtime_owner_re_review_not_approved",
+      "coverage": [
+        "real_wait_evidence_survives_normal_flush",
+        "explicit_discard_is_fail_closed_after_wait",
+        "paired_profile_writer_real_base_emitters_and_whole_trace_normalization_without_inference"
+      ]
+    },
+    "item_8": {
+      "status": "remediated_candidate_ready_for_independent_runtime_owner_re_review_not_approved",
+      "coverage": [
+        "default_off_path_reads_no_profile_clock",
+        "runtime_changed_file_pre_commit_is_green",
+        "content_addressed_source_test_and_diagnostic_boundary"
+      ]
+    }
+  },
+  "closed_gates": {
+    "Item4B_runtime_owner_items_6_8_approved": false,
+    "Item4B_policy_fully_ratified": false,
+    "complete_resolved_configuration_approved": false,
+    "runtime_conformance_complete": false,
+    "joint_admission_present": false,
+    "communication_mode_non_none_authorized": false,
+    "runtime_activation_authorized": false,
+    "device_plugin_modification_authorized": false,
+    "NPU_authorized": false,
+    "service_launch_authorized": false,
+    "performance_experiment_authorized": false,
+    "performance_claim_authorized": false,
+    "remote_G1_merge_authorized": false,
+    "M0_proven": false
+  },
+  "next_execution_order": [
+    "publish_the_exact_runtime_profiler_commits_and_this_r2_record_to_the_existing_draft_PRs",
+    "reply_to_the_existing_runtime_review_thread_with_the_exact_commits_digest_and_validation",
+    "request_independent_runtime_owner_Items_6_8_re_review_of_this_exact_r2_candidate",
+    "wait_for_an_explicit_decision_without_inferring_approval_from_silence",
+    "only_after_approval_resolve_complete_configuration_runtime_conformance_and_joint_admission"
+  ],
+  "integrity_rule": "This r2 record supersedes r1 only for future remediation review and grants no authority. Any referenced implementation byte, conformance-test byte, or stated executable result change requires r3. It must not be represented as Item 4B runtime-owner approval, complete configuration approval, runtime conformance, joint admission, runtime activation, communication authorization, hardware or service evidence, performance evidence, merge authority, or M0."
+}
