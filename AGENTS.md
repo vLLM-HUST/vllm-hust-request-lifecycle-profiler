@@ -1923,3 +1923,69 @@ resolution, a green check, or silence. Complete resolved configuration,
 runtime conformance, and joint admission still precede any separate activation
 request. Non-`none` communication, device-plugin changes, NPU, service launch,
 performance experiments or claims, merge authority, and M0 remain closed.
+
+## 2026-08-05 profiler PR #10 merge and r3 portability reconciliation
+
+This section supersedes the publication status and reproducibility procedure
+in the preceding r2 checkpoint; it does not supersede r1/r2 evidence bytes or
+expand any authority. Profiler PR
+`intellistream/vllm-request-lifecycle-profiler-plugin#10` received explicit
+approval in review `4860889814` (`PRR_kwDOTUmGYs8AAAABIbtK1g`) at
+`2026-08-05T04:08:45Z`. The approved head was
+`5558d213f94f2fb910c1e1e8685f555556867cda`, whose only change added the
+`VLLM_HUST_G1_SRC` override to the r1/r2 validation tests. The PR was then
+squash-merged at `2026-08-05T04:08:54Z` as
+`7a77703e916eebe41fe1b6c0993aeae7cf999240`.
+
+Because the merge was a squash, the approved PR commits are not ancestors of
+the merged `main`. The immutable r2 record also binds the pre-portability r2
+test digest
+`c15bd08580f95f855fa695bf7b579808311510464804983e3f4d07f1bcf88970`,
+while the approved portability commit contains
+`d6ef9d9768e1b8566857150fba03ea6e0b8b104d4e4776e070d08e56aa286bd3`.
+In addition, the older r0 validation test retained the same
+direct-history assumption and failed after the squash merge. Do not rewrite
+r0, r1, or r2 to conceal these facts. The downstream reconciliation record is
+`contracts/p1/g1-default-off-cpu-implementation-attestation.r3.json`, SHA-256
+`aa15c2a8930aa109907f092580ca7a18abd151a4278473aa6e26e4afce0b2f88`,
+on branch `codex/g1-attestation-r3`. It was published for review as Draft
+profiler PR #11 at
+`https://github.com/intellistream/vllm-request-lifecycle-profiler-plugin/pull/11`;
+the initial candidate commit is
+`eada6b142cdcbba21d7aecd5b5d7ae4fdc3aec6d`.
+
+The portable audit contract is now:
+
+- `VLLM_HUST_G1_SRC` must name the exact runtime checkout containing
+  `5f7872976bd56a0861bb0072eaac68260ba7d578`;
+- `RLP_G1_PROFILER_HISTORY_SRC` must name a profiler checkout containing the
+  PR #10 history, including `091afd76`, `b2a28988`, `f43473e`, `b8dfb85`, and
+  `5558d213`;
+- historical commit and blob reads use that explicit history checkout and
+  never fetch from the network; and
+- when only squash-merged `main` is available, exactly six historical checks
+  skip with an explicit reason while every nonhistorical check continues.
+
+Final local validation for r3 used the exact runtime, PR #10 history, and
+pinned shared workloads `76e24c85bcab76ecfabb831c9444002b6efffd58`:
+
+- r0/r1/r2/r3 targeted validation with history: `20 passed`;
+- the same targeted validation without history: `14 passed, 6 skipped`;
+- complete profiler suite with history: `198 passed, 1 warning`;
+- complete profiler suite without history: `192 passed, 6 skipped, 1 warning`;
+- Ruff check/format, JSON parse, and `git diff --check`: passed.
+
+Profiler PR #10 approval and merge authorize only the default-off profiler
+parent publication. They do not approve Items 6-8, runtime PR #221, runtime
+activation, service launch, NPU, performance experiments or conclusions, or
+M0. Runtime PR #221 remains Draft at exact head
+`5f7872976bd56a0861bb0072eaac68260ba7d578`, with review decision
+`CHANGES_REQUESTED` and unresolved outdated thread
+`PRRT_kwDORq6LNc6WbsqA`. The runtime review context was updated without source
+changes or thread resolution at
+`https://github.com/vLLM-HUST/vllm-hust/pull/221#issuecomment-5187733646`.
+Do not resolve the thread, mark the runtime PR ready, merge it, or infer
+runtime-owner approval. The next decision remains an explicit independent
+re-review of the remediated runtime candidate; complete configuration, runtime
+conformance, joint admission, and separate activation authorization remain
+later gates.

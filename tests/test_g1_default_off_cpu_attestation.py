@@ -2,8 +2,11 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import subprocess
 from pathlib import Path
+
+import pytest
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 ATTESTATION_PATH = (
@@ -14,10 +17,19 @@ ATTESTATION_PATH = (
 )
 
 
-def git_blob_sha256(commit: str, path: str) -> str:
+def profiler_history_repo() -> Path:
+    override = os.environ.get("RLP_G1_PROFILER_HISTORY_SRC", "").strip()
+    if not override:
+        pytest.skip(
+            "set RLP_G1_PROFILER_HISTORY_SRC to a checkout containing PR #10 history"
+        )
+    return Path(override)
+
+
+def git_blob_sha256(repository: Path, commit: str, path: str) -> str:
     blob = subprocess.check_output(
         ["git", "show", f"{commit}:{path}"],
-        cwd=REPO_ROOT,
+        cwd=repository,
     )
     return hashlib.sha256(blob).hexdigest()
 
@@ -48,7 +60,7 @@ def test_attestation_binds_exact_local_implementation_commits() -> None:
             profiler["implementation_commit"],
             "HEAD",
         ],
-        cwd=REPO_ROOT,
+        cwd=profiler_history_repo(),
         check=True,
     )
 
@@ -58,13 +70,14 @@ def test_attestation_profiler_hashes_match_bound_commit_blobs() -> None:
     implementation_commit = record["source_baselines"]["profiler"][
         "implementation_commit"
     ]
+    repository = profiler_history_repo()
 
     for artifact in [
         *record["profiler_source_files"],
         *record["profiler_test_files"],
     ]:
         assert (
-            git_blob_sha256(implementation_commit, artifact["path"])
+            git_blob_sha256(repository, implementation_commit, artifact["path"])
             == artifact["sha256"]
         )
 

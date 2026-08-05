@@ -6,6 +6,8 @@ import os
 import subprocess
 from pathlib import Path
 
+import pytest
+
 REPO_ROOT = Path(__file__).resolve().parents[1]
 ATTESTATION_PATH = (
     REPO_ROOT
@@ -51,6 +53,15 @@ def runtime_repo(record: dict[str, object]) -> Path:
     return Path(record["source_baselines"]["runtime"]["local_worktree"])
 
 
+def profiler_history_repo() -> Path:
+    override = os.environ.get("RLP_G1_PROFILER_HISTORY_SRC", "").strip()
+    if not override:
+        pytest.skip(
+            "set RLP_G1_PROFILER_HISTORY_SRC to a checkout containing PR #10 history"
+        )
+    return Path(override)
+
+
 def test_r2_supersedes_but_does_not_mutate_r1() -> None:
     record = load_attestation()
 
@@ -79,7 +90,9 @@ def test_r2_binds_exact_remediation_commits_and_review_anchor() -> None:
     assert_commit_is_local_ancestor(
         runtime_repo(record), runtime["implementation_commit"]
     )
-    assert_commit_is_local_ancestor(REPO_ROOT, profiler["conformance_commit"])
+    assert_commit_is_local_ancestor(
+        profiler_history_repo(), profiler["conformance_commit"]
+    )
     assert baselines["shared_workloads"] == {
         "repository": "intellistream/llm-serving-workloads",
         "pinned_commit": "76e24c85bcab76ecfabb831c9444002b6efffd58",
@@ -101,7 +114,7 @@ def test_r2_hashes_match_both_bound_commit_blob_sets() -> None:
             ),
         ),
         (
-            REPO_ROOT,
+            profiler_history_repo(),
             baselines["profiler"]["conformance_commit"],
             (*record["profiler_source_files"], *record["profiler_test_files"]),
         ),
