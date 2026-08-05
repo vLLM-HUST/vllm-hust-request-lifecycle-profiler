@@ -17,6 +17,8 @@ from dataclasses import dataclass
 from pathlib import Path
 
 SCHEMA_VERSION = "rlp.trace/v1alpha1"
+KV_RECOVERY_COMMUNICATION_MODE = "issue2:kv-recovery-v1alpha1"
+KV_RECOVERY_H2D_EVIDENCE = f"{KV_RECOVERY_COMMUNICATION_MODE}:h2d_restore"
 PARENT_API_MAJOR = 1
 CLOCK_SOURCE = "CLOCK_MONOTONIC"
 
@@ -54,6 +56,7 @@ _EVENT_ID = re.compile(r"^[0-9a-f]{32}:e:(0|[1-9][0-9]{0,19})$")
 _SPAN_ID = re.compile(r"^[0-9a-f]{32}:s:(0|[1-9][0-9]{0,19})$")
 _HANDOFF_ID = re.compile(r"^[0-9a-f]{32}:h:(0|[1-9][0-9]{0,19})$")
 _ISSUE_2_EVIDENCE = re.compile(r"^issue2:[a-z0-9_.-]+:[a-z0-9_.-]+$")
+_TRANSFER_ID = re.compile(r"^[0-9a-f]{32}:t:(0|[1-9][0-9]{0,19})$")
 
 SCOPES = frozenset({"root_request", "engine_sample", "response"})
 COMPONENTS = frozenset(
@@ -393,6 +396,7 @@ def build_event_record(
     clock_domain_id: str,
     record_seq: int,
     default_timestamp_ns: int,
+    communication_mode: str = "none",
 ) -> tuple[dict[str, object], RecordRef]:
     _require_hex32("process_uuid", process_uuid)
     _require_hex32("clock_domain_id", clock_domain_id)
@@ -400,7 +404,13 @@ def build_event_record(
     timestamp_ns = (
         default_timestamp_ns if draft.timestamp_ns is None else draft.timestamp_ns
     )
-    _validate_event_draft(draft, process_uuid, clock_domain_id, timestamp_ns)
+    _validate_event_draft(
+        draft,
+        process_uuid,
+        clock_domain_id,
+        timestamp_ns,
+        communication_mode,
+    )
     event_id = f"{process_uuid}:e:{record_seq}"
     record = {
         "schema_version": SCHEMA_VERSION,
@@ -436,8 +446,8 @@ def build_edge_record(
     record_seq: int,
     communication_mode: str,
 ) -> tuple[dict[str, object], RecordRef]:
-    if communication_mode != "none":
-        raise ProtocolValidationError("P1 supports only communication_mode=none")
+    if communication_mode not in {"none", KV_RECOVERY_COMMUNICATION_MODE}:
+        raise ProtocolValidationError("communication_mode is not implemented")
     _require_hex32("process_uuid", process_uuid)
     _require_hex32("trace_id", draft.trace_id)
     _require_uint("record_seq", record_seq, _UINT64_MAX)
@@ -459,9 +469,13 @@ def build_edge_record(
     if draft.evidence_source in EVIDENCE_SOURCES:
         pass
     elif _ISSUE_2_EVIDENCE.fullmatch(draft.evidence_source or ""):
-        if communication_mode == "none":
+        if (
+            communication_mode != KV_RECOVERY_COMMUNICATION_MODE
+            or draft.evidence_source != KV_RECOVERY_H2D_EVIDENCE
+            or draft.edge_kind != "data_dependency"
+        ):
             raise ProtocolValidationError(
-                "issue-2 evidence is forbidden in communication_mode=none"
+                "issue-2 evidence is forbidden outside the frozen recovery mapping"
             )
     else:
         raise ProtocolValidationError("evidence_source is not frozen")
@@ -593,6 +607,7 @@ def _validate_event_draft(
     process_uuid: str,
     clock_domain_id: str,
     timestamp_ns: int,
+    communication_mode: str,
 ) -> None:
     del clock_domain_id
     _require_hex32("trace_id", draft.trace_id)
@@ -606,10 +621,14 @@ def _validate_event_draft(
     required_component = _COMPONENT_BY_SCOPE_EVENT.get((draft.scope, draft.event_name))
     if required_component != draft.component:
         raise ProtocolValidationError("component/event/scope ownership mismatch")
-    if draft.event_name.startswith("communication_"):
-        raise ProtocolValidationError(
-            "communication events are forbidden in communication_mode=none"
-        )
+    is_communication = draft.event_name.startswith("communication_")
+    if is_communication and communication_mode != KV_RECOVERY_COMMUNICATION_MODE:
+        raise ProtocolValidationError("communication event mode is not active")
+    if not is_communication and communication_mode not in {
+        "none",
+        KV_RECOVERY_COMMUNICATION_MODE,
+    }:
+        raise ProtocolValidationError("communication_mode is not implemented")
 
     _validate_lifecycle_identity(draft)
     _validate_optional_uint("preemption_epoch", draft.preemption_epoch, _UINT32_MAX)
@@ -631,6 +650,56 @@ def _validate_event_draft(
     _validate_handoff_and_chunk(draft)
     metadata = _validate_metadata(draft.metadata)
     _validate_event_metadata(draft, metadata)
+    if is_communication:
+        _validate_kv_recovery_communication_metadata(draft, metadata)
+
+
+def _validate_kv_recovery_communication_metadata(
+    draft: EventDraft,
+    metadata: Mapping[str, MetadataValue],
+) -> None:
+    common_keys = {
+        "operation",
+        "direction",
+        "transfer_id",
+        "block_set_id",
+        "recovery_profile",
+        "recovery_profile_sha256",
+        "communication_mapping",
+        "communication_mapping_sha256",
+        "rank",
+    }
+    expected_keys = common_keys | (
+        {"bytes_moved"} if draft.event_name == "communication_done" else set()
+    )
+    if set(metadata) != expected_keys:
+        raise ProtocolValidationError("recovery communication metadata keys differ")
+    if metadata.get("operation") != "h2d_restore":
+        raise ProtocolValidationError("recovery operation is not h2d_restore")
+    if metadata.get("direction") != "h2d":
+        raise ProtocolValidationError("recovery direction is not h2d")
+    transfer_id = metadata.get("transfer_id")
+    if not isinstance(transfer_id, str) or not _TRANSFER_ID.fullmatch(transfer_id):
+        raise ProtocolValidationError("recovery transfer_id is invalid")
+    for key in (
+        "block_set_id",
+        "recovery_profile_sha256",
+        "communication_mapping_sha256",
+    ):
+        value = metadata.get(key)
+        if not isinstance(value, str) or not _HEX64.fullmatch(value):
+            raise ProtocolValidationError(f"recovery metadata {key} is invalid")
+    if metadata.get("recovery_profile") != "rlp.kv-recovery/v1alpha1":
+        raise ProtocolValidationError("recovery profile ID is invalid")
+    if metadata.get("communication_mapping") != KV_RECOVERY_COMMUNICATION_MODE:
+        raise ProtocolValidationError("communication mapping ID is invalid")
+    if metadata.get("rank") != 0:
+        raise ProtocolValidationError("recovery communication requires rank zero")
+    if (
+        draft.event_name == "communication_done"
+        and _required_metadata_uint(metadata, "bytes_moved") < 1
+    ):
+        raise ProtocolValidationError("bytes_moved must be positive")
 
 
 def _validate_lifecycle_identity(draft: EventDraft) -> None:
