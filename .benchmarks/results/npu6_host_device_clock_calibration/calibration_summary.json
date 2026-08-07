@@ -1,0 +1,118 @@
+{
+  "acceptance_status": "PASS",
+  "capture_count": 3,
+  "captures": [
+    {
+      "alignment_status": "calibrated",
+      "analysis_status": "invalid_input",
+      "audit_status": "PASS",
+      "bracket_uncertainty_p95_ns": "53096.436548",
+      "clock_model_id": "967ee696112a064e11639a77a1390490460990a8b1d020397aa86b8932ea1cda:clock_model:0:6",
+      "collection_status": "unknown",
+      "correlated_duration_ns": 0,
+      "correlated_slice_count": 0,
+      "device_id": 6,
+      "drift_ppm": "17.638930",
+      "epsilon_ns": 56355,
+      "fit_marker_count": 17,
+      "inlier_marker_count": 21,
+      "input_marker_count": 21,
+      "link_status_counts": {
+        "unique": 52,
+        "unresolved": 715
+      },
+      "rejected_marker_count": 0,
+      "residual_ns": {
+        "max": "3257.739760",
+        "p50": "2232.080899",
+        "p95": "3257.739760"
+      },
+      "run_id": "967ee696112a064e11639a77a1390490460990a8b1d020397aa86b8932ea1cda",
+      "scale": "1.000017638930",
+      "sidecar_path": "/workspace/ascend-b2-pilot/src/vllm-request-lifecycle-profiler-plugin/.benchmarks/results/npu6_host_device_clock_calibration/capture_02_real_calibrated/traceloom_sidecar_v43.db",
+      "source_kind": "ascend_sqlite_hot_path",
+      "source_path": "/workspace/ascend-b2-pilot/src/vllm-request-lifecycle-profiler-plugin/.benchmarks/results/npu6_host_device_clock_calibration/capture_02_real_calibrated/profile/PROF_000001_20260807124600000_01649898LMMGPPMG/msprof_20260807124606.db",
+      "validation_marker_count": 4
+    },
+    {
+      "alignment_status": "calibrated",
+      "analysis_status": "invalid_input",
+      "audit_status": "PASS",
+      "bracket_uncertainty_p95_ns": "47896.504245",
+      "clock_model_id": "f0bf1d9eb1ee0847237772271d5ee728d313686e2f6f4f237053b770b1de6a21:clock_model:0:6",
+      "collection_status": "unknown",
+      "correlated_duration_ns": 0,
+      "correlated_slice_count": 0,
+      "device_id": 6,
+      "drift_ppm": "20.967414",
+      "epsilon_ns": 61988,
+      "fit_marker_count": 17,
+      "inlier_marker_count": 21,
+      "input_marker_count": 21,
+      "link_status_counts": {
+        "unique": 52,
+        "unresolved": 715
+      },
+      "rejected_marker_count": 0,
+      "residual_ns": {
+        "max": "14091.348543",
+        "p50": "2980.759819",
+        "p95": "14091.348543"
+      },
+      "run_id": "f0bf1d9eb1ee0847237772271d5ee728d313686e2f6f4f237053b770b1de6a21",
+      "scale": "1.000020967414",
+      "sidecar_path": "/workspace/ascend-b2-pilot/src/vllm-request-lifecycle-profiler-plugin/.benchmarks/results/npu6_host_device_clock_calibration/capture_03_real_calibrated/traceloom_sidecar_v43.db",
+      "source_kind": "ascend_sqlite_hot_path",
+      "source_path": "/workspace/ascend-b2-pilot/src/vllm-request-lifecycle-profiler-plugin/.benchmarks/results/npu6_host_device_clock_calibration/capture_03_real_calibrated/profile/PROF_000001_20260807125135481_01655572RIQCMDCF/msprof_20260807125143.db",
+      "validation_marker_count": 4
+    },
+    {
+      "alignment_status": "calibrated",
+      "analysis_status": "ok",
+      "audit_status": "PASS",
+      "bracket_uncertainty_p95_ns": "49381.341004",
+      "clock_model_id": "03b584e75ffbe288412133657d2cb44cfb71e6841cb6ad469b1688949383247b:clock_model:0:6",
+      "collection_status": "unknown",
+      "correlated_duration_ns": 0,
+      "correlated_slice_count": 0,
+      "device_id": 6,
+      "drift_ppm": "17.031092",
+      "epsilon_ns": 53012,
+      "fit_marker_count": 17,
+      "inlier_marker_count": 21,
+      "input_marker_count": 21,
+      "link_status_counts": {
+        "unique": 52,
+        "unresolved": 715
+      },
+      "rejected_marker_count": 0,
+      "residual_ns": {
+        "max": "3630.587859",
+        "p50": "214.626539",
+        "p95": "3630.587859"
+      },
+      "run_id": "03b584e75ffbe288412133657d2cb44cfb71e6841cb6ad469b1688949383247b",
+      "scale": "1.000017031092",
+      "sidecar_path": "/workspace/ascend-b2-pilot/src/vllm-request-lifecycle-profiler-plugin/.benchmarks/results/npu6_host_device_clock_calibration/capture_04_real_calibrated/traceloom_sidecar_v43.db",
+      "source_kind": "ascend_sqlite_hot_path",
+      "source_path": "/workspace/ascend-b2-pilot/src/vllm-request-lifecycle-profiler-plugin/.benchmarks/results/npu6_host_device_clock_calibration/capture_04_real_calibrated/profile/PROF_000001_20260807125153693_01655972DMDPEJFR/msprof_20260807125201.db",
+      "validation_marker_count": 4
+    }
+  ],
+  "evidence_label": "real-online calibration-chain repeated capture",
+  "pooled": {
+    "absolute_validation_residual_ns": {
+      "count": 12,
+      "max": "14091.348500",
+      "p50": "2232.080894",
+      "p95": "14091.348500"
+    },
+    "scaled_half_bracket_uncertainty_ns": {
+      "count": 63,
+      "max": "97373.541629",
+      "p50": "40686.217649",
+      "p95": "53096.436548"
+    }
+  },
+  "unique_run_id_count": 3
+}

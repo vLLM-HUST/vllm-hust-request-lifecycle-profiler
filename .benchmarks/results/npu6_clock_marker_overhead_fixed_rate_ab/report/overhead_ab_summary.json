@@ -1,0 +1,1006 @@
+{
+  "calibration_acceptance": "PASS",
+  "capture_acceptance": "PARTIAL",
+  "design": {
+    "fixed_offered_window_s": 24.0,
+    "offered_rate_rps": 2.0,
+    "request_count": 48,
+    "schedule_sha256": "0a4ed6fdb458703462b5a68fd27739620157640487dbe5cd0a60be0bebd3bbfa"
+  },
+  "disabled": {
+    "client": {
+      "error_count": 0,
+      "event_count": 0,
+      "first_token_ms": {
+        "count": 48,
+        "max": 180.48857804387808,
+        "min": 122.5774867925793,
+        "p50": 160.4966705199331,
+        "p95": 177.65755313448608,
+        "p99": 179.39742506714538
+      },
+      "fixed_offered_window_s": 24.0,
+      "inter_token_latency_ms": {
+        "count": 1488,
+        "max": 66.41611410304904,
+        "min": 1.5478990972042084,
+        "p50": 54.88899850752205,
+        "p95": 57.236407115124166,
+        "p99": 65.22665788885206
+      },
+      "latency_ms": {
+        "count": 48,
+        "max": 1901.3625129591674,
+        "min": 1789.8521439637989,
+        "p50": 1869.4419594248757,
+        "p95": 1898.4440464759246,
+        "p99": 1901.314210598357
+      },
+      "measured_concurrency": 16,
+      "measured_duration_s": 25.290703710867092,
+      "observer_mode": "no-trace",
+      "offered_rate_rps": 2.0,
+      "output_chunk_count": 1536,
+      "output_chunk_throughput_per_s": 60.733778607354466,
+      "request_count": 48,
+      "request_throughput_per_s": 1.897930581479827,
+      "schedule_lag_ms": {
+        "count": 48,
+        "max": 0.5266459193080664,
+        "min": 0.09169685654342175,
+        "p50": 0.1031174324452877,
+        "p95": 0.48418247606605286,
+        "p99": 0.5126643250696361
+      },
+      "success_count": 48,
+      "tpot_ms": {
+        "count": 48,
+        "max": 55.835221413402785,
+        "min": 52.10208370830984,
+        "p50": 55.11533206463942,
+        "p95": 55.614096547416864,
+        "p99": 55.82617914747266
+      },
+      "warmup_first_token_ms": {
+        "count": 4,
+        "max": 330.87788079865277,
+        "min": 154.50085303746164,
+        "p50": 155.8156294049695,
+        "p95": 304.7243405715562,
+        "p99": 325.64717275323346
+      },
+      "warmup_latency_ms": {
+        "count": 4,
+        "max": 1870.1651559676975,
+        "min": 1711.1513980198652,
+        "p50": 1729.0079589001834,
+        "p95": 1850.1229203655384,
+        "p99": 1866.1567088472657
+      },
+      "warmup_request_count": 4,
+      "warmup_success_count": 4
+    },
+    "iteration": {
+      "all_duration_ms": {
+        "count": 597,
+        "max": 164.845337,
+        "min": 0.775594,
+        "p50": 53.240124,
+        "p95": 55.5297308,
+        "p99": 63.43678307999999
+      },
+      "by_scheduled_token_count": {
+        "1": {
+          "count": 142,
+          "max": 71.878878,
+          "min": 49.363922,
+          "p50": 50.5656335,
+          "p95": 53.72888384999999,
+          "p99": 54.98589547
+        },
+        "2": {
+          "count": 17,
+          "max": 55.206533,
+          "min": 53.00305,
+          "p50": 53.215591,
+          "p95": 55.064482600000005,
+          "p99": 55.17812292
+        },
+        "3": {
+          "count": 206,
+          "max": 64.054407,
+          "min": 52.597419,
+          "p50": 53.6256535,
+          "p95": 55.70408675,
+          "p99": 63.6170104
+        },
+        "4": {
+          "count": 170,
+          "max": 62.595243,
+          "min": 52.544027,
+          "p50": 53.2453015,
+          "p95": 55.313240199999996,
+          "p99": 56.86889068000001
+        }
+      },
+      "decode_duration_ms": {
+        "count": 535,
+        "max": 71.878878,
+        "min": 49.363922,
+        "p50": 53.192828,
+        "p95": 55.1938315,
+        "p99": 61.518099879999895
+      },
+      "decode_iteration_count": 535,
+      "iteration_count": 597,
+      "marker_states": {
+        "disabled": 597
+      },
+      "scheduled_token_count": 12440
+    },
+    "marker_bracket_count": 0,
+    "profile_db": "/workspace/ascend-b2-pilot/src/vllm-request-lifecycle-profiler-plugin/.benchmarks/results/npu6_clock_marker_overhead_fixed_rate_ab/marker_disabled_ba_complete/profile/PROF_000001_20260807153125159_01726997OJIIIIAI/msprof_20260807153305.db",
+    "provenance": {
+      "artifact_label": "real-online fixed-rate matched marker overhead",
+      "case_id": "shared_scenario_structured_agent_decode",
+      "client_command": [
+        "/usr/local/python3.12.13/bin/python3",
+        "/workspace/ascend-b2-pilot/src/vllm-request-lifecycle-profiler-plugin/.benchmarks/run_existing_server_trace_probe.py",
+        "--endpoint",
+        "http://127.0.0.1:18170",
+        "--model",
+        "clock-ab-qwen",
+        "--case-id",
+        "shared_scenario_structured_agent_decode",
+        "--seed",
+        "7",
+        "--warmup-requests",
+        "4",
+        "--repeat-count",
+        "12",
+        "--max-requests",
+        "4",
+        "--request-max-tokens",
+        "32",
+        "--measured-concurrency",
+        "16",
+        "--offered-rate-rps",
+        "2.0",
+        "--measured-duration-s",
+        "24.0",
+        "--observer-mode",
+        "no-trace",
+        "--timeout-s",
+        "120",
+        "--output-dir",
+        "/workspace/ascend-b2-pilot/src/vllm-request-lifecycle-profiler-plugin/.benchmarks/results/npu6_clock_marker_overhead_fixed_rate_ab/marker_disabled_ba_complete/run/client"
+      ],
+      "installed_runtime": {
+        "vllm_ascend_commit": "80610e4438dba05011b05f89fc45d91e96992671",
+        "vllm_commit": "ad7125a431e176d4161099480a66f0169609a690"
+      },
+      "marker_enabled": false,
+      "mode": "marker-disabled",
+      "model": "/workspace/models/Qwen2.5-7B-Instruct",
+      "profiler_boundary": "msprof launch ownership around server and matched client",
+      "profiler_options": {
+        "ai_core": "off",
+        "runtime_api": "on",
+        "task_time": "l1",
+        "type": "db"
+      },
+      "request_shape": {
+        "max_requests": 4,
+        "measured_concurrency": 16,
+        "measured_duration_s": 24.0,
+        "offered_rate_rps": 2.0,
+        "repeat_count": 12,
+        "request_max_tokens": 32,
+        "seed": 7,
+        "warmup_requests": 4
+      },
+      "server_command": [
+        "/usr/local/python3.12.13/bin/python3",
+        "-m",
+        "vllm.entrypoints.openai.api_server",
+        "--model",
+        "/workspace/models/Qwen2.5-7B-Instruct",
+        "--served-model-name",
+        "clock-ab-qwen",
+        "--host",
+        "127.0.0.1",
+        "--port",
+        "18170",
+        "--tensor-parallel-size",
+        "1",
+        "--max-model-len",
+        "4096",
+        "--max-num-batched-tokens",
+        "4096",
+        "--max-num-seqs",
+        "4",
+        "--gpu-memory-utilization",
+        "0.75",
+        "--enforce-eager",
+        "--generation-config",
+        "vllm",
+        "--disable-uvicorn-access-log"
+      ],
+      "timestamp_utc": "2026-08-07T15:30:40.784498+00:00",
+      "workload_commit": "76e24c85bcab76ecfabb831c9444002b6efffd58"
+    },
+    "request_identity": {
+      "record_count": 48,
+      "schedule_sha256": "0a4ed6fdb458703462b5a68fd27739620157640487dbe5cd0a60be0bebd3bbfa"
+    },
+    "sidecar": {
+      "audit": {
+        "analysis_status": "invalid_input",
+        "anchor_attributed_ns": 36318155720,
+        "anchor_orphan_errors": 0,
+        "audit_status": "PASS",
+        "collection_status": "unknown",
+        "device_interval_count": 416855,
+        "device_only_residual_ns": 5472065320,
+        "evidence_extent_errors": 0,
+        "evidence_owner_errors": 0,
+        "evidence_source_errors": 0,
+        "explanation_ns": 41790221040,
+        "explanation_overlap_errors": 0,
+        "explanation_slice_count": 294902,
+        "gap_link_errors": 0,
+        "gap_partition_errors": 0,
+        "node_orphan_errors": 0,
+        "partition_delta_ns": 0,
+        "productive_active_ns": 7814890120,
+        "root_attributed_ns": 36318155720,
+        "run_id": "c23ae819872a3c14a99adcf6ba49dcf269991df164a1993acf95031c657a5c8a",
+        "stream_partition_errors": 0,
+        "visible_productive_idle_ns": 41790221040
+      },
+      "categories": {
+        "blocked_by_visible_wait:direct:device_event_coverage": {
+          "category": "blocked_by_visible_wait",
+          "count": 4532,
+          "duration_ns": 8736260,
+          "evidence_level": "direct",
+          "evidence_relation": "device_event_coverage"
+        },
+        "runtime_control_present:direct:device_event_coverage": {
+          "category": "runtime_control_present",
+          "count": 1882,
+          "duration_ns": 30979060,
+          "evidence_level": "direct",
+          "evidence_relation": "device_event_coverage"
+        },
+        "unattributed_visible_idle:none:none": {
+          "category": "unattributed_visible_idle",
+          "count": 288488,
+          "duration_ns": 41750505720,
+          "evidence_level": "none",
+          "evidence_relation": "none"
+        }
+      },
+      "clock_model": {
+        "absolute_residual_max_ns": 0.0,
+        "absolute_residual_p50_ns": 0.0,
+        "absolute_residual_p95_ns": 0.0,
+        "alignment_status": "uncalibrated",
+        "bracket_uncertainty_p95_ns": 0.0,
+        "clock_model_id": "c23ae819872a3c14a99adcf6ba49dcf269991df164a1993acf95031c657a5c8a:clock_model:0:6",
+        "db_idx": 0,
+        "device_id": 6,
+        "drift_ppm": 0.0,
+        "epsilon_ns": 0,
+        "fit_marker_count": 0,
+        "fit_method": "theil_sen_median",
+        "fit_method_version": "theil_sen_median_v1",
+        "fit_random_seed": 0,
+        "inlier_marker_count": 0,
+        "input_marker_count": 0,
+        "mapping_kind": "affine",
+        "offset_ns": "0.000000",
+        "reason": "no clock markers were supplied for the device",
+        "reference_device_ns": "0.000000",
+        "reference_host_ns": "0.000000",
+        "rejected_marker_count": 0,
+        "run_id": "c23ae819872a3c14a99adcf6ba49dcf269991df164a1993acf95031c657a5c8a",
+        "scale": "1.000000000000",
+        "source_clock_domain": "host",
+        "target_clock_domain": "device",
+        "validation_marker_count": 0
+      },
+      "device_intervals": {
+        "productive_active": {
+          "count": 208428,
+          "duration_ns": 7814890120,
+          "interval_kind": "productive_active"
+        },
+        "visible_productive_idle": {
+          "count": 208427,
+          "duration_ns": 41790221040,
+          "interval_kind": "visible_productive_idle"
+        }
+      },
+      "device_productive_fraction": 0.15754203422291052,
+      "evidence_levels": {
+        "direct": {
+          "count": 6414,
+          "duration_ns": 39715320,
+          "evidence_level": "direct"
+        },
+        "none": {
+          "count": 288488,
+          "duration_ns": 41750505720,
+          "evidence_level": "none"
+        }
+      },
+      "marker_states": {},
+      "metadata": {
+        "analysis_status": "invalid_input",
+        "attribution_rule_version": "host_device_projection_v1",
+        "collection_status": "unknown",
+        "contract_version": "idle-evidence-contract-v4.3",
+        "db_idx": 0,
+        "host_api_rules_sha256": "473bb3b6258abe6798195c0201c3f4ba5ca0b397b39009c194e7e8fc7acd8fab",
+        "host_api_rules_version": "idle-evidence-host-api-v1",
+        "metadata_json": "{\"analysis_status\":\"invalid_input\",\"attribution_rule_version\":\"host_device_projection_v1\",\"clock_marker_count\":0,\"clock_marker_sha256\":\"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\",\"clock_model_version\":\"host_device_affine_v1\",\"collection_status\":\"unknown\",\"contract_version\":\"idle-evidence-contract-v4.3\",\"db_idx\":0,\"devices\":[{\"absolute_residual_max_ns\":\"0.000000\",\"absolute_residual_p50_ns\":\"0.000000\",\"absolute_residual_p95_ns\":\"0.000000\",\"alignment_status\":\"uncalibrated\",\"bracket_uncertainty_p95_ns\":\"0.000000\",\"device_id\":6,\"drift_ppm\":\"0.000000\",\"epsilon_ns\":0,\"fit_marker_count\":0,\"inlier_marker_count\":0,\"input_marker_count\":0,\"offset_ns\":\"0.000000\",\"reference_device_ns\":\"0.000000\",\"reference_host_ns\":\"0.000000\",\"rejected_marker_count\":0,\"scale\":\"1.000000000000\",\"span_end_ns\":1786116736857207560,\"span_start_ns\":1786116687252096400,\"status\":\"ok\",\"validation_marker_count\":0}],\"host_api_rules_sha256\":\"473bb3b6258abe6798195c0201c3f4ba5ca0b397b39009c194e7e8fc7acd8fab\",\"host_api_rules_version\":\"idle-evidence-host-api-v1\",\"semantic_rules_sha256\":\"93274230064958c6d085adf26d5ab96739b311a3e2ac785af16bb4654aa811e5\",\"semantic_rules_version\":\"idle-evidence-semantic-v1\",\"source_kind\":\"ascend_sqlite_hot_path\",\"source_path\":\"/workspace/ascend-b2-pilot/src/vllm-request-lifecycle-profiler-plugin/.benchmarks/results/npu6_clock_marker_overhead_fixed_rate_ab/marker_disabled_ba_complete/profile/PROF_000001_20260807153125159_01726997OJIIIIAI/msprof_20260807153305.db\"}",
+        "run_id": "c23ae819872a3c14a99adcf6ba49dcf269991df164a1993acf95031c657a5c8a",
+        "semantic_rules_sha256": "93274230064958c6d085adf26d5ab96739b311a3e2ac785af16bb4654aa811e5",
+        "semantic_rules_version": "idle-evidence-semantic-v1",
+        "source_kind": "ascend_sqlite_hot_path",
+        "source_path": "/workspace/ascend-b2-pilot/src/vllm-request-lifecycle-profiler-plugin/.benchmarks/results/npu6_clock_marker_overhead_fixed_rate_ab/marker_disabled_ba_complete/profile/PROF_000001_20260807153125159_01726997OJIIIIAI/msprof_20260807153305.db",
+        "span_end_ns": 1786116736857207560,
+        "span_start_ns": 1786116687252096400
+      },
+      "sidecar_path": "/workspace/ascend-b2-pilot/src/vllm-request-lifecycle-profiler-plugin/.benchmarks/results/npu6_clock_marker_overhead_fixed_rate_ab/marker_disabled_ba_complete/run/traceloom_sidecar.db"
+    },
+    "task_duration_diagnostics": {
+      "non_point_invalid_duration_count": 125,
+      "point_event_count": 391,
+      "task_type_counts": {
+        "EVENT_RECORD": 365,
+        "EVENT_WAIT": 25,
+        "KERNEL_AICORE": 34,
+        "KERNEL_AIVEC": 65,
+        "KERNEL_MIX_AIC": 10,
+        "MEMCPY_ASYNC": 16,
+        "PROFILING_ENABLE": 1
+      },
+      "total_non_positive_duration_count": 516
+    },
+    "variant_dir": "/workspace/ascend-b2-pilot/src/vllm-request-lifecycle-profiler-plugin/.benchmarks/results/npu6_clock_marker_overhead_fixed_rate_ab/marker_disabled_ba_complete"
+  },
+  "enabled": {
+    "client": {
+      "error_count": 0,
+      "event_count": 0,
+      "first_token_ms": {
+        "count": 48,
+        "max": 183.68525407277048,
+        "min": 125.30357902869582,
+        "p50": 157.3297925060615,
+        "p95": 179.4211720698513,
+        "p99": 182.7181204315275
+      },
+      "fixed_offered_window_s": 24.0,
+      "inter_token_latency_ms": {
+        "count": 1488,
+        "max": 64.13427903316915,
+        "min": 1.6558028291910887,
+        "p50": 56.143230525776744,
+        "p95": 58.21707349969074,
+        "p99": 62.64191246824339
+      },
+      "latency_ms": {
+        "count": 48,
+        "max": 1939.0596381854266,
+        "min": 1785.8591601252556,
+        "p50": 1902.1276590647176,
+        "p95": 1933.4149948670529,
+        "p99": 1938.3414348540828
+      },
+      "measured_concurrency": 16,
+      "measured_duration_s": 25.2867860510014,
+      "observer_mode": "no-trace",
+      "offered_rate_rps": 2.0,
+      "output_chunk_count": 1536,
+      "output_chunk_throughput_per_s": 60.74318803908145,
+      "request_count": 48,
+      "request_throughput_per_s": 1.8982246262212954,
+      "schedule_lag_ms": {
+        "count": 48,
+        "max": 0.6167618557810783,
+        "min": 0.09773089550435543,
+        "p50": 0.10502350050956011,
+        "p95": 0.47674906672909856,
+        "p99": 0.5791618977673353
+      },
+      "success_count": 48,
+      "tpot_ms": {
+        "count": 48,
+        "max": 56.79067277589873,
+        "min": 53.38465196320847,
+        "p50": 56.343395886341895,
+        "p95": 56.710834811336454,
+        "p99": 56.783728781456674
+      },
+      "warmup_first_token_ms": {
+        "count": 4,
+        "max": 359.09334500320256,
+        "min": 154.69211991876364,
+        "p50": 155.24737653322518,
+        "p95": 328.546521521639,
+        "p99": 352.9839803068898
+      },
+      "warmup_latency_ms": {
+        "count": 4,
+        "max": 1926.8925541546196,
+        "min": 1726.4188169501722,
+        "p50": 1764.8980671074241,
+        "p95": 1903.788148786407,
+        "p99": 1922.271673080977
+      },
+      "warmup_request_count": 4,
+      "warmup_success_count": 4
+    },
+    "iteration": {
+      "all_duration_ms": {
+        "count": 587,
+        "max": 194.049529,
+        "min": 0.923438,
+        "p50": 54.59541,
+        "p95": 56.48727099999999,
+        "p99": 60.560094819999996
+      },
+      "by_scheduled_token_count": {
+        "1": {
+          "count": 142,
+          "max": 72.748289,
+          "min": 50.748105,
+          "p50": 51.538624999999996,
+          "p95": 54.42443445,
+          "p99": 57.225528350000005
+        },
+        "2": {
+          "count": 17,
+          "max": 56.528298,
+          "min": 54.418186,
+          "p50": 54.841815,
+          "p95": 56.296309199999996,
+          "p99": 56.48190024
+        },
+        "3": {
+          "count": 166,
+          "max": 60.741222,
+          "min": 53.898106,
+          "p50": 54.9789875,
+          "p95": 56.569604,
+          "p99": 60.25929264999999
+        },
+        "4": {
+          "count": 200,
+          "max": 61.027847,
+          "min": 53.990037,
+          "p50": 54.6538715,
+          "p95": 56.2101815,
+          "p99": 60.02445193999999
+        }
+      },
+      "decode_duration_ms": {
+        "count": 525,
+        "max": 72.748289,
+        "min": 50.748105,
+        "p50": 54.557839,
+        "p95": 56.216922,
+        "p99": 60.08707892
+      },
+      "decode_iteration_count": 525,
+      "iteration_count": 587,
+      "marker_states": {
+        "recorded": 587
+      },
+      "scheduled_token_count": 12440
+    },
+    "marker_bracket_count": 587,
+    "profile_db": "/workspace/ascend-b2-pilot/src/vllm-request-lifecycle-profiler-plugin/.benchmarks/results/npu6_clock_marker_overhead_fixed_rate_ab/marker_enabled/profile/PROF_000001_20260807133931570_01700835PCOEEHFO/msprof_20260807134111.db",
+    "provenance": {
+      "artifact_label": "real-online fixed-rate matched marker overhead",
+      "case_id": "shared_scenario_structured_agent_decode",
+      "client_command": [
+        "/usr/local/python3.12.13/bin/python3",
+        "/workspace/ascend-b2-pilot/src/vllm-request-lifecycle-profiler-plugin/.benchmarks/run_existing_server_trace_probe.py",
+        "--endpoint",
+        "http://127.0.0.1:18170",
+        "--model",
+        "clock-ab-qwen",
+        "--case-id",
+        "shared_scenario_structured_agent_decode",
+        "--seed",
+        "7",
+        "--warmup-requests",
+        "4",
+        "--repeat-count",
+        "12",
+        "--max-requests",
+        "4",
+        "--request-max-tokens",
+        "32",
+        "--measured-concurrency",
+        "16",
+        "--offered-rate-rps",
+        "2.0",
+        "--measured-duration-s",
+        "24.0",
+        "--observer-mode",
+        "no-trace",
+        "--timeout-s",
+        "120",
+        "--output-dir",
+        "/workspace/ascend-b2-pilot/src/vllm-request-lifecycle-profiler-plugin/.benchmarks/results/npu6_clock_marker_overhead_fixed_rate_ab/marker_enabled/run/client"
+      ],
+      "installed_runtime": {
+        "vllm_ascend_commit": "80610e4438dba05011b05f89fc45d91e96992671",
+        "vllm_commit": "ad7125a431e176d4161099480a66f0169609a690"
+      },
+      "marker_enabled": true,
+      "mode": "marker-enabled",
+      "model": "/workspace/models/Qwen2.5-7B-Instruct",
+      "profiler_boundary": "msprof launch ownership around server and matched client",
+      "profiler_options": {
+        "ai_core": "off",
+        "runtime_api": "on",
+        "task_time": "l1",
+        "type": "db"
+      },
+      "request_shape": {
+        "max_requests": 4,
+        "measured_concurrency": 16,
+        "measured_duration_s": 24.0,
+        "offered_rate_rps": 2.0,
+        "repeat_count": 12,
+        "request_max_tokens": 32,
+        "seed": 7,
+        "warmup_requests": 4
+      },
+      "server_command": [
+        "/usr/local/python3.12.13/bin/python3",
+        "-m",
+        "vllm.entrypoints.openai.api_server",
+        "--model",
+        "/workspace/models/Qwen2.5-7B-Instruct",
+        "--served-model-name",
+        "clock-ab-qwen",
+        "--host",
+        "127.0.0.1",
+        "--port",
+        "18170",
+        "--tensor-parallel-size",
+        "1",
+        "--max-model-len",
+        "4096",
+        "--max-num-batched-tokens",
+        "4096",
+        "--max-num-seqs",
+        "4",
+        "--gpu-memory-utilization",
+        "0.75",
+        "--enforce-eager",
+        "--generation-config",
+        "vllm",
+        "--disable-uvicorn-access-log"
+      ],
+      "timestamp_utc": "2026-08-07T13:38:47.224007+00:00",
+      "workload_commit": "76e24c85bcab76ecfabb831c9444002b6efffd58"
+    },
+    "request_identity": {
+      "record_count": 48,
+      "schedule_sha256": "0a4ed6fdb458703462b5a68fd27739620157640487dbe5cd0a60be0bebd3bbfa"
+    },
+    "sidecar": {
+      "audit": {
+        "analysis_status": "invalid_input",
+        "anchor_attributed_ns": 35672939460,
+        "anchor_orphan_errors": 0,
+        "audit_status": "PASS",
+        "collection_status": "unknown",
+        "device_interval_count": 415743,
+        "device_only_residual_ns": 5806131380,
+        "evidence_extent_errors": 0,
+        "evidence_owner_errors": 0,
+        "evidence_source_errors": 0,
+        "explanation_ns": 41479070840,
+        "explanation_overlap_errors": 0,
+        "explanation_slice_count": 294857,
+        "gap_link_errors": 0,
+        "gap_partition_errors": 0,
+        "node_orphan_errors": 0,
+        "partition_delta_ns": 0,
+        "productive_active_ns": 7855211560,
+        "root_attributed_ns": 35672939460,
+        "run_id": "885f7d55277ea12bc90bc4f4525272c45a445dd9c6258f05dc8614dd52fa9279",
+        "stream_partition_errors": 0,
+        "visible_productive_idle_ns": 41479070840
+      },
+      "categories": {
+        "blocked_by_visible_wait:direct:device_event_coverage": {
+          "category": "blocked_by_visible_wait",
+          "count": 4596,
+          "duration_ns": 6655600,
+          "evidence_level": "direct",
+          "evidence_relation": "device_event_coverage"
+        },
+        "queued_visible_task_delay:correlated:exact_connection_id": {
+          "category": "queued_visible_task_delay",
+          "count": 1133,
+          "duration_ns": 61776173,
+          "evidence_level": "correlated",
+          "evidence_relation": "exact_connection_id"
+        },
+        "runtime_control_present:direct:device_event_coverage": {
+          "category": "runtime_control_present",
+          "count": 2158,
+          "duration_ns": 27995580,
+          "evidence_level": "direct",
+          "evidence_relation": "device_event_coverage"
+        },
+        "unattributed_visible_idle:none:none": {
+          "category": "unattributed_visible_idle",
+          "count": 286970,
+          "duration_ns": 41382643487,
+          "evidence_level": "none",
+          "evidence_relation": "none"
+        }
+      },
+      "clock_model": {
+        "absolute_residual_max_ns": 43889.34578912001,
+        "absolute_residual_p50_ns": 8329.204526982381,
+        "absolute_residual_p95_ns": 23831.787843406724,
+        "alignment_status": "calibrated",
+        "bracket_uncertainty_p95_ns": 107876.72883548355,
+        "clock_model_id": "885f7d55277ea12bc90bc4f4525272c45a445dd9c6258f05dc8614dd52fa9279:clock_model:0:6",
+        "db_idx": 0,
+        "device_id": 6,
+        "drift_ppm": -2.5136453224624398,
+        "epsilon_ns": 131709,
+        "fit_marker_count": 453,
+        "fit_method": "theil_sen_median",
+        "fit_method_version": "theil_sen_median_v1",
+        "fit_random_seed": 0,
+        "inlier_marker_count": 565,
+        "input_marker_count": 587,
+        "mapping_kind": "affine",
+        "offset_ns": "-130830.565964",
+        "reason": "validated holdout marker calibration",
+        "reference_device_ns": "1786110006989890866.434036",
+        "reference_host_ns": "1786110006990021697.000000",
+        "rejected_marker_count": 22,
+        "run_id": "885f7d55277ea12bc90bc4f4525272c45a445dd9c6258f05dc8614dd52fa9279",
+        "scale": "0.999997486355",
+        "source_clock_domain": "host",
+        "target_clock_domain": "device",
+        "validation_marker_count": 112
+      },
+      "device_intervals": {
+        "productive_active": {
+          "count": 207872,
+          "duration_ns": 7855211560,
+          "interval_kind": "productive_active"
+        },
+        "visible_productive_idle": {
+          "count": 207871,
+          "duration_ns": 41479070840,
+          "interval_kind": "visible_productive_idle"
+        }
+      },
+      "device_productive_fraction": 0.1592241982220461,
+      "evidence_levels": {
+        "correlated": {
+          "count": 1133,
+          "duration_ns": 61776173,
+          "evidence_level": "correlated"
+        },
+        "direct": {
+          "count": 6754,
+          "duration_ns": 34651180,
+          "evidence_level": "direct"
+        },
+        "none": {
+          "count": 286970,
+          "duration_ns": 41382643487,
+          "evidence_level": "none"
+        }
+      },
+      "marker_states": {
+        "fit_marker": 453,
+        "rejected_marker": 22,
+        "validation_marker": 112
+      },
+      "metadata": {
+        "analysis_status": "invalid_input",
+        "attribution_rule_version": "host_device_projection_v1",
+        "collection_status": "unknown",
+        "contract_version": "idle-evidence-contract-v4.3",
+        "db_idx": 0,
+        "host_api_rules_sha256": "473bb3b6258abe6798195c0201c3f4ba5ca0b397b39009c194e7e8fc7acd8fab",
+        "host_api_rules_version": "idle-evidence-host-api-v1",
+        "metadata_json": "{\"analysis_status\":\"invalid_input\",\"attribution_rule_version\":\"host_device_projection_v1\",\"clock_marker_count\":587,\"clock_marker_sha256\":\"202b3ddcda802f54cb96bc874d44980543ea26c07ba4626aa167116302c8cab2\",\"clock_model_version\":\"host_device_affine_v1\",\"collection_status\":\"unknown\",\"contract_version\":\"idle-evidence-contract-v4.3\",\"db_idx\":0,\"devices\":[{\"absolute_residual_max_ns\":\"43889.345789\",\"absolute_residual_p50_ns\":\"8329.204527\",\"absolute_residual_p95_ns\":\"23831.787843\",\"alignment_status\":\"calibrated\",\"bracket_uncertainty_p95_ns\":\"107876.728835\",\"device_id\":6,\"drift_ppm\":\"-2.513645\",\"epsilon_ns\":131709,\"fit_marker_count\":453,\"inlier_marker_count\":565,\"input_marker_count\":587,\"offset_ns\":\"-130830.565964\",\"reference_device_ns\":\"1786110006989890866.434036\",\"reference_host_ns\":\"1786110006990021697.000000\",\"rejected_marker_count\":22,\"scale\":\"0.999997486355\",\"span_end_ns\":1786110022908736585,\"span_start_ns\":1786109973574454185,\"status\":\"ok\",\"validation_marker_count\":112}],\"host_api_rules_sha256\":\"473bb3b6258abe6798195c0201c3f4ba5ca0b397b39009c194e7e8fc7acd8fab\",\"host_api_rules_version\":\"idle-evidence-host-api-v1\",\"semantic_rules_sha256\":\"93274230064958c6d085adf26d5ab96739b311a3e2ac785af16bb4654aa811e5\",\"semantic_rules_version\":\"idle-evidence-semantic-v1\",\"source_kind\":\"ascend_sqlite_hot_path\",\"source_path\":\"/workspace/ascend-b2-pilot/src/vllm-request-lifecycle-profiler-plugin/.benchmarks/results/npu6_clock_marker_overhead_fixed_rate_ab/marker_enabled/profile/PROF_000001_20260807133931570_01700835PCOEEHFO/msprof_20260807134111.db\"}",
+        "run_id": "885f7d55277ea12bc90bc4f4525272c45a445dd9c6258f05dc8614dd52fa9279",
+        "semantic_rules_sha256": "93274230064958c6d085adf26d5ab96739b311a3e2ac785af16bb4654aa811e5",
+        "semantic_rules_version": "idle-evidence-semantic-v1",
+        "source_kind": "ascend_sqlite_hot_path",
+        "source_path": "/workspace/ascend-b2-pilot/src/vllm-request-lifecycle-profiler-plugin/.benchmarks/results/npu6_clock_marker_overhead_fixed_rate_ab/marker_enabled/profile/PROF_000001_20260807133931570_01700835PCOEEHFO/msprof_20260807134111.db",
+        "span_end_ns": 1786110022908736585,
+        "span_start_ns": 1786109973574454185
+      },
+      "sidecar_path": "/workspace/ascend-b2-pilot/src/vllm-request-lifecycle-profiler-plugin/.benchmarks/results/npu6_clock_marker_overhead_fixed_rate_ab/marker_enabled/run/traceloom_sidecar.db"
+    },
+    "task_duration_diagnostics": {
+      "non_point_invalid_duration_count": 126,
+      "point_event_count": 678,
+      "task_type_counts": {
+        "EVENT_RECORD": 655,
+        "EVENT_WAIT": 22,
+        "KERNEL_AICORE": 34,
+        "KERNEL_AIVEC": 69,
+        "KERNEL_MIX_AIC": 11,
+        "MEMCPY_ASYNC": 12,
+        "PROFILING_ENABLE": 1
+      },
+      "total_non_positive_duration_count": 804
+    },
+    "variant_dir": "/workspace/ascend-b2-pilot/src/vllm-request-lifecycle-profiler-plugin/.benchmarks/results/npu6_clock_marker_overhead_fixed_rate_ab/marker_enabled"
+  },
+  "enabled_calibration": {
+    "absolute_residual_max_ns": 43889.34578912001,
+    "absolute_residual_p50_ns": 8329.204526982381,
+    "absolute_residual_p95_ns": 23831.787843406724,
+    "alignment_status": "calibrated",
+    "bracket_uncertainty_p95_ns": 107876.72883548355,
+    "clock_model_id": "885f7d55277ea12bc90bc4f4525272c45a445dd9c6258f05dc8614dd52fa9279:clock_model:0:6",
+    "db_idx": 0,
+    "device_id": 6,
+    "drift_ppm": -2.5136453224624398,
+    "epsilon_ns": 131709,
+    "fit_marker_count": 453,
+    "fit_method": "theil_sen_median",
+    "fit_method_version": "theil_sen_median_v1",
+    "fit_random_seed": 0,
+    "inlier_marker_count": 565,
+    "input_marker_count": 587,
+    "mapping_kind": "affine",
+    "offset_ns": "-130830.565964",
+    "reason": "validated holdout marker calibration",
+    "reference_device_ns": "1786110006989890866.434036",
+    "reference_host_ns": "1786110006990021697.000000",
+    "rejected_marker_count": 22,
+    "run_id": "885f7d55277ea12bc90bc4f4525272c45a445dd9c6258f05dc8614dd52fa9279",
+    "scale": "0.999997486355",
+    "source_clock_domain": "host",
+    "target_clock_domain": "device",
+    "validation_marker_count": 112
+  },
+  "enabled_e4": {
+    "category": "queued_visible_task_delay",
+    "count": 1133,
+    "duration_ns": 61776173,
+    "evidence_level": "correlated",
+    "evidence_relation": "exact_connection_id"
+  },
+  "evidence_label": "real-online fixed-rate matched marker overhead",
+  "excluded_diagnostics": [
+    {
+      "classification": "excluded_queueing_outlier",
+      "reason": "The 2 req/s capture entered a non-reproduced batching/queueing phase; it is retained but excluded from marker overhead deltas.",
+      "summary": {
+        "error_count": 0,
+        "event_count": 0,
+        "first_token_ms": {
+          "count": 48,
+          "max": 2432.8008878510445,
+          "min": 123.15863184630871,
+          "p50": 1218.8383259344846,
+          "p95": 2177.858713117894,
+          "p99": 2357.325145052746
+        },
+        "fixed_offered_window_s": 24.0,
+        "inter_token_latency_ms": {
+          "count": 1488,
+          "max": 2331.599549856037,
+          "min": 1.4816299080848694,
+          "p50": 55.70124450605363,
+          "p95": 58.64808157784864,
+          "p99": 62.95665404526517
+        },
+        "latency_ms": {
+          "count": 48,
+          "max": 4161.876237951219,
+          "min": 1794.2254699300975,
+          "p50": 2991.0082599380985,
+          "p95": 3972.196578688454,
+          "p99": 4133.1755887996405
+        },
+        "measured_concurrency": 16,
+        "measured_duration_s": 25.295788468094543,
+        "observer_mode": "no-trace",
+        "offered_rate_rps": 2.0,
+        "output_chunk_count": 1536,
+        "output_chunk_throughput_per_s": 60.7215703885787,
+        "request_count": 48,
+        "request_throughput_per_s": 1.8975490746430843,
+        "schedule_lag_ms": {
+          "count": 48,
+          "max": 0.6105480715632439,
+          "min": 0.1019500195980072,
+          "p50": 0.11418154463171959,
+          "p95": 0.47281818697229017,
+          "p99": 0.5622733966447414
+        },
+        "success_count": 48,
+        "tpot_ms": {
+          "count": 48,
+          "max": 128.30555651547206,
+          "min": 53.79321645464628,
+          "p50": 56.07615600174833,
+          "p95": 56.579843270892816,
+          "p99": 94.65830797014104
+        },
+        "warmup_first_token_ms": {
+          "count": 4,
+          "max": 345.3163399826735,
+          "min": 155.245719011873,
+          "p50": 156.08147147577256,
+          "p95": 316.9511508196592,
+          "p99": 339.6433021500706
+        },
+        "warmup_latency_ms": {
+          "count": 4,
+          "max": 1922.8126187808812,
+          "min": 1723.074323963374,
+          "p50": 1727.8528555762023,
+          "p95": 1894.1590681904927,
+          "p99": 1917.0819086628035
+        },
+        "warmup_request_count": 4,
+        "warmup_success_count": 4
+      },
+      "variant_dir": "/workspace/ascend-b2-pilot/src/vllm-request-lifecycle-profiler-plugin/.benchmarks/results/npu6_clock_marker_overhead_fixed_rate_ab/marker_disabled"
+    }
+  ],
+  "full_idle_evidence_acceptance": "FAIL",
+  "matching_checks": {
+    "client_command_except_output": true,
+    "fixed_request_schedule": true,
+    "installed_runtime": true,
+    "model": true,
+    "profiler_boundary": true,
+    "profiler_options": true,
+    "request_shape": true,
+    "server_command": true,
+    "workload_commit": true
+  },
+  "metrics": [
+    {
+      "delta": 0.0002940447414683245,
+      "delta_percent": 0.01549291340461231,
+      "disabled": 1.897930581479827,
+      "enabled": 1.8982246262212954,
+      "metric": "request throughput",
+      "unit": "request/s"
+    },
+    {
+      "delta": 0.009409431726986384,
+      "delta_percent": 0.01549291340461231,
+      "disabled": 60.733778607354466,
+      "enabled": 60.74318803908145,
+      "metric": "output chunk throughput",
+      "unit": "chunk/s"
+    },
+    {
+      "delta": -3.16687801387161,
+      "delta_percent": -1.9731736512741522,
+      "disabled": 160.4966705199331,
+      "enabled": 157.3297925060615,
+      "metric": "TTFT p50",
+      "unit": "ms"
+    },
+    {
+      "delta": 1.7636189353652298,
+      "delta_percent": 0.9927069827592285,
+      "disabled": 177.65755313448608,
+      "enabled": 179.4211720698513,
+      "metric": "TTFT p95",
+      "unit": "ms"
+    },
+    {
+      "delta": 32.685699639841914,
+      "delta_percent": 1.748420135487785,
+      "disabled": 1869.4419594248757,
+      "enabled": 1902.1276590647176,
+      "metric": "request latency p50",
+      "unit": "ms"
+    },
+    {
+      "delta": 34.97094839112833,
+      "delta_percent": 1.8420847565165162,
+      "disabled": 1898.4440464759246,
+      "enabled": 1933.4149948670529,
+      "metric": "request latency p95",
+      "unit": "ms"
+    },
+    {
+      "delta": 1.2542320182546973,
+      "delta_percent": 2.285033526495871,
+      "disabled": 54.88899850752205,
+      "enabled": 56.143230525776744,
+      "metric": "ITL p50",
+      "unit": "ms"
+    },
+    {
+      "delta": 0.9806663845665753,
+      "delta_percent": 1.7133611873891428,
+      "disabled": 57.236407115124166,
+      "enabled": 58.21707349969074,
+      "metric": "ITL p95",
+      "unit": "ms"
+    },
+    {
+      "delta": 1.2280638217024773,
+      "delta_percent": 2.2281709566082277,
+      "disabled": 55.11533206463942,
+      "enabled": 56.343395886341895,
+      "metric": "TPOT p50",
+      "unit": "ms"
+    },
+    {
+      "delta": 1.0967382639195904,
+      "delta_percent": 1.9720508504251357,
+      "disabled": 55.614096547416864,
+      "enabled": 56.710834811336454,
+      "metric": "TPOT p95",
+      "unit": "ms"
+    },
+    {
+      "delta": 1.3650110000000026,
+      "delta_percent": 2.5661560990891528,
+      "disabled": 53.192828,
+      "enabled": 54.557839,
+      "metric": "decode iteration duration p50",
+      "unit": "ms"
+    },
+    {
+      "delta": 1.023090499999995,
+      "delta_percent": 1.8536319588539434,
+      "disabled": 55.1938315,
+      "enabled": 56.216922,
+      "metric": "decode iteration duration p95",
+      "unit": "ms"
+    },
+    {
+      "delta": 40321440.0,
+      "delta_percent": 0.5159565826371466,
+      "disabled": 7814890120.0,
+      "enabled": 7855211560.0,
+      "metric": "device productive time (full profiler boundary)",
+      "unit": "ns"
+    },
+    {
+      "delta": 0.0016821639991355664,
+      "delta_percent": 1.0677556675162811,
+      "disabled": 0.15754203422291052,
+      "enabled": 0.1592241982220461,
+      "metric": "device productive fraction (full profiler boundary)",
+      "unit": "ratio"
+    },
+    {
+      "delta": 587.0,
+      "delta_percent": null,
+      "disabled": 0.0,
+      "enabled": 587.0,
+      "metric": "raw marker brackets",
+      "unit": "count"
+    }
+  ],
+  "overhead_claim_status": "observed_single_pair_no_confidence_interval",
+  "protocol_acceptance": "PASS"
+}

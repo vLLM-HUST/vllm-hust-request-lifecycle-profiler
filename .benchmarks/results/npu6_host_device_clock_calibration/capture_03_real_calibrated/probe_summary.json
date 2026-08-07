@@ -1,0 +1,23 @@
+{
+  "artifact_label": "real-online calibration-chain smoke",
+  "bracket_width_ns": {
+    "max": 194743,
+    "p50": 80261,
+    "p95": 95791
+  },
+  "elapsed_ns": 216979720,
+  "logical_device_id": 0,
+  "marker_count": 21,
+  "marker_path": "/workspace/ascend-b2-pilot/src/vllm-request-lifecycle-profiler-plugin/.benchmarks/results/npu6_host_device_clock_calibration/capture_03_real_calibrated/clock_marker_brackets.tsv",
+  "physical_device_visibility": {
+    "ASCEND_RT_VISIBLE_DEVICES": "6",
+    "ASCEND_VISIBLE_DEVICES": "6"
+  },
+  "profiler_device_id": 6,
+  "successful_marker_count": 21,
+  "workload_duration_ns": {
+    "max": 215533,
+    "p50": 97001,
+    "p95": 175022
+  }
+}

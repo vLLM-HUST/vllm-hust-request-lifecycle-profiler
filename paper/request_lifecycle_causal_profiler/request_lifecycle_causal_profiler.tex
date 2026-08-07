@@ -231,25 +231,43 @@ scheduler dispatch and worker-start timestamps, KV allocation duration and
 free-block counts, graph key/capture duration and batch shapes, and device
 prefill start/end timing. Only a controlled graph-mode rerun with those fields
 could promote one candidate cause.
+\subsection{Calibrated cross-clock evidence}
+
+Three independent NPU6 captures exercise the real Python marker,
+\texttt{aclrtRecordEvent}, profiler CANN\_API/TASK, bracket resolver, and
+Theil--Sen path. Each capture has 21 inlier markers with a 17/4 fit/validation
+split and a passing structural audit. Across the 12 pooled validation markers,
+absolute residual p50/p95/max is 2.232/14.091/14.091\,$\mu$s. A serving capture
+resolves 565 of 587 markers and reaches calibrated E4, materializing 1133
+exact-connection queued-delay slices covering 61.776\,ms. This is not yet an
+accepted full-run localization result: 126 zero-duration kernel/memcpy TASK
+rows force \texttt{analysis\_status=invalid\_input}, and task-time level l2
+does not remove the pathology. We therefore treat the E4 rows as diagnostic
+positive-path evidence and retain valid full-run E4 as an open gate.
 
 \subsection{Overhead evidence}
 
-The repository contains two small paired probes, but neither supports a broad
-overhead claim. A client-side pair changes TTFT p95 by +4.07\,ms when proxy
-event construction is enabled; this is client-probe overhead, not runtime-hook
-overhead. A separate 12-request runtime-hook pair changes TTFT p95 by
--2.14\,ms and latency p95 by +0.93\,ms. Its size and workload do not support
-TPOT, CPU, host-memory, NPU-HBM, or general-workload conclusions. We therefore
-exclude overhead from the headline results.
+The repository now contains a fixed-rate marker-disabled/enabled NPU6 pair.
+Both modes use the same deterministic 48-request schedule at 2 requests/s for
+24\,s and complete 48/48 requests. Enabled minus disabled changes request
+throughput by +0.015\%, TTFT p95 by +0.993\%, latency p95 by +1.842\%, ITL p95
+by +1.713\%, TPOT p95 by +1.972\%, and decode-iteration p95 by +1.854\%.
+This establishes an observed host-visible perturbation for one eager-mode
+workload, not negligible overhead or a population bound. There is only one
+accepted pair, no confidence interval, and no CPU, host-memory, or NPU-HBM
+measurement. The full-boundary device-time delta remains diagnostic because
+the sidecars have invalid-input run status. We therefore exclude overhead from
+the headline results.
 
 \section{Limitations and Required Evidence}
 
-The current evaluation has four submission blockers. First, the server process
-was not launched by the benchmark harness, so configuration custody and graph
-mode are not established by the manifests. Second, queue, KV-pressure, and
-cleanup ground truth are missing. Third, raw-log, rules-disabled, and timed
-manual baselines have not been measured. Fourth, the overhead pair is too small
-to characterize TPOT or memory costs.
+The current evaluation has four submission blockers. First, the controlled
+fault matrix does not establish benchmark-owned graph-mode server custody; the
+new calibration/overhead harness owns its server but runs eager mode. Second,
+queue, KV-pressure, and cleanup ground truth are missing. Third, raw-log,
+rules-disabled, and timed manual baselines have not been measured. Fourth, a
+valid-status serving E4 capture is still missing, and the one-pair overhead
+measurement cannot characterize confidence intervals or memory costs.
 
 These are evidence blockers, not writing tasks. The project should remain a
 research draft until a frozen, repository-controlled protocol produces

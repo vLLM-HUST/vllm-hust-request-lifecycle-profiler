@@ -317,6 +317,31 @@ missing ASPLOS-level diagnosis claims: KV-pressure ground truth, timer-only
 baseline comparison, TPOT/HBM overhead beyond the smoke workload, and a larger
 workload matrix.
 
+## Phase 1.5: Host→Device Clock and Idle-Evidence Calibration
+
+- Completed: three real NPU6 micro-captures each provide 21 inlier markers,
+  17 fit markers, 4 validation markers, full p50/p95/max residual reporting,
+  bracket uncertainty, epsilon, unique run IDs, and passing SQL audits.
+- Completed: real bracket resolution uses exact overlap or an affine-validated
+  same-thread order-preserving bijection, then a unique CANN_API connectionId
+  and at most one device TASK. Missing profiler-tail TASKs remain rejected.
+- Partial: a real eager-mode serving capture resolves 565/587 markers and
+  reaches E4 with 1133 calibrated exact-connection slices covering 61,776,173
+  ns, but the rows remain diagnostic because 126 zero-duration kernel/memcpy
+  tasks force run-level `analysis_status=invalid_input`.
+- Completed: fixed-rate marker-disabled/enabled runs hold model, seed, request
+  schedule, 2 req/s offered load, 24 s duration, server config, and profiler
+  boundary constant; observed p95 TTFT/latency/ITL/TPOT deltas are
+  +0.993%/+1.842%/+1.713%/+1.972%.
+- Remaining: obtain a serving capture with `analysis_status=ok` (task-time l2
+  did not remove zero-duration device tasks), repeat the A/B enough times for
+  confidence intervals, and repeat calibration/E4 in graph mode before making
+  broader runtime claims.
+
+Evidence labels: `simulation/model` for deterministic fixtures and
+`real-online` for the recorded NPU6 artifacts. See
+`docs/host_device_clock_calibration.md`.
+
 ## Phase 2: Controlled Fault Injection
 
 - Inject tokenizer slow path, queue surge, long-prompt prefill, decode-heavy

@@ -1,26 +1,23 @@
 from __future__ import annotations
 
 import argparse
-from concurrent.futures import ThreadPoolExecutor
-from concurrent.futures import as_completed
-from datetime import datetime
-from datetime import timezone
 import json
+import math
 import os
-from pathlib import Path
 import subprocess
 import sys
 import threading
 import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from datetime import datetime, timezone
+from itertools import pairwise
+from pathlib import Path
 from typing import Any
-from urllib.error import HTTPError
-from urllib.error import URLError
-from urllib.request import Request
-from urllib.request import urlopen
+from urllib.error import HTTPError, URLError
+from urllib.request import Request, urlopen
 
 from vllm_request_lifecycle_profiler.shared_workloads import generate_case_requests
 from vllm_request_lifecycle_profiler.trace import LifecycleStage
-
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 WORKLOAD_REPO = REPO_ROOT / "third_party" / "llm-serving-workloads"
@@ -162,6 +159,7 @@ def _stream_completion(
     first_token_seen = False
     first_token_ms: float | None = None
     last_data_chunk_ms: float | None = None
+    chunk_arrival_ms: list[float] = []
     try:
         with urlopen(request, timeout=timeout_s) as response:
             status = response.status
@@ -175,10 +173,12 @@ def _stream_completion(
                     continue
                 if line.startswith(b"data: ") and stripped != b"data: [DONE]":
                     chunk_count += 1
-                    last_data_chunk_ms = _now_ms(start)
+                    arrival_ms = _now_ms(start)
+                    chunk_arrival_ms.append(arrival_ms)
+                    last_data_chunk_ms = arrival_ms
                     if not first_token_seen:
                         first_token_seen = True
-                        ts = _now_ms(start)
+                        ts = arrival_ms
                         first_token_ms = ts
                         if collect_events:
                             events.append(
@@ -258,6 +258,16 @@ def _stream_completion(
             )
         )
     latency_ms = events[-1]["timestamp_ms"] if events else end_ms
+    inter_token_latency_ms = [
+        current - previous
+        for previous, current in pairwise(chunk_arrival_ms)
+    ]
+    tpot_ms = (
+        (chunk_arrival_ms[-1] - chunk_arrival_ms[0])
+        / (len(chunk_arrival_ms) - 1)
+        if len(chunk_arrival_ms) > 1
+        else None
+    )
     return {
         "request_id": request_id,
         "ok": bool(status and 200 <= status < 300 and not error),
@@ -265,8 +275,10 @@ def _stream_completion(
         "error": error,
         "latency_ms": latency_ms,
         "first_token_ms": first_token_ms,
+        "inter_token_latency_ms": inter_token_latency_ms,
         "stream_chunk_count": chunk_count,
         "stream_byte_count": byte_count,
+        "tpot_ms": tpot_ms,
         "events": events,
     }
 
@@ -290,7 +302,10 @@ def _metadata(args: argparse.Namespace) -> dict[str, Any]:
         "max_requests": args.max_requests,
         "warmup_requests": args.warmup_requests,
         "repeat_count": args.repeat_count,
+        "seed": args.seed,
         "measured_concurrency": getattr(args, "measured_concurrency", 1),
+        "offered_rate_rps": args.offered_rate_rps,
+        "measured_duration_s": args.measured_duration_s,
         "observer_mode": args.observer_mode,
         "per_chunk_read_delay_ms": args.per_chunk_read_delay_ms,
         "proxy_stage_mode": args.proxy_stage_mode,
@@ -326,7 +341,21 @@ def run_probe(args: argparse.Namespace) -> dict[str, Any]:
     events_lock = threading.Lock()
     measured_concurrency = max(1, int(getattr(args, "measured_concurrency", 1)))
 
-    def run_one(*, row: Any, request_id: str, phase: str, repeat: int, index: int) -> dict[str, Any]:
+    def run_one(
+        *,
+        row: Any,
+        request_id: str,
+        phase: str,
+        repeat: int,
+        index: int,
+        scheduled_offset_s: float | None = None,
+        benchmark_start: float | None = None,
+    ) -> dict[str, Any]:
+        actual_start_offset_s = (
+            time.perf_counter() - benchmark_start
+            if benchmark_start is not None
+            else None
+        )
         result = _stream_completion(
             endpoint=args.endpoint,
             api_key=api_key,
@@ -349,6 +378,19 @@ def run_probe(args: argparse.Namespace) -> dict[str, Any]:
                 "phase": phase,
                 "repeat": repeat,
                 "case_index": index,
+                "scheduled_offset_s": scheduled_offset_s,
+                "actual_start_offset_s": actual_start_offset_s,
+                "schedule_lag_ms": (
+                    (actual_start_offset_s - scheduled_offset_s) * 1000.0
+                    if actual_start_offset_s is not None
+                    and scheduled_offset_s is not None
+                    else None
+                ),
+                "completed_offset_s": (
+                    time.perf_counter() - benchmark_start
+                    if benchmark_start is not None
+                    else None
+                ),
             }
         )
         return result
@@ -364,43 +406,104 @@ def run_probe(args: argparse.Namespace) -> dict[str, Any]:
             )
         )
 
-    if measured_concurrency == 1:
-        for repeat in range(args.repeat_count):
-            for index, row in enumerate(rows):
-                records.append(
-                    run_one(
-                        row=row,
-                        request_id=f"{args.case_id}::repeat{repeat}::{index}",
-                        phase="measured",
-                        repeat=repeat,
-                        index=index,
-                    )
+    record_specs = [
+        (repeat, index, row)
+        for repeat in range(args.repeat_count)
+        for index, row in enumerate(rows)
+    ]
+    measured_started = time.perf_counter()
+    if args.offered_rate_rps > 0:
+        if args.measured_duration_s <= 0:
+            raise ValueError(
+                "--measured-duration-s must be positive with open-loop load"
+            )
+        scheduled_count = math.ceil(
+            args.offered_rate_rps * args.measured_duration_s - 1e-12
+        )
+        if scheduled_count != len(record_specs):
+            raise ValueError(
+                "repeat-count * selected request count must equal the fixed-rate "
+                f"schedule count ({len(record_specs)} != {scheduled_count})"
+            )
+        with ThreadPoolExecutor(max_workers=measured_concurrency) as executor:
+            future_to_seq = {}
+            for sequence, (repeat, index, row) in enumerate(record_specs):
+                scheduled_offset_s = sequence / args.offered_rate_rps
+                delay_s = measured_started + scheduled_offset_s - time.perf_counter()
+                if delay_s > 0:
+                    time.sleep(delay_s)
+                future = executor.submit(
+                    run_one,
+                    row=row,
+                    request_id=f"{args.case_id}::repeat{repeat}::{index}",
+                    phase="measured",
+                    repeat=repeat,
+                    index=index,
+                    scheduled_offset_s=scheduled_offset_s,
+                    benchmark_start=measured_started,
                 )
+                future_to_seq[future] = sequence
+            completed_records: list[tuple[int, dict[str, Any]]] = []
+            for future in as_completed(future_to_seq):
+                completed_records.append((future_to_seq[future], future.result()))
+            records.extend(
+                record
+                for _, record in sorted(
+                    completed_records, key=lambda item: item[0]
+                )
+            )
+    elif measured_concurrency == 1:
+        for repeat, index, row in record_specs:
+            records.append(
+                run_one(
+                    row=row,
+                    request_id=f"{args.case_id}::repeat{repeat}::{index}",
+                    phase="measured",
+                    repeat=repeat,
+                    index=index,
+                )
+            )
     else:
         with ThreadPoolExecutor(max_workers=measured_concurrency) as executor:
             future_to_seq = {}
             sequence = 0
-            for repeat in range(args.repeat_count):
-                for index, row in enumerate(rows):
-                    future = executor.submit(
-                        run_one,
-                        row=row,
-                        request_id=f"{args.case_id}::repeat{repeat}::{index}",
-                        phase="measured",
-                        repeat=repeat,
-                        index=index,
-                    )
-                    future_to_seq[future] = sequence
-                    sequence += 1
+            for repeat, index, row in record_specs:
+                future = executor.submit(
+                    run_one,
+                    row=row,
+                    request_id=f"{args.case_id}::repeat{repeat}::{index}",
+                    phase="measured",
+                    repeat=repeat,
+                    index=index,
+                )
+                future_to_seq[future] = sequence
+                sequence += 1
             completed_records: list[tuple[int, dict[str, Any]]] = []
             for future in as_completed(future_to_seq):
                 completed_records.append((future_to_seq[future], future.result()))
             records.extend(record for _, record in sorted(completed_records, key=lambda item: item[0]))
+    measured_duration_s = time.perf_counter() - measured_started
 
     success = [record for record in records if record["ok"]]
     warmup_success = [record for record in warmup_records if record["ok"]]
     first_tokens = [float(record["first_token_ms"]) for record in success if record["first_token_ms"] is not None]
     latencies = [float(record["latency_ms"]) for record in success]
+    inter_token_latencies = [
+        float(value)
+        for record in success
+        for value in record["inter_token_latency_ms"]
+    ]
+    tpots = [
+        float(record["tpot_ms"])
+        for record in success
+        if record["tpot_ms"] is not None
+    ]
+    output_chunk_count = sum(int(record["stream_chunk_count"]) for record in success)
+    schedule_lags_ms = [
+        float(record["schedule_lag_ms"])
+        for record in records
+        if record["schedule_lag_ms"] is not None
+    ]
     warmup_first_tokens = [
         float(record["first_token_ms"]) for record in warmup_success if record["first_token_ms"] is not None
     ]
@@ -416,10 +519,27 @@ def run_probe(args: argparse.Namespace) -> dict[str, Any]:
             "event_count": len(events),
             "measured_concurrency": measured_concurrency,
             "observer_mode": args.observer_mode,
+            "offered_rate_rps": args.offered_rate_rps,
+            "fixed_offered_window_s": (
+                args.measured_duration_s if args.offered_rate_rps > 0 else None
+            ),
+            "schedule_lag_ms": _numeric_summary(schedule_lags_ms),
             "warmup_first_token_ms": _numeric_summary(warmup_first_tokens),
             "warmup_latency_ms": _numeric_summary(warmup_latencies),
             "first_token_ms": _numeric_summary(first_tokens),
             "latency_ms": _numeric_summary(latencies),
+            "inter_token_latency_ms": _numeric_summary(inter_token_latencies),
+            "tpot_ms": _numeric_summary(tpots),
+            "measured_duration_s": measured_duration_s,
+            "request_throughput_per_s": (
+                len(success) / measured_duration_s if measured_duration_s else 0.0
+            ),
+            "output_chunk_count": output_chunk_count,
+            "output_chunk_throughput_per_s": (
+                output_chunk_count / measured_duration_s
+                if measured_duration_s
+                else 0.0
+            ),
         },
         "warmup_records": warmup_records,
         "records": records,
@@ -482,6 +602,18 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--warmup-requests", type=int, default=0)
     parser.add_argument("--repeat-count", type=int, default=1)
     parser.add_argument("--measured-concurrency", type=int, default=1)
+    parser.add_argument(
+        "--offered-rate-rps",
+        type=float,
+        default=0.0,
+        help="Positive value enables deterministic open-loop arrivals.",
+    )
+    parser.add_argument(
+        "--measured-duration-s",
+        type=float,
+        default=0.0,
+        help="Fixed offered-load window; required with --offered-rate-rps.",
+    )
     parser.add_argument("--request-max-tokens", type=int, default=8)
     parser.add_argument("--observer-mode", choices=("trace", "no-trace"), default="trace")
     parser.add_argument("--per-chunk-read-delay-ms", type=float, default=0.0)

@@ -45,6 +45,8 @@ stage instead of correlated symptoms?
 - `docs/claim_ledger.md`: current claims and forbidden wording.
 - `docs/runtime_fault_attribution_roadmap.md`: path from complete runtime
   hooks to controlled-fault attribution evidence.
+- `docs/host_device_clock_calibration.md`: Ascend marker collection,
+  profiler connectionId resolution, robust-window gates, and audit procedure.
 - `paper/request_lifecycle_causal_profiler/`: systems-paper scaffold.
 
 ## Current Mechanism
@@ -90,6 +92,21 @@ Every experiment must carry one evidence label: `real-online`,
 `existing-server-probe`, `replay`, `simulation/model`, `projected-profile`, or
 `derived-artifact`. Profiler-only results are diagnosis evidence, not runtime
 speedups.
+
+## Cross-clock idle evidence
+
+The package now provides an opt-in `AscendClockMarkerCollector` for host
+brackets around device-visible timeline events. The matching TraceLoom analyzer
+resolves each profiled `aclrtRecordEvent` through a unique connectionId to
+`TASK.startNs`, fits the frozen host→device affine model, and admits host API
+evidence only through robust overlap/delay windows. Raw device syscnt is never
+accepted as profiler nanoseconds. Three repeated real NPU6 captures now pass
+calibration and sidecar audit. A serving capture reaches calibrated E4 and
+materializes exact-connection delay slices, but its run-level status is
+`invalid_input` because the profiler contains zero-duration device tasks; those
+slices remain diagnostic rather than accepted full-run evidence. The serving
+runs use eager mode. See
+[`docs/host_device_clock_calibration.md`](docs/host_device_clock_calibration.md).
 
 ## Test
 

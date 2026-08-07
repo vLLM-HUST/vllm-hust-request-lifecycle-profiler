@@ -4,6 +4,11 @@ from vllm_request_lifecycle_profiler.causal_attribution import (
     evaluate_intervention_fixture,
     load_intervention_fixture,
 )
+from vllm_request_lifecycle_profiler.clock_markers import (
+    CLOCK_MARKER_EXPORT_ENV,
+    AscendClockMarkerCollector,
+    ClockMarkerBracket,
+)
 from vllm_request_lifecycle_profiler.kv_recovery import (
     KVRecoveryDecomposition,
     KVRecoveryEvent,
@@ -58,12 +63,15 @@ from vllm_request_lifecycle_profiler.trace import (
 )
 
 __all__ = [
+    "CLOCK_MARKER_EXPORT_ENV",
     "TRACE_EXPORT_ENV",
+    "AscendClockMarkerCollector",
     "BaseEventRef",
     "BottleneckAttribution",
     "BottleneckKind",
     "BoundedKVRecoveryProfileLedger",
     "CloseResult",
+    "ClockMarkerBracket",
     "EdgeDraft",
     "EventDraft",
     "ExpectedH2DRecovery",

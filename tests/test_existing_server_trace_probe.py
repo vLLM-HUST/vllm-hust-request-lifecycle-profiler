@@ -65,3 +65,12 @@ def test_parse_args_supports_measured_concurrency() -> None:
     module = _load_probe_module()
     args = module.parse_args(["--measured-concurrency", "3"])
     assert args.measured_concurrency == 3
+
+
+def test_parse_args_supports_fixed_rate_open_loop() -> None:
+    module = _load_probe_module()
+    args = module.parse_args(
+        ["--offered-rate-rps", "2", "--measured-duration-s", "24"]
+    )
+    assert args.offered_rate_rps == 2
+    assert args.measured_duration_s == 24
