@@ -334,7 +334,7 @@ def _stream_completion(
 
 
 def _metadata(args: argparse.Namespace) -> dict[str, Any]:
-    dirty_exclusion_dir = getattr(args, "dirty_exclusion_dir", args.output_dir)
+    dirty_exclusion_dir = getattr(args, "dirty_exclusion_dir", None) or args.output_dir
     return {
         "evidence_label": "existing-server-probe",
         "result_valid_for_speedup_claims": False,
@@ -676,6 +676,14 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--timeout-s", type=float, default=60.0)
     parser.add_argument("--trace-export-path", type=Path, default=DEFAULT_TRACE_EXPORT)
     parser.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT_DIR)
+    parser.add_argument(
+        "--dirty-exclusion-dir",
+        type=Path,
+        help=(
+            "Generated artifact root excluded from source-cleanliness checks. "
+            "Changes anywhere else still make the run dirty."
+        ),
+    )
     return parser.parse_args(argv)
 
 

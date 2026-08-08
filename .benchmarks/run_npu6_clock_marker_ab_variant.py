@@ -195,6 +195,8 @@ def main() -> int:
         "120",
         "--output-dir",
         str(client_dir.resolve()),
+        "--dirty-exclusion-dir",
+        str((REPO_ROOT / ".benchmarks" / "results").resolve()),
     ]
     provenance = {
         "artifact_label": "real-online v4.4 fixed-rate matched marker overhead",

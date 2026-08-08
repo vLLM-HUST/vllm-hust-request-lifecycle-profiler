@@ -109,3 +109,11 @@ def test_parse_args_supports_fixed_rate_open_loop() -> None:
     )
     assert args.offered_rate_rps == 2
     assert args.measured_duration_s == 24
+
+
+def test_parse_args_supports_generated_artifact_exclusion() -> None:
+    module = _load_probe_module()
+    args = module.parse_args(
+        ["--dirty-exclusion-dir", ".benchmarks/results"]
+    )
+    assert args.dirty_exclusion_dir == Path(".benchmarks/results")
