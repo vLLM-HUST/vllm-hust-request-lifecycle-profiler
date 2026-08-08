@@ -1,6 +1,6 @@
 # Idle Evidence Contract (M0)
 
-Status: Draft v4.3 (proposed for M0 approval)
+Status: Draft v4.4 composed-clock amendment (proposed for M0 approval)
 
 Target: cross-layer device idle-gap and synchronization evidence, as defined in
 intellistream/vllm-request-lifecycle-profiler-plugin#2 (M0) and
@@ -42,6 +42,19 @@ host_wait_zero_visible_idle/` verified by
 `traceloom_native_idle_evidence_golden_fixture_tests` in the engineering
 repository. Fixture results are contract/example evidence and MUST NOT be
 presented as a matched A/B of runtime traces.
+
+v4.4 changes from v4.3: host attribution now freezes the explicit composed
+mapping `profiler_host -> caller_clock_realtime -> device`; the first leg is
+trained only from a profiled `aclrtRecordEvent` interval and a narrow caller
+bracket around that same API call, while the outer record-through-synchronize
+bracket remains exclusive to the marker/device leg. Both bracket uncertainty
+terms enter epsilon. Missing either real-clock leg fails closed. The composed
+holdout residual is diagnostic because its component errors are not
+independent. `offset_ns` remains the reference-coordinate delta and a separate
+`intercept_ns` carries the arbitrary affine intercept. The attribution rule is
+`host_device_projection_v2`; marker resolution provenance and the singleton
+ordinal-fallback rejection are normative. SQL audit must verify the host API
+family appropriate to every host-derived explanation.
 
 ## 1. Purpose and Scope
 
@@ -378,56 +391,106 @@ label, and every interval claim MUST carry a per-interval evidence level.
 
 ## 7. Clock Domains and Alignment
 
-### 7.1 Reference-point affine model
+### 7.1 Composed reference-point affine model
 
-Host and device timestamps come from different clock domains. The mapping
-function is:
-
-```text
-f(h) = d_ref + a * (h - h_ref)
-```
-
-with observation model:
+The caller and profiler host timestamps MUST NOT be assumed to share a clock
+domain. v4.4 defines three coordinates:
 
 ```text
-d_i = f(h_i) + epsilon_i
+p = msprof CANN_API profiler-host ns
+h = caller CLOCK_REALTIME ns
+d = profiler device TASK ns
 ```
 
-- `h_ref`: reference host timestamp (ns).
-- `d_ref`: corresponding reference device timestamp (ns).
-- `a`: clock scale; `drift_ppm = (a - 1) * 1e6`.
-- `offset_ns` is DEFINED as `d_ref - h_ref` (the offset at the reference
-  origin), not an arbitrary affine intercept.
-- `epsilon_i`: per-marker absolute residual; not part of the mapping
-  function.
+and two reference-point affine legs:
 
-Output fields: `host_to_device_scale`, `host_to_device_offset_ns` (= `d_ref
-- h_ref`), `reference_host_ns`, `reference_device_ns`, `drift_ppm`,
-`fit_marker_count`, `validation_marker_count`, `absolute_residual_p50_ns`,
-`absolute_residual_p95_ns`, `absolute_residual_max_ns`.
+```text
+g(p) = h_g_ref + c * (p - p_ref)       # profiler host -> caller host
+f(h) = d_f_ref + a * (h - h_f_ref)     # caller host -> device
+F(p) = f(g(p))                         # mapping consumed by E4
+```
 
-### 7.2 Marker protocol and frozen fit
+E4 MUST apply `F` to `traceloom_host_api_event.start_ns/end_ns`. It MUST NOT
+pass a profiler-host timestamp directly to `f`. A real model missing either
+leg MUST set `has_profiler_host_mapping = false`, MUST NOT map a host interval,
+and MUST emit no host-derived explanation.
 
-- Marker payload (frozen):
+The final composed reference fields are `reference_host_ns = p_ref` and
+`reference_device_ns = F(p_ref)`, with `scale = a*c` and
+`drift_ppm = (scale - 1) * 1e6`. `offset_ns` remains DEFINED as
+`reference_device_ns - reference_host_ns`, the offset at the recorded
+reference coordinates. It is not the arbitrary affine intercept. If the
+intercept is materialized it MUST use the distinct field
+`intercept_ns = reference_device_ns - scale*reference_host_ns`.
+
+Required model identity fields are:
+
+```text
+source_clock_domain       = profiler_host
+intermediate_clock_domain = caller_clock_realtime
+target_clock_domain       = device
+mapping_kind              = composed_affine
+```
+
+Both component reference/scale/drift parameter sets, the final parameter set,
+fit/validation/rejection counts, and all residual/uncertainty fields in 7.3
+MUST be materialized.
+
+### 7.2 Marker protocol, observations, and frozen fit
+
+- Runtime caller payload (frozen for v4.4):
 
 ```text
 marker_id
 host_before_ns
+record_after_ns
 host_after_ns
-device_timestamp_ns
 host_pid
 host_tid
 device_id
 stream_id (if available)
-connection_id (if available)
 call_site
 return_status
 ```
 
-- Marker host time (frozen): `h_i = host_before_ns +
-  (host_after_ns - host_before_ns) / 2` computed as integer floor division
-  (overflow-safe midpoint form). `host_before_ns` / `host_after_ns` bracket
-  the device-visible event and define marker bracket uncertainty.
+- `host_before_ns` MUST be read immediately before `aclrtRecordEvent`;
+  `record_after_ns` MUST be read immediately after that call and before
+  `aclrtSynchronizeEvent`; `host_after_ns` MUST be read after synchronization
+  returns. All three use caller `CLOCK_REALTIME`, and MUST satisfy
+  `host_before_ns <= record_after_ns <= host_after_ns`.
+- The resolver MUST identify one profiled same-thread `aclrtRecordEvent`, retain
+  its profiler-host `[startNs,endNs)` interval, resolve a non-negative
+  `connectionId`, and resolve at most one matching device TASK. A multiple API
+  or TASK match is fatal ambiguity. Missing connectionId/TASK is a rejected,
+  auditable marker and cannot enter a fit.
+- Direct identity uses overlap with the narrow
+  `[host_before_ns, record_after_ns)` record-call bracket, never the outer
+  synchronization bracket. Ordinal affine fallback requires at least two
+  strictly ordered pairs on the same thread, equal successful-bracket/API
+  counts, and a unique same-ordinal nearest neighbor after endpoint-affine
+  correction. One bracket plus one distant API MUST NOT resolve by ordinal
+  fallback. Every resolved marker MUST retain `resolution_method` and fallback
+  residual when applicable.
+- First-leg observation (frozen):
+
+```text
+p_i = midpoint(CANN_API.startNs, CANN_API.endNs)
+r_i = midpoint(host_before_ns, record_after_ns)
+r_i = g(p_i) + eta_i
+```
+
+- Marker/device observation (frozen):
+
+```text
+h_i = midpoint(host_before_ns, host_after_ns)
+d_i = matching TASK.startNs
+d_i = f(h_i) + epsilon_i
+```
+
+  All midpoints use the overflow-safe integer floor form
+  `start + (end-start)/2`. The narrow and outer midpoint MUST NOT be
+  interchanged or reused to train both legs. A legacy runtime TSV lacking
+  `record_after_ns` cannot establish a real v4.4 model and MUST fail closed.
 - Fit / holdout split (frozen): sort markers by `h_i`; every fifth marker
   goes to the holdout set; the remaining markers form the fit set; the first
   and last markers MUST remain in the fit set. Fitting and reporting the
@@ -436,7 +499,8 @@ return_status
   otherwise `alignment_status` MUST be `invalid` and no calibrated
   cross-clock explanation may be emitted. Run at least 3 repeated captures;
   report per-capture and pooled distributions.
-- Frozen fit formulas:
+- Frozen Theil-Sen formulas below apply independently to `(h_i,d_i)` for `f`
+  and `(p_i,r_i)` for `g`:
 
 ```text
 s_ij = (d_j - d_i) / (h_j - h_i),  h_j != h_i
@@ -464,28 +528,41 @@ f(h) = d_ref + a * (h - h_ref)
   with round-half-to-even before any overlap or delay comparison, and golden
   fixtures MUST use the same rounding.
 
-### 7.3 Overlap and delay windows
+### 7.3 Uncertainty, overlap, and delay windows
 
 All uncertainties in device-clock domain.
 
 ```text
-validation_p95_residual = p95 over holdout markers of
-                          abs(device_timestamp_ns - f(h_i))
-bracket_uncertainty_device_ns = abs(a) * p95((host_after_ns - host_before_ns)/2)
-epsilon = validation_p95_residual + bracket_uncertainty_device_ns
+marker_device_validation_p95 = p95_holdout(abs(d_i - f(h_i)))
+marker_bracket_uncertainty_device =
+    abs(a) * p95_all((host_after_ns - host_before_ns)/2)
+profiler_caller_validation_p95_device =
+    abs(a) * p95_holdout(abs(r_i - g(p_i)))
+record_bracket_uncertainty_device =
+    abs(a) * p95_all((record_after_ns - host_before_ns)/2)
+epsilon = marker_device_validation_p95
+        + marker_bracket_uncertainty_device
+        + profiler_caller_validation_p95_device
+        + record_bracket_uncertainty_device
 ```
 
-**Host-sync overlap** (for `host_sync_api_present`), host interval
-`[hs, he)` mapped to `[f(hs), f(he))`:
+The component and composed p50/p95/max holdout residual distributions MUST be
+reported. The composed residual `abs(d_i - F(p_i))` is diagnostic only: because
+both legs share marker observations, error cancellation can make it smaller
+than either component residual. It MUST NOT replace the four-term epsilon or be
+described as independent clock-correctness validation.
+
+**Host-sync overlap** (for `host_sync_api_present`), profiler-host interval
+`[ps, pe)` mapped to `[F(ps), F(pe))`:
 
 - **Possible overlap** (candidate discovery only):
-  `[f(hs) - epsilon, f(he) + epsilon)` intersects the gap. Possible overlap
+  `[F(ps) - epsilon, F(pe) + epsilon)` intersects the gap. Possible overlap
   MUST NOT produce a `traceloom_idle_explanation` row; the official
   explanation remains `unattributed_visible_idle`; it MAY produce a
   candidate-only diagnostic row; it MUST NOT contribute to attributable
   coverage.
 - **Robust overlap**:
-  `[f(hs) + epsilon, f(he) - epsilon)` intersects the gap. Only robust
+  `[F(ps) + epsilon, F(pe) - epsilon)` intersects the gap. Only robust
   overlap MAY produce `host_sync_api_present` (`correlated`,
   `temporal_overlap`), and the emitted explanation slice MUST be the
   intersection of the robust interval and the remaining gap: a one-nanosecond
@@ -496,12 +573,12 @@ epsilon = validation_p95_residual + bracket_uncertainty_device_ns
   this is a documented cost, not a gap to paper over.
 
 **Enqueue-to-task delay** (for `queued_visible_task_delay`; not an
-interval-overlap question). For an enqueue API with end `he` linked to a
+interval-overlap question). For an enqueue API with profiler-host end `pe` linked to a
 device task with start `ts` by exact `connectionId`:
 
 ```text
-possible_delay = [f(he) - epsilon, ts)
-robust_delay   = [f(he) + epsilon, ts)
+possible_delay = [F(pe) - epsilon, ts)
+robust_delay   = [F(pe) + epsilon, ts)
 ```
 
 `queued_visible_task_delay` MAY be emitted only when ALL hold:
@@ -510,7 +587,7 @@ robust_delay   = [f(he) + epsilon, ts)
 2. the API belongs to the enqueue family defined by the versioned, hashed
    host-API allowlist ruleset `idle_evidence_host_api_rules.tsv` (initial
    entries: `aclrtLaunchKernel*`, `aclrtMemcpyAsync*`);
-3. `robust_delay` is non-empty (`ts > f(he) + epsilon`);
+3. `robust_delay` is non-empty (`ts > F(pe) + epsilon`);
 4. the emitted explanation is the intersection of `robust_delay` and the
    gap.
 
@@ -639,13 +716,28 @@ alignment_status
 ```text
 clock_model_id
 source_clock_domain
+intermediate_clock_domain
 target_clock_domain
 mapping_kind
 scale
-offset_ns                 # d_ref - h_ref
-reference_host_ns
-reference_device_ns
+offset_ns                 # reference_device_ns - reference_host_ns
+intercept_ns              # reference_device_ns - scale*reference_host_ns
+reference_host_ns         # composed source reference p_ref
+reference_device_ns       # F(p_ref)
 drift_ppm
+has_profiler_host_mapping
+profiler_caller_observation_kind
+marker_device_observation_kind
+marker_to_device_scale
+marker_to_device_offset_ns
+reference_marker_host_ns
+marker_reference_device_ns
+marker_to_device_drift_ppm
+profiler_to_marker_scale  # historical field name; semantics are profiler->caller
+profiler_to_marker_offset_ns
+reference_profiler_host_ns
+profiler_reference_marker_ns
+profiler_to_marker_drift_ppm
 fit_method
 fit_method_version
 fit_random_seed
@@ -657,6 +749,16 @@ validation_marker_count
 absolute_residual_p50_ns
 absolute_residual_p95_ns
 absolute_residual_max_ns
+bracket_uncertainty_p95_ns
+host_clock_absolute_residual_p50_ns
+host_clock_absolute_residual_p95_ns
+host_clock_absolute_residual_max_ns
+host_clock_uncertainty_p95_ns
+profiler_to_caller_bracket_uncertainty_p95_ns
+composed_absolute_residual_p50_ns
+composed_absolute_residual_p95_ns
+composed_absolute_residual_max_ns
+epsilon_ns
 alignment_status
 ```
 

@@ -1,10 +1,10 @@
 # NPU6 Fixed-rate Clock-marker Overhead A/B
 
-- capture_acceptance: `PARTIAL`
-- protocol_acceptance: `PASS`
-- calibration_acceptance: `PASS`
+- capture_acceptance: `SUPERSEDED`
+- protocol_acceptance: `SUPERSEDED`
+- calibration_acceptance: `SUPERSEDED`
 - full_idle_evidence_acceptance: `FAIL`
-- overhead_claim_status: `observed_single_pair_no_confidence_interval`
+- overhead_claim_status: `superseded_by_v4.4_instrumentation`
 - offered load: `2.0 req/s`
 - fixed window: `24.0 s`
 - measured requests: `48`
@@ -52,7 +52,12 @@ E4 emitted 1 calibrated exact-connection slices covering 93407 ns of queued-visi
 
 ## Interpretation boundary
 
-This is a real-online, fixed-rate matched pair. It measures an observed ~1–2% latency/iteration perturbation for this workload; it does not establish a population confidence interval or a universal overhead bound. Full-boundary device time includes server warm-up and profiler-tail effects and is diagnostic while the sidecar run status is invalid_input.
+This is a historical real-online, fixed-rate matched pair for the pre-v4.4
+collector. v4.4 adds `record_after_ns`, so this pair does not measure the current
+instrumentation path and must be recollected before any overhead acceptance
+claim. The deltas below remain diagnostics only; they do not establish a
+population confidence interval or universal overhead bound. The embedded
+calibration and E4 results also use the superseded shared-midpoint observation.
 
 ## Excluded diagnostics
 

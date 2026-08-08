@@ -1,9 +1,12 @@
 # Host→Device Clock Calibration Runbook
 
-Status: repeated `real-online` NPU6 captures now validate the complete
-profiler-host→caller-clock→device composed calibration and the strengthened SQL
-audit. A serving replay exercises the corrected E4 path but remains diagnostic
-because its source has `analysis_status=invalid_input`.
+Status: three new `real-online` NPU6 captures validate the v4.4
+profiler-host→caller-clock→device mechanism using distinct record-call and
+record-through-synchronize brackets, plus the strengthened SQL audit. A new
+v4.4 fixed-rate marker OFF/ON pair closes the workload-specific single-pair
+overhead measurement. No v4.4 serving capture has yet produced accepted
+positive host attribution; the prior serving replay used the superseded
+observation definition and is retracted.
 
 This runbook connects the parent profiler's Ascend marker collector to
 TraceLoom's calibrated host-evidence continuation after E1–E4. Its central
@@ -33,8 +36,9 @@ if collector is not None:
     collector.record()  # repeat at well-spaced points throughout the run
 ```
 
-The collector uses `time.time_ns()` (`CLOCK_REALTIME`) immediately before
-`aclrtRecordEvent` and immediately after `aclrtSynchronizeEvent`. It writes the
+The collector uses `time.time_ns()` (`CLOCK_REALTIME`) immediately before and
+after `aclrtRecordEvent`, then once more immediately after
+`aclrtSynchronizeEvent`. It writes the
 host PID/native TID, device, optional profiler stream id, call site, and return
 status. It does not initialize or switch the caller's device/context. Close it
 before runtime teardown.
@@ -59,12 +63,15 @@ traceloom /path/to/PROF_... \
 For every successful bracket, TraceLoom requires:
 
 1. a unique same-PID/TID `aclrtRecordEvent` identity, normally by exactly one
-   non-empty overlap with the host bracket;
+   non-empty overlap with the narrow
+   `[host_before_ns, record_after_ns)` bracket;
 2. a non-negative profiler connectionId on that API row; and
 3. at most one TASK with that connectionId on the requested device and, when
    supplied, stream.
 
-Non-empty overlap is used because real NPU6 measurements show clock skew
+The outer `[host_before_ns, host_after_ns]` bracket includes synchronization
+and is never used to train the profiler→caller leg. Non-empty overlap is used
+because real NPU6 measurements show clock skew
 between profiler host API timestamps and the caller's `CLOCK_REALTIME`
 bracket. In longer captures the skew can remove direct overlap. The only
 fallback is a strict order-preserving bijection: the successful-bracket count
@@ -93,8 +100,9 @@ Inspect the sidecar before using any host-derived explanation:
 ```sql
 select device_id, alignment_status, source_clock_domain,
        intermediate_clock_domain, mapping_kind,
-       scale, drift_ppm, profiler_to_marker_scale,
+       scale, offset_ns, intercept_ns, drift_ppm, profiler_to_marker_scale,
        profiler_to_marker_drift_ppm,
+       profiler_caller_observation_kind, marker_device_observation_kind,
        input_marker_count, inlier_marker_count, rejected_marker_count,
        fit_marker_count, validation_marker_count,
        absolute_residual_p50_ns, absolute_residual_p95_ns,
@@ -103,6 +111,7 @@ select device_id, alignment_status, source_clock_domain,
        host_clock_absolute_residual_p95_ns,
        host_clock_absolute_residual_max_ns,
        host_clock_uncertainty_p95_ns,
+       profiler_to_caller_bracket_uncertainty_p95_ns,
        composed_absolute_residual_p50_ns,
        composed_absolute_residual_p95_ns,
        composed_absolute_residual_max_ns, epsilon_ns
@@ -123,10 +132,15 @@ group by category, evidence_relation;
 ```
 
 The fitted mapping is the explicit composition `F(p)=f(g(p))`, where `p` is an
-msprof CANN_API timestamp, `g` maps msprof-host→caller `CLOCK_REALTIME`, and `f`
-maps caller `CLOCK_REALTIME`→device TASK ns. Both legs use the deterministic
-fit/holdout split. Final epsilon is marker→device p95 residual plus scaled
-bracket p95 plus the first-leg p95 residual converted into device ns.
+msprof CANN_API timestamp. `g` pairs the profiled `aclrtRecordEvent` midpoint
+with the narrow caller record-call midpoint; `f` pairs the outer
+record-through-synchronize midpoint with device TASK ns. Both legs use the
+deterministic fit/holdout split. Final epsilon is the marker→device p95
+residual, outer half-bracket p95, first-leg p95 residual converted into device
+ns, and narrow record-call half-bracket p95. The composed residual is reported
+only as a shared-observation diagnostic and cannot replace this four-term sum.
+`offset_ns` is the reference-coordinate delta; `intercept_ns` is the separate
+affine intercept.
 
 Only `alignment_status=calibrated` with `has_profiler_host_mapping=1` from real
 markers permits a real-trace cross-clock claim. `uncalibrated` and `invalid`
@@ -136,10 +150,10 @@ retain host rows and structural links but compute no temporal overlap or delay.
 Official host evidence is deliberately narrower than possible evidence:
 
 - host synchronization: robust interval
-  `[f(host_start)+epsilon, f(host_end)-epsilon)` intersected with a visible
+  `[F(profiler_start)+epsilon, F(profiler_end)-epsilon)` intersected with a visible
   gap;
 - enqueue delay: unique exact connectionId plus robust interval
-  `[f(host_end)+epsilon, task_start)` intersected with a visible gap.
+  `[F(profiler_end)+epsilon, task_start)` intersected with a visible gap.
 
 Possible-only overlap and non-robust delay are materialized in
 `traceloom_idle_candidate`; they never replace an E4 slice. Device evidence
@@ -149,72 +163,78 @@ every reported run.
 
 ## 4. Recorded NPU6 evidence
 
-Three independent micro-captures under
+Three independent v4.4 micro-captures under
 `.benchmarks/results/npu6_host_device_clock_calibration/` exercise the real
-Python collector → `aclrtRecordEvent` → profiler CANN_API/TASK → TSV resolver →
-composed-clock Theil–Sen chain. `capture_02_real_calibrated` through
-`capture_04_real_calibrated` each contain 21/21 inlier markers, 17 fit markers,
-4 validation markers, zero rejected markers, 21 `direct_overlap` resolutions,
-zero ordinal fallbacks, and `audit_status=PASS` under the expanded audit.
+Python collector → narrow record-call bracket → `aclrtRecordEvent` → profiler
+CANN_API/TASK → TSV resolver → composed-clock Theil–Sen chain.
+`capture_05_v44_real` through `capture_07_v44_real` each contain 21/21 inlier
+markers, 17 fit markers, 4 validation markers, zero rejected markers, 21
+`direct_overlap` resolutions, zero ordinal fallbacks, and `audit_status=PASS`.
+The third capture also has `analysis_status=ok`; all three have zero correlated
+duration because the micro workload supplies no E4 robust host-overlap or delay
+slice.
 
-| Capture | marker→device p50/p95/max (ns) | profiler→caller p50/p95/max (ns) | composed p50/p95/max (ns) | host uncertainty (device ns) | epsilon (ns) |
-| --- | ---: | ---: | ---: | ---: | ---: |
-| capture 02 | 2232.081 / 3257.740 / 3257.740 | 3214.014 / 5857.866 / 5857.866 | 2903.807 / 3625.888 / 3625.888 | 5857.969 | 62213 |
-| capture 03 | 2980.760 / 14091.349 / 14091.349 | 4029.976 / 11472.363 / 11472.363 | 574.865 / 3885.128 / 3885.128 | 11472.603 | 73461 |
-| capture 04 | 214.627 / 3630.588 / 3630.588 | 1027.567 / 4500.926 / 4500.926 | 870.415 / 2412.331 / 2412.331 | 4501.003 | 57513 |
+| Capture | marker→device p50/p95/max (ns) | profiler→caller p50/p95/max (ns) | outer bracket p95 (ns) | record bracket p95 (device ns) | composed p50/p95/max (ns) | epsilon (ns) |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| capture 05 | 575.845 / 3035.226 / 3035.226 | 100.000 / 297.236 / 297.236 | 44125.449 | 15270.482 | 20525.822 / 25343.964 / 25343.964 | 62729 |
+| capture 06 | 1517.605 / 4744.139 / 4744.139 | 319.140 / 895.570 / 895.570 | 47725.186 | 17644.699 | 20379.301 / 26538.198 / 26538.198 | 71010 |
+| capture 07 | 621.150 / 1093.031 / 1093.031 | 194.160 / 222.991 / 222.991 | 62167.904 | 13510.414 | 21449.392 / 23007.653 / 23007.653 | 76995 |
 
 The pooled 12-marker marker→device validation residual distribution is
-p50/p95/max 2232.081/14091.349/14091.349 ns. The profiler→caller distribution is
-3214.014/11472.363/11472.363 ns, and the composed profiler→device distribution
-is 977.126/3885.128/3885.128 ns. The pooled scaled half-bracket distribution
-over 63 markers is p50/p95/max 40686.218/53096.437/97373.542 ns. The structured
-outputs are `calibration_summary.json` and `calibration_summary.md` in that
-directory; acceptance requires three unique run IDs, composed calibrated
-models, and three passing expanded SQL audits.
+p50/p95/max 811.861/4744.139/4744.139 ns; profiler→caller is
+194.160/895.570/895.570 ns. The composed diagnostic is
+20901.006/26538.198/26538.198 ns: unlike the superseded shared-midpoint model,
+it exposes rather than cancels record→device latency. Across 63 markers, the
+outer and narrow scaled half-bracket p95 values are 62167.904 and 17644.699 ns.
+The structured outputs are `calibration_summary.json` and
+`calibration_summary.md`; acceptance requires three unique v4.4 run IDs,
+correct observation kinds, four-term epsilon equality, and three passing SQL
+audits.
 
-The fixed-rate serving capture under
-`.benchmarks/results/npu6_clock_marker_overhead_fixed_rate_ab/marker_enabled/`
-resolves 565 of 587
-markers; 22 profiler-tail markers after the device TASK horizon remain rejected.
-The model uses 453 fit and 112 validation markers. Marker→device residual
-p50/p95/max is 8329.205/23831.788/43889.346 ns; profiler→caller residual is
-7940.634/23558.420/44835.814 ns; composed profiler→device residual is
-935.058/4083.598/9511.218 ns; bracket p95 is 107876.729 ns and the corrected
-epsilon is 155267 ns. The old analyzer materialized 1133
-`exact_connection_id` `queued_visible_task_delay` slices covering 61,776,173
-ns, but it applied a caller-clock-trained model directly to msprof host API
-timestamps. Those rows are retracted as cross-clock evidence; the old audit did
-not contain cross-clock invariants. The composed replay retains one 93407 ns
-queued-delay slice, with zero errors in all four cross-clock audit counters. In
-addition, run-level
-`analysis_status=invalid_input`: the profiler contains 126 zero-duration
-kernel/memcpy tasks in addition to 678 ignored zero-duration point events, so
-the E3 observed-universe scan is incomplete. The remaining E4 row therefore
-demonstrates the corrected runtime path but is diagnostic rather than accepted
-localization; a valid-status serving capture is still required.
+The earlier fixed-rate serving sidecars and the reported 1133→1 slice change
+were produced before the v4.4 observation amendment. They lack
+`record_after_ns`, still encode the superseded first-leg correspondence, and
+MUST NOT be used as current cross-clock evidence. Their matched workload
+measurements remain historical diagnostics only. Because v4.4 adds one runtime
+timestamp read per marker, the marker OFF/ON A/B and any serving E4 claim must
+be recollected. A positive serving claim additionally requires
+`analysis_status=ok`.
 
 An additional `--task-time=l2` probe under
 `.benchmarks/results/npu6_clock_marker_l2_validity_probe/` still contains 84
 zero-duration kernel/memcpy tasks (plus 650 point events). Increasing the
 profiler task-time level does not close this source-validity blocker.
 
-The matched marker-overhead report is
-`.benchmarks/results/npu6_clock_marker_overhead_fixed_rate_ab/report/`.
-Both variants use the same model, fixed request schedule, seed, 2 req/s offered
-load, 24 s window, server command, and msprof boundary; each completes 48/48
-requests. Enabled-minus-disabled changes request throughput by +0.015%, TTFT
-p95 by +0.993%, latency p95 by +1.842%, ITL p95 by +1.713%, TPOT p95 by
-+1.972%, decode-iteration p95 by +1.854%, and full-boundary device productive
-time by +0.516%. The client and host-iteration metrics establish a
-workload-specific observed perturbation; the full-boundary device metric stays
-diagnostic while the sidecar run status is invalid. This is a single matched
-pair without a confidence interval, not a universal overhead bound.
+The superseded pre-v4.4 marker-overhead report remains at
+`.benchmarks/results/npu6_clock_marker_overhead_fixed_rate_ab/report/` and is
+historical only. The current report is
+`.benchmarks/results/npu6_clock_marker_overhead_v44_fixed_rate_ab/`. Both new
+variants use the same model, fixed request schedule, seed, 2 req/s offered
+load, 24 s window, workload/server configuration, profiler options, and msprof
+boundary; the distinct loopback ports only isolate the two sequential server
+processes. Each completes 48/48 requests. The disabled run emits zero markers;
+the enabled run emits 587 successful new-format brackets and calibrates 565
+inliers (453 fit, 112 validation, 22 rejected) with epsilon 164088 ns. Both SQL
+audits pass.
+
+Enabled-minus-disabled changes request throughput by -0.297%, TTFT p50/p95 by
+-1.416%/+1.472%, request-latency p50/p95 by +2.046%/+2.093%, ITL p50/p95 by
++2.002%/+2.477%, TPOT p50/p95 by +1.973%/+2.179%, and decode-iteration
+p50/p95 by +1.869%/+2.812%. Full-boundary device productive time changes by
+-0.261%, but that device metric and the three emitted exact-connection E4
+slices are diagnostic: both source profiles contain non-point non-positive
+duration TASK rows and therefore have `analysis_status=invalid_input`. The
+structured result is `protocol_acceptance=PASS`,
+`calibration_acceptance=PASS`, and `capture_acceptance=PARTIAL`. This is one
+workload-specific matched pair, not a confidence interval, universal overhead
+bound, graph-mode result, or CPU/host-memory/NPU-HBM measurement.
 
 ## 5. Evidence boundary
 
 The deterministic fixtures remain `simulation/model`/contract evidence. The
-captures above support the `real-online` claim that composed cross-clock
-calibration works on NPU6 profiler data. The serving replay executes corrected
-host attribution, but `analysis_status=invalid_input` prevents a valid full-run
-claim. None of these results proves causality, establishes graph-mode behavior,
-or justifies overhead claims beyond the recorded workload and pair.
+captures above support the `real-online` claim that the v4.4 composed
+calibration mechanism executes on NPU6 profiler data with auditable uncertainty.
+The matched pair additionally measures host-visible v4.4 marker overhead for
+one eager-mode workload. It does not provide an accepted positive E4 serving
+capture, a confidence interval, or a device-overhead acceptance result. None of
+these results proves causality or establishes graph-mode behavior.

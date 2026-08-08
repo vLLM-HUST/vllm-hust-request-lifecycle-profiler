@@ -47,7 +47,9 @@ def main() -> int:
     args.output_dir.mkdir(parents=True, exist_ok=True)
     marker_path = args.output_dir / "clock_marker_brackets.tsv"
     if marker_path.exists():
-        raise FileExistsError(f"refusing to append to existing marker file: {marker_path}")
+        raise FileExistsError(
+            f"refusing to append to existing marker file: {marker_path}"
+        )
 
     torch.npu.set_device(args.logical_device_id)
     left = torch.randn(
@@ -73,13 +75,12 @@ def main() -> int:
             workload_started_ns = time.perf_counter_ns()
             torch.mm(left, right)
             torch.npu.synchronize()
-            workload_durations_ns.append(
-                time.perf_counter_ns() - workload_started_ns
-            )
+            workload_durations_ns.append(time.perf_counter_ns() - workload_started_ns)
             brackets.append(
                 {
                     "host_after_ns": bracket.host_after_ns,
                     "host_before_ns": bracket.host_before_ns,
+                    "record_after_ns": bracket.record_after_ns,
                     "marker_id": bracket.marker_id,
                     "return_status": bracket.return_status,
                 }
@@ -91,8 +92,11 @@ def main() -> int:
     bracket_widths_ns = [
         row["host_after_ns"] - row["host_before_ns"] for row in brackets
     ]
+    record_bracket_widths_ns = [
+        row["record_after_ns"] - row["host_before_ns"] for row in brackets
+    ]
     summary = {
-        "artifact_label": "real-online calibration-chain smoke",
+        "artifact_label": "real-online v4.4 calibration-chain smoke",
         "bracket_width_ns": {
             "max": max(bracket_widths_ns),
             "p50": _percentile(bracket_widths_ns, 0.50),
@@ -102,16 +106,17 @@ def main() -> int:
         "logical_device_id": args.logical_device_id,
         "marker_count": len(brackets),
         "marker_path": str(marker_path.resolve()),
+        "record_bracket_width_ns": {
+            "max": max(record_bracket_widths_ns),
+            "p50": _percentile(record_bracket_widths_ns, 0.50),
+            "p95": _percentile(record_bracket_widths_ns, 0.95),
+        },
         "physical_device_visibility": {
-            "ASCEND_RT_VISIBLE_DEVICES": os.environ.get(
-                "ASCEND_RT_VISIBLE_DEVICES"
-            ),
+            "ASCEND_RT_VISIBLE_DEVICES": os.environ.get("ASCEND_RT_VISIBLE_DEVICES"),
             "ASCEND_VISIBLE_DEVICES": os.environ.get("ASCEND_VISIBLE_DEVICES"),
         },
         "profiler_device_id": args.profiler_device_id,
-        "successful_marker_count": sum(
-            row["return_status"] == 0 for row in brackets
-        ),
+        "successful_marker_count": sum(row["return_status"] == 0 for row in brackets),
         "workload_duration_ns": {
             "max": max(workload_durations_ns),
             "p50": _percentile(workload_durations_ns, 0.50),

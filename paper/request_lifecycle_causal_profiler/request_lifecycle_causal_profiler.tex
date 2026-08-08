@@ -233,42 +233,40 @@ prefill start/end timing. Only a controlled graph-mode rerun with those fields
 could promote one candidate cause.
 \subsection{Calibrated cross-clock evidence}
 
-Three independent NPU6 captures exercise the real Python marker,
+Three new NPU6 captures exercise the v4.4 Python marker,
 \texttt{aclrtRecordEvent}, profiler CANN\_API/TASK, bracket resolver, and
-Theil--Sen path. Each capture has 21 inlier markers with a 17/4 fit/validation
-split and a passing structural audit. Across the 12 pooled validation markers,
-marker-to-device residual p50/p95/max is 2.232/14.091/14.091\,$\mu$s. A serving capture
-resolves 565 of 587 markers, but audit found that the original analyzer trained
-on caller \texttt{CLOCK\_REALTIME} brackets and then applied that model directly
-to msprof CANN\_API timestamps. The reported holdout residual therefore did not
-cover the first host-clock conversion. We retain the three captures only as
-evidence that the real marker-to-TASK calibration chain executes; the old 1133
-E4 rows are retracted as cross-clock evidence. The analyzer now uses an explicit
-profiler-host-to-caller-host-to-device composition and adds the first-leg
-holdout uncertainty to epsilon. Replaying the three captures yields pooled
-profiler-to-caller and composed profiler-to-device residual p50/p95/max of
-3.214/11.472/11.472 and 0.977/3.885/3.885\,$\mu$s, respectively, with all
-marker resolutions using direct overlap and all expanded audits passing. The
-serving replay retains one 93.407\,$\mu$s queued-delay slice rather than 1133,
-confirming that the coordinate correction is material. Independently, 126
-zero-duration kernel/memcpy TASK rows force
-\texttt{analysis\_status=invalid\_input}, and task-time level l2 does not remove
-the pathology, so this remaining slice is diagnostic and valid full-run E4
-remains an open gate.
+Theil--Sen path. The collector now records a narrow caller-clock bracket around
+the record API separately from the outer record-through-synchronize bracket.
+The first affine leg pairs the profiled record midpoint with the narrow bracket
+midpoint; only the second leg uses the outer midpoint. Each capture has 21
+inlier markers with a 17/4 fit/validation split, 21 direct-overlap resolutions,
+no fallback, and a passing audit. Across 12 pooled validation markers,
+marker-to-device residual p50/p95/max is 0.812/4.744/4.744\,$\mu$s and
+profiler-to-caller residual is 0.194/0.896/0.896\,$\mu$s. The composed
+shared-observation diagnostic is 20.901/26.538/26.538\,$\mu$s: unlike the
+superseded shared-midpoint model, it exposes rather than cancels the
+record-to-device delay. Per-capture epsilon is 62.729, 71.010, and
+76.995\,$\mu$s and explicitly sums both holdout residuals and both bracket
+uncertainties. One micro-capture has \texttt{analysis\_status=ok}, but all have
+zero correlated duration and therefore provide mechanism rather than positive
+E4 evidence. The prior serving 1133-to-1 replay lacks the new timestamp and is
+retracted under v4.4; valid positive serving E4 remains an open gate.
 
 \subsection{Overhead evidence}
 
-The repository now contains a fixed-rate marker-disabled/enabled NPU6 pair.
-Both modes use the same deterministic 48-request schedule at 2 requests/s for
-24\,s and complete 48/48 requests. Enabled minus disabled changes request
-throughput by +0.015\%, TTFT p95 by +0.993\%, latency p95 by +1.842\%, ITL p95
-by +1.713\%, TPOT p95 by +1.972\%, and decode-iteration p95 by +1.854\%.
-This establishes an observed host-visible perturbation for one eager-mode
-workload, not negligible overhead or a population bound. There is only one
-accepted pair, no confidence interval, and no CPU, host-memory, or NPU-HBM
-measurement. The full-boundary device-time delta remains diagnostic because
-the sidecars have invalid-input run status. We therefore exclude overhead from
-the headline results.
+We recollected a fixed-rate marker-disabled/enabled NPU6 pair with the v4.4
+collector. Both variants use the same model, request schedule, seed, 2 request/s
+offered load, 24 s window, workload/server configuration, profiler options,
+and profiler boundary, and each completes 48/48 requests. The enabled run
+records 587 markers and calibrates 565 inliers. Enabled minus disabled changes
+request throughput by -0.297\%, TTFT p50/p95 by -1.416\%/+1.472\%, ITL
+p50/p95 by +2.002\%/+2.477\%, TPOT p50/p95 by +1.973\%/+2.179\%, and decode
+iteration p50/p95 by +1.869\%/+2.812\%. This closes a workload-specific
+single-pair measurement, not a confidence interval or universal bound. Both
+profiles have \texttt{analysis\_status=invalid\_input} due non-positive-duration
+TASK rows, so full-boundary device time and E4 slices remain diagnostic. CPU,
+host-memory, NPU-HBM, graph-mode, and repeated-pair overhead remain open and
+overhead remains excluded from headline results.
 
 \section{Limitations and Required Evidence}
 
@@ -277,8 +275,8 @@ fault matrix does not establish benchmark-owned graph-mode server custody; the
 new calibration/overhead harness owns its server but runs eager mode. Second,
 queue, KV-pressure, and cleanup ground truth are missing. Third, raw-log,
 rules-disabled, and timed manual baselines have not been measured. Fourth, a
-a valid-status serving E4 capture is still missing, and the one-pair overhead
-measurement cannot characterize confidence intervals or memory costs.
+valid positive v4.4 serving E4 capture is still missing, and v4.4 overhead has
+not yet been repeated for confidence intervals or memory costs.
 
 These are evidence blockers, not writing tasks. The project should remain a
 research draft until a frozen, repository-controlled protocol produces

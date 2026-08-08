@@ -99,15 +99,19 @@ The package now provides an opt-in `AscendClockMarkerCollector` for host
 brackets around device-visible timeline events. The matching TraceLoom analyzer
 resolves each profiled `aclrtRecordEvent` through a unique connectionId to
 `TASK.startNs`, fits an explicit profiler-host→caller-realtime→device composed
-clock model, and admits host API evidence only through robust overlap/delay
-windows whose epsilon includes both clock legs. Raw device syscnt is never
-accepted as profiler nanoseconds. Three repeated real NPU6 captures now pass
-the composed-clock replay and strengthened SQL audit with both component and
-end-to-end holdout distributions. Replaying the eager serving capture reduces
-the old 1133 queued-delay slices to one 93.407 μs diagnostic slice, showing why
-the clock-domain correction is material. That source still has
-`analysis_status=invalid_input` because of zero-duration device tasks, so it is
-not accepted full-run E4 evidence. See
+clock model under the draft v4.4 amendment. A narrow caller timestamp bracket
+around the record API trains the first leg; the outer bracket through event
+synchronization trains only the marker/device leg. Host API evidence is admitted
+only through robust overlap/delay windows whose epsilon contains both residual
+and both bracket-uncertainty terms. Raw device syscnt is never accepted as
+profiler nanoseconds. Three new repeated real NPU6 captures pass calibration and
+the strengthened SQL audit; the composed residual now exposes the previously
+cancelled record→device latency. Prior serving and marker-overhead sidecars lack
+the new record timestamp and are retracted under v4.4. A newly recollected
+fixed-rate matched A/B passes its protocol, calibration, and SQL audits and
+quantifies workload-specific marker overhead; its device metrics remain
+diagnostic because both sidecars have `analysis_status=invalid_input`. Positive
+serving E4 remains open. See
 [`docs/host_device_clock_calibration.md`](docs/host_device_clock_calibration.md).
 
 ## Test

@@ -1,24 +1,25 @@
 # NPU6 Host→Device Clock Calibration
 
-- evidence_label: `real-online calibration-chain repeated capture`
+- evidence_label: `real-online v4.4 calibration-chain repeated capture`
 - capture_count: `3`
 - acceptance_status: `PASS`
 
 ## Per-capture models
 
-| Capture | Status/audit | Drift ppm marker→device / profiler→marker | Markers input/inlier/rejected | Fit/validation | Direct/fallback | Marker→device residual p50/p95/max (ns) | Profiler→marker residual p50/p95/max (ns) | Bracket p95 (ns) | Composed profiler→device residual p50/p95/max (ns) | Host-clock uncertainty p95 (device ns) | Epsilon (ns) | Correlated (ns) |
-| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| `capture_02_real_calibrated` | `calibrated/PASS` | 17.638930 / -9.549596 | 21/21/0 | 17/4 | 21/0 | 2232.080899/3257.739760/3257.739760 | 3214.014320/5857.865546/5857.865546 | 53096.436548 | 2903.807005/3625.887973/3625.887973 | 5857.968873 | 62213 | 0 |
-| `capture_03_real_calibrated` | `calibrated/PASS` | 20.967414 / -2.202660 | 21/21/0 | 17/4 | 21/0 | 2980.759819/14091.348543/14091.348543 | 4029.976476/11472.362784/11472.362784 | 47896.504245 | 574.864921/3885.128482/3885.128482 | 11472.603330 | 73461 | 0 |
-| `capture_04_real_calibrated` | `calibrated/PASS` | 17.031092 / -4.609161 | 21/21/0 | 17/4 | 21/0 | 214.626539/3630.587859/3630.587859 | 1027.567084/4500.925993/4500.925993 | 49381.341004 | 870.414789/2412.330843/2412.330843 | 4501.002648 | 57513 | 0 |
+| Capture | Status/audit | Drift ppm marker→device / profiler→caller | Markers input/inlier/rejected | Fit/validation | Direct/fallback | Marker→device residual p50/p95/max (ns) | Profiler→caller residual p50/p95/max (ns) | Outer bracket p95 (ns) | Record-call bracket p95 (device ns) | Composed profiler→device residual p50/p95/max (ns) | Host-clock uncertainty p95 (device ns) | Epsilon (ns) | Correlated (ns) |
+| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| `capture_05_v44_real` | `calibrated/PASS` | -1.153372 / 20.757472 | 21/21/0 | 17/4 | 21/0 | 575.845202/3035.225857/3035.225857 | 99.999903/297.236293/297.236293 | 44125.449107 | 15270.482387 | 20525.822095/25343.963834/25343.963834 | 297.235950 | 62729 | 0 |
+| `capture_06_v44_real` | `calibrated/PASS` | -17.062140 / 20.577028 | 21/21/0 | 17/4 | 21/0 | 1517.605441/4744.139285/4744.139285 | 319.139675/895.569639/895.569639 | 47725.185692 | 17644.698939 | 20379.301110/26538.197787/26538.197787 | 895.554358 | 71010 | 0 |
+| `capture_07_v44_real` | `calibrated/PASS` | 30.633661 / 21.911972 | 21/21/0 | 17/4 | 21/0 | 621.150063/1093.030934/1093.030934 | 194.159594/222.990758/222.990758 | 62167.904372 | 13510.413861 | 21449.392368/23007.653012/23007.653012 | 222.997589 | 76995 | 0 |
 
 ## Pooled marker distributions
 
 | Metric | Count | p50 (ns) | p95 (ns) | max (ns) |
 | --- | ---: | ---: | ---: | ---: |
-| marker→device absolute validation residual | 12 | 2232.080894 | 14091.348500 | 14091.348500 |
-| profiler→marker absolute validation residual | 12 | 3214.014321 | 11472.362757 | 11472.362757 |
-| composed profiler→device absolute validation residual | 12 | 977.126494 | 3885.128483 | 3885.128483 |
-| scaled half-bracket uncertainty | 63 | 40686.217649 | 53096.436548 | 97373.541629 |
+| marker→device absolute validation residual | 12 | 811.861317 | 4744.139283 | 4744.139283 |
+| profiler→caller absolute validation residual | 12 | 194.159585 | 895.569638 | 895.569638 |
+| composed profiler→device absolute validation residual | 12 | 20901.006420 | 26538.197786 | 26538.197786 |
+| scaled half-bracket uncertainty | 63 | 34201.547687 | 62167.904372 | 94284.891271 |
+| scaled record-call half-bracket uncertainty | 63 | 12394.985704 | 17644.698939 | 29739.992563 |
 
-This artifact validates calibration quality. A zero correlated duration means no E4 gap passed the robust host-evidence gate; it is not converted into a positive attribution claim.
+The composed residual is a shared-observation diagnostic, not independent clock-correctness validation. This artifact validates the v4.4 calibration mechanism. A zero correlated duration means no E4 gap passed the robust host-evidence gate; it is not converted into a positive attribution claim.

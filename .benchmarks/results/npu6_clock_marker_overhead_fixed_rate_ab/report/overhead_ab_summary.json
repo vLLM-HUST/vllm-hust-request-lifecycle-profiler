@@ -1,6 +1,6 @@
 {
-  "calibration_acceptance": "PASS",
-  "capture_acceptance": "PARTIAL",
+  "calibration_acceptance": "SUPERSEDED",
+  "capture_acceptance": "SUPERSEDED",
   "design": {
     "fixed_offered_window_s": 24.0,
     "offered_rate_rps": 2.0,
@@ -862,7 +862,7 @@
     "evidence_level": "correlated",
     "evidence_relation": "exact_connection_id"
   },
-  "evidence_label": "real-online fixed-rate matched marker overhead",
+  "evidence_label": "historical real-online fixed-rate matched marker overhead",
   "excluded_diagnostics": [
     {
       "classification": "excluded_queueing_outlier",
@@ -1076,6 +1076,7 @@
       "unit": "count"
     }
   ],
-  "overhead_claim_status": "observed_single_pair_no_confidence_interval",
-  "protocol_acceptance": "PASS"
+  "overhead_claim_status": "superseded_by_v4.4_instrumentation",
+  "protocol_acceptance": "SUPERSEDED",
+  "superseded_reason": "The v4.4 collector adds record_after_ns and changes the measured instrumentation path; recollect matched marker-disabled/enabled variants before making a current overhead claim."
 }

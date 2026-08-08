@@ -5,26 +5,35 @@
     {
       "alignment_status": "calibrated",
       "analysis_status": "invalid_input",
+      "attribution_rule_version": "host_device_projection_v2",
       "audit_status": "PASS",
-      "bracket_uncertainty_p95_ns": "53096.436548",
-      "clock_model_id": "0e9feca14e910a9a9d2de354386bf4b6dbb665725ce75db889d5f37ddf4157c1:clock_model:0:6",
+      "bracket_uncertainty_p95_ns": "44125.449107",
+      "clock_model_id": "2c60d88143a9b5031ed22bf3266c04e801889fabdb1ceb5b2eee7d8bc6f308df:clock_model:0:6",
       "collection_status": "unknown",
       "component_drift_ppm": {
-        "marker_device": "17.638930",
-        "profiler_marker": "-9.549596"
+        "marker_device": "-1.153372",
+        "profiler_caller": "20.757472",
+        "profiler_marker": "20.757472"
       },
       "composed_profiler_device_residual_ns": {
-        "max": "3625.887973",
-        "p50": "2903.807005",
-        "p95": "3625.887973"
+        "max": "25343.963834",
+        "p50": "20525.822095",
+        "p95": "25343.963834"
       },
+      "contract_version": "idle-evidence-contract-v4.4",
       "correlated_duration_ns": 0,
       "correlated_slice_count": 0,
       "device_id": 6,
-      "drift_ppm": "8.089165",
-      "epsilon_ns": 62213,
+      "drift_ppm": "19.604075",
+      "epsilon_components_ns": {
+        "marker_bracket_uncertainty_p95": "44125.449107",
+        "marker_device_validation_p95": "3035.225857",
+        "profiler_caller_validation_p95_device": "297.235950",
+        "record_bracket_uncertainty_p95_device": "15270.482387"
+      },
+      "epsilon_ns": 62729,
       "fit_marker_count": 17,
-      "host_clock_uncertainty_p95_ns": "5857.968873",
+      "host_clock_uncertainty_p95_ns": "297.235950",
       "inlier_marker_count": 21,
       "input_marker_count": 21,
       "link_status_counts": {
@@ -34,13 +43,15 @@
       "mapping": {
         "intermediate_clock_domain": "caller_clock_realtime",
         "kind": "composed_affine",
+        "marker_device_observation_kind": "record_sync_bracket_midpoint_to_task_start",
+        "profiler_caller_observation_kind": "record_api_midpoint_to_record_bracket_midpoint",
         "source_clock_domain": "profiler_host",
         "target_clock_domain": "device"
       },
       "marker_device_residual_ns": {
-        "max": "3257.739760",
-        "p50": "2232.080899",
-        "p95": "3257.739760"
+        "max": "3035.225857",
+        "p50": "575.845202",
+        "p95": "3035.225857"
       },
       "marker_resolution": {
         "direct_overlap_count": 21,
@@ -55,47 +66,62 @@
         },
         "ordinal_affine_fallback_count": 0
       },
-      "profiler_marker_residual_ns": {
-        "max": "5857.865546",
-        "p50": "3214.014320",
-        "p95": "5857.865546"
+      "profiler_caller_residual_ns": {
+        "max": "297.236293",
+        "p50": "99.999903",
+        "p95": "297.236293"
       },
+      "profiler_marker_residual_ns": {
+        "max": "297.236293",
+        "p50": "99.999903",
+        "p95": "297.236293"
+      },
+      "record_bracket_uncertainty_p95_ns": "15270.482387",
       "rejected_marker_count": 0,
       "residual_ns": {
-        "max": "3257.739760",
-        "p50": "2232.080899",
-        "p95": "3257.739760"
+        "max": "3035.225857",
+        "p50": "575.845202",
+        "p95": "3035.225857"
       },
-      "run_id": "0e9feca14e910a9a9d2de354386bf4b6dbb665725ce75db889d5f37ddf4157c1",
-      "scale": "1.000008089165",
-      "sidecar_path": "/workspace/ascend-b2-pilot/src/vllm-request-lifecycle-profiler-plugin/.benchmarks/results/npu6_host_device_clock_calibration/capture_02_real_calibrated/traceloom_sidecar_composed_v2.db",
+      "run_id": "2c60d88143a9b5031ed22bf3266c04e801889fabdb1ceb5b2eee7d8bc6f308df",
+      "scale": "1.000019604075",
+      "sidecar_path": "/workspace/ascend-b2-pilot/src/vllm-request-lifecycle-profiler-plugin/.benchmarks/results/npu6_host_device_clock_calibration/capture_05_v44_real/traceloom_sidecar_v44.db",
       "source_kind": "ascend_sqlite_hot_path",
-      "source_path": "/workspace/ascend-b2-pilot/src/vllm-request-lifecycle-profiler-plugin/.benchmarks/results/npu6_host_device_clock_calibration/capture_02_real_calibrated/profile/PROF_000001_20260807124600000_01649898LMMGPPMG/msprof_20260807124606.db",
+      "source_path": "/workspace/ascend-b2-pilot/src/vllm-request-lifecycle-profiler-plugin/.benchmarks/results/npu6_host_device_clock_calibration/capture_05_v44_real/profile/PROF_000001_20260808111408927_01861962RFGMIPIJ/msprof_20260808111416.db",
       "validation_marker_count": 4
     },
     {
       "alignment_status": "calibrated",
       "analysis_status": "invalid_input",
+      "attribution_rule_version": "host_device_projection_v2",
       "audit_status": "PASS",
-      "bracket_uncertainty_p95_ns": "47896.504245",
-      "clock_model_id": "aa24bb2d337d9397577a7bfeeddafdd974b91f72488934e018f6427a3a81e33c:clock_model:0:6",
+      "bracket_uncertainty_p95_ns": "47725.185692",
+      "clock_model_id": "3f7fe73a995b93ad1be2dff1376ebd6cd33f6db35d9419a7ea6ee4362bd902b6:clock_model:0:6",
       "collection_status": "unknown",
       "component_drift_ppm": {
-        "marker_device": "20.967414",
-        "profiler_marker": "-2.202660"
+        "marker_device": "-17.062140",
+        "profiler_caller": "20.577028",
+        "profiler_marker": "20.577028"
       },
       "composed_profiler_device_residual_ns": {
-        "max": "3885.128482",
-        "p50": "574.864921",
-        "p95": "3885.128482"
+        "max": "26538.197787",
+        "p50": "20379.301110",
+        "p95": "26538.197787"
       },
+      "contract_version": "idle-evidence-contract-v4.4",
       "correlated_duration_ns": 0,
       "correlated_slice_count": 0,
       "device_id": 6,
-      "drift_ppm": "18.764708",
-      "epsilon_ns": 73461,
+      "drift_ppm": "3.514537",
+      "epsilon_components_ns": {
+        "marker_bracket_uncertainty_p95": "47725.185692",
+        "marker_device_validation_p95": "4744.139285",
+        "profiler_caller_validation_p95_device": "895.554358",
+        "record_bracket_uncertainty_p95_device": "17644.698939"
+      },
+      "epsilon_ns": 71010,
       "fit_marker_count": 17,
-      "host_clock_uncertainty_p95_ns": "11472.603330",
+      "host_clock_uncertainty_p95_ns": "895.554358",
       "inlier_marker_count": 21,
       "input_marker_count": 21,
       "link_status_counts": {
@@ -105,13 +131,15 @@
       "mapping": {
         "intermediate_clock_domain": "caller_clock_realtime",
         "kind": "composed_affine",
+        "marker_device_observation_kind": "record_sync_bracket_midpoint_to_task_start",
+        "profiler_caller_observation_kind": "record_api_midpoint_to_record_bracket_midpoint",
         "source_clock_domain": "profiler_host",
         "target_clock_domain": "device"
       },
       "marker_device_residual_ns": {
-        "max": "14091.348543",
-        "p50": "2980.759819",
-        "p95": "14091.348543"
+        "max": "4744.139285",
+        "p50": "1517.605441",
+        "p95": "4744.139285"
       },
       "marker_resolution": {
         "direct_overlap_count": 21,
@@ -126,47 +154,62 @@
         },
         "ordinal_affine_fallback_count": 0
       },
-      "profiler_marker_residual_ns": {
-        "max": "11472.362784",
-        "p50": "4029.976476",
-        "p95": "11472.362784"
+      "profiler_caller_residual_ns": {
+        "max": "895.569639",
+        "p50": "319.139675",
+        "p95": "895.569639"
       },
+      "profiler_marker_residual_ns": {
+        "max": "895.569639",
+        "p50": "319.139675",
+        "p95": "895.569639"
+      },
+      "record_bracket_uncertainty_p95_ns": "17644.698939",
       "rejected_marker_count": 0,
       "residual_ns": {
-        "max": "14091.348543",
-        "p50": "2980.759819",
-        "p95": "14091.348543"
+        "max": "4744.139285",
+        "p50": "1517.605441",
+        "p95": "4744.139285"
       },
-      "run_id": "aa24bb2d337d9397577a7bfeeddafdd974b91f72488934e018f6427a3a81e33c",
-      "scale": "1.000018764708",
-      "sidecar_path": "/workspace/ascend-b2-pilot/src/vllm-request-lifecycle-profiler-plugin/.benchmarks/results/npu6_host_device_clock_calibration/capture_03_real_calibrated/traceloom_sidecar_composed_v2.db",
+      "run_id": "3f7fe73a995b93ad1be2dff1376ebd6cd33f6db35d9419a7ea6ee4362bd902b6",
+      "scale": "1.000003514537",
+      "sidecar_path": "/workspace/ascend-b2-pilot/src/vllm-request-lifecycle-profiler-plugin/.benchmarks/results/npu6_host_device_clock_calibration/capture_06_v44_real/traceloom_sidecar_v44.db",
       "source_kind": "ascend_sqlite_hot_path",
-      "source_path": "/workspace/ascend-b2-pilot/src/vllm-request-lifecycle-profiler-plugin/.benchmarks/results/npu6_host_device_clock_calibration/capture_03_real_calibrated/profile/PROF_000001_20260807125135481_01655572RIQCMDCF/msprof_20260807125143.db",
+      "source_path": "/workspace/ascend-b2-pilot/src/vllm-request-lifecycle-profiler-plugin/.benchmarks/results/npu6_host_device_clock_calibration/capture_06_v44_real/profile/PROF_000001_20260808111514183_01863898PPCAEOOK/msprof_20260808111521.db",
       "validation_marker_count": 4
     },
     {
       "alignment_status": "calibrated",
       "analysis_status": "ok",
+      "attribution_rule_version": "host_device_projection_v2",
       "audit_status": "PASS",
-      "bracket_uncertainty_p95_ns": "49381.341004",
-      "clock_model_id": "b745e8c4fe2f1b23c39f46c488132c53e3da41ac7cf2164e14989986dc6edd4d:clock_model:0:6",
+      "bracket_uncertainty_p95_ns": "62167.904372",
+      "clock_model_id": "97dc2e42012a1f473ded79fb4dd6adb0b2b71c95a8d4bf30a15584287bf9c271:clock_model:0:6",
       "collection_status": "unknown",
       "component_drift_ppm": {
-        "marker_device": "17.031092",
-        "profiler_marker": "-4.609161"
+        "marker_device": "30.633661",
+        "profiler_caller": "21.911972",
+        "profiler_marker": "21.911972"
       },
       "composed_profiler_device_residual_ns": {
-        "max": "2412.330843",
-        "p50": "870.414789",
-        "p95": "2412.330843"
+        "max": "23007.653012",
+        "p50": "21449.392368",
+        "p95": "23007.653012"
       },
+      "contract_version": "idle-evidence-contract-v4.4",
       "correlated_duration_ns": 0,
       "correlated_slice_count": 0,
       "device_id": 6,
-      "drift_ppm": "12.421853",
-      "epsilon_ns": 57513,
+      "drift_ppm": "52.546304",
+      "epsilon_components_ns": {
+        "marker_bracket_uncertainty_p95": "62167.904372",
+        "marker_device_validation_p95": "1093.030934",
+        "profiler_caller_validation_p95_device": "222.997589",
+        "record_bracket_uncertainty_p95_device": "13510.413861"
+      },
+      "epsilon_ns": 76995,
       "fit_marker_count": 17,
-      "host_clock_uncertainty_p95_ns": "4501.002648",
+      "host_clock_uncertainty_p95_ns": "222.997589",
       "inlier_marker_count": 21,
       "input_marker_count": 21,
       "link_status_counts": {
@@ -176,13 +219,15 @@
       "mapping": {
         "intermediate_clock_domain": "caller_clock_realtime",
         "kind": "composed_affine",
+        "marker_device_observation_kind": "record_sync_bracket_midpoint_to_task_start",
+        "profiler_caller_observation_kind": "record_api_midpoint_to_record_bracket_midpoint",
         "source_clock_domain": "profiler_host",
         "target_clock_domain": "device"
       },
       "marker_device_residual_ns": {
-        "max": "3630.587859",
-        "p50": "214.626539",
-        "p95": "3630.587859"
+        "max": "1093.030934",
+        "p50": "621.150063",
+        "p95": "1093.030934"
       },
       "marker_resolution": {
         "direct_overlap_count": 21,
@@ -197,44 +242,50 @@
         },
         "ordinal_affine_fallback_count": 0
       },
-      "profiler_marker_residual_ns": {
-        "max": "4500.925993",
-        "p50": "1027.567084",
-        "p95": "4500.925993"
+      "profiler_caller_residual_ns": {
+        "max": "222.990758",
+        "p50": "194.159594",
+        "p95": "222.990758"
       },
+      "profiler_marker_residual_ns": {
+        "max": "222.990758",
+        "p50": "194.159594",
+        "p95": "222.990758"
+      },
+      "record_bracket_uncertainty_p95_ns": "13510.413861",
       "rejected_marker_count": 0,
       "residual_ns": {
-        "max": "3630.587859",
-        "p50": "214.626539",
-        "p95": "3630.587859"
+        "max": "1093.030934",
+        "p50": "621.150063",
+        "p95": "1093.030934"
       },
-      "run_id": "b745e8c4fe2f1b23c39f46c488132c53e3da41ac7cf2164e14989986dc6edd4d",
-      "scale": "1.000012421853",
-      "sidecar_path": "/workspace/ascend-b2-pilot/src/vllm-request-lifecycle-profiler-plugin/.benchmarks/results/npu6_host_device_clock_calibration/capture_04_real_calibrated/traceloom_sidecar_composed_v2.db",
+      "run_id": "97dc2e42012a1f473ded79fb4dd6adb0b2b71c95a8d4bf30a15584287bf9c271",
+      "scale": "1.000052546304",
+      "sidecar_path": "/workspace/ascend-b2-pilot/src/vllm-request-lifecycle-profiler-plugin/.benchmarks/results/npu6_host_device_clock_calibration/capture_07_v44_real/traceloom_sidecar_v44.db",
       "source_kind": "ascend_sqlite_hot_path",
-      "source_path": "/workspace/ascend-b2-pilot/src/vllm-request-lifecycle-profiler-plugin/.benchmarks/results/npu6_host_device_clock_calibration/capture_04_real_calibrated/profile/PROF_000001_20260807125153693_01655972DMDPEJFR/msprof_20260807125201.db",
+      "source_path": "/workspace/ascend-b2-pilot/src/vllm-request-lifecycle-profiler-plugin/.benchmarks/results/npu6_host_device_clock_calibration/capture_07_v44_real/profile/PROF_000001_20260808111531951_01864298RFOJABQC/msprof_20260808111539.db",
       "validation_marker_count": 4
     }
   ],
-  "evidence_label": "real-online calibration-chain repeated capture",
+  "evidence_label": "real-online v4.4 calibration-chain repeated capture",
   "pooled": {
     "absolute_validation_residual_ns": {
       "count": 12,
-      "max": "14091.348500",
-      "p50": "2232.080894",
-      "p95": "14091.348500"
+      "max": "4744.139283",
+      "p50": "811.861317",
+      "p95": "4744.139283"
     },
     "composed_absolute_validation_residual_ns": {
       "count": 12,
-      "max": "3885.128483",
-      "p50": "977.126494",
-      "p95": "3885.128483"
+      "max": "26538.197786",
+      "p50": "20901.006420",
+      "p95": "26538.197786"
     },
     "marker_device_absolute_validation_residual_ns": {
       "count": 12,
-      "max": "14091.348500",
-      "p50": "2232.080894",
-      "p95": "14091.348500"
+      "max": "4744.139283",
+      "p50": "811.861317",
+      "p95": "4744.139283"
     },
     "ordinal_affine_fallback_resolution_residual_ns": {
       "count": 0,
@@ -242,17 +293,29 @@
       "p50": "0.000000",
       "p95": "0.000000"
     },
+    "profiler_caller_absolute_validation_residual_ns": {
+      "count": 12,
+      "max": "895.569638",
+      "p50": "194.159585",
+      "p95": "895.569638"
+    },
     "profiler_marker_absolute_validation_residual_ns": {
       "count": 12,
-      "max": "11472.362757",
-      "p50": "3214.014321",
-      "p95": "11472.362757"
+      "max": "895.569638",
+      "p50": "194.159585",
+      "p95": "895.569638"
     },
     "scaled_half_bracket_uncertainty_ns": {
       "count": 63,
-      "max": "97373.541629",
-      "p50": "40686.217649",
-      "p95": "53096.436548"
+      "max": "94284.891271",
+      "p50": "34201.547687",
+      "p95": "62167.904372"
+    },
+    "scaled_record_call_half_bracket_uncertainty_ns": {
+      "count": 63,
+      "max": "29739.992563",
+      "p50": "12394.985704",
+      "p95": "17644.698939"
     }
   },
   "unique_run_id_count": 3

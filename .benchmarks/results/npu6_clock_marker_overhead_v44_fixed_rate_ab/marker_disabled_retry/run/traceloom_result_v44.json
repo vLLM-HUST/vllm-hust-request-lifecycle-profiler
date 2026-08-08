@@ -1,0 +1,136 @@
+{
+  "schema_version": "native_in_memory_result_v1",
+  "source": {
+    "kind": "ascend_sqlite_hot_path",
+    "path": ".benchmarks/results/npu6_clock_marker_overhead_v44_fixed_rate_ab/marker_disabled_retry/profile/PROF_000001_20260808112602578_01873980BOACJOJO/msprof_20260808112743.db",
+    "fixture_id": null
+  },
+  "threads": 96,
+  "stats": {
+    "source_ref_count": 19,
+    "trace_event_count": 262550,
+    "task_count": 262550,
+    "communication_op_count": 0,
+    "graph_slot_template_count": 0,
+    "captured_graph_instance_count": 0,
+    "captured_graph_stream_count": 0,
+    "graph_launch_occurrence_count": 0,
+    "graph_launch_instance_linked_count": 0,
+    "graph_launch_completion_adjacent_count": 0,
+    "graph_launch_ordered_fallback_count": 0,
+    "graph_launch_unmatched_count": 0,
+    "replay_body_template_count": 0,
+    "graph_launch_body_count": 0,
+    "graph_launch_activity_count": 0,
+    "graph_launch_activity_member_count": 0,
+    "graph_launch_activity_host_sync_count": 0,
+    "graph_launch_activity_thread_tail_count": 0,
+    "graph_launch_activity_unmatched_host_execute_count": 0,
+    "replay_composition_candidate_count": 0,
+    "replay_composition_body_confirmed_count": 0,
+    "replay_composition_slot_count": 0,
+    "replay_composition_region_count": 0,
+    "replay_composition_region_member_count": 0,
+    "replay_composition_recognized_region_count": 0,
+    "replay_composition_unrecognized_region_count": 0,
+    "graph_template_count": 0,
+    "replay_unit_count": 0,
+    "exact_replay_unit_count": 0,
+    "replay_unit_launch_member_count": 0,
+    "anchor_count": 147360,
+    "token_count": 147360,
+    "protected_interval_count": 0,
+    "candidate_occurrence_count": 294717,
+    "candidate_distinct_count": 28,
+    "candidate_diagnostic_count": 0
+  },
+  "anchor_projection": {
+    "kind": "anchor_compute_collective_only",
+    "device_event_anchors": 147360,
+    "communication_anchors": 0,
+    "skipped_task_events": 115190
+  },
+  "timing_ms": {
+    "load_source_adapter": 3746.27,
+    "adapter_load_and_native_ir_build": 3746.27,
+    "build_anchor_tokens": 5239.44,
+    "build_protected_sequence": 2.37987,
+    "build_boundary_index": 0.00053,
+    "partition_plan": 0.00491,
+    "candidate_scan_map": 20.8289,
+    "pattern_candidate_table": 0.00092,
+    "candidate_reduce": 157.182,
+    "pattern_candidate_summary": 0.009,
+    "cost_summary_lite": 1.19332,
+    "materialization": 127234
+  },
+  "memory": {
+    "trace_event_bytes": 12602400,
+    "anchor_bytes": 7073280,
+    "token_bytes": 5894400,
+    "protected_sequence_bytes": 5894400,
+    "candidate_map_bytes": 14146416,
+    "pattern_mining_diagnostic_bytes": 0,
+    "pattern_candidate_summary_bytes": 1344
+  },
+  "cost_summary_lite": {
+    "anchor_count": 147360,
+    "total_duration_ns": 6331212440
+  },
+  "pattern_candidate_summary": {
+    "row_count": 28
+  },
+  "graph_slot_templates": [
+  ],
+  "captured_graph_instances": [
+  ],
+  "captured_graph_streams": [
+  ],
+  "graph_launch_occurrences": [
+  ],
+  "replay_body_templates": [
+  ],
+  "graph_launch_bodies": [
+  ],
+  "graph_launch_activities": [
+  ],
+  "graph_launch_activity_members": [
+  ],
+  "replay_composition_candidates": [
+  ],
+  "replay_composition_slots": [
+  ],
+  "replay_composition_regions": [
+  ],
+  "replay_composition_region_members": [
+  ],
+  "graph_templates": [
+  ],
+  "replay_units": [
+  ],
+  "replay_unit_launch_members": [
+  ],
+  "candidates_preview": [
+    {"rank": 0, "occurrence_count": 35148, "first_begin": 3, "key": ["MatMul", "AddRmsNormBias"]},
+    {"rank": 1, "occurrence_count": 35147, "first_begin": 4, "key": ["AddRmsNormBias", "MatMul"]},
+    {"rank": 2, "occurrence_count": 35147, "first_begin": 3, "key": ["MatMul", "AddRmsNormBias", "MatMul"]},
+    {"rank": 3, "occurrence_count": 17574, "first_begin": 4, "key": ["AddRmsNormBias", "MatMul", "SwiGlu"]},
+    {"rank": 4, "occurrence_count": 17574, "first_begin": 6, "key": ["SwiGlu", "MatMul"]},
+    {"rank": 5, "occurrence_count": 17574, "first_begin": 6, "key": ["SwiGlu", "MatMul", "AddRmsNormBias"]},
+    {"rank": 6, "occurrence_count": 17574, "first_begin": 1, "key": ["MatMul", "_triton_rope"]},
+    {"rank": 7, "occurrence_count": 17574, "first_begin": 5, "key": ["MatMul", "SwiGlu"]},
+    {"rank": 8, "occurrence_count": 17574, "first_begin": 5, "key": ["MatMul", "SwiGlu", "MatMul"]},
+    {"rank": 9, "occurrence_count": 16946, "first_begin": 8, "key": ["AddRmsNormBias", "MatMul", "_triton_rope"]},
+    {"rank": 10, "occurrence_count": 12065, "first_begin": 2, "key": ["_triton_rope", "MatMul"]},
+    {"rank": 11, "occurrence_count": 12065, "first_begin": 2, "key": ["_triton_rope", "MatMul", "AddRmsNormBias"]},
+    {"rank": 12, "occurrence_count": 12065, "first_begin": 1, "key": ["MatMul", "_triton_rope", "MatMul"]},
+    {"rank": 13, "occurrence_count": 5509, "first_begin": 229, "key": ["_triton_rope", "FusedInferAttentionScore"]},
+    {"rank": 14, "occurrence_count": 5509, "first_begin": 229, "key": ["_triton_rope", "FusedInferAttentionScore", "MatMul"]},
+    {"rank": 15, "occurrence_count": 5509, "first_begin": 230, "key": ["FusedInferAttentionScore", "MatMul"]}
+  ],
+  "diagnostics": {
+    "pattern_mining_count": 0,
+    "pattern_mining_preview": [
+    ]
+  }
+}

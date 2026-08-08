@@ -319,32 +319,34 @@ workload matrix.
 
 ## Phase 1.5: Host→Device Clock and Idle-Evidence Calibration
 
-- Completed: three real NPU6 micro-captures each provide 21 inlier markers and
-  a 17/4 fit/validation split. Replaying them through the composed model yields
-  21 direct-overlap and zero fallback markers per capture, both component
-  residual distributions, epsilon 62.213/73.461/57.513 μs, and three passing
-  strengthened SQL audits.
+- Completed: three new v4.4 NPU6 micro-captures each provide 21 inlier markers
+  and a 17/4 fit/validation split. They yield 21 direct-overlap and zero
+  fallback markers per capture, epsilon 62.729/71.010/76.995 μs, and three
+  passing strengthened SQL audits. One capture also has `analysis_status=ok`;
+  all have zero correlated E4 duration.
 - Completed: real bracket resolution uses exact overlap or an affine-validated
   same-thread order-preserving bijection, then a unique CANN_API connectionId
   and at most one device TASK. Single-pair ordinal fallback is forbidden;
   resolution method and residual are retained. Missing profiler-tail TASKs
   remain rejected.
-- Completed: TraceLoom fits and persists an explicit
-  profiler-host→caller-realtime→device composition, includes the host-clock
-  holdout uncertainty in epsilon, and SQL-audits host promotion invariants.
-- Replayed and retracted: the old serving run's 1133 E4 slices were caused by
-  feeding CANN_API timestamps directly to a caller-clock model. The composed
-  replay retains only one 93.407 μs queued-delay slice and passes the expanded
-  audit, but 126 zero-duration kernel/memcpy tasks still force
-  `analysis_status=invalid_input`; the remaining row is diagnostic only.
-- Completed: fixed-rate marker-disabled/enabled runs hold model, seed, request
-  schedule, 2 req/s offered load, 24 s duration, server config, and profiler
-  boundary constant; observed p95 TTFT/latency/ITL/TPOT deltas are
-  +0.993%/+1.842%/+1.713%/+1.972%.
-- Remaining: obtain a serving capture with `analysis_status=ok` (task-time l2
-  did not remove zero-duration device tasks), repeat the A/B enough times for
-  confidence intervals, and repeat calibration/E4 in graph mode before broader
-  claims.
+- Completed: TraceLoom fits and persists `F(p)=f(g(p))` with a narrow
+  record-call observation for `g`, an outer record→sync observation for `f`,
+  four-term epsilon, correct offset/intercept metadata, v4.4/v2 versioning, and
+  SQL API-family invariants.
+- Retracted under v4.4: the prior serving 1133→1 replay and pre-v4.4 fixed-rate
+  A/B lack `record_after_ns`. They are historical diagnostics, not current
+  cross-clock or instrumentation-overhead evidence.
+- Completed: a new fixed-rate v4.4 marker OFF/ON pair uses identical request
+  schedule/model/workload/profiler settings and completes 48/48 requests in
+  both variants. Protocol, calibration, and SQL audits pass. Enabled-minus-
+  disabled throughput is -0.297%; TPOT p50/p95 is +1.973%/+2.179%; decode
+  iteration p50/p95 is +1.869%/+2.812%. This is a workload-specific single-pair
+  observation; device metrics are diagnostic because both profiles have
+  `analysis_status=invalid_input`.
+- Remaining: obtain a v4.4 serving capture with positive E4 evidence and
+  `analysis_status=ok`; repeat enough A/B pairs for confidence intervals and
+  memory/HBM measurements; and repeat calibration/E4 in graph mode before
+  broader claims.
 
 Evidence labels: `simulation/model` for deterministic fixtures and
 `real-online` for the recorded NPU6 artifacts. See

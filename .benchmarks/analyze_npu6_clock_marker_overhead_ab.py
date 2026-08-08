@@ -82,9 +82,7 @@ def _iteration_summary(path: Path) -> dict[str, Any]:
     with path.open(encoding="utf-8", newline="") as handle:
         rows.extend(csv.DictReader(handle, delimiter="\t"))
     durations_ms = [float(row["duration_ns"]) / 1_000_000.0 for row in rows]
-    decode_rows = [
-        row for row in rows if 1 <= int(row["scheduled_token_count"]) <= 4
-    ]
+    decode_rows = [row for row in rows if 1 <= int(row["scheduled_token_count"]) <= 4]
     decode_durations_ms = [
         float(row["duration_ns"]) / 1_000_000.0 for row in decode_rows
     ]
@@ -109,9 +107,7 @@ def _iteration_summary(path: Path) -> dict[str, Any]:
         "decode_iteration_count": len(decode_rows),
         "iteration_count": len(rows),
         "marker_states": marker_states,
-        "scheduled_token_count": sum(
-            int(row["scheduled_token_count"]) for row in rows
-        ),
+        "scheduled_token_count": sum(int(row["scheduled_token_count"]) for row in rows),
     }
 
 
@@ -166,8 +162,9 @@ def _sidecar_summary(path: Path, audit_sql: str) -> dict[str, Any]:
             "evidence_level",
         )
         categories = {
-            f"{row['category']}:{row['evidence_level']}:{row['evidence_relation']}":
-            dict(row)
+            f"{row['category']}:{row['evidence_level']}:{row['evidence_relation']}": dict(
+                row
+            )
             for row in connection.execute(
                 "select category, evidence_level, evidence_relation, "
                 "count(*) as count, sum(duration_ns) as duration_ns "
@@ -271,11 +268,16 @@ def _variant(
     }
 
 
-def _same_client_command(lhs: list[str], rhs: list[str]) -> bool:
+def _same_command_except_runtime_endpoints(lhs: list[str], rhs: list[str]) -> bool:
     def normalized(command: list[str]) -> list[str]:
         result = list(command)
-        if "--output-dir" in result:
-            result[result.index("--output-dir") + 1] = "<variant-output>"
+        for option, replacement in (
+            ("--endpoint", "<variant-endpoint>"),
+            ("--output-dir", "<variant-output>"),
+            ("--port", "<variant-port>"),
+        ):
+            if option in result:
+                result[result.index(option) + 1] = replacement
         return result
 
     return normalized(lhs) == normalized(rhs)
@@ -385,12 +387,8 @@ def _metrics(disabled: dict[str, Any], enabled: dict[str, Any]) -> list[dict[str
         _metric(
             "device productive time (full profiler boundary)",
             "ns",
-            disabled_sidecar["device_intervals"]["productive_active"][
-                "duration_ns"
-            ],
-            enabled_sidecar["device_intervals"]["productive_active"][
-                "duration_ns"
-            ],
+            disabled_sidecar["device_intervals"]["productive_active"]["duration_ns"],
+            enabled_sidecar["device_intervals"]["productive_active"]["duration_ns"],
         ),
         _metric(
             "device productive fraction (full profiler boundary)",
@@ -480,7 +478,7 @@ def _markdown(summary: dict[str, Any]) -> str:
                 f"{model['absolute_residual_p50_ns']:.3f}/"
                 f"{model['absolute_residual_p95_ns']:.3f}/"
                 f"{model['absolute_residual_max_ns']:.3f} ns; "
-                "profiler→marker residual p50/p95/max: "
+                "profiler→caller residual p50/p95/max: "
                 f"{model['host_clock_absolute_residual_p50_ns']:.3f}/"
                 f"{model['host_clock_absolute_residual_p95_ns']:.3f}/"
                 f"{model['host_clock_absolute_residual_max_ns']:.3f} ns; "
@@ -491,10 +489,14 @@ def _markdown(summary: dict[str, Any]) -> str:
                 f"bracket p95 {model['bracket_uncertainty_p95_ns']:.3f} ns; "
                 "host-clock uncertainty p95 "
                 f"{model['host_clock_uncertainty_p95_ns']:.3f} device ns; "
+                "record-call bracket uncertainty p95 "
+                f"{model['profiler_to_caller_bracket_uncertainty_p95_ns']:.3f} "
+                "device ns; "
                 f"epsilon {model['epsilon_ns']} ns; drift "
                 f"{model['marker_to_device_drift_ppm']:.6f}/"
                 f"{model['profiler_to_marker_drift_ppm']:.6f} ppm for the "
-                "marker→device/profiler→marker legs."
+                "marker→device/profiler→caller legs. The composed residual is "
+                "a shared-observation diagnostic, not independent validation."
             ),
             (
                 "Marker resolution provenance: "
@@ -516,8 +518,8 @@ def _markdown(summary: dict[str, Any]) -> str:
             "## Interpretation boundary",
             "",
             (
-                "This is a real-online, fixed-rate matched pair. It measures an "
-                "observed ~1–2% latency/iteration perturbation for this workload; "
+                "This is a real-online, fixed-rate matched pair. It reports the "
+                "observed latency and iteration perturbation for this workload; "
                 "it does not establish a population confidence interval or a "
                 "universal overhead bound. Full-boundary device time includes "
                 "server warm-up and profiler-tail effects and is diagnostic while "
@@ -549,9 +551,11 @@ def main() -> int:
     disabled_provenance = disabled["provenance"]
     enabled_provenance = enabled["provenance"]
     matching_checks = {
-        "client_command_except_output": _same_client_command(
-            disabled_provenance["client_command"],
-            enabled_provenance["client_command"],
+        "client_command_except_runtime_endpoints": (
+            _same_command_except_runtime_endpoints(
+                disabled_provenance["client_command"],
+                enabled_provenance["client_command"],
+            )
         ),
         "fixed_request_schedule": (
             disabled["request_identity"] == enabled["request_identity"]
@@ -570,12 +574,13 @@ def main() -> int:
             == enabled_provenance["profiler_options"]
         ),
         "request_shape": (
-            disabled_provenance["request_shape"]
-            == enabled_provenance["request_shape"]
+            disabled_provenance["request_shape"] == enabled_provenance["request_shape"]
         ),
-        "server_command": (
-            disabled_provenance["server_command"]
-            == enabled_provenance["server_command"]
+        "server_command_except_runtime_endpoint": (
+            _same_command_except_runtime_endpoints(
+                disabled_provenance["server_command"],
+                enabled_provenance["server_command"],
+            )
         ),
         "workload_commit": (
             disabled_provenance["workload_commit"]
@@ -590,10 +595,8 @@ def main() -> int:
     )
     protocol_valid = (
         all(matching_checks.values())
-        and disabled["client"]["success_count"]
-        == disabled["client"]["request_count"]
-        and enabled["client"]["success_count"]
-        == enabled["client"]["request_count"]
+        and disabled["client"]["success_count"] == disabled["client"]["request_count"]
+        and enabled["client"]["success_count"] == enabled["client"]["request_count"]
         and disabled["sidecar"]["audit"]["audit_status"] == "PASS"
         and enabled["sidecar"]["audit"]["audit_status"] == "PASS"
         and disabled["marker_bracket_count"] == 0
@@ -604,8 +607,15 @@ def main() -> int:
         and enabled_model["has_profiler_host_mapping"] == 1
         and enabled_model["mapping_kind"] == "composed_affine"
         and enabled_model["source_clock_domain"] == "profiler_host"
-        and enabled_model["intermediate_clock_domain"]
-        == "caller_clock_realtime"
+        and enabled_model["intermediate_clock_domain"] == "caller_clock_realtime"
+        and enabled_model["profiler_caller_observation_kind"]
+        == "record_api_midpoint_to_record_bracket_midpoint"
+        and enabled_model["marker_device_observation_kind"]
+        == "record_sync_bracket_midpoint_to_task_start"
+        and enabled["sidecar"]["metadata"]["contract_version"]
+        == "idle-evidence-contract-v4.4"
+        and enabled["sidecar"]["metadata"]["attribution_rule_version"]
+        == "host_device_projection_v2"
         and enabled_model["validation_marker_count"] > 0
         and enabled["sidecar"]["audit"]["audit_status"] == "PASS"
     )
@@ -625,9 +635,7 @@ def main() -> int:
             else "FAIL"
         ),
         "design": {
-            "fixed_offered_window_s": enabled["client"][
-                "fixed_offered_window_s"
-            ],
+            "fixed_offered_window_s": enabled["client"]["fixed_offered_window_s"],
             "offered_rate_rps": enabled["client"]["offered_rate_rps"],
             "request_count": enabled["client"]["request_count"],
             "schedule_sha256": enabled["request_identity"]["schedule_sha256"],

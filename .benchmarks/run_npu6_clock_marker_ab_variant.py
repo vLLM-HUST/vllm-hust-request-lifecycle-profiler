@@ -23,7 +23,9 @@ def _parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Run one marker-disabled or marker-enabled NPU6 serving variant."
     )
-    parser.add_argument("--mode", choices=("marker-disabled", "marker-enabled"), required=True)
+    parser.add_argument(
+        "--mode", choices=("marker-disabled", "marker-enabled"), required=True
+    )
     parser.add_argument("--output-dir", type=Path, required=True)
     parser.add_argument("--port", type=int, required=True)
     parser.add_argument("--model", type=Path, default=DEFAULT_MODEL)
@@ -55,7 +57,9 @@ def _git_revision(path: Path) -> str:
         return "unknown"
 
 
-def _wait_for_health(endpoint: str, process: subprocess.Popen[bytes], timeout_s: float) -> None:
+def _wait_for_health(
+    endpoint: str, process: subprocess.Popen[bytes], timeout_s: float
+) -> None:
     opener = build_opener(ProxyHandler({}))
     deadline = time.monotonic() + timeout_s
     last_error = "not attempted"
@@ -193,7 +197,7 @@ def main() -> int:
         str(client_dir.resolve()),
     ]
     provenance = {
-        "artifact_label": "real-online fixed-rate matched marker overhead",
+        "artifact_label": "real-online v4.4 fixed-rate matched marker overhead",
         "case_id": args.case_id,
         "client_command": client_command,
         "installed_runtime": {
@@ -201,6 +205,7 @@ def main() -> int:
             "vllm_ascend_commit": _git_revision(Path("/vllm-workspace/vllm-ascend")),
         },
         "marker_enabled": args.mode == "marker-enabled",
+        "clock_contract_version": "idle-evidence-contract-v4.4",
         "mode": args.mode,
         "model": str(args.model.resolve()),
         "profiler_boundary": "msprof launch ownership around server and matched client",

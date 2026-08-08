@@ -46,7 +46,7 @@ class FakeAscendRuntime:
 def test_clock_marker_collector_writes_resolvable_host_bracket(tmp_path) -> None:
     marker_path = tmp_path / "clock_marker_brackets.tsv"
     runtime = FakeAscendRuntime()
-    timestamps = iter([1_000_000, 1_000_200])
+    timestamps = iter([1_000_000, 1_000_040, 1_000_200])
 
     with AscendClockMarkerCollector(
         marker_path,
@@ -60,6 +60,7 @@ def test_clock_marker_collector_writes_resolvable_host_bracket(tmp_path) -> None
         bracket = collector.record("marker-000")
 
     assert bracket.host_before_ns == 1_000_000
+    assert bracket.record_after_ns == 1_000_040
     assert bracket.host_after_ns == 1_000_200
     assert bracket.host_pid == os.getpid()
     assert bracket.device_id == 6
@@ -75,15 +76,20 @@ def test_clock_marker_collector_writes_resolvable_host_bracket(tmp_path) -> None
     rows = marker_path.read_text(encoding="utf-8").splitlines()
     assert rows[0] == CLOCK_MARKER_TSV_HEADER.rstrip("\n")
     fields = rows[1].split("\t")
-    assert fields[0:3] == ["marker-000", "1000000", "1000200"]
-    assert fields[3] == str(os.getpid())
-    assert fields[5:] == ["6", "17", "unit-test", "0"]
+    assert fields[0:4] == [
+        "marker-000",
+        "1000000",
+        "1000040",
+        "1000200",
+    ]
+    assert fields[4] == str(os.getpid())
+    assert fields[6:] == ["6", "17", "unit-test", "0"]
 
 
 def test_clock_marker_collector_retains_failed_record_without_sync(tmp_path) -> None:
     marker_path = tmp_path / "failed.tsv"
     runtime = FakeAscendRuntime(record_status=507000)
-    timestamps = iter([100, 110])
+    timestamps = iter([100, 105, 110])
     collector = AscendClockMarkerCollector(
         marker_path,
         device_id=6,
@@ -95,16 +101,11 @@ def test_clock_marker_collector_retains_failed_record_without_sync(tmp_path) -> 
 
     assert bracket.return_status == 507000
     assert not any(call[0] == "sync" for call in runtime.calls)
-    assert marker_path.read_text(encoding="utf-8").splitlines()[1].endswith(
-        "\t507000"
-    )
+    assert marker_path.read_text(encoding="utf-8").splitlines()[1].endswith("\t507000")
 
 
 def test_clock_marker_collector_is_opt_in_and_fails_closed(tmp_path) -> None:
-    assert (
-        AscendClockMarkerCollector.from_env(device_id=6, env={})
-        is None
-    )
+    assert AscendClockMarkerCollector.from_env(device_id=6, env={}) is None
     runtime = FakeAscendRuntime(create_status=123)
     with pytest.raises(RuntimeError, match="status 123"):
         AscendClockMarkerCollector(
@@ -137,4 +138,17 @@ def test_clock_marker_ids_and_call_sites_are_strict_tsv_fields(tmp_path) -> None
     )
     with pytest.raises(ValueError, match="marker_id"):
         collector.record("bad\nmarker")
+    collector.close()
+
+
+def test_clock_marker_rejects_non_monotonic_realtime_bracket(tmp_path) -> None:
+    timestamps = iter([100, 90, 110])
+    collector = AscendClockMarkerCollector(
+        tmp_path / "clock-step.tsv",
+        device_id=6,
+        runtime=FakeAscendRuntime(),
+        time_ns=lambda: next(timestamps),
+    )
+    with pytest.raises(RuntimeError, match="moved backward"):
+        collector.record("clock-step")
     collector.close()

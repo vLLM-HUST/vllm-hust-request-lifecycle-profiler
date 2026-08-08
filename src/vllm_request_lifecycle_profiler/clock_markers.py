@@ -2,8 +2,9 @@
 
 The collector deliberately does not export ``aclrtEventGetTimestamp`` as a
 device nanosecond timestamp: that API returns a raw device syscnt. Instead it
-records a CLOCK_REALTIME bracket around ``aclrtRecordEvent`` and event
-synchronization. TraceLoom later resolves the profiled record call through its
+records one narrow CLOCK_REALTIME bracket around ``aclrtRecordEvent`` and one
+outer bracket through event synchronization. TraceLoom later resolves the
+profiled record call through its
 unique connectionId to ``TASK.startNs``, which is in the profiler's device
 clock domain.
 """
@@ -23,7 +24,8 @@ from typing import Protocol
 
 CLOCK_MARKER_EXPORT_ENV = "VLLM_RLP_ASCEND_CLOCK_MARKER_BRACKETS_PATH"
 CLOCK_MARKER_TSV_HEADER = (
-    "marker_id\thost_before_ns\thost_after_ns\thost_pid\thost_tid\t"
+    "marker_id\thost_before_ns\trecord_after_ns\thost_after_ns\t"
+    "host_pid\thost_tid\t"
     "device_id\tstream_id\tcall_site\treturn_status\n"
 )
 ACL_EVENT_TIME_LINE = 0x00000008
@@ -86,6 +88,7 @@ class CtypesAscendRuntime:
 class ClockMarkerBracket:
     marker_id: str
     host_before_ns: int
+    record_after_ns: int
     host_after_ns: int
     host_pid: int
     host_tid: int
@@ -101,6 +104,9 @@ class AscendClockMarkerCollector:
     ``stream_handle`` is the native ``aclrtStream`` pointer represented as an
     integer. A value of zero selects the current runtime's default stream.
     ``stream_id`` is optional profiler metadata and is not the pointer value.
+    ``host_before_ns``/``record_after_ns`` bracket the record API used for the
+    profiler-host→caller-host leg. ``host_before_ns``/``host_after_ns`` bracket
+    the device-visible marker used for the caller-host→device leg.
     """
 
     def __init__(
@@ -135,9 +141,7 @@ class AscendClockMarkerCollector:
 
         status, event = self._runtime.create_timeline_event()
         if status != 0 or event == 0:
-            raise RuntimeError(
-                f"aclrtCreateEventWithFlag failed with status {status}"
-            )
+            raise RuntimeError(f"aclrtCreateEventWithFlag failed with status {status}")
         self._event = event
         try:
             self.export_path.parent.mkdir(parents=True, exist_ok=True)
@@ -186,19 +190,21 @@ class AscendClockMarkerCollector:
             self._sequence += 1
 
             host_before_ns = int(self._time_ns())
-            record_status = self._runtime.record_event(
-                self._event, self.stream_handle
-            )
+            record_status = self._runtime.record_event(self._event, self.stream_handle)
+            record_after_ns = int(self._time_ns())
             sync_status = (
                 self._runtime.synchronize_event(self._event)
                 if record_status == 0
                 else 0
             )
             host_after_ns = int(self._time_ns())
+            if not host_before_ns <= record_after_ns <= host_after_ns:
+                raise RuntimeError("CLOCK_REALTIME moved backward across clock marker")
             return_status = record_status if record_status != 0 else sync_status
             bracket = ClockMarkerBracket(
                 marker_id=marker_id,
                 host_before_ns=host_before_ns,
+                record_after_ns=record_after_ns,
                 host_after_ns=host_after_ns,
                 host_pid=host_pid,
                 host_tid=host_tid,
@@ -248,7 +254,8 @@ class AscendClockMarkerCollector:
         stream_id = "" if bracket.stream_id is None else str(bracket.stream_id)
         line = (
             f"{bracket.marker_id}\t{bracket.host_before_ns}\t"
-            f"{bracket.host_after_ns}\t{bracket.host_pid}\t{bracket.host_tid}\t"
+            f"{bracket.record_after_ns}\t{bracket.host_after_ns}\t"
+            f"{bracket.host_pid}\t{bracket.host_tid}\t"
             f"{bracket.device_id}\t{stream_id}\t{bracket.call_site}\t"
             f"{bracket.return_status}\n"
         ).encode()
