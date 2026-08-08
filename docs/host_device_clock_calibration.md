@@ -189,7 +189,10 @@ outer and narrow scaled half-bracket p95 values are 62167.904 and 17644.699 ns.
 The structured outputs are `calibration_summary.json` and
 `calibration_summary.md`; acceptance requires three unique v4.4 run IDs,
 correct observation kinds, four-term epsilon equality, and three passing SQL
-audits.
+audits. The structured report expands the four cross-clock counters for every
+capture: `host_explanation_contract_errors`,
+`cross_clock_fail_closed_errors`, `host_evidence_source_errors`, and
+`queued_task_link_errors`; all four are zero in all three captures.
 
 The earlier fixed-rate serving sidecars and the reported 1133→1 slice change
 were produced before the v4.4 observation amendment. They lack

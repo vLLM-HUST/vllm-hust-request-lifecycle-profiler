@@ -68,6 +68,13 @@ MODEL_COLUMNS = (
     "reason",
 )
 
+CROSS_CLOCK_AUDIT_COUNTERS = (
+    "host_explanation_contract_errors",
+    "cross_clock_fail_closed_errors",
+    "host_evidence_source_errors",
+    "queued_task_link_errors",
+)
+
 
 def _parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
@@ -364,12 +371,16 @@ def _one_capture(
         if audit_row is None:
             raise ValueError(f"{path}: audit query returned no row")
         audit_status = audit_row["audit_status"]
+        audit_counters = {
+            name: int(audit_row[name]) for name in CROSS_CLOCK_AUDIT_COUNTERS
+        }
     finally:
         connection.close()
 
     capture = {
         "alignment_status": model["alignment_status"],
         "analysis_status": metadata["analysis_status"],
+        "audit_counters": audit_counters,
         "audit_status": audit_status,
         "bracket_uncertainty_p95_ns": _decimal_text(
             _decimal(model["bracket_uncertainty_p95_ns"])
@@ -533,6 +544,27 @@ def _markdown(summary: dict[str, Any]) -> str:
             f"{composed['p50']}/{composed['p95']}/{composed['max']} | "
             f"{capture['host_clock_uncertainty_p95_ns']} | "
             f"{capture['epsilon_ns']} | {capture['correlated_duration_ns']} |"
+        )
+    lines.extend(
+        [
+            "",
+            "## Cross-clock audit counters",
+            "",
+            (
+                "| Capture | Host contract | Fail-closed | Host source/API family | "
+                "Queued TASK link |"
+            ),
+            "| --- | ---: | ---: | ---: | ---: |",
+        ]
+    )
+    for capture in summary["captures"]:
+        counters = capture["audit_counters"]
+        lines.append(
+            f"| `{Path(capture['sidecar_path']).parent.name}` | "
+            f"{counters['host_explanation_contract_errors']} | "
+            f"{counters['cross_clock_fail_closed_errors']} | "
+            f"{counters['host_evidence_source_errors']} | "
+            f"{counters['queued_task_link_errors']} |"
         )
     pooled = summary["pooled"]
     lines.extend(

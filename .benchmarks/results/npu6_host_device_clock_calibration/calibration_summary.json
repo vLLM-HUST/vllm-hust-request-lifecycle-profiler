@@ -6,6 +6,12 @@
       "alignment_status": "calibrated",
       "analysis_status": "invalid_input",
       "attribution_rule_version": "host_device_projection_v2",
+      "audit_counters": {
+        "cross_clock_fail_closed_errors": 0,
+        "host_evidence_source_errors": 0,
+        "host_explanation_contract_errors": 0,
+        "queued_task_link_errors": 0
+      },
       "audit_status": "PASS",
       "bracket_uncertainty_p95_ns": "44125.449107",
       "clock_model_id": "2c60d88143a9b5031ed22bf3266c04e801889fabdb1ceb5b2eee7d8bc6f308df:clock_model:0:6",
@@ -94,6 +100,12 @@
       "alignment_status": "calibrated",
       "analysis_status": "invalid_input",
       "attribution_rule_version": "host_device_projection_v2",
+      "audit_counters": {
+        "cross_clock_fail_closed_errors": 0,
+        "host_evidence_source_errors": 0,
+        "host_explanation_contract_errors": 0,
+        "queued_task_link_errors": 0
+      },
       "audit_status": "PASS",
       "bracket_uncertainty_p95_ns": "47725.185692",
       "clock_model_id": "3f7fe73a995b93ad1be2dff1376ebd6cd33f6db35d9419a7ea6ee4362bd902b6:clock_model:0:6",
@@ -182,6 +194,12 @@
       "alignment_status": "calibrated",
       "analysis_status": "ok",
       "attribution_rule_version": "host_device_projection_v2",
+      "audit_counters": {
+        "cross_clock_fail_closed_errors": 0,
+        "host_evidence_source_errors": 0,
+        "host_explanation_contract_errors": 0,
+        "queued_task_link_errors": 0
+      },
       "audit_status": "PASS",
       "bracket_uncertainty_p95_ns": "62167.904372",
       "clock_model_id": "97dc2e42012a1f473ded79fb4dd6adb0b2b71c95a8d4bf30a15584287bf9c271:clock_model:0:6",
