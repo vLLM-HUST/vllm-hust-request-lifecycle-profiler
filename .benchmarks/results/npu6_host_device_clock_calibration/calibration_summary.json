@@ -7,19 +7,58 @@
       "analysis_status": "invalid_input",
       "audit_status": "PASS",
       "bracket_uncertainty_p95_ns": "53096.436548",
-      "clock_model_id": "967ee696112a064e11639a77a1390490460990a8b1d020397aa86b8932ea1cda:clock_model:0:6",
+      "clock_model_id": "0e9feca14e910a9a9d2de354386bf4b6dbb665725ce75db889d5f37ddf4157c1:clock_model:0:6",
       "collection_status": "unknown",
+      "component_drift_ppm": {
+        "marker_device": "17.638930",
+        "profiler_marker": "-9.549596"
+      },
+      "composed_profiler_device_residual_ns": {
+        "max": "3625.887973",
+        "p50": "2903.807005",
+        "p95": "3625.887973"
+      },
       "correlated_duration_ns": 0,
       "correlated_slice_count": 0,
       "device_id": 6,
-      "drift_ppm": "17.638930",
-      "epsilon_ns": 56355,
+      "drift_ppm": "8.089165",
+      "epsilon_ns": 62213,
       "fit_marker_count": 17,
+      "host_clock_uncertainty_p95_ns": "5857.968873",
       "inlier_marker_count": 21,
       "input_marker_count": 21,
       "link_status_counts": {
         "unique": 52,
         "unresolved": 715
+      },
+      "mapping": {
+        "intermediate_clock_domain": "caller_clock_realtime",
+        "kind": "composed_affine",
+        "source_clock_domain": "profiler_host",
+        "target_clock_domain": "device"
+      },
+      "marker_device_residual_ns": {
+        "max": "3257.739760",
+        "p50": "2232.080899",
+        "p95": "3257.739760"
+      },
+      "marker_resolution": {
+        "direct_overlap_count": 21,
+        "fallback_residual_ns": {
+          "count": 0,
+          "max": "0.000000",
+          "p50": "0.000000",
+          "p95": "0.000000"
+        },
+        "observed_method_counts": {
+          "direct_overlap": 21
+        },
+        "ordinal_affine_fallback_count": 0
+      },
+      "profiler_marker_residual_ns": {
+        "max": "5857.865546",
+        "p50": "3214.014320",
+        "p95": "5857.865546"
       },
       "rejected_marker_count": 0,
       "residual_ns": {
@@ -27,9 +66,9 @@
         "p50": "2232.080899",
         "p95": "3257.739760"
       },
-      "run_id": "967ee696112a064e11639a77a1390490460990a8b1d020397aa86b8932ea1cda",
-      "scale": "1.000017638930",
-      "sidecar_path": "/workspace/ascend-b2-pilot/src/vllm-request-lifecycle-profiler-plugin/.benchmarks/results/npu6_host_device_clock_calibration/capture_02_real_calibrated/traceloom_sidecar_v43.db",
+      "run_id": "0e9feca14e910a9a9d2de354386bf4b6dbb665725ce75db889d5f37ddf4157c1",
+      "scale": "1.000008089165",
+      "sidecar_path": "/workspace/ascend-b2-pilot/src/vllm-request-lifecycle-profiler-plugin/.benchmarks/results/npu6_host_device_clock_calibration/capture_02_real_calibrated/traceloom_sidecar_composed_v2.db",
       "source_kind": "ascend_sqlite_hot_path",
       "source_path": "/workspace/ascend-b2-pilot/src/vllm-request-lifecycle-profiler-plugin/.benchmarks/results/npu6_host_device_clock_calibration/capture_02_real_calibrated/profile/PROF_000001_20260807124600000_01649898LMMGPPMG/msprof_20260807124606.db",
       "validation_marker_count": 4
@@ -39,19 +78,58 @@
       "analysis_status": "invalid_input",
       "audit_status": "PASS",
       "bracket_uncertainty_p95_ns": "47896.504245",
-      "clock_model_id": "f0bf1d9eb1ee0847237772271d5ee728d313686e2f6f4f237053b770b1de6a21:clock_model:0:6",
+      "clock_model_id": "aa24bb2d337d9397577a7bfeeddafdd974b91f72488934e018f6427a3a81e33c:clock_model:0:6",
       "collection_status": "unknown",
+      "component_drift_ppm": {
+        "marker_device": "20.967414",
+        "profiler_marker": "-2.202660"
+      },
+      "composed_profiler_device_residual_ns": {
+        "max": "3885.128482",
+        "p50": "574.864921",
+        "p95": "3885.128482"
+      },
       "correlated_duration_ns": 0,
       "correlated_slice_count": 0,
       "device_id": 6,
-      "drift_ppm": "20.967414",
-      "epsilon_ns": 61988,
+      "drift_ppm": "18.764708",
+      "epsilon_ns": 73461,
       "fit_marker_count": 17,
+      "host_clock_uncertainty_p95_ns": "11472.603330",
       "inlier_marker_count": 21,
       "input_marker_count": 21,
       "link_status_counts": {
         "unique": 52,
         "unresolved": 715
+      },
+      "mapping": {
+        "intermediate_clock_domain": "caller_clock_realtime",
+        "kind": "composed_affine",
+        "source_clock_domain": "profiler_host",
+        "target_clock_domain": "device"
+      },
+      "marker_device_residual_ns": {
+        "max": "14091.348543",
+        "p50": "2980.759819",
+        "p95": "14091.348543"
+      },
+      "marker_resolution": {
+        "direct_overlap_count": 21,
+        "fallback_residual_ns": {
+          "count": 0,
+          "max": "0.000000",
+          "p50": "0.000000",
+          "p95": "0.000000"
+        },
+        "observed_method_counts": {
+          "direct_overlap": 21
+        },
+        "ordinal_affine_fallback_count": 0
+      },
+      "profiler_marker_residual_ns": {
+        "max": "11472.362784",
+        "p50": "4029.976476",
+        "p95": "11472.362784"
       },
       "rejected_marker_count": 0,
       "residual_ns": {
@@ -59,9 +137,9 @@
         "p50": "2980.759819",
         "p95": "14091.348543"
       },
-      "run_id": "f0bf1d9eb1ee0847237772271d5ee728d313686e2f6f4f237053b770b1de6a21",
-      "scale": "1.000020967414",
-      "sidecar_path": "/workspace/ascend-b2-pilot/src/vllm-request-lifecycle-profiler-plugin/.benchmarks/results/npu6_host_device_clock_calibration/capture_03_real_calibrated/traceloom_sidecar_v43.db",
+      "run_id": "aa24bb2d337d9397577a7bfeeddafdd974b91f72488934e018f6427a3a81e33c",
+      "scale": "1.000018764708",
+      "sidecar_path": "/workspace/ascend-b2-pilot/src/vllm-request-lifecycle-profiler-plugin/.benchmarks/results/npu6_host_device_clock_calibration/capture_03_real_calibrated/traceloom_sidecar_composed_v2.db",
       "source_kind": "ascend_sqlite_hot_path",
       "source_path": "/workspace/ascend-b2-pilot/src/vllm-request-lifecycle-profiler-plugin/.benchmarks/results/npu6_host_device_clock_calibration/capture_03_real_calibrated/profile/PROF_000001_20260807125135481_01655572RIQCMDCF/msprof_20260807125143.db",
       "validation_marker_count": 4
@@ -71,19 +149,58 @@
       "analysis_status": "ok",
       "audit_status": "PASS",
       "bracket_uncertainty_p95_ns": "49381.341004",
-      "clock_model_id": "03b584e75ffbe288412133657d2cb44cfb71e6841cb6ad469b1688949383247b:clock_model:0:6",
+      "clock_model_id": "b745e8c4fe2f1b23c39f46c488132c53e3da41ac7cf2164e14989986dc6edd4d:clock_model:0:6",
       "collection_status": "unknown",
+      "component_drift_ppm": {
+        "marker_device": "17.031092",
+        "profiler_marker": "-4.609161"
+      },
+      "composed_profiler_device_residual_ns": {
+        "max": "2412.330843",
+        "p50": "870.414789",
+        "p95": "2412.330843"
+      },
       "correlated_duration_ns": 0,
       "correlated_slice_count": 0,
       "device_id": 6,
-      "drift_ppm": "17.031092",
-      "epsilon_ns": 53012,
+      "drift_ppm": "12.421853",
+      "epsilon_ns": 57513,
       "fit_marker_count": 17,
+      "host_clock_uncertainty_p95_ns": "4501.002648",
       "inlier_marker_count": 21,
       "input_marker_count": 21,
       "link_status_counts": {
         "unique": 52,
         "unresolved": 715
+      },
+      "mapping": {
+        "intermediate_clock_domain": "caller_clock_realtime",
+        "kind": "composed_affine",
+        "source_clock_domain": "profiler_host",
+        "target_clock_domain": "device"
+      },
+      "marker_device_residual_ns": {
+        "max": "3630.587859",
+        "p50": "214.626539",
+        "p95": "3630.587859"
+      },
+      "marker_resolution": {
+        "direct_overlap_count": 21,
+        "fallback_residual_ns": {
+          "count": 0,
+          "max": "0.000000",
+          "p50": "0.000000",
+          "p95": "0.000000"
+        },
+        "observed_method_counts": {
+          "direct_overlap": 21
+        },
+        "ordinal_affine_fallback_count": 0
+      },
+      "profiler_marker_residual_ns": {
+        "max": "4500.925993",
+        "p50": "1027.567084",
+        "p95": "4500.925993"
       },
       "rejected_marker_count": 0,
       "residual_ns": {
@@ -91,9 +208,9 @@
         "p50": "214.626539",
         "p95": "3630.587859"
       },
-      "run_id": "03b584e75ffbe288412133657d2cb44cfb71e6841cb6ad469b1688949383247b",
-      "scale": "1.000017031092",
-      "sidecar_path": "/workspace/ascend-b2-pilot/src/vllm-request-lifecycle-profiler-plugin/.benchmarks/results/npu6_host_device_clock_calibration/capture_04_real_calibrated/traceloom_sidecar_v43.db",
+      "run_id": "b745e8c4fe2f1b23c39f46c488132c53e3da41ac7cf2164e14989986dc6edd4d",
+      "scale": "1.000012421853",
+      "sidecar_path": "/workspace/ascend-b2-pilot/src/vllm-request-lifecycle-profiler-plugin/.benchmarks/results/npu6_host_device_clock_calibration/capture_04_real_calibrated/traceloom_sidecar_composed_v2.db",
       "source_kind": "ascend_sqlite_hot_path",
       "source_path": "/workspace/ascend-b2-pilot/src/vllm-request-lifecycle-profiler-plugin/.benchmarks/results/npu6_host_device_clock_calibration/capture_04_real_calibrated/profile/PROF_000001_20260807125153693_01655972DMDPEJFR/msprof_20260807125201.db",
       "validation_marker_count": 4
@@ -106,6 +223,30 @@
       "max": "14091.348500",
       "p50": "2232.080894",
       "p95": "14091.348500"
+    },
+    "composed_absolute_validation_residual_ns": {
+      "count": 12,
+      "max": "3885.128483",
+      "p50": "977.126494",
+      "p95": "3885.128483"
+    },
+    "marker_device_absolute_validation_residual_ns": {
+      "count": 12,
+      "max": "14091.348500",
+      "p50": "2232.080894",
+      "p95": "14091.348500"
+    },
+    "ordinal_affine_fallback_resolution_residual_ns": {
+      "count": 0,
+      "max": "0.000000",
+      "p50": "0.000000",
+      "p95": "0.000000"
+    },
+    "profiler_marker_absolute_validation_residual_ns": {
+      "count": 12,
+      "max": "11472.362757",
+      "p50": "3214.014321",
+      "p95": "11472.362757"
     },
     "scaled_half_bracket_uncertainty_ns": {
       "count": 63,

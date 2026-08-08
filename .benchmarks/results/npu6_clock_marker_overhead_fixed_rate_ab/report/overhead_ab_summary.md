@@ -46,8 +46,9 @@
 ## Enabled calibration and E4
 
 Calibration is `calibrated` with 587/565/22 input/inlier/rejected markers, 453/112 fit/validation markers.
-Residual p50/p95/max: 8329.205/23831.788/43889.346 ns; bracket p95 107876.729 ns; epsilon 131709 ns; drift -2.513645 ppm.
-E4 emitted 1133 calibrated exact-connection slices covering 61776173 ns of queued-visible-task delay; these remain diagnostic because the run-level analysis status is invalid_input (126 non-point and 678 point-event non-positive-duration TASK rows).
+Marker→device residual p50/p95/max: 8329.205/23831.788/43889.346 ns; profiler→marker residual p50/p95/max: 7940.634/23558.420/44835.814 ns; composed profiler→device residual p50/p95/max: 935.058/4083.598/9511.218 ns; bracket p95 107876.729 ns; host-clock uncertainty p95 23558.361 device ns; epsilon 155267 ns; drift -2.513645/19.685386 ppm for the marker→device/profiler→marker legs.
+Marker resolution provenance: 0 direct-overlap and 565 ordinal-affine-fallback markers.
+E4 emitted 1 calibrated exact-connection slices covering 93407 ns of queued-visible-task delay; these remain diagnostic because the run-level analysis status is invalid_input (126 non-point and 678 point-event non-positive-duration TASK rows).
 
 ## Interpretation boundary
 

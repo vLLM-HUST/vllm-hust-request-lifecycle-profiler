@@ -237,13 +237,24 @@ Three independent NPU6 captures exercise the real Python marker,
 \texttt{aclrtRecordEvent}, profiler CANN\_API/TASK, bracket resolver, and
 Theil--Sen path. Each capture has 21 inlier markers with a 17/4 fit/validation
 split and a passing structural audit. Across the 12 pooled validation markers,
-absolute residual p50/p95/max is 2.232/14.091/14.091\,$\mu$s. A serving capture
-resolves 565 of 587 markers and reaches calibrated E4, materializing 1133
-exact-connection queued-delay slices covering 61.776\,ms. This is not yet an
-accepted full-run localization result: 126 zero-duration kernel/memcpy TASK
-rows force \texttt{analysis\_status=invalid\_input}, and task-time level l2
-does not remove the pathology. We therefore treat the E4 rows as diagnostic
-positive-path evidence and retain valid full-run E4 as an open gate.
+marker-to-device residual p50/p95/max is 2.232/14.091/14.091\,$\mu$s. A serving capture
+resolves 565 of 587 markers, but audit found that the original analyzer trained
+on caller \texttt{CLOCK\_REALTIME} brackets and then applied that model directly
+to msprof CANN\_API timestamps. The reported holdout residual therefore did not
+cover the first host-clock conversion. We retain the three captures only as
+evidence that the real marker-to-TASK calibration chain executes; the old 1133
+E4 rows are retracted as cross-clock evidence. The analyzer now uses an explicit
+profiler-host-to-caller-host-to-device composition and adds the first-leg
+holdout uncertainty to epsilon. Replaying the three captures yields pooled
+profiler-to-caller and composed profiler-to-device residual p50/p95/max of
+3.214/11.472/11.472 and 0.977/3.885/3.885\,$\mu$s, respectively, with all
+marker resolutions using direct overlap and all expanded audits passing. The
+serving replay retains one 93.407\,$\mu$s queued-delay slice rather than 1133,
+confirming that the coordinate correction is material. Independently, 126
+zero-duration kernel/memcpy TASK rows force
+\texttt{analysis\_status=invalid\_input}, and task-time level l2 does not remove
+the pathology, so this remaining slice is diagnostic and valid full-run E4
+remains an open gate.
 
 \subsection{Overhead evidence}
 
@@ -266,7 +277,7 @@ fault matrix does not establish benchmark-owned graph-mode server custody; the
 new calibration/overhead harness owns its server but runs eager mode. Second,
 queue, KV-pressure, and cleanup ground truth are missing. Third, raw-log,
 rules-disabled, and timed manual baselines have not been measured. Fourth, a
-valid-status serving E4 capture is still missing, and the one-pair overhead
+a valid-status serving E4 capture is still missing, and the one-pair overhead
 measurement cannot characterize confidence intervals or memory costs.
 
 These are evidence blockers, not writing tasks. The project should remain a

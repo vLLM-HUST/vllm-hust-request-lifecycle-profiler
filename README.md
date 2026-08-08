@@ -98,14 +98,16 @@ speedups.
 The package now provides an opt-in `AscendClockMarkerCollector` for host
 brackets around device-visible timeline events. The matching TraceLoom analyzer
 resolves each profiled `aclrtRecordEvent` through a unique connectionId to
-`TASK.startNs`, fits the frozen host→device affine model, and admits host API
-evidence only through robust overlap/delay windows. Raw device syscnt is never
+`TASK.startNs`, fits an explicit profiler-host→caller-realtime→device composed
+clock model, and admits host API evidence only through robust overlap/delay
+windows whose epsilon includes both clock legs. Raw device syscnt is never
 accepted as profiler nanoseconds. Three repeated real NPU6 captures now pass
-calibration and sidecar audit. A serving capture reaches calibrated E4 and
-materializes exact-connection delay slices, but its run-level status is
-`invalid_input` because the profiler contains zero-duration device tasks; those
-slices remain diagnostic rather than accepted full-run evidence. The serving
-runs use eager mode. See
+the composed-clock replay and strengthened SQL audit with both component and
+end-to-end holdout distributions. Replaying the eager serving capture reduces
+the old 1133 queued-delay slices to one 93.407 μs diagnostic slice, showing why
+the clock-domain correction is material. That source still has
+`analysis_status=invalid_input` because of zero-duration device tasks, so it is
+not accepted full-run E4 evidence. See
 [`docs/host_device_clock_calibration.md`](docs/host_device_clock_calibration.md).
 
 ## Test

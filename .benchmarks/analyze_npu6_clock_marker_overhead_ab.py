@@ -27,6 +27,16 @@ def _parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--disabled-dir", type=Path, required=True)
     parser.add_argument("--enabled-dir", type=Path, required=True)
+    parser.add_argument(
+        "--disabled-sidecar",
+        type=Path,
+        help="Override the disabled variant's run/traceloom_sidecar.db.",
+    )
+    parser.add_argument(
+        "--enabled-sidecar",
+        type=Path,
+        help="Override the enabled variant's run/traceloom_sidecar.db.",
+    )
     parser.add_argument("--output-dir", type=Path, required=True)
     parser.add_argument("--audit-sql", type=Path, default=DEFAULT_AUDIT_SQL)
     parser.add_argument(
@@ -172,6 +182,13 @@ def _sidecar_summary(path: Path, audit_sql: str) -> dict[str, Any]:
                 "from traceloom_clock_marker group by marker_state"
             )
         }
+        marker_resolution_methods = {
+            str(row["resolution_method"]): int(row["count"])
+            for row in connection.execute(
+                "select resolution_method, count(*) as count "
+                "from traceloom_clock_marker group by resolution_method"
+            )
+        }
         audit_cursor = connection.execute(audit_sql)
         audit_row = audit_cursor.fetchone()
         if audit_row is None:
@@ -190,6 +207,7 @@ def _sidecar_summary(path: Path, audit_sql: str) -> dict[str, Any]:
         "device_productive_fraction": productive_ns / span_ns,
         "evidence_levels": evidence_levels,
         "marker_states": marker_states,
+        "marker_resolution_methods": marker_resolution_methods,
         "metadata": metadata,
         "sidecar_path": str(path.resolve()),
     }
@@ -225,7 +243,9 @@ def _task_duration_diagnostics(path: Path) -> dict[str, Any]:
     }
 
 
-def _variant(path: Path, audit_sql: str) -> dict[str, Any]:
+def _variant(
+    path: Path, audit_sql: str, sidecar_path: Path | None = None
+) -> dict[str, Any]:
     run_dir = path / "run"
     client_dir = run_dir / "client"
     profile_dbs = sorted((path / "profile").glob("PROF_*/msprof_*.db"))
@@ -243,7 +263,9 @@ def _variant(path: Path, audit_sql: str) -> dict[str, Any]:
         "profile_db": str(profile_dbs[0].resolve()),
         "provenance": _load_json(run_dir / "provenance.json"),
         "request_identity": _request_identity(client_dir / "probe_results.json"),
-        "sidecar": _sidecar_summary(run_dir / "traceloom_sidecar.db", audit_sql),
+        "sidecar": _sidecar_summary(
+            sidecar_path or run_dir / "traceloom_sidecar.db", audit_sql
+        ),
         "task_duration_diagnostics": _task_duration_diagnostics(profile_dbs[0]),
         "variant_dir": str(path.resolve()),
     }
@@ -262,8 +284,8 @@ def _same_client_command(lhs: list[str], rhs: list[str]) -> bool:
 def _metric(
     name: str,
     unit: str,
-    disabled: float | int,
-    enabled: float | int,
+    disabled: float,
+    enabled: float,
 ) -> dict[str, Any]:
     disabled_value = float(disabled)
     enabled_value = float(enabled)
@@ -454,13 +476,31 @@ def _markdown(summary: dict[str, Any]) -> str:
                 "fit/validation markers."
             ),
             (
-                "Residual p50/p95/max: "
+                "Marker→device residual p50/p95/max: "
                 f"{model['absolute_residual_p50_ns']:.3f}/"
                 f"{model['absolute_residual_p95_ns']:.3f}/"
                 f"{model['absolute_residual_max_ns']:.3f} ns; "
+                "profiler→marker residual p50/p95/max: "
+                f"{model['host_clock_absolute_residual_p50_ns']:.3f}/"
+                f"{model['host_clock_absolute_residual_p95_ns']:.3f}/"
+                f"{model['host_clock_absolute_residual_max_ns']:.3f} ns; "
+                "composed profiler→device residual p50/p95/max: "
+                f"{model['composed_absolute_residual_p50_ns']:.3f}/"
+                f"{model['composed_absolute_residual_p95_ns']:.3f}/"
+                f"{model['composed_absolute_residual_max_ns']:.3f} ns; "
                 f"bracket p95 {model['bracket_uncertainty_p95_ns']:.3f} ns; "
+                "host-clock uncertainty p95 "
+                f"{model['host_clock_uncertainty_p95_ns']:.3f} device ns; "
                 f"epsilon {model['epsilon_ns']} ns; drift "
-                f"{model['drift_ppm']:.6f} ppm."
+                f"{model['marker_to_device_drift_ppm']:.6f}/"
+                f"{model['profiler_to_marker_drift_ppm']:.6f} ppm for the "
+                "marker→device/profiler→marker legs."
+            ),
+            (
+                "Marker resolution provenance: "
+                f"{model['direct_overlap_marker_count']} direct-overlap and "
+                f"{model['ordinal_affine_fallback_marker_count']} "
+                "ordinal-affine-fallback markers."
             ),
             (
                 f"E4 emitted {e4['count']} calibrated exact-connection slices "
@@ -504,8 +544,8 @@ def _markdown(summary: dict[str, Any]) -> str:
 def main() -> int:
     args = _parse_args()
     audit_sql = args.audit_sql.read_text(encoding="utf-8")
-    disabled = _variant(args.disabled_dir, audit_sql)
-    enabled = _variant(args.enabled_dir, audit_sql)
+    disabled = _variant(args.disabled_dir, audit_sql, args.disabled_sidecar)
+    enabled = _variant(args.enabled_dir, audit_sql, args.enabled_sidecar)
     disabled_provenance = disabled["provenance"]
     enabled_provenance = enabled["provenance"]
     matching_checks = {
@@ -561,6 +601,11 @@ def main() -> int:
     )
     calibration_valid = (
         enabled_model["alignment_status"] == "calibrated"
+        and enabled_model["has_profiler_host_mapping"] == 1
+        and enabled_model["mapping_kind"] == "composed_affine"
+        and enabled_model["source_clock_domain"] == "profiler_host"
+        and enabled_model["intermediate_clock_domain"]
+        == "caller_clock_realtime"
         and enabled_model["validation_marker_count"] > 0
         and enabled["sidecar"]["audit"]["audit_status"] == "PASS"
     )
