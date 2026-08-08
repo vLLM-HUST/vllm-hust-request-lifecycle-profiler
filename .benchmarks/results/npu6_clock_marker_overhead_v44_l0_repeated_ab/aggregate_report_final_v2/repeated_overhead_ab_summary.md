@@ -4,6 +4,8 @@
 - protocol_acceptance: `PASS`
 - full_idle_evidence_acceptance: `PASS`
 - overhead_claim_status: `accepted_repeated_matched_ab`
+- raw artifact publication: `local_content_addressed_only`
+- external raw archive URI: `null`
 - pair_count: `3`
 - total requests per variant: `12`
 - pooled correlated E4: `169` slices / `3918602` ns

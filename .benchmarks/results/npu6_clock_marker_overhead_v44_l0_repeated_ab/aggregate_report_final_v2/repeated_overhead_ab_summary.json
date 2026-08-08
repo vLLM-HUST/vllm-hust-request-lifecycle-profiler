@@ -1313,6 +1313,12 @@
     "pair_03/report/overhead_ab_summary.json"
   ],
   "protocol_acceptance": "PASS",
+  "raw_artifact_publication": {
+    "external_archive_uri": null,
+    "independent_raw_byte_retrieval": false,
+    "manifest_scope": "sha256_and_size_only; raw msprof databases and derived sidecars are not stored in Git or Git LFS",
+    "status": "local_content_addressed_only"
+  },
   "schema_version": "clock-marker-repeated-overhead-ab-v1",
   "total_requests_per_variant": 12
 }

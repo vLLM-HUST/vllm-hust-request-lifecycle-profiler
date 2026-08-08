@@ -75,6 +75,15 @@ def test_aggregates_repeated_pair_distribution(tmp_path: Path) -> None:
     result = module.aggregate(tmp_path)
     assert result["capture_acceptance"] == "PASS"
     assert result["overhead_claim_status"] == "accepted_repeated_matched_ab"
+    assert result["raw_artifact_publication"] == {
+        "status": "local_content_addressed_only",
+        "external_archive_uri": None,
+        "independent_raw_byte_retrieval": False,
+        "manifest_scope": (
+            "sha256_and_size_only; raw msprof databases and derived "
+            "sidecars are not stored in Git or Git LFS"
+        ),
+    }
     assert result["pair_count"] == 3
     assert result["metrics"][0]["delta_percent_distribution"]["p50"] == 2.0
     assert result["correlated_e4"]["pooled_duration_ns"] == 150

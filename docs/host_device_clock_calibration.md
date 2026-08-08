@@ -265,7 +265,11 @@ sampling variation, not a speedup claim. The narrow conclusion is that this
 12-request-per-variant low-load sample detects no marker-induced regression;
 larger-load and graph-mode bounds remain future work. The final JSON embeds
 SHA-256 and byte size for every source msprof database, derived sidecar,
-marker TSV, client result, provenance record, and per-pair report.
+marker TSV, client result, provenance record, and per-pair report. The report
+also records `raw_artifact_publication.status=local_content_addressed_only`,
+`external_archive_uri=null`, and
+`independent_raw_byte_retrieval=false`: the hash manifest is not a downloadable
+artifact archive, and the raw corpus is intentionally absent from Git/LFS.
 
 ## 5. Evidence boundary
 

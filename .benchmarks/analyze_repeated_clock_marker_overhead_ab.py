@@ -198,6 +198,15 @@ def aggregate(root: Path) -> dict[str, Any]:
         "calibration_acceptance": "PASS",
         "full_idle_evidence_acceptance": "PASS",
         "overhead_claim_status": "accepted_repeated_matched_ab",
+        "raw_artifact_publication": {
+            "status": "local_content_addressed_only",
+            "external_archive_uri": None,
+            "independent_raw_byte_retrieval": False,
+            "manifest_scope": (
+                "sha256_and_size_only; raw msprof databases and derived "
+                "sidecars are not stored in Git or Git LFS"
+            ),
+        },
         "pair_count": len(reports),
         "pair_ids": [path.parents[1].name for path in report_paths],
         "design": design,
@@ -235,6 +244,8 @@ def _markdown(summary: dict[str, Any]) -> str:
         f"- protocol_acceptance: `{summary['protocol_acceptance']}`",
         f"- full_idle_evidence_acceptance: `{summary['full_idle_evidence_acceptance']}`",
         f"- overhead_claim_status: `{summary['overhead_claim_status']}`",
+        f"- raw artifact publication: `{summary['raw_artifact_publication']['status']}`",
+        "- external raw archive URI: `null`",
         f"- pair_count: `{summary['pair_count']}`",
         f"- total requests per variant: `{summary['total_requests_per_variant']}`",
         f"- pooled correlated E4: `{summary['correlated_e4']['pooled_count']}` slices / `{summary['correlated_e4']['pooled_duration_ns']}` ns",
