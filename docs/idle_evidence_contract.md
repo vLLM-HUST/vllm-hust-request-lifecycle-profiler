@@ -458,19 +458,30 @@ return_status
   `aclrtSynchronizeEvent`; `host_after_ns` MUST be read after synchronization
   returns. All three use caller `CLOCK_REALTIME`, and MUST satisfy
   `host_before_ns <= record_after_ns <= host_after_ns`.
+- Collection is explicitly bounded per collector. The default maximum is
+  `4096` marker attempts/rows (successful or failed) and the configured
+  maximum MUST be in `[1,1000000]`. The first attempt beyond the limit MUST
+  invoke no Ascend API,
+  append exactly one sentinel with
+  `return_status=-900001`, and permanently turn later calls into no-op drops.
+  A real capture containing that sentinel MUST fail calibration closed; the
+  serving path MUST continue.
 - The resolver MUST identify one profiled same-thread `aclrtRecordEvent`, retain
   its profiler-host `[startNs,endNs)` interval, resolve a non-negative
   `connectionId`, and resolve at most one matching device TASK. A multiple API
   or TASK match is fatal ambiguity. Missing connectionId/TASK is a rejected,
   auditable marker and cannot enter a fit.
-- Direct identity uses overlap with the narrow
-  `[host_before_ns, record_after_ns)` record-call bracket, never the outer
-  synchronization bracket. Ordinal affine fallback requires at least two
-  strictly ordered pairs on the same thread, equal successful-bracket/API
-  counts, and a unique same-ordinal nearest neighbor after endpoint-affine
-  correction. One bracket plus one distant API MUST NOT resolve by ordinal
-  fallback. Every resolved marker MUST retain `resolution_method` and fallback
-  residual when applicable.
+- The narrow caller bracket and profiled CANN_API interval are in distinct,
+  not-yet-calibrated host clock domains. Raw timestamp overlap between them
+  MUST NOT be used as marker identity evidence. Real marker identity requires
+  a validated same-thread order-preserving affine sequence bijection: at least
+  two strictly ordered pairs, equal successful-bracket/API counts, and a
+  unique same-ordinal nearest neighbor after endpoint-affine correction. One
+  bracket plus one API MUST NOT resolve. Every resolved real marker MUST retain
+  `resolution_method=ordinal_affine_fallback` (the historical serialized name)
+  and its affine-sequence residual. `direct_overlap` is reserved for legacy or
+  synthetic rows, MUST NOT enter a real v4.4 fit, and
+  `direct_overlap_marker_count` MUST be zero for real acceptance.
 - First-leg observation (frozen):
 
 ```text

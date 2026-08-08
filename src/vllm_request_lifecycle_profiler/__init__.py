@@ -5,7 +5,9 @@ from vllm_request_lifecycle_profiler.causal_attribution import (
     load_intervention_fixture,
 )
 from vllm_request_lifecycle_profiler.clock_markers import (
+    CLOCK_MARKER_CAPACITY_EXHAUSTED_STATUS,
     CLOCK_MARKER_EXPORT_ENV,
+    CLOCK_MARKER_MAX_RECORDS_ENV,
     AscendClockMarkerCollector,
     ClockMarkerBracket,
 )
@@ -63,7 +65,9 @@ from vllm_request_lifecycle_profiler.trace import (
 )
 
 __all__ = [
+    "CLOCK_MARKER_CAPACITY_EXHAUSTED_STATUS",
     "CLOCK_MARKER_EXPORT_ENV",
+    "CLOCK_MARKER_MAX_RECORDS_ENV",
     "TRACE_EXPORT_ENV",
     "AscendClockMarkerCollector",
     "BaseEventRef",

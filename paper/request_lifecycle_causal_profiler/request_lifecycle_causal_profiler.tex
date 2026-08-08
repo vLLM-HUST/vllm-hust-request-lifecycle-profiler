@@ -254,19 +254,15 @@ retracted under v4.4; valid positive serving E4 remains an open gate.
 
 \subsection{Overhead evidence}
 
-We recollected a fixed-rate marker-disabled/enabled NPU6 pair with the v4.4
-collector. Both variants use the same model, request schedule, seed, 2 request/s
-offered load, 24 s window, workload/server configuration, profiler options,
-and profiler boundary, and each completes 48/48 requests. The enabled run
-records 587 markers and calibrates 565 inliers. Enabled minus disabled changes
-request throughput by -0.297\%, TTFT p50/p95 by -1.416\%/+1.472\%, ITL
-p50/p95 by +2.002\%/+2.477\%, TPOT p50/p95 by +1.973\%/+2.179\%, and decode
-iteration p50/p95 by +1.869\%/+2.812\%. This closes a workload-specific
-single-pair measurement, not a confidence interval or universal bound. Both
-profiles have \texttt{analysis\_status=invalid\_input} due non-positive-duration
-TASK rows, so full-boundary device time and E4 slices remain diagnostic. CPU,
-host-memory, NPU-HBM, graph-mode, and repeated-pair overhead remain open and
-overhead remains excluded from headline results.
+We retained a fixed-rate marker-disabled/enabled NPU6 pair collected with the
+v4.4 collector. The enabled run calibrates 565 inliers after sequence-only
+marker resolution. This pair is rejected for overhead acceptance: both client
+metadata files record a dirty source checkout, the probe timestamped SSE frames
+rather than decoded token IDs, and both profiler sidecars have
+\texttt{analysis\_status=invalid\_input}. ITL/TPOT are therefore retracted and
+the remaining deltas are diagnostic only. A clean token-aware matched pair,
+CPU/host-memory/NPU-HBM coverage, graph mode, and repeated-pair confidence
+intervals remain open; overhead remains excluded from headline results.
 
 \section{Limitations and Required Evidence}
 

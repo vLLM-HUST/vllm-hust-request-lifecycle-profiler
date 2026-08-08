@@ -62,24 +62,22 @@ traceloom /path/to/PROF_... \
 
 For every successful bracket, TraceLoom requires:
 
-1. a unique same-PID/TID `aclrtRecordEvent` identity, normally by exactly one
-   non-empty overlap with the narrow
-   `[host_before_ns, record_after_ns)` bracket;
+1. a unique same-PID/TID `aclrtRecordEvent` identity established by a
+   validated order-preserving affine sequence bijection;
 2. a non-negative profiler connectionId on that API row; and
 3. at most one TASK with that connectionId on the requested device and, when
    supplied, stream.
 
 The outer `[host_before_ns, host_after_ns]` bracket includes synchronization
-and is never used to train the profiler→caller leg. Non-empty overlap is used
-because real NPU6 measurements show clock skew
-between profiler host API timestamps and the caller's `CLOCK_REALTIME`
-bracket. In longer captures the skew can remove direct overlap. The only
-fallback is a strict order-preserving bijection: the successful-bracket count
+and is never used to train the profiler→caller leg. The profiler host API
+timestamp and caller `CLOCK_REALTIME` are different, uncalibrated domains, so
+their raw overlap is never identity evidence. The resolver requires a strict
+order-preserving bijection: the successful-bracket count
 must equal the same-thread `aclrtRecordEvent` count, both timestamp sequences
 must be strictly increasing, and after an endpoint-affine correction each API
 must have its same-ordinal bracket as the unique nearest bracket. Any
-extra/missing API, nearest-neighbor tie, non-affine sequence, or overlap
-ambiguity still fails closed. The matched `TASK.startNs` becomes
+extra/missing API, nearest-neighbor tie, or non-affine sequence fails closed.
+The matched `TASK.startNs` becomes
 `device_timestamp_ns`. A uniquely identified API with no connectionId, or a
 connectionId with no matching TASK, remains an auditable rejected marker and
 cannot enter the fit. This handles a profiler device-data horizon that ends
@@ -88,8 +86,9 @@ fatal ambiguity. Failed runtime calls also remain rejected marker rows.
 Ordinal fallback requires at least two pairs on the same thread; one distant
 bracket plus one API cannot identify an affine relation even when six such
 singletons exist across a device. Every resolved row retains its matched
-CANN_API interval, `direct_overlap`/`ordinal_affine_fallback` method, and
-fallback residual. The direct 11-field `--clock-markers` input lacks this
+CANN_API interval, the historical serialized `ordinal_affine_fallback` method,
+and affine-sequence residual. `direct_overlap` cannot enter a real v4.4 fit.
+The direct 11-field `--clock-markers` input lacks this
 profiler-host interval and is therefore restricted to controlled fixtures with
 `--clock-markers-synthetic`.
 
@@ -168,8 +167,9 @@ Three independent v4.4 micro-captures under
 Python collector → narrow record-call bracket → `aclrtRecordEvent` → profiler
 CANN_API/TASK → TSV resolver → composed-clock Theil–Sen chain.
 `capture_05_v44_real` through `capture_07_v44_real` each contain 21/21 inlier
-markers, 17 fit markers, 4 validation markers, zero rejected markers, 21
-`direct_overlap` resolutions, zero ordinal fallbacks, and `audit_status=PASS`.
+markers, 17 fit markers, 4 validation markers, zero rejected markers, zero
+`direct_overlap` resolutions, 21 validated ordinal-affine sequence mappings,
+and `audit_status=PASS`.
 The third capture also has `analysis_status=ok`; all three have zero correlated
 duration because the micro workload supplies no E4 robust host-overlap or delay
 slice.
@@ -193,6 +193,11 @@ audits. The structured report expands the four cross-clock counters for every
 capture: `host_explanation_contract_errors`,
 `cross_clock_fail_closed_errors`, `host_evidence_source_errors`, and
 `queued_task_link_errors`; all four are zero in all three captures.
+The same directory also contains `AUDIT.md` and
+`audit_inputs_manifest.json`. They pin the exact TraceLoom commit and
+content-address the committed bracket TSVs, source msprof databases, derived
+sidecars, and summary artifacts so an independent checkout can verify and
+rebuild the acceptance inputs without relying on machine-local paths.
 
 The earlier fixed-rate serving sidecars and the reported 1133→1 slice change
 were produced before the v4.4 observation amendment. They lack
@@ -218,26 +223,27 @@ boundary; the distinct loopback ports only isolate the two sequential server
 processes. Each completes 48/48 requests. The disabled run emits zero markers;
 the enabled run emits 587 successful new-format brackets and calibrates 565
 inliers (453 fit, 112 validation, 22 rejected) with epsilon 164088 ns. Both SQL
-audits pass.
+audits pass. However, both client metadata files record
+`dirty_excluding_output_dir=true`, and the older probe timestamped SSE frames
+rather than decoded token IDs.
 
-Enabled-minus-disabled changes request throughput by -0.297%, TTFT p50/p95 by
--1.416%/+1.472%, request-latency p50/p95 by +2.046%/+2.093%, ITL p50/p95 by
-+2.002%/+2.477%, TPOT p50/p95 by +1.973%/+2.179%, and decode-iteration
-p50/p95 by +1.869%/+2.812%. Full-boundary device productive time changes by
--0.261%, but that device metric and the three emitted exact-connection E4
-slices are diagnostic: both source profiles contain non-point non-positive
-duration TASK rows and therefore have `analysis_status=invalid_input`. The
-structured result is `protocol_acceptance=PASS`,
-`calibration_acceptance=PASS`, and `capture_acceptance=PARTIAL`. This is one
-workload-specific matched pair, not a confidence interval, universal overhead
-bound, graph-mode result, or CPU/host-memory/NPU-HBM measurement.
+The retained non-token deltas are diagnostic only. ITL/TPOT are retracted and
+omitted because frame arrival is not token arrival. The enabled calibration is
+still valid after re-resolution with 0 direct-overlap and 565 validated
+sequence markers, but the structured result is now
+`protocol_acceptance=FAIL`, `calibration_acceptance=PASS`, and
+`capture_acceptance=FAIL`. A clean matched recollection using decoded delta
+`token_ids` is required before making a marker-overhead claim. Both source
+profiles also contain non-point non-positive-duration TASK rows and therefore
+have `analysis_status=invalid_input`.
 
 ## 5. Evidence boundary
 
 The deterministic fixtures remain `simulation/model`/contract evidence. The
 captures above support the `real-online` claim that the v4.4 composed
 calibration mechanism executes on NPU6 profiler data with auditable uncertainty.
-The matched pair additionally measures host-visible v4.4 marker overhead for
-one eager-mode workload. It does not provide an accepted positive E4 serving
-capture, a confidence interval, or a device-overhead acceptance result. None of
-these results proves causality or establishes graph-mode behavior.
+The retained matched pair is rejected as overhead evidence; it only preserves
+diagnostic non-token deltas and a valid enabled-side calibration. It does not
+provide accepted marker overhead, positive E4 serving evidence, or a device
+overhead result. None of these results proves causality or establishes
+graph-mode behavior.

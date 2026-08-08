@@ -1,10 +1,10 @@
 # NPU6 Fixed-rate Clock-marker Overhead A/B
 
-- capture_acceptance: `PARTIAL`
-- protocol_acceptance: `PASS`
+- capture_acceptance: `FAIL`
+- protocol_acceptance: `FAIL`
 - calibration_acceptance: `PASS`
 - full_idle_evidence_acceptance: `FAIL`
-- overhead_claim_status: `observed_single_pair_no_confidence_interval`
+- overhead_claim_status: `rejected_unmatched_or_dirty_source`
 - offered load: `2.0 req/s`
 - fixed window: `24.0 s`
 - measured requests: `48`
@@ -13,8 +13,13 @@
 
 | Check | Match |
 | --- | --- |
+| probe_repository_revision | `yes` |
+| probe_repository_clean | `no` |
+| workload_repository_revision | `yes` |
+| workload_repository_clean | `yes` |
 | client_command_except_runtime_endpoints | `yes` |
 | fixed_request_schedule | `yes` |
+| token_metrics_from_sse_token_ids | `no` |
 | installed_runtime | `yes` |
 | model | `yes` |
 | profiler_boundary | `yes` |
@@ -33,15 +38,13 @@
 | TTFT p95 | 177.473602 | 180.086643 | 2.613041 | 1.472% | ms |
 | request latency p50 | 1861.839578 | 1899.930720 | 38.091141 | 2.046% | ms |
 | request latency p95 | 1898.446925 | 1938.189141 | 39.742216 | 2.093% | ms |
-| ITL p50 | 55.060203 | 56.162734 | 1.102531 | 2.002% | ms |
-| ITL p95 | 57.149218 | 58.564566 | 1.415348 | 2.477% | ms |
-| TPOT p50 | 55.301750 | 56.393086 | 1.091335 | 1.973% | ms |
-| TPOT p95 | 55.714712 | 56.928576 | 1.213864 | 2.179% | ms |
 | decode iteration duration p50 | 53.487357 | 54.486846 | 0.999489 | 1.869% | ms |
 | decode iteration duration p95 | 55.144610 | 56.695090 | 1.550480 | 2.812% | ms |
 | device productive time (full profiler boundary) | 7827852900.000000 | 7807413120.000000 | -20439780.000000 | -0.261% | ns |
 | device productive fraction (full profiler boundary) | 0.157495 | 0.156522 | -0.000973 | -0.618% | ratio |
 | raw marker brackets | 0.000000 | 587.000000 | 587.000000 | n/a | count |
+
+ITL and TPOT are omitted because the retained client capture timestamped SSE frames rather than decoded token IDs.
 
 ## Enabled calibration and E4
 
@@ -52,4 +55,4 @@ E4 emitted 3 calibrated exact-connection slices covering 141344 ns of queued-vis
 
 ## Interpretation boundary
 
-This is a real-online, fixed-rate matched pair. It reports the observed latency and iteration perturbation for this workload; it does not establish a population confidence interval or a universal overhead bound. Full-boundary device time includes server warm-up and profiler-tail effects and is diagnostic while the sidecar run status is invalid_input.
+This retained real-online pair is rejected for an overhead acceptance claim because its source checkout was dirty outside the output directory and its client did not preserve token-ID arrival timestamps. The non-token deltas remain diagnostics only. Full-boundary device time also remains diagnostic while the sidecar run status is invalid_input.

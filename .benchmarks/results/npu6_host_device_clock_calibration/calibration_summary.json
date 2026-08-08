@@ -14,7 +14,7 @@
       },
       "audit_status": "PASS",
       "bracket_uncertainty_p95_ns": "44125.449107",
-      "clock_model_id": "2c60d88143a9b5031ed22bf3266c04e801889fabdb1ceb5b2eee7d8bc6f308df:clock_model:0:6",
+      "clock_model_id": "1056c581630d7653599afb1b9a785d3afd010d069987bea70a1394cceec7cab2:clock_model:0:6",
       "collection_status": "unknown",
       "component_drift_ppm": {
         "marker_device": "-1.153372",
@@ -60,17 +60,17 @@
         "p95": "3035.225857"
       },
       "marker_resolution": {
-        "direct_overlap_count": 21,
+        "direct_overlap_count": 0,
         "fallback_residual_ns": {
-          "count": 0,
-          "max": "0.000000",
-          "p50": "0.000000",
-          "p95": "0.000000"
+          "count": 21,
+          "max": "1865.298570",
+          "p50": "711.915804",
+          "p95": "1645.532307"
         },
         "observed_method_counts": {
-          "direct_overlap": 21
+          "ordinal_affine_fallback": 21
         },
-        "ordinal_affine_fallback_count": 0
+        "ordinal_affine_fallback_count": 21
       },
       "profiler_caller_residual_ns": {
         "max": "297.236293",
@@ -89,11 +89,11 @@
         "p50": "575.845202",
         "p95": "3035.225857"
       },
-      "run_id": "2c60d88143a9b5031ed22bf3266c04e801889fabdb1ceb5b2eee7d8bc6f308df",
+      "run_id": "1056c581630d7653599afb1b9a785d3afd010d069987bea70a1394cceec7cab2",
       "scale": "1.000019604075",
-      "sidecar_path": "/workspace/ascend-b2-pilot/src/vllm-request-lifecycle-profiler-plugin/.benchmarks/results/npu6_host_device_clock_calibration/capture_05_v44_real/traceloom_sidecar_v44.db",
+      "sidecar_path": ".benchmarks/results/npu6_host_device_clock_calibration/capture_05_v44_real/traceloom_sidecar_v44_sequence.db",
       "source_kind": "ascend_sqlite_hot_path",
-      "source_path": "/workspace/ascend-b2-pilot/src/vllm-request-lifecycle-profiler-plugin/.benchmarks/results/npu6_host_device_clock_calibration/capture_05_v44_real/profile/PROF_000001_20260808111408927_01861962RFGMIPIJ/msprof_20260808111416.db",
+      "source_path": ".benchmarks/results/npu6_host_device_clock_calibration/capture_05_v44_real/profile/PROF_000001_20260808111408927_01861962RFGMIPIJ/msprof_20260808111416.db",
       "validation_marker_count": 4
     },
     {
@@ -108,7 +108,7 @@
       },
       "audit_status": "PASS",
       "bracket_uncertainty_p95_ns": "47725.185692",
-      "clock_model_id": "3f7fe73a995b93ad1be2dff1376ebd6cd33f6db35d9419a7ea6ee4362bd902b6:clock_model:0:6",
+      "clock_model_id": "faeadd597cb64a4c780b589997e24171fa0f0a4bc165353252c2c41de1ea9df7:clock_model:0:6",
       "collection_status": "unknown",
       "component_drift_ppm": {
         "marker_device": "-17.062140",
@@ -154,17 +154,17 @@
         "p95": "4744.139285"
       },
       "marker_resolution": {
-        "direct_overlap_count": 21,
+        "direct_overlap_count": 0,
         "fallback_residual_ns": {
-          "count": 0,
-          "max": "0.000000",
-          "p50": "0.000000",
-          "p95": "0.000000"
+          "count": 21,
+          "max": "3529.623216",
+          "p50": "1323.817688",
+          "p95": "3438.049319"
         },
         "observed_method_counts": {
-          "direct_overlap": 21
+          "ordinal_affine_fallback": 21
         },
-        "ordinal_affine_fallback_count": 0
+        "ordinal_affine_fallback_count": 21
       },
       "profiler_caller_residual_ns": {
         "max": "895.569639",
@@ -183,11 +183,11 @@
         "p50": "1517.605441",
         "p95": "4744.139285"
       },
-      "run_id": "3f7fe73a995b93ad1be2dff1376ebd6cd33f6db35d9419a7ea6ee4362bd902b6",
+      "run_id": "faeadd597cb64a4c780b589997e24171fa0f0a4bc165353252c2c41de1ea9df7",
       "scale": "1.000003514537",
-      "sidecar_path": "/workspace/ascend-b2-pilot/src/vllm-request-lifecycle-profiler-plugin/.benchmarks/results/npu6_host_device_clock_calibration/capture_06_v44_real/traceloom_sidecar_v44.db",
+      "sidecar_path": ".benchmarks/results/npu6_host_device_clock_calibration/capture_06_v44_real/traceloom_sidecar_v44_sequence.db",
       "source_kind": "ascend_sqlite_hot_path",
-      "source_path": "/workspace/ascend-b2-pilot/src/vllm-request-lifecycle-profiler-plugin/.benchmarks/results/npu6_host_device_clock_calibration/capture_06_v44_real/profile/PROF_000001_20260808111514183_01863898PPCAEOOK/msprof_20260808111521.db",
+      "source_path": ".benchmarks/results/npu6_host_device_clock_calibration/capture_06_v44_real/profile/PROF_000001_20260808111514183_01863898PPCAEOOK/msprof_20260808111521.db",
       "validation_marker_count": 4
     },
     {
@@ -202,7 +202,7 @@
       },
       "audit_status": "PASS",
       "bracket_uncertainty_p95_ns": "62167.904372",
-      "clock_model_id": "97dc2e42012a1f473ded79fb4dd6adb0b2b71c95a8d4bf30a15584287bf9c271:clock_model:0:6",
+      "clock_model_id": "59fa160513abc33804e75ad93aa72e8bb4964e4d9a889ad5061edf64664c6772:clock_model:0:6",
       "collection_status": "unknown",
       "component_drift_ppm": {
         "marker_device": "30.633661",
@@ -248,17 +248,17 @@
         "p95": "1093.030934"
       },
       "marker_resolution": {
-        "direct_overlap_count": 21,
+        "direct_overlap_count": 0,
         "fallback_residual_ns": {
-          "count": 0,
-          "max": "0.000000",
-          "p50": "0.000000",
-          "p95": "0.000000"
+          "count": 21,
+          "max": "2041.145466",
+          "p50": "930.497276",
+          "p95": "1946.487559"
         },
         "observed_method_counts": {
-          "direct_overlap": 21
+          "ordinal_affine_fallback": 21
         },
-        "ordinal_affine_fallback_count": 0
+        "ordinal_affine_fallback_count": 21
       },
       "profiler_caller_residual_ns": {
         "max": "222.990758",
@@ -277,11 +277,11 @@
         "p50": "621.150063",
         "p95": "1093.030934"
       },
-      "run_id": "97dc2e42012a1f473ded79fb4dd6adb0b2b71c95a8d4bf30a15584287bf9c271",
+      "run_id": "59fa160513abc33804e75ad93aa72e8bb4964e4d9a889ad5061edf64664c6772",
       "scale": "1.000052546304",
-      "sidecar_path": "/workspace/ascend-b2-pilot/src/vllm-request-lifecycle-profiler-plugin/.benchmarks/results/npu6_host_device_clock_calibration/capture_07_v44_real/traceloom_sidecar_v44.db",
+      "sidecar_path": ".benchmarks/results/npu6_host_device_clock_calibration/capture_07_v44_real/traceloom_sidecar_v44_sequence.db",
       "source_kind": "ascend_sqlite_hot_path",
-      "source_path": "/workspace/ascend-b2-pilot/src/vllm-request-lifecycle-profiler-plugin/.benchmarks/results/npu6_host_device_clock_calibration/capture_07_v44_real/profile/PROF_000001_20260808111531951_01864298RFOJABQC/msprof_20260808111539.db",
+      "source_path": ".benchmarks/results/npu6_host_device_clock_calibration/capture_07_v44_real/profile/PROF_000001_20260808111531951_01864298RFOJABQC/msprof_20260808111539.db",
       "validation_marker_count": 4
     }
   ],
@@ -306,10 +306,10 @@
       "p95": "4744.139283"
     },
     "ordinal_affine_fallback_resolution_residual_ns": {
-      "count": 0,
-      "max": "0.000000",
-      "p50": "0.000000",
-      "p95": "0.000000"
+      "count": 63,
+      "max": "3529.623216",
+      "p50": "1010.618044",
+      "p95": "2900.849975"
     },
     "profiler_caller_absolute_validation_residual_ns": {
       "count": 12,

@@ -74,6 +74,11 @@ CROSS_CLOCK_AUDIT_COUNTERS = (
     "host_evidence_source_errors",
     "queued_task_link_errors",
 )
+MIN_CALIBRATION_MARKERS = 6
+ALLOWED_REAL_RESOLUTION_METHODS = frozenset({"ordinal_affine_fallback"})
+ALLOWED_REJECTED_RESOLUTION_METHODS = frozenset(
+    {"ordinal_affine_fallback", "unresolved"}
+)
 
 
 def _parse_args() -> argparse.Namespace:
@@ -95,6 +100,39 @@ def _parse_args() -> argparse.Namespace:
 
 def _decimal(value: object) -> Decimal:
     return Decimal(str(value))
+
+
+def _portable_path(value: str | Path) -> str:
+    path = Path(value)
+    try:
+        return str(path.resolve().relative_to(REPO_ROOT.resolve()))
+    except ValueError:
+        return str(path)
+
+
+def _require_real_resolution_method(path: Path, method: object) -> str:
+    value = str(method)
+    if value not in ALLOWED_REAL_RESOLUTION_METHODS:
+        raise ValueError(f"{path}: unsupported real marker resolution method {value!r}")
+    return value
+
+
+def _capture_meets_acceptance_contract(capture: dict[str, Any]) -> bool:
+    return (
+        capture["alignment_status"] == "calibrated"
+        and capture["audit_status"] == "PASS"
+        and capture["input_marker_count"] >= MIN_CALIBRATION_MARKERS
+        and capture["inlier_marker_count"] >= MIN_CALIBRATION_MARKERS
+        and capture["fit_marker_count"] > 0
+        and capture["validation_marker_count"] > 0
+        and capture["input_marker_count"]
+        == capture["inlier_marker_count"] + capture["rejected_marker_count"]
+        and capture["inlier_marker_count"]
+        == capture["fit_marker_count"] + capture["validation_marker_count"]
+        and capture["marker_resolution"]["direct_overlap_count"] == 0
+        and set(capture["marker_resolution"]["observed_method_counts"])
+        <= ALLOWED_REAL_RESOLUTION_METHODS
+    )
 
 
 def _decimal_text(value: Decimal, places: int = 6) -> str:
@@ -158,6 +196,33 @@ def _one_capture(
             raise ValueError(
                 f"{path}: expected calibrated, got {model['alignment_status']}"
             )
+        if model["input_marker_count"] < MIN_CALIBRATION_MARKERS:
+            raise ValueError(
+                f"{path}: calibrated capture has fewer than "
+                f"{MIN_CALIBRATION_MARKERS} input markers"
+            )
+        if model["inlier_marker_count"] < MIN_CALIBRATION_MARKERS:
+            raise ValueError(
+                f"{path}: calibrated capture has fewer than "
+                f"{MIN_CALIBRATION_MARKERS} inlier markers"
+            )
+        if model["fit_marker_count"] <= 0:
+            raise ValueError(f"{path}: calibrated capture has no fit markers")
+        if model["validation_marker_count"] <= 0:
+            raise ValueError(f"{path}: calibrated capture has no validation markers")
+        if model["input_marker_count"] != (
+            model["inlier_marker_count"] + model["rejected_marker_count"]
+        ):
+            raise ValueError(f"{path}: input count does not equal inlier plus rejected")
+        if model["inlier_marker_count"] != (
+            model["fit_marker_count"] + model["validation_marker_count"]
+        ):
+            raise ValueError(f"{path}: inlier count does not equal fit plus validation")
+        if model["direct_overlap_marker_count"] != 0:
+            raise ValueError(
+                f"{path}: real v4.4 capture uses forbidden cross-domain "
+                "direct_overlap identity"
+            )
         expected_mapping = {
             "source_clock_domain": "profiler_host",
             "intermediate_clock_domain": "caller_clock_realtime",
@@ -199,6 +264,8 @@ def _one_capture(
             "where clock_model_id = ? order by host_midpoint_ns",
             (model["clock_model_id"],),
         ).fetchall()
+        if len(marker_rows) != model["input_marker_count"]:
+            raise ValueError(f"{path}: input marker count disagrees with marker rows")
         marker_reference_host = _decimal(model["reference_marker_host_ns"])
         marker_reference_device = _decimal(model["marker_reference_device_ns"])
         marker_to_device_scale = _decimal(model["marker_to_device_scale"])
@@ -217,8 +284,16 @@ def _one_capture(
         resolution_method_counts: dict[str, int] = {}
         for marker in marker_rows:
             if marker["marker_state"] == "rejected_marker":
+                method = str(marker["resolution_method"])
+                if method not in ALLOWED_REJECTED_RESOLUTION_METHODS:
+                    raise ValueError(
+                        f"{path}: unsupported rejected marker resolution method "
+                        f"{method!r}"
+                    )
                 continue
-            method = marker["resolution_method"]
+            method = _require_real_resolution_method(
+                path, marker["resolution_method"]
+            )
             resolution_method_counts[method] = (
                 resolution_method_counts.get(method, 0) + 1
             )
@@ -481,9 +556,9 @@ def _one_capture(
         "contract_version": metadata["contract_version"],
         "attribution_rule_version": metadata["attribution_rule_version"],
         "scale": model["scale"],
-        "sidecar_path": str(path.resolve()),
+        "sidecar_path": _portable_path(path),
         "source_kind": metadata["source_kind"],
-        "source_path": metadata["source_path"],
+        "source_path": _portable_path(metadata["source_path"]),
         "validation_marker_count": model["validation_marker_count"],
     }
     return capture, {
@@ -508,7 +583,8 @@ def _markdown(summary: dict[str, Any]) -> str:
         "",
         (
             "| Capture | Status/audit | Drift ppm marker→device / profiler→caller | "
-            "Markers input/inlier/rejected | Fit/validation | Direct/fallback | "
+            "Markers input/inlier/rejected | Fit/validation | "
+            "Forbidden direct/validated sequence | "
             "Marker→device residual p50/p95/max (ns) | "
             "Profiler→caller residual p50/p95/max (ns) | Outer bracket p95 (ns) | "
             "Record-call bracket p95 (device ns) | "
@@ -655,8 +731,7 @@ def main() -> int:
         "PASS"
         if len(captures) >= 3
         and len(unique_run_ids) == len(captures)
-        and all(capture["alignment_status"] == "calibrated" for capture in captures)
-        and all(capture["audit_status"] == "PASS" for capture in captures)
+        and all(_capture_meets_acceptance_contract(capture) for capture in captures)
         and all(capture["mapping"]["kind"] == "composed_affine" for capture in captures)
         and all(
             capture["mapping"]["profiler_caller_observation_kind"]

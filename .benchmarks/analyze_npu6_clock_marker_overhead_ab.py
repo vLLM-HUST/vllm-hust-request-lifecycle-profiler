@@ -53,6 +53,14 @@ def _load_json(path: Path) -> dict[str, Any]:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
+def _portable_path(value: str | Path) -> str:
+    path = Path(value)
+    try:
+        return str(path.resolve().relative_to(REPO_ROOT.resolve()))
+    except ValueError:
+        return str(path)
+
+
 def _percentile(values: list[float], probability: float) -> float:
     if not values:
         return 0.0
@@ -126,6 +134,22 @@ def _request_identity(path: Path) -> dict[str, Any]:
     return {
         "record_count": len(records),
         "schedule_sha256": hashlib.sha256(payload).hexdigest(),
+    }
+
+
+def _token_timing_identity(path: Path) -> dict[str, Any]:
+    records = _load_json(path)["records"]
+    valid = bool(records) and all(
+        row.get("token_timing_source") == "sse_choice_token_ids"
+        and isinstance(row.get("generated_token_count"), int)
+        and row["generated_token_count"] > 0
+        for row in records
+        if row.get("ok")
+    )
+    return {
+        "record_count": len(records),
+        "source": "sse_choice_token_ids" if valid else "unverified_or_legacy_frames",
+        "valid": valid,
     }
 
 
@@ -206,7 +230,7 @@ def _sidecar_summary(path: Path, audit_sql: str) -> dict[str, Any]:
         "marker_states": marker_states,
         "marker_resolution_methods": marker_resolution_methods,
         "metadata": metadata,
-        "sidecar_path": str(path.resolve()),
+        "sidecar_path": _portable_path(path),
     }
 
 
@@ -255,16 +279,20 @@ def _variant(
             marker_count = max(0, sum(1 for _ in handle) - 1)
     return {
         "client": _load_json(client_dir / "summary.json"),
+        "client_run_metadata": _load_json(client_dir / "run_metadata.json"),
         "iteration": _iteration_summary(run_dir / "iteration_timings.tsv"),
         "marker_bracket_count": marker_count,
-        "profile_db": str(profile_dbs[0].resolve()),
+        "profile_db": _portable_path(profile_dbs[0]),
         "provenance": _load_json(run_dir / "provenance.json"),
         "request_identity": _request_identity(client_dir / "probe_results.json"),
+        "token_timing_identity": _token_timing_identity(
+            client_dir / "probe_results.json"
+        ),
         "sidecar": _sidecar_summary(
             sidecar_path or run_dir / "traceloom_sidecar.db", audit_sql
         ),
         "task_duration_diagnostics": _task_duration_diagnostics(profile_dbs[0]),
-        "variant_dir": str(path.resolve()),
+        "variant_dir": _portable_path(path),
     }
 
 
@@ -281,6 +309,31 @@ def _same_command_except_runtime_endpoints(lhs: list[str], rhs: list[str]) -> bo
         return result
 
     return normalized(lhs) == normalized(rhs)
+
+
+def _source_matching_checks(
+    disabled_metadata: dict[str, Any], enabled_metadata: dict[str, Any]
+) -> dict[str, bool]:
+    disabled_repo = disabled_metadata["repo"]
+    enabled_repo = enabled_metadata["repo"]
+    disabled_workload = disabled_metadata["workload_source"]
+    enabled_workload = enabled_metadata["workload_source"]
+    return {
+        "probe_repository_revision": (
+            disabled_repo["commit"] == enabled_repo["commit"]
+        ),
+        "probe_repository_clean": (
+            disabled_repo["dirty_excluding_output_dir"] is False
+            and enabled_repo["dirty_excluding_output_dir"] is False
+        ),
+        "workload_repository_revision": (
+            disabled_workload["commit"] == enabled_workload["commit"]
+        ),
+        "workload_repository_clean": (
+            disabled_workload["dirty"] is False
+            and enabled_workload["dirty"] is False
+        ),
+    }
 
 
 def _metric(
@@ -304,14 +357,19 @@ def _metric(
     }
 
 
-def _metrics(disabled: dict[str, Any], enabled: dict[str, Any]) -> list[dict[str, Any]]:
+def _metrics(
+    disabled: dict[str, Any],
+    enabled: dict[str, Any],
+    *,
+    include_token_metrics: bool,
+) -> list[dict[str, Any]]:
     disabled_client = disabled["client"]
     enabled_client = enabled["client"]
     disabled_iteration = disabled["iteration"]
     enabled_iteration = enabled["iteration"]
     disabled_sidecar = disabled["sidecar"]
     enabled_sidecar = enabled["sidecar"]
-    return [
+    metrics = [
         _metric(
             "request throughput",
             "request/s",
@@ -349,30 +407,6 @@ def _metrics(disabled: dict[str, Any], enabled: dict[str, Any]) -> list[dict[str
             enabled_client["latency_ms"]["p95"],
         ),
         _metric(
-            "ITL p50",
-            "ms",
-            disabled_client["inter_token_latency_ms"]["p50"],
-            enabled_client["inter_token_latency_ms"]["p50"],
-        ),
-        _metric(
-            "ITL p95",
-            "ms",
-            disabled_client["inter_token_latency_ms"]["p95"],
-            enabled_client["inter_token_latency_ms"]["p95"],
-        ),
-        _metric(
-            "TPOT p50",
-            "ms",
-            disabled_client["tpot_ms"]["p50"],
-            enabled_client["tpot_ms"]["p50"],
-        ),
-        _metric(
-            "TPOT p95",
-            "ms",
-            disabled_client["tpot_ms"]["p95"],
-            enabled_client["tpot_ms"]["p95"],
-        ),
-        _metric(
             "decode iteration duration p50",
             "ms",
             disabled_iteration["decode_duration_ms"]["p50"],
@@ -403,6 +437,34 @@ def _metrics(disabled: dict[str, Any], enabled: dict[str, Any]) -> list[dict[str
             enabled["marker_bracket_count"],
         ),
     ]
+    if include_token_metrics:
+        metrics[6:6] = [
+            _metric(
+                "ITL p50",
+                "ms",
+                disabled_client["inter_token_latency_ms"]["p50"],
+                enabled_client["inter_token_latency_ms"]["p50"],
+            ),
+            _metric(
+                "ITL p95",
+                "ms",
+                disabled_client["inter_token_latency_ms"]["p95"],
+                enabled_client["inter_token_latency_ms"]["p95"],
+            ),
+            _metric(
+                "TPOT p50",
+                "ms",
+                disabled_client["tpot_ms"]["p50"],
+                enabled_client["tpot_ms"]["p50"],
+            ),
+            _metric(
+                "TPOT p95",
+                "ms",
+                disabled_client["tpot_ms"]["p95"],
+                enabled_client["tpot_ms"]["p95"],
+            ),
+        ]
+    return metrics
 
 
 def _excluded_diagnostic(path: Path) -> dict[str, Any]:
@@ -414,7 +476,7 @@ def _excluded_diagnostic(path: Path) -> dict[str, Any]:
             "phase; it is retained but excluded from marker overhead deltas."
         ),
         "summary": summary,
-        "variant_dir": str(path.resolve()),
+        "variant_dir": _portable_path(path),
     }
 
 
@@ -457,6 +519,16 @@ def _markdown(summary: dict[str, Any]) -> str:
             f"| {metric['metric']} | {metric['disabled']:.6f} | "
             f"{metric['enabled']:.6f} | {metric['delta']:.6f} | "
             f"{percent_text} | {metric['unit']} |"
+        )
+    if not summary["matching_checks"]["token_metrics_from_sse_token_ids"]:
+        lines.extend(
+            [
+                "",
+                (
+                    "ITL and TPOT are omitted because the retained client "
+                    "capture timestamped SSE frames rather than decoded token IDs."
+                ),
+            ]
         )
     model = summary["enabled_calibration"]
     e4 = summary["enabled_e4"]
@@ -518,11 +590,11 @@ def _markdown(summary: dict[str, Any]) -> str:
             "## Interpretation boundary",
             "",
             (
-                "This is a real-online, fixed-rate matched pair. It reports the "
-                "observed latency and iteration perturbation for this workload; "
-                "it does not establish a population confidence interval or a "
-                "universal overhead bound. Full-boundary device time includes "
-                "server warm-up and profiler-tail effects and is diagnostic while "
+                "This retained real-online pair is rejected for an overhead "
+                "acceptance claim because its source checkout was dirty outside "
+                "the output directory and its client did not preserve token-ID "
+                "arrival timestamps. The non-token deltas remain diagnostics "
+                "only. Full-boundary device time also remains diagnostic while "
                 "the sidecar run status is invalid_input."
             ),
             "",
@@ -550,7 +622,11 @@ def main() -> int:
     enabled = _variant(args.enabled_dir, audit_sql, args.enabled_sidecar)
     disabled_provenance = disabled["provenance"]
     enabled_provenance = enabled["provenance"]
+    source_matching_checks = _source_matching_checks(
+        disabled["client_run_metadata"], enabled["client_run_metadata"]
+    )
     matching_checks = {
+        **source_matching_checks,
         "client_command_except_runtime_endpoints": (
             _same_command_except_runtime_endpoints(
                 disabled_provenance["client_command"],
@@ -559,6 +635,10 @@ def main() -> int:
         ),
         "fixed_request_schedule": (
             disabled["request_identity"] == enabled["request_identity"]
+        ),
+        "token_metrics_from_sse_token_ids": (
+            disabled["token_timing_identity"]["valid"]
+            and enabled["token_timing_identity"]["valid"]
         ),
         "installed_runtime": (
             disabled_provenance["installed_runtime"]
@@ -617,6 +697,9 @@ def main() -> int:
         and enabled["sidecar"]["metadata"]["attribution_rule_version"]
         == "host_device_projection_v2"
         and enabled_model["validation_marker_count"] > 0
+        and enabled_model["direct_overlap_marker_count"] == 0
+        and set(enabled["sidecar"]["marker_resolution_methods"])
+        <= {"ordinal_affine_fallback", "unresolved"}
         and enabled["sidecar"]["audit"]["audit_status"] == "PASS"
     )
     full_run_valid = (
@@ -650,8 +733,18 @@ def main() -> int:
         ],
         "full_idle_evidence_acceptance": "PASS" if full_run_valid else "FAIL",
         "matching_checks": matching_checks,
-        "metrics": _metrics(disabled, enabled),
-        "overhead_claim_status": "observed_single_pair_no_confidence_interval",
+        "metrics": _metrics(
+            disabled,
+            enabled,
+            include_token_metrics=matching_checks[
+                "token_metrics_from_sse_token_ids"
+            ],
+        ),
+        "overhead_claim_status": (
+            "observed_single_pair_no_confidence_interval"
+            if protocol_valid
+            else "rejected_unmatched_or_dirty_source"
+        ),
         "protocol_acceptance": "PASS" if protocol_valid else "FAIL",
     }
     args.output_dir.mkdir(parents=True, exist_ok=True)
@@ -667,7 +760,7 @@ def main() -> int:
         json.dumps(
             {
                 "capture_acceptance": summary["capture_acceptance"],
-                "output_dir": str(args.output_dir.resolve()),
+                "output_dir": _portable_path(args.output_dir),
                 "overhead_claim_status": summary["overhead_claim_status"],
             },
             sort_keys=True,

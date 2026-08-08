@@ -8,7 +8,7 @@
   "elapsed_ns": 217324352,
   "logical_device_id": 0,
   "marker_count": 21,
-  "marker_path": "/workspace/ascend-b2-pilot/src/vllm-request-lifecycle-profiler-plugin/.benchmarks/results/npu6_host_device_clock_calibration/capture_07_v44_real/clock_marker_brackets.tsv",
+  "marker_path": ".benchmarks/results/npu6_host_device_clock_calibration/capture_07_v44_real/clock_marker_brackets.tsv",
   "physical_device_visibility": {
     "ASCEND_RT_VISIBLE_DEVICES": "6",
     "ASCEND_VISIBLE_DEVICES": "6"

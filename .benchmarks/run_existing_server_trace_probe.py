@@ -66,6 +66,40 @@ def _now_ms(start: float) -> float:
     return (time.perf_counter() - start) * 1000.0
 
 
+def _stream_token_ids(payload: bytes) -> list[int] | None:
+    """Return delta token IDs from one decoded SSE JSON payload.
+
+    ``None`` means that the frame carries no token-bearing choice (for
+    example a finish or usage frame). A token-bearing choice without the
+    requested token IDs is rejected so frame timestamps can never be
+    mislabeled as token timestamps.
+    """
+
+    decoded = json.loads(payload)
+    if not isinstance(decoded, dict) or not isinstance(decoded.get("choices"), list):
+        raise ValueError("SSE payload must contain a choices list")
+    token_ids: list[int] = []
+    saw_token_ids = False
+    for choice in decoded["choices"]:
+        if not isinstance(choice, dict):
+            raise ValueError("SSE choice must be an object")
+        choice_token_ids = choice.get("token_ids")
+        if choice_token_ids is None:
+            if choice.get("text"):
+                raise ValueError("token-bearing SSE choice lacks token_ids")
+            continue
+        if not isinstance(choice_token_ids, list) or any(
+            isinstance(token_id, bool) or not isinstance(token_id, int)
+            for token_id in choice_token_ids
+        ):
+            raise ValueError("SSE choice token_ids must be an integer list")
+        if choice.get("text") and not choice_token_ids:
+            raise ValueError("token-bearing SSE choice has empty token_ids")
+        saw_token_ids = True
+        token_ids.extend(choice_token_ids)
+    return token_ids if saw_token_ids else None
+
+
 def _event(
     *,
     request_id: str,
@@ -131,6 +165,10 @@ def _stream_completion(
             "max_tokens": max_tokens,
             "temperature": 0.0,
             "stream": True,
+            # vLLM returns delta token IDs for each streaming choice. Token
+            # latency metrics must use these IDs rather than treating SSE
+            # frames as one-token observations.
+            "return_token_ids": True,
         }
     ).encode("utf-8")
     request = Request(
@@ -159,7 +197,7 @@ def _stream_completion(
     first_token_seen = False
     first_token_ms: float | None = None
     last_data_chunk_ms: float | None = None
-    chunk_arrival_ms: list[float] = []
+    token_arrival_ms: list[float] = []
     try:
         with urlopen(request, timeout=timeout_s) as response:
             status = response.status
@@ -174,9 +212,19 @@ def _stream_completion(
                 if line.startswith(b"data: ") and stripped != b"data: [DONE]":
                     chunk_count += 1
                     arrival_ms = _now_ms(start)
-                    chunk_arrival_ms.append(arrival_ms)
                     last_data_chunk_ms = arrival_ms
-                    if not first_token_seen:
+                    try:
+                        delta_token_ids = _stream_token_ids(
+                            stripped.removeprefix(b"data: ")
+                        )
+                    except (UnicodeDecodeError, json.JSONDecodeError, ValueError):
+                        error = "invalid_sse_token_payload"
+                        break
+                    if delta_token_ids:
+                        token_arrival_ms.extend(
+                            arrival_ms for _ in delta_token_ids
+                        )
+                    if delta_token_ids and not first_token_seen:
                         first_token_seen = True
                         ts = arrival_ms
                         first_token_ms = ts
@@ -260,12 +308,12 @@ def _stream_completion(
     latency_ms = events[-1]["timestamp_ms"] if events else end_ms
     inter_token_latency_ms = [
         current - previous
-        for previous, current in pairwise(chunk_arrival_ms)
+        for previous, current in pairwise(token_arrival_ms)
     ]
     tpot_ms = (
-        (chunk_arrival_ms[-1] - chunk_arrival_ms[0])
-        / (len(chunk_arrival_ms) - 1)
-        if len(chunk_arrival_ms) > 1
+        (token_arrival_ms[-1] - token_arrival_ms[0])
+        / (len(token_arrival_ms) - 1)
+        if len(token_arrival_ms) > 1
         else None
     )
     return {
@@ -276,8 +324,10 @@ def _stream_completion(
         "latency_ms": latency_ms,
         "first_token_ms": first_token_ms,
         "inter_token_latency_ms": inter_token_latency_ms,
+        "generated_token_count": len(token_arrival_ms),
         "stream_chunk_count": chunk_count,
         "stream_byte_count": byte_count,
+        "token_timing_source": "sse_choice_token_ids",
         "tpot_ms": tpot_ms,
         "events": events,
     }

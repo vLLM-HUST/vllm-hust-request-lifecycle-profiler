@@ -23,6 +23,10 @@ from pathlib import Path
 from typing import Protocol
 
 CLOCK_MARKER_EXPORT_ENV = "VLLM_RLP_ASCEND_CLOCK_MARKER_BRACKETS_PATH"
+CLOCK_MARKER_MAX_RECORDS_ENV = "VLLM_RLP_ASCEND_CLOCK_MARKER_MAX_RECORDS"
+DEFAULT_CLOCK_MARKER_MAX_RECORDS = 4096
+MAX_CLOCK_MARKER_MAX_RECORDS = 1_000_000
+CLOCK_MARKER_CAPACITY_EXHAUSTED_STATUS = -900001
 CLOCK_MARKER_TSV_HEADER = (
     "marker_id\thost_before_ns\trecord_after_ns\thost_after_ns\t"
     "host_pid\thost_tid\t"
@@ -119,23 +123,35 @@ class AscendClockMarkerCollector:
         call_site: str = "vllm_request_lifecycle_profiler.clock_markers",
         runtime: AscendRuntime | None = None,
         time_ns: Callable[[], int] = time.time_ns,
+        max_records: int = DEFAULT_CLOCK_MARKER_MAX_RECORDS,
     ) -> None:
         self._lock = threading.Lock()
         self._sequence = 0
         self._event: int | None = None
         self._fd = -1
+        self._capacity_exhausted = False
         if device_id < 0:
             raise ValueError("device_id must be non-negative")
         if stream_handle < 0:
             raise ValueError("stream_handle must be non-negative")
         if stream_id is not None and stream_id < 0:
             raise ValueError("stream_id must be non-negative")
+        if (
+            isinstance(max_records, bool)
+            or not isinstance(max_records, int)
+            or not 1 <= max_records <= MAX_CLOCK_MARKER_MAX_RECORDS
+        ):
+            raise ValueError(
+                "max_records must be an integer in "
+                f"[1, {MAX_CLOCK_MARKER_MAX_RECORDS}]"
+            )
         _validate_tsv_field(call_site, "call_site")
         self.export_path = Path(export_path)
         self.device_id = int(device_id)
         self.stream_handle = int(stream_handle)
         self.stream_id = None if stream_id is None else int(stream_id)
         self.call_site = call_site
+        self.max_records = max_records
         self._runtime = runtime or CtypesAscendRuntime()
         self._time_ns = time_ns
 
@@ -170,6 +186,15 @@ class AscendClockMarkerCollector:
         raw_path = source.get(CLOCK_MARKER_EXPORT_ENV, "").strip()
         if not raw_path:
             return None
+        if "max_records" not in kwargs:
+            raw_max_records = source.get(CLOCK_MARKER_MAX_RECORDS_ENV, "").strip()
+            if raw_max_records:
+                try:
+                    kwargs["max_records"] = int(raw_max_records)
+                except ValueError as error:
+                    raise ValueError(
+                        f"{CLOCK_MARKER_MAX_RECORDS_ENV} must be an integer"
+                    ) from error
         return cls(
             Path(raw_path),
             device_id=device_id,
@@ -178,12 +203,34 @@ class AscendClockMarkerCollector:
             **kwargs,
         )
 
-    def record(self, marker_id: str | None = None) -> ClockMarkerBracket:
+    def record(self, marker_id: str | None = None) -> ClockMarkerBracket | None:
         with self._lock:
             if self._event is None or self._fd < 0:
                 raise RuntimeError("clock marker collector is closed")
             host_pid = os.getpid()
             host_tid = threading.get_native_id()
+            if self._capacity_exhausted:
+                return None
+            if self._sequence >= self.max_records:
+                # Emit exactly one auditable sentinel without invoking another
+                # runtime marker. The resolver rejects this capture, while all
+                # later calls become bounded no-ops for serving.
+                timestamp_ns = int(self._time_ns())
+                bracket = ClockMarkerBracket(
+                    marker_id=f"capacity-exhausted-{host_pid}-{host_tid}",
+                    host_before_ns=timestamp_ns,
+                    record_after_ns=timestamp_ns,
+                    host_after_ns=timestamp_ns,
+                    host_pid=host_pid,
+                    host_tid=host_tid,
+                    device_id=self.device_id,
+                    stream_id=self.stream_id,
+                    call_site=self.call_site,
+                    return_status=CLOCK_MARKER_CAPACITY_EXHAUSTED_STATUS,
+                )
+                self._write_bracket(bracket)
+                self._capacity_exhausted = True
+                return bracket
             if marker_id is None:
                 marker_id = f"{host_pid}-{host_tid}-{self._sequence:06d}"
             _validate_tsv_field(marker_id, "marker_id")
@@ -215,6 +262,10 @@ class AscendClockMarkerCollector:
             )
             self._write_bracket(bracket)
             return bracket
+
+    @property
+    def capacity_exhausted(self) -> bool:
+        return self._capacity_exhausted
 
     def close(self) -> None:
         with self._lock:
@@ -278,3 +329,8 @@ def _write_all(fd: int, payload: bytes) -> None:
 def _validate_tsv_field(value: str, field: str) -> None:
     if not value or any(character in value for character in "\t\r\n"):
         raise ValueError(f"{field} must be non-empty and contain no TSV controls")
+    has_non_printable_ascii = any(
+        not 0x20 <= ord(character) <= 0x7E for character in value
+    )
+    if has_non_printable_ascii or len(value) > 128:
+        raise ValueError(f"{field} must be printable ASCII at most 128 bytes")

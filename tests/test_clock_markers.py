@@ -5,7 +5,9 @@ import os
 import pytest
 
 from vllm_request_lifecycle_profiler.clock_markers import (
+    CLOCK_MARKER_CAPACITY_EXHAUSTED_STATUS,
     CLOCK_MARKER_EXPORT_ENV,
+    CLOCK_MARKER_MAX_RECORDS_ENV,
     CLOCK_MARKER_TSV_HEADER,
     AscendClockMarkerCollector,
 )
@@ -138,6 +140,10 @@ def test_clock_marker_ids_and_call_sites_are_strict_tsv_fields(tmp_path) -> None
     )
     with pytest.raises(ValueError, match="marker_id"):
         collector.record("bad\nmarker")
+    with pytest.raises(ValueError, match="printable ASCII"):
+        collector.record("bad\x00marker")
+    with pytest.raises(ValueError, match="128 bytes"):
+        collector.record("x" * 129)
     collector.close()
 
 
@@ -152,3 +158,60 @@ def test_clock_marker_rejects_non_monotonic_realtime_bracket(tmp_path) -> None:
     with pytest.raises(RuntimeError, match="moved backward"):
         collector.record("clock-step")
     collector.close()
+
+
+def test_clock_marker_capacity_emits_one_sentinel_then_drops(tmp_path) -> None:
+    marker_path = tmp_path / "bounded.tsv"
+    runtime = FakeAscendRuntime()
+    timestamps = iter([100, 110, 120, 200, 210, 220, 300])
+    collector = AscendClockMarkerCollector(
+        marker_path,
+        device_id=6,
+        runtime=runtime,
+        time_ns=lambda: next(timestamps),
+        max_records=2,
+    )
+
+    assert collector.record("marker-0") is not None
+    assert collector.record("marker-1") is not None
+    sentinel = collector.record("marker-2")
+    assert sentinel is not None
+    assert sentinel.return_status == CLOCK_MARKER_CAPACITY_EXHAUSTED_STATUS
+    assert collector.capacity_exhausted is True
+    assert collector.record("marker-3") is None
+    collector.close()
+
+    rows = marker_path.read_text(encoding="utf-8").splitlines()
+    assert len(rows) == 4
+    assert rows[-1].startswith("capacity-exhausted-")
+    assert rows[-1].endswith(f"\t{CLOCK_MARKER_CAPACITY_EXHAUSTED_STATUS}")
+    assert [call[0] for call in runtime.calls].count("record") == 2
+    assert [call[0] for call in runtime.calls].count("sync") == 2
+
+
+def test_clock_marker_capacity_can_be_configured_from_env(tmp_path) -> None:
+    collector = AscendClockMarkerCollector.from_env(
+        device_id=6,
+        env={
+            CLOCK_MARKER_EXPORT_ENV: str(tmp_path / "from-env.tsv"),
+            CLOCK_MARKER_MAX_RECORDS_ENV: "7",
+        },
+        runtime=FakeAscendRuntime(),
+        time_ns=lambda: 1,
+    )
+    assert collector is not None
+    assert collector.max_records == 7
+    collector.close()
+
+
+@pytest.mark.parametrize("value", ["0", "1000001", "not-an-int"])
+def test_clock_marker_capacity_rejects_invalid_env_values(tmp_path, value) -> None:
+    with pytest.raises(ValueError, match="max_records|must be an integer"):
+        AscendClockMarkerCollector.from_env(
+            device_id=6,
+            env={
+                CLOCK_MARKER_EXPORT_ENV: str(tmp_path / "unused.tsv"),
+                CLOCK_MARKER_MAX_RECORDS_ENV: value,
+            },
+            runtime=FakeAscendRuntime(),
+        )

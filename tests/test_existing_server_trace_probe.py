@@ -3,6 +3,8 @@ from __future__ import annotations
 import importlib.util
 from pathlib import Path
 
+import pytest
+
 from vllm_request_lifecycle_profiler.trace import LifecycleStage
 
 
@@ -39,6 +41,39 @@ def test_numeric_summary_reports_tail_percentiles() -> None:
     assert summary["p95"] > 80.0
     assert summary["p99"] > summary["p95"]
     assert summary["max"] == 100.0
+
+
+def test_stream_token_ids_exclude_finish_and_usage_frames() -> None:
+    module = _load_probe_module()
+    assert (
+        module._stream_token_ids(
+            b'{"choices":[{"text":"","finish_reason":"stop"}]}'
+        )
+        is None
+    )
+    assert (
+        module._stream_token_ids(
+            b'{"choices":[],"usage":{"completion_tokens":3}}'
+        )
+        is None
+    )
+
+
+def test_stream_token_ids_preserve_batched_delta_tokens() -> None:
+    module = _load_probe_module()
+    assert module._stream_token_ids(
+        b'{"choices":[{"text":"abc","token_ids":[11,12,13]}]}'
+    ) == [11, 12, 13]
+
+
+def test_stream_token_ids_reject_text_without_token_identity() -> None:
+    module = _load_probe_module()
+    with pytest.raises(ValueError, match="lacks token_ids"):
+        module._stream_token_ids(b'{"choices":[{"text":"abc"}]}')
+    with pytest.raises(ValueError, match="empty token_ids"):
+        module._stream_token_ids(
+            b'{"choices":[{"text":"abc","token_ids":[]}]}'
+        )
 
 
 def test_parse_args_supports_no_trace_mode() -> None:

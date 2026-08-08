@@ -1,0 +1,98 @@
+{
+  "schema_version": 1,
+  "hash_algorithm": "sha256",
+  "tool_repository": "https://github.com/vLLM-HUST/vllm-hust-perf-analyzer",
+  "tool_commit": "bdea6fe63c69693473cd6a7a5f31ef83ef07fb33",
+  "captures": [
+    {
+      "name": "capture_05_v44_real",
+      "run_id": "1056c581630d7653599afb1b9a785d3afd010d069987bea70a1394cceec7cab2",
+      "artifacts": {
+        "clock_marker_brackets": {
+          "path": ".benchmarks/results/npu6_host_device_clock_calibration/capture_05_v44_real/clock_marker_brackets.tsv",
+          "size_bytes": 2637,
+          "sha256": "25f0307b7290ca5cb63f2c09c98e98ee188b94436ed4acfa0e8822cb7075a246"
+        },
+        "probe_summary": {
+          "path": ".benchmarks/results/npu6_host_device_clock_calibration/capture_05_v44_real/probe_summary.json",
+          "size_bytes": 695,
+          "sha256": "6b3a9d3c4670f439fb7f73e001525d9cc951f86fc82b83e141564c906d2fa4f4"
+        },
+        "source_msprof_db": {
+          "path": ".benchmarks/results/npu6_host_device_clock_calibration/capture_05_v44_real/profile/PROF_000001_20260808111408927_01861962RFGMIPIJ/msprof_20260808111416.db",
+          "size_bytes": 118784,
+          "sha256": "2f9ef02201fec3d5470738ff9f73f673086f6e4e5dd6f1597d86bbed9ed3ebb9"
+        },
+        "sidecar": {
+          "path": ".benchmarks/results/npu6_host_device_clock_calibration/capture_05_v44_real/traceloom_sidecar_v44_sequence.db",
+          "size_bytes": 1376256,
+          "sha256": "b358020008b129c1bce70cc0431fb77bf430bcec0d843ccc33b94a00c0ce4e66"
+        }
+      }
+    },
+    {
+      "name": "capture_06_v44_real",
+      "run_id": "faeadd597cb64a4c780b589997e24171fa0f0a4bc165353252c2c41de1ea9df7",
+      "artifacts": {
+        "clock_marker_brackets": {
+          "path": ".benchmarks/results/npu6_host_device_clock_calibration/capture_06_v44_real/clock_marker_brackets.tsv",
+          "size_bytes": 2637,
+          "sha256": "a4f73ed0cb86c534448dab60d60929d2010ded2f6fb0c5cec98faa1f55c208fd"
+        },
+        "probe_summary": {
+          "path": ".benchmarks/results/npu6_host_device_clock_calibration/capture_06_v44_real/probe_summary.json",
+          "size_bytes": 695,
+          "sha256": "1484da7c18fa9c9fcd4765d0f4d6dec871d4e1a62cd67dfcc2a38500b1d996a5"
+        },
+        "source_msprof_db": {
+          "path": ".benchmarks/results/npu6_host_device_clock_calibration/capture_06_v44_real/profile/PROF_000001_20260808111514183_01863898PPCAEOOK/msprof_20260808111521.db",
+          "size_bytes": 118784,
+          "sha256": "598e22a9325aafb0184619df50b78ca50ea8686267c2027eb9147f258993b7ac"
+        },
+        "sidecar": {
+          "path": ".benchmarks/results/npu6_host_device_clock_calibration/capture_06_v44_real/traceloom_sidecar_v44_sequence.db",
+          "size_bytes": 1380352,
+          "sha256": "8b013861e14288ae6ce6314fa580af6bebcf9115fddb7c4bcdeb674c2e7d51ab"
+        }
+      }
+    },
+    {
+      "name": "capture_07_v44_real",
+      "run_id": "59fa160513abc33804e75ad93aa72e8bb4964e4d9a889ad5061edf64664c6772",
+      "artifacts": {
+        "clock_marker_brackets": {
+          "path": ".benchmarks/results/npu6_host_device_clock_calibration/capture_07_v44_real/clock_marker_brackets.tsv",
+          "size_bytes": 2637,
+          "sha256": "f34fbb5826c32464ee1a782e4bf2ef5d5115d1ff8bf40a463829ab7dbf893aef"
+        },
+        "probe_summary": {
+          "path": ".benchmarks/results/npu6_host_device_clock_calibration/capture_07_v44_real/probe_summary.json",
+          "size_bytes": 696,
+          "sha256": "9e9cb0cc06b2098a2cc3e50e0e03adfd7b727300613545b7d7e5135857aad8b8"
+        },
+        "source_msprof_db": {
+          "path": ".benchmarks/results/npu6_host_device_clock_calibration/capture_07_v44_real/profile/PROF_000001_20260808111531951_01864298RFOJABQC/msprof_20260808111539.db",
+          "size_bytes": 118784,
+          "sha256": "386badedcde5e0d04b9f14fb606b63807b6ba7a3ca71fc8b4be610ffd17b5413"
+        },
+        "sidecar": {
+          "path": ".benchmarks/results/npu6_host_device_clock_calibration/capture_07_v44_real/traceloom_sidecar_v44_sequence.db",
+          "size_bytes": 1380352,
+          "sha256": "a51291cdf8cb9ec6ebf9e9cf263e784a9250a7a89135c1a7536b5e231ab7490a"
+        }
+      }
+    }
+  ],
+  "summary_artifacts": {
+    "json": {
+      "path": ".benchmarks/results/npu6_host_device_clock_calibration/calibration_summary.json",
+      "size_bytes": 12009,
+      "sha256": "be0d53196ab396d0954078aa9116c2140d027af2c28e0191af1aacabb90c50fe"
+    },
+    "markdown": {
+      "path": ".benchmarks/results/npu6_host_device_clock_calibration/calibration_summary.md",
+      "size_bytes": 2696,
+      "sha256": "15b61b9f245f0ea5f3c4f5da8588fc25675001c49c8676a3809bca6e1082263a"
+    }
+  }
+}

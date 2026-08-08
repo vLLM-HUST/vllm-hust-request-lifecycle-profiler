@@ -320,12 +320,14 @@ workload matrix.
 ## Phase 1.5: Host→Device Clock and Idle-Evidence Calibration
 
 - Completed: three new v4.4 NPU6 micro-captures each provide 21 inlier markers
-  and a 17/4 fit/validation split. They yield 21 direct-overlap and zero
-  fallback markers per capture, epsilon 62.729/71.010/76.995 μs, and three
+  and a 17/4 fit/validation split. They yield zero direct-overlap and 21
+  affine-validated sequence markers per capture, epsilon
+  62.729/71.010/76.995 μs, and three
   passing strengthened SQL audits. One capture also has `analysis_status=ok`;
   all have zero correlated E4 duration.
-- Completed: real bracket resolution uses exact overlap or an affine-validated
-  same-thread order-preserving bijection, then a unique CANN_API connectionId
+- Completed: real bracket resolution forbids raw cross-domain overlap and uses
+  an affine-validated same-thread order-preserving bijection, then a unique
+  CANN_API connectionId
   and at most one device TASK. Single-pair ordinal fallback is forbidden;
   resolution method and residual are retained. Missing profiler-tail TASKs
   remain rejected.
@@ -336,13 +338,12 @@ workload matrix.
 - Retracted under v4.4: the prior serving 1133→1 replay and pre-v4.4 fixed-rate
   A/B lack `record_after_ns`. They are historical diagnostics, not current
   cross-clock or instrumentation-overhead evidence.
-- Completed: a new fixed-rate v4.4 marker OFF/ON pair uses identical request
+- Rejected evidence candidate: a fixed-rate v4.4 marker OFF/ON pair uses identical request
   schedule/model/workload/profiler settings and completes 48/48 requests in
-  both variants. Protocol, calibration, and SQL audits pass. Enabled-minus-
-  disabled throughput is -0.297%; TPOT p50/p95 is +1.973%/+2.179%; decode
-  iteration p50/p95 is +1.869%/+2.812%. This is a workload-specific single-pair
-  observation; device metrics are diagnostic because both profiles have
-  `analysis_status=invalid_input`.
+  both variants. Calibration and SQL audits pass, but protocol acceptance now
+  fails because both client runs record a dirty source checkout and use SSE
+  frame timestamps rather than token-ID timestamps. ITL/TPOT are retracted;
+  all remaining deltas are diagnostic only.
 - Remaining: obtain a v4.4 serving capture with positive E4 evidence and
   `analysis_status=ok`; repeat enough A/B pairs for confidence intervals and
   memory/HBM measurements; and repeat calibration/E4 in graph mode before

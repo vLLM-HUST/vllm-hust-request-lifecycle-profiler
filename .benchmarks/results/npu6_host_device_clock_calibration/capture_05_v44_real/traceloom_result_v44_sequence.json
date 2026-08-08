@@ -1,0 +1,122 @@
+{
+  "schema_version": "native_in_memory_result_v1",
+  "source": {
+    "kind": "ascend_sqlite_hot_path",
+    "path": ".benchmarks/results/npu6_host_device_clock_calibration/capture_05_v44_real/profile/PROF_000001_20260808111408927_01861962RFGMIPIJ/msprof_20260808111416.db",
+    "fixture_id": null
+  },
+  "threads": 96,
+  "stats": {
+    "source_ref_count": 20,
+    "trace_event_count": 54,
+    "task_count": 54,
+    "communication_op_count": 0,
+    "graph_slot_template_count": 0,
+    "captured_graph_instance_count": 0,
+    "captured_graph_stream_count": 0,
+    "graph_launch_occurrence_count": 0,
+    "graph_launch_instance_linked_count": 0,
+    "graph_launch_completion_adjacent_count": 0,
+    "graph_launch_ordered_fallback_count": 0,
+    "graph_launch_unmatched_count": 0,
+    "replay_body_template_count": 0,
+    "graph_launch_body_count": 0,
+    "graph_launch_activity_count": 0,
+    "graph_launch_activity_member_count": 0,
+    "graph_launch_activity_host_sync_count": 0,
+    "graph_launch_activity_thread_tail_count": 0,
+    "graph_launch_activity_unmatched_host_execute_count": 0,
+    "replay_composition_candidate_count": 0,
+    "replay_composition_body_confirmed_count": 0,
+    "replay_composition_slot_count": 0,
+    "replay_composition_region_count": 0,
+    "replay_composition_region_member_count": 0,
+    "replay_composition_recognized_region_count": 0,
+    "replay_composition_unrecognized_region_count": 0,
+    "graph_template_count": 0,
+    "replay_unit_count": 0,
+    "exact_replay_unit_count": 0,
+    "replay_unit_launch_member_count": 0,
+    "anchor_count": 24,
+    "token_count": 24,
+    "protected_interval_count": 0,
+    "candidate_occurrence_count": 45,
+    "candidate_distinct_count": 2,
+    "candidate_diagnostic_count": 0
+  },
+  "anchor_projection": {
+    "kind": "anchor_compute_collective_only",
+    "device_event_anchors": 24,
+    "communication_anchors": 0,
+    "skipped_task_events": 30
+  },
+  "timing_ms": {
+    "load_source_adapter": 13.3951,
+    "adapter_load_and_native_ir_build": 13.3951,
+    "build_anchor_tokens": 0.925418,
+    "build_protected_sequence": 0.03888,
+    "build_boundary_index": 0.00073,
+    "partition_plan": 0.00149,
+    "candidate_scan_map": 0.007131,
+    "pattern_candidate_table": 0.00095,
+    "candidate_reduce": 0.01119,
+    "pattern_candidate_summary": 0.00105,
+    "cost_summary_lite": 0.00168,
+    "materialization": 58.5882
+  },
+  "memory": {
+    "trace_event_bytes": 2592,
+    "anchor_bytes": 1152,
+    "token_bytes": 960,
+    "protected_sequence_bytes": 960,
+    "candidate_map_bytes": 2160,
+    "pattern_mining_diagnostic_bytes": 0,
+    "pattern_candidate_summary_bytes": 96
+  },
+  "cost_summary_lite": {
+    "anchor_count": 24,
+    "total_duration_ns": 132280
+  },
+  "pattern_candidate_summary": {
+    "row_count": 2
+  },
+  "graph_slot_templates": [
+  ],
+  "captured_graph_instances": [
+  ],
+  "captured_graph_streams": [
+  ],
+  "graph_launch_occurrences": [
+  ],
+  "replay_body_templates": [
+  ],
+  "graph_launch_bodies": [
+  ],
+  "graph_launch_activities": [
+  ],
+  "graph_launch_activity_members": [
+  ],
+  "replay_composition_candidates": [
+  ],
+  "replay_composition_slots": [
+  ],
+  "replay_composition_regions": [
+  ],
+  "replay_composition_region_members": [
+  ],
+  "graph_templates": [
+  ],
+  "replay_units": [
+  ],
+  "replay_unit_launch_members": [
+  ],
+  "candidates_preview": [
+    {"rank": 0, "occurrence_count": 23, "first_begin": 0, "key": ["MatMul", "MatMul"]},
+    {"rank": 1, "occurrence_count": 22, "first_begin": 0, "key": ["MatMul", "MatMul", "MatMul"]}
+  ],
+  "diagnostics": {
+    "pattern_mining_count": 0,
+    "pattern_mining_preview": [
+    ]
+  }
+}

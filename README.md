@@ -107,11 +107,11 @@ and both bracket-uncertainty terms. Raw device syscnt is never accepted as
 profiler nanoseconds. Three new repeated real NPU6 captures pass calibration and
 the strengthened SQL audit; the composed residual now exposes the previously
 cancelled record→device latency. Prior serving and marker-overhead sidecars lack
-the new record timestamp and are retracted under v4.4. A newly recollected
-fixed-rate matched A/B passes its protocol, calibration, and SQL audits and
-quantifies workload-specific marker overhead; its device metrics remain
-diagnostic because both sidecars have `analysis_status=invalid_input`. Positive
-serving E4 remains open. See
+the new record timestamp and are retracted under v4.4. A recollected fixed-rate
+pair validates enabled-side calibration but is rejected for overhead acceptance
+because its source checkout was dirty and its client timestamped SSE frames
+rather than decoded token IDs. Positive serving E4 and clean matched
+marker-overhead evidence remain open. See
 [`docs/host_device_clock_calibration.md`](docs/host_device_clock_calibration.md).
 
 ## Test

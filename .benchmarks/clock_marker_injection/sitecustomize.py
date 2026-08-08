@@ -118,9 +118,12 @@ def _patch_worker(module: ModuleType) -> None:
         if collector is not None:
             try:
                 bracket = collector.record()
-                marker_state = (
-                    "recorded" if bracket.return_status == 0 else "runtime_error"
-                )
+                if bracket is None or collector.capacity_exhausted:
+                    marker_state = "capacity_exhausted"
+                else:
+                    marker_state = (
+                        "recorded" if bracket.return_status == 0 else "runtime_error"
+                    )
             except Exception:
                 logger.exception("Ascend clock marker collection failed")
                 marker_state = "collector_error"

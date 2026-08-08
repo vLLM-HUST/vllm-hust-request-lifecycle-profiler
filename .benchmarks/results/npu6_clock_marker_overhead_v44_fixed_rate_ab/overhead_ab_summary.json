@@ -1,6 +1,6 @@
 {
   "calibration_acceptance": "PASS",
-  "capture_acceptance": "PARTIAL",
+  "capture_acceptance": "FAIL",
   "design": {
     "fixed_offered_window_s": 24.0,
     "offered_rate_rps": 2.0,
@@ -80,6 +80,72 @@
       "warmup_request_count": 4,
       "warmup_success_count": 4
     },
+    "client_run_metadata": {
+      "api_key_env": "VLLM_HUST_API_KEY",
+      "api_key_present": true,
+      "case_id": "shared_scenario_structured_agent_decode",
+      "command": [
+        "run_existing_server_trace_probe.py",
+        "--endpoint",
+        "http://127.0.0.1:8768",
+        "--model",
+        "clock-ab-qwen",
+        "--case-id",
+        "shared_scenario_structured_agent_decode",
+        "--seed",
+        "7",
+        "--warmup-requests",
+        "4",
+        "--repeat-count",
+        "12",
+        "--max-requests",
+        "4",
+        "--request-max-tokens",
+        "32",
+        "--measured-concurrency",
+        "16",
+        "--offered-rate-rps",
+        "2.0",
+        "--measured-duration-s",
+        "24.0",
+        "--observer-mode",
+        "no-trace",
+        "--timeout-s",
+        "120",
+        "--output-dir",
+        "/workspace/ascend-b2-pilot/src/vllm-request-lifecycle-profiler-plugin/.benchmarks/results/npu6_clock_marker_overhead_v44_fixed_rate_ab/marker_disabled_retry/run/client"
+      ],
+      "endpoint": "http://127.0.0.1:8768",
+      "evidence_label": "existing-server-probe",
+      "max_requests": 4,
+      "measured_concurrency": 16,
+      "measured_duration_s": 24.0,
+      "model": "clock-ab-qwen",
+      "observer_mode": "no-trace",
+      "offered_rate_rps": 2.0,
+      "per_chunk_read_delay_ms": 0.0,
+      "proxy_stage_mode": "decode-proxy",
+      "repeat_count": 12,
+      "repo": {
+        "branch": "feat/host-device-clock-calibration",
+        "commit": "fa493902bd3c8cf71b4dbc1860468aaa50c2cdc9",
+        "dirty": true,
+        "dirty_excluding_output_dir": true,
+        "dirty_exclusion_dir": "/workspace/ascend-b2-pilot/src/vllm-request-lifecycle-profiler-plugin/.benchmarks/results/npu6_clock_marker_overhead_v44_fixed_rate_ab/marker_disabled_retry/run/client",
+        "path": "/workspace/ascend-b2-pilot/src/vllm-request-lifecycle-profiler-plugin"
+      },
+      "result_valid_for_speedup_claims": false,
+      "seed": 7,
+      "timestamp_utc": "2026-08-08T11:26:55.768566+00:00",
+      "trace_boundary": "Client-observed lifecycle proxy trace. It records request preparation, HTTP send, first streamed chunk, stream completion, and cleanup from the probe process; it is not yet an internal vLLM scheduler/KV trace.",
+      "trace_export_path": "/tmp/codex-vllm-request-lifecycle-profiler-npu6-trace.jsonl",
+      "warmup_requests": 4,
+      "workload_source": {
+        "commit": "76e24c85bcab76ecfabb831c9444002b6efffd58",
+        "dirty": false,
+        "path": "third_party/llm-serving-workloads"
+      }
+    },
     "iteration": {
       "all_duration_ms": {
         "count": 595,
@@ -139,7 +205,7 @@
       "scheduled_token_count": 12440
     },
     "marker_bracket_count": 0,
-    "profile_db": "/workspace/ascend-b2-pilot/src/vllm-request-lifecycle-profiler-plugin/.benchmarks/results/npu6_clock_marker_overhead_v44_fixed_rate_ab/marker_disabled_retry/profile/PROF_000001_20260808112602578_01873980BOACJOJO/msprof_20260808112743.db",
+    "profile_db": ".benchmarks/results/npu6_clock_marker_overhead_v44_fixed_rate_ab/marker_disabled_retry/profile/PROF_000001_20260808112602578_01873980BOACJOJO/msprof_20260808112743.db",
     "provenance": {
       "artifact_label": "real-online v4.4 fixed-rate matched marker overhead",
       "case_id": "shared_scenario_structured_agent_decode",
@@ -384,7 +450,7 @@
         "span_end_ns": 1786188414303865675,
         "span_start_ns": 1786188364601711695
       },
-      "sidecar_path": "/workspace/ascend-b2-pilot/src/vllm-request-lifecycle-profiler-plugin/.benchmarks/results/npu6_clock_marker_overhead_v44_fixed_rate_ab/marker_disabled_retry/run/traceloom_sidecar.db"
+      "sidecar_path": ".benchmarks/results/npu6_clock_marker_overhead_v44_fixed_rate_ab/marker_disabled_retry/run/traceloom_sidecar.db"
     },
     "task_duration_diagnostics": {
       "non_point_invalid_duration_count": 107,
@@ -400,7 +466,12 @@
       },
       "total_non_positive_duration_count": 467
     },
-    "variant_dir": "/workspace/ascend-b2-pilot/src/vllm-request-lifecycle-profiler-plugin/.benchmarks/results/npu6_clock_marker_overhead_v44_fixed_rate_ab/marker_disabled_retry"
+    "token_timing_identity": {
+      "record_count": 48,
+      "source": "unverified_or_legacy_frames",
+      "valid": false
+    },
+    "variant_dir": ".benchmarks/results/npu6_clock_marker_overhead_v44_fixed_rate_ab/marker_disabled_retry"
   },
   "enabled": {
     "client": {
@@ -475,6 +546,72 @@
       "warmup_request_count": 4,
       "warmup_success_count": 4
     },
+    "client_run_metadata": {
+      "api_key_env": "VLLM_HUST_API_KEY",
+      "api_key_present": true,
+      "case_id": "shared_scenario_structured_agent_decode",
+      "command": [
+        "run_existing_server_trace_probe.py",
+        "--endpoint",
+        "http://127.0.0.1:8769",
+        "--model",
+        "clock-ab-qwen",
+        "--case-id",
+        "shared_scenario_structured_agent_decode",
+        "--seed",
+        "7",
+        "--warmup-requests",
+        "4",
+        "--repeat-count",
+        "12",
+        "--max-requests",
+        "4",
+        "--request-max-tokens",
+        "32",
+        "--measured-concurrency",
+        "16",
+        "--offered-rate-rps",
+        "2.0",
+        "--measured-duration-s",
+        "24.0",
+        "--observer-mode",
+        "no-trace",
+        "--timeout-s",
+        "120",
+        "--output-dir",
+        "/workspace/ascend-b2-pilot/src/vllm-request-lifecycle-profiler-plugin/.benchmarks/results/npu6_clock_marker_overhead_v44_fixed_rate_ab/marker_enabled/run/client"
+      ],
+      "endpoint": "http://127.0.0.1:8769",
+      "evidence_label": "existing-server-probe",
+      "max_requests": 4,
+      "measured_concurrency": 16,
+      "measured_duration_s": 24.0,
+      "model": "clock-ab-qwen",
+      "observer_mode": "no-trace",
+      "offered_rate_rps": 2.0,
+      "per_chunk_read_delay_ms": 0.0,
+      "proxy_stage_mode": "decode-proxy",
+      "repeat_count": 12,
+      "repo": {
+        "branch": "feat/host-device-clock-calibration",
+        "commit": "fa493902bd3c8cf71b4dbc1860468aaa50c2cdc9",
+        "dirty": true,
+        "dirty_excluding_output_dir": true,
+        "dirty_exclusion_dir": "/workspace/ascend-b2-pilot/src/vllm-request-lifecycle-profiler-plugin/.benchmarks/results/npu6_clock_marker_overhead_v44_fixed_rate_ab/marker_enabled/run/client",
+        "path": "/workspace/ascend-b2-pilot/src/vllm-request-lifecycle-profiler-plugin"
+      },
+      "result_valid_for_speedup_claims": false,
+      "seed": 7,
+      "timestamp_utc": "2026-08-08T11:29:40.545825+00:00",
+      "trace_boundary": "Client-observed lifecycle proxy trace. It records request preparation, HTTP send, first streamed chunk, stream completion, and cleanup from the probe process; it is not yet an internal vLLM scheduler/KV trace.",
+      "trace_export_path": "/tmp/codex-vllm-request-lifecycle-profiler-npu6-trace.jsonl",
+      "warmup_requests": 4,
+      "workload_source": {
+        "commit": "76e24c85bcab76ecfabb831c9444002b6efffd58",
+        "dirty": false,
+        "path": "third_party/llm-serving-workloads"
+      }
+    },
     "iteration": {
       "all_duration_ms": {
         "count": 587,
@@ -534,7 +671,7 @@
       "scheduled_token_count": 12440
     },
     "marker_bracket_count": 587,
-    "profile_db": "/workspace/ascend-b2-pilot/src/vllm-request-lifecycle-profiler-plugin/.benchmarks/results/npu6_clock_marker_overhead_v44_fixed_rate_ab/marker_enabled/profile/PROF_000001_20260808112847469_01876606JGOCOCKN/msprof_20260808113029.db",
+    "profile_db": ".benchmarks/results/npu6_clock_marker_overhead_v44_fixed_rate_ab/marker_enabled/profile/PROF_000001_20260808112847469_01876606JGOCOCKN/msprof_20260808113029.db",
     "provenance": {
       "artifact_label": "real-online v4.4 fixed-rate matched marker overhead",
       "case_id": "shared_scenario_structured_agent_decode",
@@ -797,7 +934,7 @@
         "span_end_ns": 1786188579423446565,
         "span_start_ns": 1786188529542958025
       },
-      "sidecar_path": "/workspace/ascend-b2-pilot/src/vllm-request-lifecycle-profiler-plugin/.benchmarks/results/npu6_clock_marker_overhead_v44_fixed_rate_ab/marker_enabled/run/traceloom_sidecar.db"
+      "sidecar_path": ".benchmarks/results/npu6_clock_marker_overhead_v44_fixed_rate_ab/marker_enabled/run/traceloom_sidecar_sequence.db"
     },
     "task_duration_diagnostics": {
       "non_point_invalid_duration_count": 107,
@@ -812,7 +949,12 @@
       },
       "total_non_positive_duration_count": 766
     },
-    "variant_dir": "/workspace/ascend-b2-pilot/src/vllm-request-lifecycle-profiler-plugin/.benchmarks/results/npu6_clock_marker_overhead_v44_fixed_rate_ab/marker_enabled"
+    "token_timing_identity": {
+      "record_count": 48,
+      "source": "unverified_or_legacy_frames",
+      "valid": false
+    },
+    "variant_dir": ".benchmarks/results/npu6_clock_marker_overhead_v44_fixed_rate_ab/marker_enabled"
   },
   "enabled_calibration": {
     "absolute_residual_max_ns": 40536.032564131,
@@ -883,11 +1025,16 @@
     "fixed_request_schedule": true,
     "installed_runtime": true,
     "model": true,
+    "probe_repository_clean": false,
+    "probe_repository_revision": true,
     "profiler_boundary": true,
     "profiler_options": true,
     "request_shape": true,
     "server_command_except_runtime_endpoint": true,
-    "workload_commit": true
+    "token_metrics_from_sse_token_ids": false,
+    "workload_commit": true,
+    "workload_repository_clean": true,
+    "workload_repository_revision": true
   },
   "metrics": [
     {
@@ -939,38 +1086,6 @@
       "unit": "ms"
     },
     {
-      "delta": 1.1025314452126622,
-      "delta_percent": 2.002410790470611,
-      "disabled": 55.060202954337,
-      "enabled": 56.16273439954966,
-      "metric": "ITL p50",
-      "unit": "ms"
-    },
-    {
-      "delta": 1.415348402224474,
-      "delta_percent": 2.476584032547556,
-      "disabled": 57.14921777835116,
-      "enabled": 58.56456618057563,
-      "metric": "ITL p95",
-      "unit": "ms"
-    },
-    {
-      "delta": 1.0913353931579408,
-      "delta_percent": 1.97341926398967,
-      "disabled": 55.301750270319324,
-      "enabled": 56.393085663477265,
-      "metric": "TPOT p50",
-      "unit": "ms"
-    },
-    {
-      "delta": 1.2138640237671723,
-      "delta_percent": 2.1787136201229655,
-      "disabled": 55.714712229992955,
-      "enabled": 56.92857625376013,
-      "metric": "TPOT p95",
-      "unit": "ms"
-    },
-    {
       "delta": 0.999488999999997,
       "delta_percent": 1.868645332391348,
       "disabled": 53.487357,
@@ -1011,6 +1126,6 @@
       "unit": "count"
     }
   ],
-  "overhead_claim_status": "observed_single_pair_no_confidence_interval",
-  "protocol_acceptance": "PASS"
+  "overhead_claim_status": "rejected_unmatched_or_dirty_source",
+  "protocol_acceptance": "FAIL"
 }
