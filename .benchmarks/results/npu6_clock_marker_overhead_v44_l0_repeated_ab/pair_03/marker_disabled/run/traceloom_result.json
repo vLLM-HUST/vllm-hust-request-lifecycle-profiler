@@ -1,0 +1,122 @@
+{
+  "schema_version": "native_in_memory_result_v1",
+  "source": {
+    "kind": "ascend_sqlite_hot_path",
+    "path": "/workspace/ascend-b2-pilot/src/vllm-request-lifecycle-profiler-plugin/.benchmarks/results/npu6_clock_marker_overhead_v44_l0_repeated_ab/pair_03/marker_disabled/profile/PROF_000001_20260808145545808_02013878QLEHIBQD/msprof_20260808145626.db",
+    "fixture_id": null
+  },
+  "threads": 96,
+  "stats": {
+    "source_ref_count": 19,
+    "trace_event_count": 32810,
+    "task_count": 32810,
+    "communication_op_count": 0,
+    "graph_slot_template_count": 0,
+    "captured_graph_instance_count": 0,
+    "captured_graph_stream_count": 0,
+    "graph_launch_occurrence_count": 0,
+    "graph_launch_instance_linked_count": 0,
+    "graph_launch_completion_adjacent_count": 0,
+    "graph_launch_ordered_fallback_count": 0,
+    "graph_launch_unmatched_count": 0,
+    "replay_body_template_count": 0,
+    "graph_launch_body_count": 0,
+    "graph_launch_activity_count": 0,
+    "graph_launch_activity_member_count": 0,
+    "graph_launch_activity_host_sync_count": 0,
+    "graph_launch_activity_thread_tail_count": 0,
+    "graph_launch_activity_unmatched_host_execute_count": 0,
+    "replay_composition_candidate_count": 0,
+    "replay_composition_body_confirmed_count": 0,
+    "replay_composition_slot_count": 0,
+    "replay_composition_region_count": 0,
+    "replay_composition_region_member_count": 0,
+    "replay_composition_recognized_region_count": 0,
+    "replay_composition_unrecognized_region_count": 0,
+    "graph_template_count": 0,
+    "replay_unit_count": 0,
+    "exact_replay_unit_count": 0,
+    "replay_unit_launch_member_count": 0,
+    "anchor_count": 20061,
+    "token_count": 20061,
+    "protected_interval_count": 0,
+    "candidate_occurrence_count": 40119,
+    "candidate_distinct_count": 2,
+    "candidate_diagnostic_count": 0
+  },
+  "anchor_projection": {
+    "kind": "anchor_compute_collective_only",
+    "device_event_anchors": 20061,
+    "communication_anchors": 0,
+    "skipped_task_events": 12749
+  },
+  "timing_ms": {
+    "load_source_adapter": 993.367,
+    "adapter_load_and_native_ir_build": 993.367,
+    "build_anchor_tokens": 1657.18,
+    "build_protected_sequence": 2.61162,
+    "build_boundary_index": 0.01142,
+    "partition_plan": 0.00536,
+    "candidate_scan_map": 11.3032,
+    "pattern_candidate_table": 0.00135,
+    "candidate_reduce": 277.498,
+    "pattern_candidate_summary": 0.00308,
+    "cost_summary_lite": 1.90942,
+    "materialization": 18248.3
+  },
+  "memory": {
+    "trace_event_bytes": 1574880,
+    "anchor_bytes": 962928,
+    "token_bytes": 802440,
+    "protected_sequence_bytes": 802440,
+    "candidate_map_bytes": 1925712,
+    "pattern_mining_diagnostic_bytes": 0,
+    "pattern_candidate_summary_bytes": 96
+  },
+  "cost_summary_lite": {
+    "anchor_count": 20061,
+    "total_duration_ns": 1490166000
+  },
+  "pattern_candidate_summary": {
+    "row_count": 2
+  },
+  "graph_slot_templates": [
+  ],
+  "captured_graph_instances": [
+  ],
+  "captured_graph_streams": [
+  ],
+  "graph_launch_occurrences": [
+  ],
+  "replay_body_templates": [
+  ],
+  "graph_launch_bodies": [
+  ],
+  "graph_launch_activities": [
+  ],
+  "graph_launch_activity_members": [
+  ],
+  "replay_composition_candidates": [
+  ],
+  "replay_composition_slots": [
+  ],
+  "replay_composition_regions": [
+  ],
+  "replay_composition_region_members": [
+  ],
+  "graph_templates": [
+  ],
+  "replay_units": [
+  ],
+  "replay_unit_launch_members": [
+  ],
+  "candidates_preview": [
+    {"rank": 0, "occurrence_count": 20060, "first_begin": 0, "key": ["N/A", "N/A"]},
+    {"rank": 1, "occurrence_count": 20059, "first_begin": 0, "key": ["N/A", "N/A", "N/A"]}
+  ],
+  "diagnostics": {
+    "pattern_mining_count": 0,
+    "pattern_mining_preview": [
+    ]
+  }
+}

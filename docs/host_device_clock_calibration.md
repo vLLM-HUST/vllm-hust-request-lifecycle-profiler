@@ -1,12 +1,12 @@
 # Host→Device Clock Calibration Runbook
 
-Status: three new `real-online` NPU6 captures validate the v4.4
+Status: three `real-online` NPU6 micro-captures validate the v4.4
 profiler-host→caller-clock→device mechanism using distinct record-call and
-record-through-synchronize brackets, plus the strengthened SQL audit. A new
-v4.4 fixed-rate marker OFF/ON pair closes the workload-specific single-pair
-overhead measurement. No v4.4 serving capture has yet produced accepted
-positive host attribution; the prior serving replay used the superseded
-observation definition and is retracted.
+record-through-synchronize brackets. Three additional clean, matched serving
+OFF/ON pairs pass the strengthened SQL audit, provide accepted positive E4
+host attribution, and close the repeated marker-overhead measurement for the
+specified low-load workload. The prior serving replay used the superseded
+observation definition and remains retracted.
 
 This runbook connects the parent profiler's Ascend marker collector to
 TraceLoom's calibrated host-evidence continuation after E1–E4. Its central
@@ -237,13 +237,42 @@ sequence markers, but the structured result is now
 profiles also contain non-point non-positive-duration TASK rows and therefore
 have `analysis_status=invalid_input`.
 
+The accepted recollection is
+`.benchmarks/results/npu6_clock_marker_overhead_v44_l0_repeated_ab/`. It uses
+three matched pairs with alternating A/B, B/A, A/B order. Every variant uses
+the same model, four measured requests plus two warmups, seed, offered load,
+16-second profiler boundary, server configuration, and `task-time=l0`; all
+six runs record a clean source checkout and 4/4 completed requests using
+decoded SSE `token_ids`. Every source profile has zero non-point
+non-positive-duration TASK rows, every derived sidecar has
+`analysis_status=ok`, and every SQL audit passes all four cross-clock
+counters.
+
+All three enabled captures are calibrated. Their epsilon values are
+212.802/165.509/241.556 μs; each has 17 validation markers and respectively
+87/86/86 inliers, with 21/22/22 rejected. Resolution uses 0 direct-overlap and
+87/86/86 validated ordinal-affine fallback markers, whose provenance is
+retained. The serving outputs contain 60/55/54 accepted
+`queued_visible_task_delay` slices, or 169 slices and 3,918,602 ns pooled,
+with `evidence_level=correlated` and `evidence_relation=exact_connection_id`.
+This is the real v4.4 E4 positive path; it is not inferred from a synthetic
+fixture.
+
+Across pair means, enabled-minus-disabled deltas are -0.164% request
+throughput, -1.495% TTFT p95, -1.328% ITL p95, -0.175% TPOT p95, -0.783%
+decode-iteration p95, and -0.490% device productive time. Negative deltas are
+sampling variation, not a speedup claim. The narrow conclusion is that this
+12-request-per-variant low-load sample detects no marker-induced regression;
+larger-load and graph-mode bounds remain future work. The final JSON embeds
+SHA-256 and byte size for every source msprof database, derived sidecar,
+marker TSV, client result, provenance record, and per-pair report.
+
 ## 5. Evidence boundary
 
 The deterministic fixtures remain `simulation/model`/contract evidence. The
-captures above support the `real-online` claim that the v4.4 composed
-calibration mechanism executes on NPU6 profiler data with auditable uncertainty.
-The retained matched pair is rejected as overhead evidence; it only preserves
-diagnostic non-token deltas and a valid enabled-side calibration. It does not
-provide accepted marker overhead, positive E4 serving evidence, or a device
-overhead result. None of these results proves causality or establishes
-graph-mode behavior.
+three micro-captures support the `real-online` composed-calibration claim; the
+three accepted serving pairs additionally support the v4.4 positive E4 path
+and a workload-specific repeated overhead result. The earlier 48-request pair
+is still rejected and preserved only as a profiler-pathology diagnostic.
+These results do not prove causality, establish graph-mode behavior, or bound
+overhead outside the recorded low-load configuration.

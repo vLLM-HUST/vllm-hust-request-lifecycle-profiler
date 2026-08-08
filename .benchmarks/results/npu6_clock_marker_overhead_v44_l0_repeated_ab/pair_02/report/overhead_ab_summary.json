@@ -1,0 +1,1161 @@
+{
+  "calibration_acceptance": "PASS",
+  "capture_acceptance": "PASS",
+  "design": {
+    "fixed_offered_window_s": 16.0,
+    "offered_rate_rps": 0.25,
+    "request_count": 4,
+    "schedule_sha256": "d52b82a82099c7b46c701ed8f70fdb04cfb0bca23c63c56f35742b4e852d8d38"
+  },
+  "disabled": {
+    "client": {
+      "error_count": 0,
+      "event_count": 0,
+      "first_token_ms": {
+        "count": 4,
+        "max": 127.29297601617873,
+        "min": 121.00071390159428,
+        "p50": 122.12440744042397,
+        "p95": 126.59056229749694,
+        "p99": 127.15249327244237
+      },
+      "fixed_offered_window_s": 16.0,
+      "inter_token_latency_ms": {
+        "count": 60,
+        "max": 55.71944103576243,
+        "min": 1.204384956508875,
+        "p50": 51.39108980074525,
+        "p95": 54.08196964999661,
+        "p99": 55.4961154749617
+      },
+      "latency_ms": {
+        "count": 4,
+        "max": 858.0546490848064,
+        "min": 834.9302229471505,
+        "p50": 852.1546244155616,
+        "p95": 857.466869102791,
+        "p99": 857.9370930884033
+      },
+      "measured_concurrency": 2,
+      "measured_duration_s": 12.835463518975303,
+      "observer_mode": "no-trace",
+      "offered_rate_rps": 0.25,
+      "output_chunk_count": 64,
+      "output_chunk_throughput_per_s": 4.986185337630046,
+      "request_count": 4,
+      "request_throughput_per_s": 0.31163658360187785,
+      "schedule_lag_ms": {
+        "count": 4,
+        "max": 0.5397109780460596,
+        "min": 0.1729938667267561,
+        "p50": 0.2643874613568187,
+        "p95": 0.5037979804910718,
+        "p99": 0.5325283785350621
+      },
+      "success_count": 4,
+      "tpot_ms": {
+        "count": 4,
+        "max": 48.82425839702288,
+        "min": 47.5863084041824,
+        "p50": 48.600258041794106,
+        "p95": 48.8067628388914,
+        "p99": 48.82075928539658
+      },
+      "warmup_first_token_ms": {
+        "count": 2,
+        "max": 441.00348092615604,
+        "min": 155.62949096783996,
+        "p50": 298.316485946998,
+        "p95": 426.73478142824024,
+        "p99": 438.1497410265729
+      },
+      "warmup_latency_ms": {
+        "count": 2,
+        "max": 1159.4219040125608,
+        "min": 869.3586550652981,
+        "p50": 1014.3902795389295,
+        "p95": 1144.9187415651977,
+        "p99": 1156.5212715230882
+      },
+      "warmup_request_count": 2,
+      "warmup_success_count": 2
+    },
+    "client_run_metadata": {
+      "api_key_env": "VLLM_HUST_API_KEY",
+      "api_key_present": true,
+      "case_id": "shared_scenario_structured_agent_decode",
+      "command": [
+        "run_existing_server_trace_probe.py",
+        "--endpoint",
+        "http://127.0.0.1:18177",
+        "--model",
+        "clock-ab-qwen",
+        "--case-id",
+        "shared_scenario_structured_agent_decode",
+        "--seed",
+        "7",
+        "--warmup-requests",
+        "2",
+        "--repeat-count",
+        "2",
+        "--max-requests",
+        "2",
+        "--request-max-tokens",
+        "16",
+        "--measured-concurrency",
+        "2",
+        "--offered-rate-rps",
+        "0.25",
+        "--measured-duration-s",
+        "16.0",
+        "--observer-mode",
+        "no-trace",
+        "--timeout-s",
+        "120",
+        "--output-dir",
+        "/workspace/ascend-b2-pilot/src/vllm-request-lifecycle-profiler-plugin/.benchmarks/results/npu6_clock_marker_overhead_v44_l0_repeated_ab/pair_02/marker_disabled/run/client",
+        "--dirty-exclusion-dir",
+        "/workspace/ascend-b2-pilot/src/vllm-request-lifecycle-profiler-plugin/.benchmarks/results"
+      ],
+      "endpoint": "http://127.0.0.1:18177",
+      "evidence_label": "existing-server-probe",
+      "max_requests": 2,
+      "measured_concurrency": 2,
+      "measured_duration_s": 16.0,
+      "model": "clock-ab-qwen",
+      "observer_mode": "no-trace",
+      "offered_rate_rps": 0.25,
+      "per_chunk_read_delay_ms": 0.0,
+      "proxy_stage_mode": "decode-proxy",
+      "repeat_count": 2,
+      "repo": {
+        "branch": "feat/host-device-clock-calibration",
+        "commit": "448b2c7ef7172651a6dd91e083f79c940ef70646",
+        "dirty": true,
+        "dirty_excluding_output_dir": false,
+        "dirty_exclusion_dir": "/workspace/ascend-b2-pilot/src/vllm-request-lifecycle-profiler-plugin/.benchmarks/results",
+        "path": "/workspace/ascend-b2-pilot/src/vllm-request-lifecycle-profiler-plugin"
+      },
+      "result_valid_for_speedup_claims": false,
+      "seed": 7,
+      "timestamp_utc": "2026-08-08T14:54:31.843998+00:00",
+      "trace_boundary": "Client-observed lifecycle proxy trace. It records request preparation, HTTP send, first streamed chunk, stream completion, and cleanup from the probe process; it is not yet an internal vLLM scheduler/KV trace.",
+      "trace_export_path": "/tmp/codex-vllm-request-lifecycle-profiler-npu6-trace.jsonl",
+      "warmup_requests": 2,
+      "workload_source": {
+        "commit": "76e24c85bcab76ecfabb831c9444002b6efffd58",
+        "dirty": false,
+        "path": "third_party/llm-serving-workloads"
+      }
+    },
+    "iteration": {
+      "all_duration_ms": {
+        "count": 108,
+        "max": 253.165002,
+        "min": 0.762536,
+        "p50": 50.1368035,
+        "p95": 53.87256839999999,
+        "p99": 69.96157808999989
+      },
+      "by_scheduled_token_count": {
+        "1": {
+          "count": 90,
+          "max": 71.001653,
+          "min": 49.434579,
+          "p50": 50.204845,
+          "p95": 52.74695645,
+          "p99": 57.23630246
+        },
+        "2": {
+          "count": 0,
+          "max": 0.0,
+          "min": 0.0,
+          "p50": 0.0,
+          "p95": 0.0,
+          "p99": 0.0
+        },
+        "3": {
+          "count": 0,
+          "max": 0.0,
+          "min": 0.0,
+          "p50": 0.0,
+          "p95": 0.0,
+          "p99": 0.0
+        },
+        "4": {
+          "count": 0,
+          "max": 0.0,
+          "min": 0.0,
+          "p50": 0.0,
+          "p95": 0.0,
+          "p99": 0.0
+        }
+      },
+      "decode_duration_ms": {
+        "count": 90,
+        "max": 71.001653,
+        "min": 49.434579,
+        "p50": 50.204845,
+        "p95": 52.74695645,
+        "p99": 57.23630246
+      },
+      "decode_iteration_count": 90,
+      "iteration_count": 108,
+      "marker_states": {
+        "disabled": 108
+      },
+      "scheduled_token_count": 4884
+    },
+    "marker_bracket_count": 0,
+    "profile_db": ".benchmarks/results/npu6_clock_marker_overhead_v44_l0_repeated_ab/pair_02/marker_disabled/profile/PROF_000001_20260808145357371_02011316AODHLLEH/msprof_20260808145441.db",
+    "provenance": {
+      "artifact_label": "real-online v4.4 fixed-rate matched marker overhead",
+      "case_id": "shared_scenario_structured_agent_decode",
+      "client_command": [
+        "/usr/local/python3.12.13/bin/python3",
+        "/workspace/ascend-b2-pilot/src/vllm-request-lifecycle-profiler-plugin/.benchmarks/run_existing_server_trace_probe.py",
+        "--endpoint",
+        "http://127.0.0.1:18177",
+        "--model",
+        "clock-ab-qwen",
+        "--case-id",
+        "shared_scenario_structured_agent_decode",
+        "--seed",
+        "7",
+        "--warmup-requests",
+        "2",
+        "--repeat-count",
+        "2",
+        "--max-requests",
+        "2",
+        "--request-max-tokens",
+        "16",
+        "--measured-concurrency",
+        "2",
+        "--offered-rate-rps",
+        "0.25",
+        "--measured-duration-s",
+        "16.0",
+        "--observer-mode",
+        "no-trace",
+        "--timeout-s",
+        "120",
+        "--output-dir",
+        "/workspace/ascend-b2-pilot/src/vllm-request-lifecycle-profiler-plugin/.benchmarks/results/npu6_clock_marker_overhead_v44_l0_repeated_ab/pair_02/marker_disabled/run/client",
+        "--dirty-exclusion-dir",
+        "/workspace/ascend-b2-pilot/src/vllm-request-lifecycle-profiler-plugin/.benchmarks/results"
+      ],
+      "clock_contract_version": "idle-evidence-contract-v4.4",
+      "installed_runtime": {
+        "vllm_ascend_commit": "80610e4438dba05011b05f89fc45d91e96992671",
+        "vllm_commit": "ad7125a431e176d4161099480a66f0169609a690"
+      },
+      "marker_enabled": false,
+      "mode": "marker-disabled",
+      "model": "/workspace/models/Qwen2.5-7B-Instruct",
+      "profiler_boundary": "msprof launch ownership around server and matched client",
+      "profiler_options": {
+        "ai_core": "off",
+        "runtime_api": "on",
+        "task_time": "l0",
+        "type": "db"
+      },
+      "request_shape": {
+        "max_requests": 2,
+        "measured_concurrency": 2,
+        "measured_duration_s": 16.0,
+        "offered_rate_rps": 0.25,
+        "repeat_count": 2,
+        "request_max_tokens": 16,
+        "seed": 7,
+        "warmup_requests": 2
+      },
+      "server_command": [
+        "/usr/local/python3.12.13/bin/python3",
+        "-m",
+        "vllm.entrypoints.openai.api_server",
+        "--model",
+        "/workspace/models/Qwen2.5-7B-Instruct",
+        "--served-model-name",
+        "clock-ab-qwen",
+        "--host",
+        "127.0.0.1",
+        "--port",
+        "18177",
+        "--tensor-parallel-size",
+        "1",
+        "--max-model-len",
+        "4096",
+        "--max-num-batched-tokens",
+        "4096",
+        "--max-num-seqs",
+        "4",
+        "--gpu-memory-utilization",
+        "0.75",
+        "--enforce-eager",
+        "--generation-config",
+        "vllm",
+        "--disable-uvicorn-access-log"
+      ],
+      "timestamp_utc": "2026-08-08T14:53:12.586962+00:00",
+      "workload_commit": "76e24c85bcab76ecfabb831c9444002b6efffd58"
+    },
+    "request_identity": {
+      "record_count": 4,
+      "schedule_sha256": "d52b82a82099c7b46c701ed8f70fdb04cfb0bca23c63c56f35742b4e852d8d38"
+    },
+    "sidecar": {
+      "audit": {
+        "analysis_status": "ok",
+        "anchor_attributed_ns": 21221435960,
+        "anchor_orphan_errors": 0,
+        "audit_status": "PASS",
+        "collection_status": "unknown",
+        "cross_clock_fail_closed_errors": 0,
+        "device_interval_count": 54467,
+        "device_only_residual_ns": 5627888660,
+        "evidence_extent_errors": 0,
+        "evidence_owner_errors": 0,
+        "evidence_source_errors": 0,
+        "explanation_ns": 26849324620,
+        "explanation_overlap_errors": 0,
+        "explanation_slice_count": 37482,
+        "gap_link_errors": 0,
+        "gap_partition_errors": 0,
+        "host_evidence_source_errors": 0,
+        "host_explanation_contract_errors": 0,
+        "node_orphan_errors": 0,
+        "partition_delta_ns": 0,
+        "productive_active_ns": 1528183800,
+        "queued_task_link_errors": 0,
+        "root_attributed_ns": 21221435960,
+        "run_id": "4aa05b863469f60d9e9cfa24ff4d854267cd6aa3c900201406496b7b3beadb5d",
+        "stream_partition_errors": 0,
+        "visible_productive_idle_ns": 26849324620
+      },
+      "categories": {
+        "blocked_by_visible_wait:direct:device_event_coverage": {
+          "category": "blocked_by_visible_wait",
+          "count": 1499,
+          "duration_ns": 2679560,
+          "evidence_level": "direct",
+          "evidence_relation": "device_event_coverage"
+        },
+        "runtime_control_present:direct:device_event_coverage": {
+          "category": "runtime_control_present",
+          "count": 190,
+          "duration_ns": 3800,
+          "evidence_level": "direct",
+          "evidence_relation": "device_event_coverage"
+        },
+        "unattributed_visible_idle:none:none": {
+          "category": "unattributed_visible_idle",
+          "count": 35793,
+          "duration_ns": 26846641260,
+          "evidence_level": "none",
+          "evidence_relation": "none"
+        }
+      },
+      "clock_model": {
+        "absolute_residual_max_ns": 0.0,
+        "absolute_residual_p50_ns": 0.0,
+        "absolute_residual_p95_ns": 0.0,
+        "alignment_status": "uncalibrated",
+        "bracket_uncertainty_p95_ns": 0.0,
+        "clock_model_id": "4aa05b863469f60d9e9cfa24ff4d854267cd6aa3c900201406496b7b3beadb5d:clock_model:0:6",
+        "composed_absolute_residual_max_ns": 0.0,
+        "composed_absolute_residual_p50_ns": 0.0,
+        "composed_absolute_residual_p95_ns": 0.0,
+        "db_idx": 0,
+        "device_id": 6,
+        "direct_overlap_marker_count": 0,
+        "drift_ppm": 0.0,
+        "epsilon_ns": 0,
+        "fit_marker_count": 0,
+        "fit_method": "theil_sen_median",
+        "fit_method_version": "theil_sen_composed_host_v3",
+        "fit_random_seed": 0,
+        "has_profiler_host_mapping": 0,
+        "host_clock_absolute_residual_max_ns": 0.0,
+        "host_clock_absolute_residual_p50_ns": 0.0,
+        "host_clock_absolute_residual_p95_ns": 0.0,
+        "host_clock_uncertainty_p95_ns": 0.0,
+        "inlier_marker_count": 0,
+        "input_marker_count": 0,
+        "intercept_ns": "0.000000",
+        "intermediate_clock_domain": "caller_clock_realtime",
+        "mapping_kind": "composed_affine",
+        "marker_device_observation_kind": "record_sync_bracket_midpoint_to_task_start",
+        "marker_reference_device_ns": "0.000000",
+        "marker_to_device_drift_ppm": 0.0,
+        "marker_to_device_offset_ns": "0.000000",
+        "marker_to_device_scale": "1.000000000000",
+        "offset_ns": "0.000000",
+        "ordinal_affine_fallback_marker_count": 0,
+        "profiler_caller_observation_kind": "record_api_midpoint_to_record_bracket_midpoint",
+        "profiler_reference_marker_ns": "0.000000",
+        "profiler_to_caller_bracket_uncertainty_p95_ns": 0.0,
+        "profiler_to_marker_drift_ppm": 0.0,
+        "profiler_to_marker_offset_ns": "0.000000",
+        "profiler_to_marker_scale": "1.000000000000",
+        "reason": "no clock markers were supplied for the device",
+        "reference_device_ns": "0.000000",
+        "reference_host_ns": "0.000000",
+        "reference_marker_host_ns": "0.000000",
+        "reference_profiler_host_ns": "0.000000",
+        "rejected_marker_count": 0,
+        "run_id": "4aa05b863469f60d9e9cfa24ff4d854267cd6aa3c900201406496b7b3beadb5d",
+        "scale": "1.000000000000",
+        "source_clock_domain": "profiler_host",
+        "target_clock_domain": "device",
+        "validation_marker_count": 0
+      },
+      "device_intervals": {
+        "productive_active": {
+          "count": 27234,
+          "duration_ns": 1528183800,
+          "interval_kind": "productive_active"
+        },
+        "visible_productive_idle": {
+          "count": 27233,
+          "duration_ns": 26849324620,
+          "interval_kind": "visible_productive_idle"
+        }
+      },
+      "device_productive_fraction": 0.053851937153261885,
+      "evidence_levels": {
+        "direct": {
+          "count": 1689,
+          "duration_ns": 2683360,
+          "evidence_level": "direct"
+        },
+        "none": {
+          "count": 35793,
+          "duration_ns": 26846641260,
+          "evidence_level": "none"
+        }
+      },
+      "marker_resolution_methods": {},
+      "marker_states": {},
+      "metadata": {
+        "analysis_status": "ok",
+        "attribution_rule_version": "host_device_projection_v2",
+        "collection_status": "unknown",
+        "contract_version": "idle-evidence-contract-v4.4",
+        "db_idx": 0,
+        "host_api_rules_sha256": "473bb3b6258abe6798195c0201c3f4ba5ca0b397b39009c194e7e8fc7acd8fab",
+        "host_api_rules_version": "idle-evidence-host-api-v1",
+        "metadata_json": "{\"analysis_status\":\"ok\",\"attribution_rule_version\":\"host_device_projection_v2\",\"clock_marker_count\":0,\"clock_marker_sha256\":\"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\",\"clock_model_version\":\"profiler_caller_device_composed_affine_v3\",\"collection_status\":\"unknown\",\"contract_version\":\"idle-evidence-contract-v4.4\",\"db_idx\":0,\"devices\":[{\"absolute_residual_max_ns\":\"0.000000\",\"absolute_residual_p50_ns\":\"0.000000\",\"absolute_residual_p95_ns\":\"0.000000\",\"alignment_status\":\"uncalibrated\",\"bracket_uncertainty_p95_ns\":\"0.000000\",\"composed_absolute_residual_max_ns\":\"0.000000\",\"composed_absolute_residual_p50_ns\":\"0.000000\",\"composed_absolute_residual_p95_ns\":\"0.000000\",\"device_id\":6,\"direct_overlap_marker_count\":0,\"drift_ppm\":\"0.000000\",\"epsilon_ns\":0,\"fit_marker_count\":0,\"host_clock_absolute_residual_max_ns\":\"0.000000\",\"host_clock_absolute_residual_p50_ns\":\"0.000000\",\"host_clock_absolute_residual_p95_ns\":\"0.000000\",\"host_clock_uncertainty_p95_ns\":\"0.000000\",\"profiler_to_caller_bracket_uncertainty_p95_ns\":\"0.000000\",\"has_profiler_host_mapping\":false,\"inlier_marker_count\":0,\"input_marker_count\":0,\"offset_ns\":\"0.000000\",\"intercept_ns\":\"0.000000\",\"ordinal_affine_fallback_marker_count\":0,\"profiler_to_marker_drift_ppm\":\"0.000000\",\"profiler_to_marker_scale\":\"1.000000000000\",\"profiler_caller_observation_kind\":\"record_api_midpoint_to_record_bracket_midpoint\",\"marker_device_observation_kind\":\"record_sync_bracket_midpoint_to_task_start\",\"reference_device_ns\":\"0.000000\",\"reference_host_ns\":\"0.000000\",\"rejected_marker_count\":0,\"scale\":\"1.000000000000\",\"source_clock_domain\":\"profiler_host\",\"span_end_ns\":1786200867767089755,\"span_start_ns\":1786200839389581335,\"status\":\"ok\",\"validation_marker_count\":0}],\"host_api_rules_sha256\":\"473bb3b6258abe6798195c0201c3f4ba5ca0b397b39009c194e7e8fc7acd8fab\",\"host_api_rules_version\":\"idle-evidence-host-api-v1\",\"semantic_rules_sha256\":\"93274230064958c6d085adf26d5ab96739b311a3e2ac785af16bb4654aa811e5\",\"semantic_rules_version\":\"idle-evidence-semantic-v1\",\"source_kind\":\"ascend_sqlite_hot_path\",\"source_path\":\"/workspace/ascend-b2-pilot/src/vllm-request-lifecycle-profiler-plugin/.benchmarks/results/npu6_clock_marker_overhead_v44_l0_repeated_ab/pair_02/marker_disabled/profile/PROF_000001_20260808145357371_02011316AODHLLEH/msprof_20260808145441.db\"}",
+        "run_id": "4aa05b863469f60d9e9cfa24ff4d854267cd6aa3c900201406496b7b3beadb5d",
+        "semantic_rules_sha256": "93274230064958c6d085adf26d5ab96739b311a3e2ac785af16bb4654aa811e5",
+        "semantic_rules_version": "idle-evidence-semantic-v1",
+        "source_kind": "ascend_sqlite_hot_path",
+        "source_path": "/workspace/ascend-b2-pilot/src/vllm-request-lifecycle-profiler-plugin/.benchmarks/results/npu6_clock_marker_overhead_v44_l0_repeated_ab/pair_02/marker_disabled/profile/PROF_000001_20260808145357371_02011316AODHLLEH/msprof_20260808145441.db",
+        "span_end_ns": 1786200867767089755,
+        "span_start_ns": 1786200839389581335
+      },
+      "sidecar_path": ".benchmarks/results/npu6_clock_marker_overhead_v44_l0_repeated_ab/pair_02/marker_disabled/run/traceloom_sidecar.db"
+    },
+    "task_duration_diagnostics": {
+      "non_point_invalid_duration_count": 0,
+      "point_event_count": 67,
+      "task_type_counts": {
+        "EVENT_RECORD": 66,
+        "PROFILING_ENABLE": 1
+      },
+      "total_non_positive_duration_count": 67
+    },
+    "token_timing_identity": {
+      "record_count": 4,
+      "source": "sse_choice_token_ids",
+      "valid": true
+    },
+    "variant_dir": ".benchmarks/results/npu6_clock_marker_overhead_v44_l0_repeated_ab/pair_02/marker_disabled"
+  },
+  "enabled": {
+    "client": {
+      "error_count": 0,
+      "event_count": 0,
+      "first_token_ms": {
+        "count": 4,
+        "max": 122.91976204141974,
+        "min": 120.64489419572055,
+        "p50": 121.53321760706604,
+        "p95": 122.77006191434339,
+        "p99": 122.88982201600447
+      },
+      "fixed_offered_window_s": 16.0,
+      "inter_token_latency_ms": {
+        "count": 60,
+        "max": 59.94378915056586,
+        "min": 1.596763962879777,
+        "p50": 52.06724884919822,
+        "p95": 53.801616677083075,
+        "p99": 58.168317959643886
+      },
+      "latency_ms": {
+        "count": 4,
+        "max": 875.3595070447773,
+        "min": 845.5491890199482,
+        "p50": 852.2822920931503,
+        "p95": 872.3878456628881,
+        "p99": 874.7651747683994
+      },
+      "measured_concurrency": 2,
+      "measured_duration_s": 12.875750954961404,
+      "observer_mode": "no-trace",
+      "offered_rate_rps": 0.25,
+      "output_chunk_count": 64,
+      "output_chunk_throughput_per_s": 4.970583869155913,
+      "request_count": 4,
+      "request_throughput_per_s": 0.31066149182224456,
+      "schedule_lag_ms": {
+        "count": 4,
+        "max": 0.4613299388438463,
+        "min": 0.1324261538684368,
+        "p50": 0.17401855438947678,
+        "p95": 0.4210885614156722,
+        "p99": 0.45328166335821146
+      },
+      "success_count": 4,
+      "tpot_ms": {
+        "count": 4,
+        "max": 50.30533865404626,
+        "min": 48.28442347546419,
+        "p50": 48.64839750031631,
+        "p95": 50.084358116922274,
+        "p99": 50.261142546621464
+      },
+      "warmup_first_token_ms": {
+        "count": 2,
+        "max": 385.4863971937448,
+        "min": 154.34686210937798,
+        "p50": 269.9166296515614,
+        "p95": 373.92942043952644,
+        "p99": 383.1750018429011
+      },
+      "warmup_latency_ms": {
+        "count": 2,
+        "max": 1113.5637080296874,
+        "min": 878.9862811099738,
+        "p50": 996.2749945698306,
+        "p95": 1101.8348366837017,
+        "p99": 1111.2179337604903
+      },
+      "warmup_request_count": 2,
+      "warmup_success_count": 2
+    },
+    "client_run_metadata": {
+      "api_key_env": "VLLM_HUST_API_KEY",
+      "api_key_present": true,
+      "case_id": "shared_scenario_structured_agent_decode",
+      "command": [
+        "run_existing_server_trace_probe.py",
+        "--endpoint",
+        "http://127.0.0.1:18176",
+        "--model",
+        "clock-ab-qwen",
+        "--case-id",
+        "shared_scenario_structured_agent_decode",
+        "--seed",
+        "7",
+        "--warmup-requests",
+        "2",
+        "--repeat-count",
+        "2",
+        "--max-requests",
+        "2",
+        "--request-max-tokens",
+        "16",
+        "--measured-concurrency",
+        "2",
+        "--offered-rate-rps",
+        "0.25",
+        "--measured-duration-s",
+        "16.0",
+        "--observer-mode",
+        "no-trace",
+        "--timeout-s",
+        "120",
+        "--output-dir",
+        "/workspace/ascend-b2-pilot/src/vllm-request-lifecycle-profiler-plugin/.benchmarks/results/npu6_clock_marker_overhead_v44_l0_repeated_ab/pair_02/marker_enabled/run/client",
+        "--dirty-exclusion-dir",
+        "/workspace/ascend-b2-pilot/src/vllm-request-lifecycle-profiler-plugin/.benchmarks/results"
+      ],
+      "endpoint": "http://127.0.0.1:18176",
+      "evidence_label": "existing-server-probe",
+      "max_requests": 2,
+      "measured_concurrency": 2,
+      "measured_duration_s": 16.0,
+      "model": "clock-ab-qwen",
+      "observer_mode": "no-trace",
+      "offered_rate_rps": 0.25,
+      "per_chunk_read_delay_ms": 0.0,
+      "proxy_stage_mode": "decode-proxy",
+      "repeat_count": 2,
+      "repo": {
+        "branch": "feat/host-device-clock-calibration",
+        "commit": "448b2c7ef7172651a6dd91e083f79c940ef70646",
+        "dirty": true,
+        "dirty_excluding_output_dir": false,
+        "dirty_exclusion_dir": "/workspace/ascend-b2-pilot/src/vllm-request-lifecycle-profiler-plugin/.benchmarks/results",
+        "path": "/workspace/ascend-b2-pilot/src/vllm-request-lifecycle-profiler-plugin"
+      },
+      "result_valid_for_speedup_claims": false,
+      "seed": 7,
+      "timestamp_utc": "2026-08-08T14:52:44.468814+00:00",
+      "trace_boundary": "Client-observed lifecycle proxy trace. It records request preparation, HTTP send, first streamed chunk, stream completion, and cleanup from the probe process; it is not yet an internal vLLM scheduler/KV trace.",
+      "trace_export_path": "/tmp/codex-vllm-request-lifecycle-profiler-npu6-trace.jsonl",
+      "warmup_requests": 2,
+      "workload_source": {
+        "commit": "76e24c85bcab76ecfabb831c9444002b6efffd58",
+        "dirty": false,
+        "path": "third_party/llm-serving-workloads"
+      }
+    },
+    "iteration": {
+      "all_duration_ms": {
+        "count": 108,
+        "max": 220.004241,
+        "min": 0.905989,
+        "p50": 50.814312,
+        "p95": 55.27611225,
+        "p99": 71.27484344999989
+      },
+      "by_scheduled_token_count": {
+        "1": {
+          "count": 90,
+          "max": 72.256108,
+          "min": 49.357977,
+          "p50": 50.909719,
+          "p95": 52.7326683,
+          "p99": 59.780030149999995
+        },
+        "2": {
+          "count": 0,
+          "max": 0.0,
+          "min": 0.0,
+          "p50": 0.0,
+          "p95": 0.0,
+          "p99": 0.0
+        },
+        "3": {
+          "count": 0,
+          "max": 0.0,
+          "min": 0.0,
+          "p50": 0.0,
+          "p95": 0.0,
+          "p99": 0.0
+        },
+        "4": {
+          "count": 0,
+          "max": 0.0,
+          "min": 0.0,
+          "p50": 0.0,
+          "p95": 0.0,
+          "p99": 0.0
+        }
+      },
+      "decode_duration_ms": {
+        "count": 90,
+        "max": 72.256108,
+        "min": 49.357977,
+        "p50": 50.909719,
+        "p95": 52.7326683,
+        "p99": 59.780030149999995
+      },
+      "decode_iteration_count": 90,
+      "iteration_count": 108,
+      "marker_states": {
+        "recorded": 108
+      },
+      "scheduled_token_count": 4884
+    },
+    "marker_bracket_count": 108,
+    "profile_db": ".benchmarks/results/npu6_clock_marker_overhead_v44_l0_repeated_ab/pair_02/marker_enabled/profile/PROF_000001_20260808145209464_02008899GHIJKHQP/msprof_20260808145253.db",
+    "provenance": {
+      "artifact_label": "real-online v4.4 fixed-rate matched marker overhead",
+      "case_id": "shared_scenario_structured_agent_decode",
+      "client_command": [
+        "/usr/local/python3.12.13/bin/python3",
+        "/workspace/ascend-b2-pilot/src/vllm-request-lifecycle-profiler-plugin/.benchmarks/run_existing_server_trace_probe.py",
+        "--endpoint",
+        "http://127.0.0.1:18176",
+        "--model",
+        "clock-ab-qwen",
+        "--case-id",
+        "shared_scenario_structured_agent_decode",
+        "--seed",
+        "7",
+        "--warmup-requests",
+        "2",
+        "--repeat-count",
+        "2",
+        "--max-requests",
+        "2",
+        "--request-max-tokens",
+        "16",
+        "--measured-concurrency",
+        "2",
+        "--offered-rate-rps",
+        "0.25",
+        "--measured-duration-s",
+        "16.0",
+        "--observer-mode",
+        "no-trace",
+        "--timeout-s",
+        "120",
+        "--output-dir",
+        "/workspace/ascend-b2-pilot/src/vllm-request-lifecycle-profiler-plugin/.benchmarks/results/npu6_clock_marker_overhead_v44_l0_repeated_ab/pair_02/marker_enabled/run/client",
+        "--dirty-exclusion-dir",
+        "/workspace/ascend-b2-pilot/src/vllm-request-lifecycle-profiler-plugin/.benchmarks/results"
+      ],
+      "clock_contract_version": "idle-evidence-contract-v4.4",
+      "installed_runtime": {
+        "vllm_ascend_commit": "80610e4438dba05011b05f89fc45d91e96992671",
+        "vllm_commit": "ad7125a431e176d4161099480a66f0169609a690"
+      },
+      "marker_enabled": true,
+      "mode": "marker-enabled",
+      "model": "/workspace/models/Qwen2.5-7B-Instruct",
+      "profiler_boundary": "msprof launch ownership around server and matched client",
+      "profiler_options": {
+        "ai_core": "off",
+        "runtime_api": "on",
+        "task_time": "l0",
+        "type": "db"
+      },
+      "request_shape": {
+        "max_requests": 2,
+        "measured_concurrency": 2,
+        "measured_duration_s": 16.0,
+        "offered_rate_rps": 0.25,
+        "repeat_count": 2,
+        "request_max_tokens": 16,
+        "seed": 7,
+        "warmup_requests": 2
+      },
+      "server_command": [
+        "/usr/local/python3.12.13/bin/python3",
+        "-m",
+        "vllm.entrypoints.openai.api_server",
+        "--model",
+        "/workspace/models/Qwen2.5-7B-Instruct",
+        "--served-model-name",
+        "clock-ab-qwen",
+        "--host",
+        "127.0.0.1",
+        "--port",
+        "18176",
+        "--tensor-parallel-size",
+        "1",
+        "--max-model-len",
+        "4096",
+        "--max-num-batched-tokens",
+        "4096",
+        "--max-num-seqs",
+        "4",
+        "--gpu-memory-utilization",
+        "0.75",
+        "--enforce-eager",
+        "--generation-config",
+        "vllm",
+        "--disable-uvicorn-access-log"
+      ],
+      "timestamp_utc": "2026-08-08T14:51:25.218093+00:00",
+      "workload_commit": "76e24c85bcab76ecfabb831c9444002b6efffd58"
+    },
+    "request_identity": {
+      "record_count": 4,
+      "schedule_sha256": "d52b82a82099c7b46c701ed8f70fdb04cfb0bca23c63c56f35742b4e852d8d38"
+    },
+    "sidecar": {
+      "audit": {
+        "analysis_status": "ok",
+        "anchor_attributed_ns": 22226880160,
+        "anchor_orphan_errors": 0,
+        "audit_status": "PASS",
+        "collection_status": "unknown",
+        "cross_clock_fail_closed_errors": 0,
+        "device_interval_count": 54343,
+        "device_only_residual_ns": 5134428200,
+        "evidence_extent_errors": 0,
+        "evidence_owner_errors": 0,
+        "evidence_source_errors": 0,
+        "explanation_ns": 27361308360,
+        "explanation_overlap_errors": 0,
+        "explanation_slice_count": 37398,
+        "gap_link_errors": 0,
+        "gap_partition_errors": 0,
+        "host_evidence_source_errors": 0,
+        "host_explanation_contract_errors": 0,
+        "node_orphan_errors": 0,
+        "partition_delta_ns": 0,
+        "productive_active_ns": 1520092100,
+        "queued_task_link_errors": 0,
+        "root_attributed_ns": 22226880160,
+        "run_id": "8d2b2767495d3c45c91f3c032438dc9973f525a56650eec00197e63301fd15fd",
+        "stream_partition_errors": 0,
+        "visible_productive_idle_ns": 27361308360
+      },
+      "categories": {
+        "blocked_by_visible_wait:direct:device_event_coverage": {
+          "category": "blocked_by_visible_wait",
+          "count": 1433,
+          "duration_ns": 2589620,
+          "evidence_level": "direct",
+          "evidence_relation": "device_event_coverage"
+        },
+        "queued_visible_task_delay:correlated:exact_connection_id": {
+          "category": "queued_visible_task_delay",
+          "count": 55,
+          "duration_ns": 541740,
+          "evidence_level": "correlated",
+          "evidence_relation": "exact_connection_id"
+        },
+        "runtime_control_present:direct:device_event_coverage": {
+          "category": "runtime_control_present",
+          "count": 210,
+          "duration_ns": 4200,
+          "evidence_level": "direct",
+          "evidence_relation": "device_event_coverage"
+        },
+        "unattributed_visible_idle:none:none": {
+          "category": "unattributed_visible_idle",
+          "count": 35700,
+          "duration_ns": 27358172800,
+          "evidence_level": "none",
+          "evidence_relation": "none"
+        }
+      },
+      "clock_model": {
+        "absolute_residual_max_ns": 17510.732402123645,
+        "absolute_residual_p50_ns": 7249.0446072925215,
+        "absolute_residual_p95_ns": 17510.732402123645,
+        "alignment_status": "calibrated",
+        "bracket_uncertainty_p95_ns": 91131.69735459852,
+        "clock_model_id": "8d2b2767495d3c45c91f3c032438dc9973f525a56650eec00197e63301fd15fd:clock_model:0:6",
+        "composed_absolute_residual_max_ns": 65549.02157734857,
+        "composed_absolute_residual_p50_ns": 45443.98716902286,
+        "composed_absolute_residual_p95_ns": 65549.02157734857,
+        "db_idx": 0,
+        "device_id": 6,
+        "direct_overlap_marker_count": 0,
+        "drift_ppm": 17.676388167497326,
+        "epsilon_ns": 165509,
+        "fit_marker_count": 69,
+        "fit_method": "theil_sen_median",
+        "fit_method_version": "theil_sen_composed_host_v3",
+        "fit_random_seed": 0,
+        "has_profiler_host_mapping": 1,
+        "host_clock_absolute_residual_max_ns": 14565.260303031057,
+        "host_clock_absolute_residual_p50_ns": 1266.7312872074594,
+        "host_clock_absolute_residual_p95_ns": 14565.260303031057,
+        "host_clock_uncertainty_p95_ns": 14565.211932436183,
+        "inlier_marker_count": 86,
+        "input_marker_count": 108,
+        "intercept_ns": "-31573577495171.810066",
+        "intermediate_clock_domain": "caller_clock_realtime",
+        "mapping_kind": "composed_affine",
+        "marker_device_observation_kind": "record_sync_bracket_midpoint_to_task_start",
+        "marker_reference_device_ns": "1786200751919817959.526392",
+        "marker_to_device_drift_ppm": -3.3209564310608655,
+        "marker_to_device_offset_ns": "-121987.473608",
+        "marker_to_device_scale": "0.999996679044",
+        "offset_ns": "340831.529014",
+        "ordinal_affine_fallback_marker_count": 86,
+        "profiler_caller_observation_kind": "record_api_midpoint_to_record_bracket_midpoint",
+        "profiler_reference_marker_ns": "1786200751919887033.826900",
+        "profiler_to_caller_bracket_uncertainty_p95_ns": 42300.85952022201,
+        "profiler_to_marker_drift_ppm": 20.997414330056348,
+        "profiler_to_marker_offset_ns": "462818.826900",
+        "profiler_to_marker_scale": "1.000020997414",
+        "reason": "validated profiler-host, caller-host, and device holdout calibration",
+        "reference_device_ns": "1786200751919765046.529014",
+        "reference_host_ns": "1786200751919424215.000000",
+        "reference_marker_host_ns": "1786200751919939947.000000",
+        "reference_profiler_host_ns": "1786200751919424215.000000",
+        "rejected_marker_count": 22,
+        "run_id": "8d2b2767495d3c45c91f3c032438dc9973f525a56650eec00197e63301fd15fd",
+        "scale": "1.000017676388",
+        "source_clock_domain": "profiler_host",
+        "target_clock_domain": "device",
+        "validation_marker_count": 17
+      },
+      "device_intervals": {
+        "productive_active": {
+          "count": 27172,
+          "duration_ns": 1520092100,
+          "interval_kind": "productive_active"
+        },
+        "visible_productive_idle": {
+          "count": 27171,
+          "duration_ns": 27361308360,
+          "interval_kind": "visible_productive_idle"
+        }
+      },
+      "device_productive_fraction": 0.05263221574401451,
+      "evidence_levels": {
+        "correlated": {
+          "count": 55,
+          "duration_ns": 541740,
+          "evidence_level": "correlated"
+        },
+        "direct": {
+          "count": 1643,
+          "duration_ns": 2593820,
+          "evidence_level": "direct"
+        },
+        "none": {
+          "count": 35700,
+          "duration_ns": 27358172800,
+          "evidence_level": "none"
+        }
+      },
+      "marker_resolution_methods": {
+        "ordinal_affine_fallback": 108
+      },
+      "marker_states": {
+        "fit_marker": 69,
+        "rejected_marker": 22,
+        "validation_marker": 17
+      },
+      "metadata": {
+        "analysis_status": "ok",
+        "attribution_rule_version": "host_device_projection_v2",
+        "collection_status": "unknown",
+        "contract_version": "idle-evidence-contract-v4.4",
+        "db_idx": 0,
+        "host_api_rules_sha256": "473bb3b6258abe6798195c0201c3f4ba5ca0b397b39009c194e7e8fc7acd8fab",
+        "host_api_rules_version": "idle-evidence-host-api-v1",
+        "metadata_json": "{\"analysis_status\":\"ok\",\"attribution_rule_version\":\"host_device_projection_v2\",\"clock_marker_count\":108,\"clock_marker_sha256\":\"77e80184afea74b545b6dea16c767b83216bf5c5d2ff2d793cf37a0d6bf6ddf4\",\"clock_model_version\":\"profiler_caller_device_composed_affine_v3\",\"collection_status\":\"unknown\",\"contract_version\":\"idle-evidence-contract-v4.4\",\"db_idx\":0,\"devices\":[{\"absolute_residual_max_ns\":\"17510.732402\",\"absolute_residual_p50_ns\":\"7249.044607\",\"absolute_residual_p95_ns\":\"17510.732402\",\"alignment_status\":\"calibrated\",\"bracket_uncertainty_p95_ns\":\"91131.697355\",\"composed_absolute_residual_max_ns\":\"65549.021577\",\"composed_absolute_residual_p50_ns\":\"45443.987169\",\"composed_absolute_residual_p95_ns\":\"65549.021577\",\"device_id\":6,\"direct_overlap_marker_count\":0,\"drift_ppm\":\"17.676388\",\"epsilon_ns\":165509,\"fit_marker_count\":69,\"host_clock_absolute_residual_max_ns\":\"14565.260303\",\"host_clock_absolute_residual_p50_ns\":\"1266.731287\",\"host_clock_absolute_residual_p95_ns\":\"14565.260303\",\"host_clock_uncertainty_p95_ns\":\"14565.211932\",\"profiler_to_caller_bracket_uncertainty_p95_ns\":\"42300.859520\",\"has_profiler_host_mapping\":true,\"inlier_marker_count\":86,\"input_marker_count\":108,\"offset_ns\":\"340831.529014\",\"intercept_ns\":\"-31573577495171.810066\",\"ordinal_affine_fallback_marker_count\":86,\"profiler_to_marker_drift_ppm\":\"20.997414\",\"profiler_to_marker_scale\":\"1.000020997414\",\"profiler_caller_observation_kind\":\"record_api_midpoint_to_record_bracket_midpoint\",\"marker_device_observation_kind\":\"record_sync_bracket_midpoint_to_task_start\",\"reference_device_ns\":\"1786200751919765046.529014\",\"reference_host_ns\":\"1786200751919424215.000000\",\"rejected_marker_count\":22,\"scale\":\"1.000017676388\",\"source_clock_domain\":\"profiler_host\",\"span_end_ns\":1786200760337701805,\"span_start_ns\":1786200731456301345,\"status\":\"ok\",\"validation_marker_count\":17}],\"host_api_rules_sha256\":\"473bb3b6258abe6798195c0201c3f4ba5ca0b397b39009c194e7e8fc7acd8fab\",\"host_api_rules_version\":\"idle-evidence-host-api-v1\",\"semantic_rules_sha256\":\"93274230064958c6d085adf26d5ab96739b311a3e2ac785af16bb4654aa811e5\",\"semantic_rules_version\":\"idle-evidence-semantic-v1\",\"source_kind\":\"ascend_sqlite_hot_path\",\"source_path\":\"/workspace/ascend-b2-pilot/src/vllm-request-lifecycle-profiler-plugin/.benchmarks/results/npu6_clock_marker_overhead_v44_l0_repeated_ab/pair_02/marker_enabled/profile/PROF_000001_20260808145209464_02008899GHIJKHQP/msprof_20260808145253.db\"}",
+        "run_id": "8d2b2767495d3c45c91f3c032438dc9973f525a56650eec00197e63301fd15fd",
+        "semantic_rules_sha256": "93274230064958c6d085adf26d5ab96739b311a3e2ac785af16bb4654aa811e5",
+        "semantic_rules_version": "idle-evidence-semantic-v1",
+        "source_kind": "ascend_sqlite_hot_path",
+        "source_path": "/workspace/ascend-b2-pilot/src/vllm-request-lifecycle-profiler-plugin/.benchmarks/results/npu6_clock_marker_overhead_v44_l0_repeated_ab/pair_02/marker_enabled/profile/PROF_000001_20260808145209464_02008899GHIJKHQP/msprof_20260808145253.db",
+        "span_end_ns": 1786200760337701805,
+        "span_start_ns": 1786200731456301345
+      },
+      "sidecar_path": ".benchmarks/results/npu6_clock_marker_overhead_v44_l0_repeated_ab/pair_02/marker_enabled/run/traceloom_sidecar.db"
+    },
+    "task_duration_diagnostics": {
+      "non_point_invalid_duration_count": 0,
+      "point_event_count": 119,
+      "task_type_counts": {
+        "EVENT_RECORD": 119
+      },
+      "total_non_positive_duration_count": 119
+    },
+    "token_timing_identity": {
+      "record_count": 4,
+      "source": "sse_choice_token_ids",
+      "valid": true
+    },
+    "variant_dir": ".benchmarks/results/npu6_clock_marker_overhead_v44_l0_repeated_ab/pair_02/marker_enabled"
+  },
+  "enabled_calibration": {
+    "absolute_residual_max_ns": 17510.732402123645,
+    "absolute_residual_p50_ns": 7249.0446072925215,
+    "absolute_residual_p95_ns": 17510.732402123645,
+    "alignment_status": "calibrated",
+    "bracket_uncertainty_p95_ns": 91131.69735459852,
+    "clock_model_id": "8d2b2767495d3c45c91f3c032438dc9973f525a56650eec00197e63301fd15fd:clock_model:0:6",
+    "composed_absolute_residual_max_ns": 65549.02157734857,
+    "composed_absolute_residual_p50_ns": 45443.98716902286,
+    "composed_absolute_residual_p95_ns": 65549.02157734857,
+    "db_idx": 0,
+    "device_id": 6,
+    "direct_overlap_marker_count": 0,
+    "drift_ppm": 17.676388167497326,
+    "epsilon_ns": 165509,
+    "fit_marker_count": 69,
+    "fit_method": "theil_sen_median",
+    "fit_method_version": "theil_sen_composed_host_v3",
+    "fit_random_seed": 0,
+    "has_profiler_host_mapping": 1,
+    "host_clock_absolute_residual_max_ns": 14565.260303031057,
+    "host_clock_absolute_residual_p50_ns": 1266.7312872074594,
+    "host_clock_absolute_residual_p95_ns": 14565.260303031057,
+    "host_clock_uncertainty_p95_ns": 14565.211932436183,
+    "inlier_marker_count": 86,
+    "input_marker_count": 108,
+    "intercept_ns": "-31573577495171.810066",
+    "intermediate_clock_domain": "caller_clock_realtime",
+    "mapping_kind": "composed_affine",
+    "marker_device_observation_kind": "record_sync_bracket_midpoint_to_task_start",
+    "marker_reference_device_ns": "1786200751919817959.526392",
+    "marker_to_device_drift_ppm": -3.3209564310608655,
+    "marker_to_device_offset_ns": "-121987.473608",
+    "marker_to_device_scale": "0.999996679044",
+    "offset_ns": "340831.529014",
+    "ordinal_affine_fallback_marker_count": 86,
+    "profiler_caller_observation_kind": "record_api_midpoint_to_record_bracket_midpoint",
+    "profiler_reference_marker_ns": "1786200751919887033.826900",
+    "profiler_to_caller_bracket_uncertainty_p95_ns": 42300.85952022201,
+    "profiler_to_marker_drift_ppm": 20.997414330056348,
+    "profiler_to_marker_offset_ns": "462818.826900",
+    "profiler_to_marker_scale": "1.000020997414",
+    "reason": "validated profiler-host, caller-host, and device holdout calibration",
+    "reference_device_ns": "1786200751919765046.529014",
+    "reference_host_ns": "1786200751919424215.000000",
+    "reference_marker_host_ns": "1786200751919939947.000000",
+    "reference_profiler_host_ns": "1786200751919424215.000000",
+    "rejected_marker_count": 22,
+    "run_id": "8d2b2767495d3c45c91f3c032438dc9973f525a56650eec00197e63301fd15fd",
+    "scale": "1.000017676388",
+    "source_clock_domain": "profiler_host",
+    "target_clock_domain": "device",
+    "validation_marker_count": 17
+  },
+  "enabled_e4": {
+    "category": "queued_visible_task_delay",
+    "count": 55,
+    "duration_ns": 541740,
+    "evidence_level": "correlated",
+    "evidence_relation": "exact_connection_id"
+  },
+  "evidence_label": "real-online fixed-rate matched marker overhead",
+  "excluded_diagnostics": [],
+  "full_idle_evidence_acceptance": "PASS",
+  "matching_checks": {
+    "client_command_except_runtime_endpoints": true,
+    "fixed_request_schedule": true,
+    "installed_runtime": true,
+    "model": true,
+    "probe_repository_clean": true,
+    "probe_repository_revision": true,
+    "profiler_boundary": true,
+    "profiler_options": true,
+    "request_shape": true,
+    "server_command_except_runtime_endpoint": true,
+    "token_metrics_from_sse_token_ids": true,
+    "workload_commit": true,
+    "workload_repository_clean": true,
+    "workload_repository_revision": true
+  },
+  "metrics": [
+    {
+      "delta": -0.0009750917796332859,
+      "delta_percent": -0.31289387412839365,
+      "disabled": 0.31163658360187785,
+      "enabled": 0.31066149182224456,
+      "metric": "request throughput",
+      "unit": "request/s"
+    },
+    {
+      "delta": -0.015601468474132574,
+      "delta_percent": -0.31289387412839365,
+      "disabled": 4.986185337630046,
+      "enabled": 4.970583869155913,
+      "metric": "output chunk throughput",
+      "unit": "chunk/s"
+    },
+    {
+      "delta": -0.5911898333579302,
+      "delta_percent": -0.48408818986190844,
+      "disabled": 122.12440744042397,
+      "enabled": 121.53321760706604,
+      "metric": "TTFT p50",
+      "unit": "ms"
+    },
+    {
+      "delta": -3.8205003831535578,
+      "delta_percent": -3.0179977984260047,
+      "disabled": 126.59056229749694,
+      "enabled": 122.77006191434339,
+      "metric": "TTFT p95",
+      "unit": "ms"
+    },
+    {
+      "delta": 0.12766767758876085,
+      "delta_percent": 0.014981750251759764,
+      "disabled": 852.1546244155616,
+      "enabled": 852.2822920931503,
+      "metric": "request latency p50",
+      "unit": "ms"
+    },
+    {
+      "delta": 14.920976560097188,
+      "delta_percent": 1.7401228079762112,
+      "disabled": 857.466869102791,
+      "enabled": 872.3878456628881,
+      "metric": "request latency p95",
+      "unit": "ms"
+    },
+    {
+      "delta": 0.6761590484529734,
+      "delta_percent": 1.3157126090818336,
+      "disabled": 51.39108980074525,
+      "enabled": 52.06724884919822,
+      "metric": "ITL p50",
+      "unit": "ms"
+    },
+    {
+      "delta": -0.28035297291353345,
+      "delta_percent": -0.518385285757711,
+      "disabled": 54.08196964999661,
+      "enabled": 53.801616677083075,
+      "metric": "ITL p95",
+      "unit": "ms"
+    },
+    {
+      "delta": 0.048139458522200584,
+      "delta_percent": 0.099051857874505,
+      "disabled": 48.600258041794106,
+      "enabled": 48.64839750031631,
+      "metric": "TPOT p50",
+      "unit": "ms"
+    },
+    {
+      "delta": 1.2775952780308728,
+      "delta_percent": 2.6176603481123073,
+      "disabled": 48.8067628388914,
+      "enabled": 50.084358116922274,
+      "metric": "TPOT p95",
+      "unit": "ms"
+    },
+    {
+      "delta": 0.7048740000000038,
+      "delta_percent": 1.40399596891496,
+      "disabled": 50.204845,
+      "enabled": 50.909719,
+      "metric": "decode iteration duration p50",
+      "unit": "ms"
+    },
+    {
+      "delta": -0.014288149999998723,
+      "delta_percent": -0.027088103203722805,
+      "disabled": 52.74695645,
+      "enabled": 52.7326683,
+      "metric": "decode iteration duration p95",
+      "unit": "ms"
+    },
+    {
+      "delta": -8091700.0,
+      "delta_percent": -0.5294978261122778,
+      "disabled": 1528183800.0,
+      "enabled": 1520092100.0,
+      "metric": "device productive time (full profiler boundary)",
+      "unit": "ns"
+    },
+    {
+      "delta": -0.001219721409247372,
+      "delta_percent": -2.264953637184975,
+      "disabled": 0.053851937153261885,
+      "enabled": 0.05263221574401451,
+      "metric": "device productive fraction (full profiler boundary)",
+      "unit": "ratio"
+    },
+    {
+      "delta": 108.0,
+      "delta_percent": null,
+      "disabled": 0.0,
+      "enabled": 108.0,
+      "metric": "raw marker brackets",
+      "unit": "count"
+    }
+  ],
+  "overhead_claim_status": "observed_single_pair_no_confidence_interval",
+  "protocol_acceptance": "PASS"
+}

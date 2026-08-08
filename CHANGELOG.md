@@ -4,6 +4,9 @@
 
 ### Added
 
+- Added a strict repeated clock-marker A/B aggregator, content-addressed audit
+  manifest, regression tests, and three accepted NPU6 serving pairs that close
+  the v4.4 real E4 positive path and workload-specific overhead measurement.
 - Added a shared top-level `Makefile` with consistent `install-dev`, `smoke`, `test`, `lint`, `format`, `build`, `bench`, and `paper` targets.
 - Added a top-level `CHANGELOG.md` so the template matches the standalone plugin repository structure used across the related vLLM and SGLang artifact repos.
 - Added a `.benchmarks/` workspace plus a generic shared-workload smoke harness that consumes the repo-local case catalog from `llm-serving-workloads`.

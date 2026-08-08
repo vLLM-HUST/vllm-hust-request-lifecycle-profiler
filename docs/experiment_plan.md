@@ -344,10 +344,22 @@ workload matrix.
   fails because both client runs record a dirty source checkout and use SSE
   frame timestamps rather than token-ID timestamps. ITL/TPOT are retracted;
   all remaining deltas are diagnostic only.
-- Remaining: obtain a v4.4 serving capture with positive E4 evidence and
-  `analysis_status=ok`; repeat enough A/B pairs for confidence intervals and
-  memory/HBM measurements; and repeat calibration/E4 in graph mode before
-  broader claims.
+- Completed: three clean matched low-load serving pairs alternate A/B, B/A,
+  A/B order. All six captures complete 4/4 requests from decoded token-ID
+  timestamps, contain no invalid non-point TASK duration, produce
+  `analysis_status=ok`, and pass the SQL audit. The three marker-enabled
+  captures are calibrated and produce 169 correlated
+  `queued_visible_task_delay` slices / 3,918,602 ns pooled through exact
+  connectionId links. This closes the real v4.4 serving E4 positive path.
+- Completed for the recorded workload: the repeated A/B aggregator accepts
+  all three pairs and reports pooled pair-mean enabled-minus-disabled deltas
+  of -0.164% throughput, -1.495% TTFT p95, -1.328% ITL p95, -0.175% TPOT p95,
+  -0.783% decode-iteration p95, and -0.490% device productive time. These
+  negative values are noise-compatible, not a speedup claim. The aggregate
+  report content-addresses every raw and derived acceptance input.
+- Remaining: increase sample/load coverage for tighter overhead confidence
+  bounds, add memory/HBM measurements, and repeat calibration/E4 in graph
+  mode before broader claims.
 
 Evidence labels: `simulation/model` for deterministic fixtures and
 `real-online` for the recorded NPU6 artifacts. See
