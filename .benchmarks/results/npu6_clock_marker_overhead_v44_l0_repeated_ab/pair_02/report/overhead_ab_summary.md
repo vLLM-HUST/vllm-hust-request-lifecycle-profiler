@@ -53,8 +53,8 @@
 Calibration is `calibrated` with 108/86/22 input/inlier/rejected markers, 69/17 fit/validation markers.
 Marker→device residual p50/p95/max: 7249.045/17510.732/17510.732 ns; profiler→caller residual p50/p95/max: 1266.731/14565.260/14565.260 ns; composed profiler→device residual p50/p95/max: 45443.987/65549.022/65549.022 ns; bracket p95 91131.697 ns; host-clock uncertainty p95 14565.212 device ns; record-call bracket uncertainty p95 42300.860 device ns; epsilon 165509 ns; drift -3.320956/20.997414 ppm for the marker→device/profiler→caller legs. The composed residual is a shared-observation diagnostic, not independent validation.
 Marker resolution provenance: 0 direct-overlap and 86 ordinal-affine-fallback markers.
-E4 emitted 55 calibrated exact-connection slices covering 541740 ns of queued-visible-task delay; these remain diagnostic because the run-level analysis status is invalid_input (0 non-point and 119 point-event non-positive-duration TASK rows).
+E4 emitted 55 accepted calibrated exact-connection slices covering 541740 ns of queued-visible-task delay. Both variant analysis statuses are `ok`; protocol and calibration gates pass; and the enabled source contains 0 non-point invalid-duration TASK rows. Its 119 non-positive-duration point observations remain legal points, not invalid intervals.
 
 ## Interpretation boundary
 
-This retained real-online pair is rejected for an overhead acceptance claim because its source checkout was dirty outside the output directory and its client did not preserve token-ID arrival timestamps. The non-token deltas remain diagnostics only. Full-boundary device time also remains diagnostic while the sidecar run status is invalid_input.
+This real-online pair passes capture, protocol, calibration, and full idle-evidence acceptance and is an accepted input to the repeated matched A/B aggregate. Its standalone overhead status remains `observed_single_pair_no_confidence_interval`; it does not establish a population, high-load, graph-mode, or memory/HBM overhead bound.

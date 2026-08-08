@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import copy
 import importlib.util
+import json
 from pathlib import Path
 
 import pytest
@@ -92,3 +94,45 @@ def test_overhead_source_gate_rejects_dirty_or_mismatched_revision() -> None:
     assert not module._source_matching_checks(disabled, enabled)[
         "probe_repository_revision"
     ]
+
+
+def test_accepted_overhead_markdown_cannot_emit_rejected_template_text() -> None:
+    module = _load_benchmark_module("analyze_npu6_clock_marker_overhead_ab.py")
+    report = (
+        REPO_ROOT
+        / ".benchmarks/results/npu6_clock_marker_overhead_v44_l0_repeated_ab"
+        / "pair_01/report/overhead_ab_summary.json"
+    )
+    summary = json.loads(report.read_text(encoding="utf-8"))
+    markdown = module._markdown(summary)
+    assert "passes capture, protocol, calibration" in markdown
+    for stale_text in (
+        "invalid_input",
+        "source checkout was dirty",
+        "dirty source",
+        "token timestamps unavailable",
+        "did not preserve token-ID arrival timestamps",
+    ):
+        assert stale_text not in markdown
+
+    rejected = copy.deepcopy(summary)
+    rejected["protocol_valid"] = False
+    rejected["protocol_acceptance"] = "FAIL"
+    rejected["full_run_valid"] = False
+    rejected["full_idle_evidence_acceptance"] = "FAIL"
+    rejected["analysis_status"] = {
+        "disabled": rejected["disabled"]["sidecar"]["metadata"][
+            "analysis_status"
+        ],
+        "enabled": "invalid_input",
+    }
+    rejected["enabled"]["sidecar"]["metadata"]["analysis_status"] = (
+        "invalid_input"
+    )
+    rejected["token_metrics_valid"] = False
+    rejected["matching_checks"]["token_metrics_from_sse_token_ids"] = False
+    rejected["matching_checks"]["probe_repository_clean"] = False
+    rejected_markdown = module._markdown(rejected)
+    assert "invalid_input" in rejected_markdown
+    assert "probe repository was dirty" in rejected_markdown
+    assert "token-ID arrival timestamps were unavailable" in rejected_markdown

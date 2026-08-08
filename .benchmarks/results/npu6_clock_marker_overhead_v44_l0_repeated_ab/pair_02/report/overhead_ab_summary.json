@@ -1,5 +1,10 @@
 {
+  "analysis_status": {
+    "disabled": "ok",
+    "enabled": "ok"
+  },
   "calibration_acceptance": "PASS",
+  "calibration_valid": true,
   "capture_acceptance": "PASS",
   "design": {
     "fixed_offered_window_s": 16.0,
@@ -1018,6 +1023,7 @@
   "evidence_label": "real-online fixed-rate matched marker overhead",
   "excluded_diagnostics": [],
   "full_idle_evidence_acceptance": "PASS",
+  "full_run_valid": true,
   "matching_checks": {
     "client_command_except_runtime_endpoints": true,
     "fixed_request_schedule": true,
@@ -1157,5 +1163,7 @@
     }
   ],
   "overhead_claim_status": "observed_single_pair_no_confidence_interval",
-  "protocol_acceptance": "PASS"
+  "protocol_acceptance": "PASS",
+  "protocol_valid": true,
+  "token_metrics_valid": true
 }

@@ -481,6 +481,37 @@ def _excluded_diagnostic(path: Path) -> dict[str, Any]:
 
 
 def _markdown(summary: dict[str, Any]) -> str:
+    protocol_valid = bool(
+        summary.get("protocol_valid", summary["protocol_acceptance"] == "PASS")
+    )
+    calibration_valid = bool(
+        summary.get(
+            "calibration_valid", summary["calibration_acceptance"] == "PASS"
+        )
+    )
+    full_run_valid = bool(
+        summary.get(
+            "full_run_valid",
+            summary["full_idle_evidence_acceptance"] == "PASS",
+        )
+    )
+    token_metrics_valid = bool(
+        summary.get(
+            "token_metrics_valid",
+            summary["matching_checks"]["token_metrics_from_sse_token_ids"],
+        )
+    )
+    analysis_status = summary.get(
+        "analysis_status",
+        {
+            "disabled": summary["disabled"]["sidecar"]["metadata"][
+                "analysis_status"
+            ],
+            "enabled": summary["enabled"]["sidecar"]["metadata"][
+                "analysis_status"
+            ],
+        },
+    )
     lines = [
         "# NPU6 Fixed-rate Clock-marker Overhead A/B",
         "",
@@ -520,7 +551,7 @@ def _markdown(summary: dict[str, Any]) -> str:
             f"{metric['enabled']:.6f} | {metric['delta']:.6f} | "
             f"{percent_text} | {metric['unit']} |"
         )
-    if not summary["matching_checks"]["token_metrics_from_sse_token_ids"]:
+    if not token_metrics_valid:
         lines.extend(
             [
                 "",
@@ -576,30 +607,108 @@ def _markdown(summary: dict[str, Any]) -> str:
                 f"{model['ordinal_affine_fallback_marker_count']} "
                 "ordinal-affine-fallback markers."
             ),
-            (
-                f"E4 emitted {e4['count']} calibrated exact-connection slices "
-                f"covering {e4['duration_ns']} ns of queued-visible-task delay; "
-                "these remain diagnostic because the run-level analysis status "
-                "is invalid_input ("
-                f"{duration_diagnostics['non_point_invalid_duration_count']} "
-                "non-point and "
-                f"{duration_diagnostics['point_event_count']} point-event "
-                "non-positive-duration TASK rows)."
-            ),
-            "",
-            "## Interpretation boundary",
-            "",
-            (
-                "This retained real-online pair is rejected for an overhead "
-                "acceptance claim because its source checkout was dirty outside "
-                "the output directory and its client did not preserve token-ID "
-                "arrival timestamps. The non-token deltas remain diagnostics "
-                "only. Full-boundary device time also remains diagnostic while "
-                "the sidecar run status is invalid_input."
-            ),
-            "",
         ]
     )
+    if full_run_valid:
+        lines.append(
+            f"E4 emitted {e4['count']} accepted calibrated exact-connection "
+            f"slices covering {e4['duration_ns']} ns of queued-visible-task "
+            "delay. Both variant analysis statuses are `ok`; protocol and "
+            "calibration gates pass; and the enabled source contains "
+            f"{duration_diagnostics['non_point_invalid_duration_count']} "
+            "non-point invalid-duration TASK rows. Its "
+            f"{duration_diagnostics['point_event_count']} non-positive-duration "
+            "point observations remain legal points, not invalid intervals."
+        )
+    else:
+        e4_gate_reasons: list[str] = []
+        if not protocol_valid:
+            e4_gate_reasons.append("the matched-capture protocol gate failed")
+        if not calibration_valid:
+            e4_gate_reasons.append("the composed calibration gate failed")
+        non_ok_statuses = [
+            f"{variant}={status}"
+            for variant, status in analysis_status.items()
+            if status != "ok"
+        ]
+        if non_ok_statuses:
+            e4_gate_reasons.append(
+                "run-level analysis status is not ok ("
+                + ", ".join(non_ok_statuses)
+                + ")"
+            )
+        if not e4_gate_reasons:
+            e4_gate_reasons.append("the full-run acceptance gate failed")
+        lines.append(
+            f"E4 emitted {e4['count']} calibrated exact-connection slices "
+            f"covering {e4['duration_ns']} ns of queued-visible-task delay; "
+            "they remain diagnostic because "
+            + "; ".join(e4_gate_reasons)
+            + "."
+        )
+
+    lines.extend(["", "## Interpretation boundary", ""])
+    if full_run_valid:
+        lines.append(
+            "This real-online pair passes capture, protocol, calibration, and "
+            "full idle-evidence acceptance and is an accepted input to the "
+            "repeated matched A/B aggregate. Its standalone overhead status "
+            "remains `observed_single_pair_no_confidence_interval`; it does not "
+            "establish a population, high-load, graph-mode, or memory/HBM "
+            "overhead bound."
+        )
+    else:
+        rejection_reasons: list[str] = []
+        failed_matching_checks = [
+            name for name, passed in summary["matching_checks"].items() if not passed
+        ]
+        if not protocol_valid:
+            if not summary["matching_checks"].get("probe_repository_clean", True):
+                rejection_reasons.append(
+                    "the probe repository was dirty outside the designated "
+                    "output directory"
+                )
+            if not summary["matching_checks"].get(
+                "workload_repository_clean", True
+            ):
+                rejection_reasons.append("the workload repository was dirty")
+            if not token_metrics_valid:
+                rejection_reasons.append(
+                    "decoded token-ID arrival timestamps were unavailable"
+                )
+            described_checks = {
+                "probe_repository_clean",
+                "workload_repository_clean",
+                "token_metrics_from_sse_token_ids",
+            }
+            remaining_checks = [
+                name for name in failed_matching_checks if name not in described_checks
+            ]
+            if remaining_checks:
+                rejection_reasons.append(
+                    "matching checks failed: " + ", ".join(remaining_checks)
+                )
+            if not failed_matching_checks:
+                rejection_reasons.append(
+                    "a request-success, SQL-audit, or marker-presence protocol "
+                    "invariant failed"
+                )
+        if not calibration_valid:
+            rejection_reasons.append("the composed calibration gate failed")
+        for variant, status in analysis_status.items():
+            if status != "ok":
+                rejection_reasons.append(
+                    f"the {variant} analysis status is `{status}`"
+                )
+        if not rejection_reasons:
+            rejection_reasons.append("the full-run acceptance gate failed")
+        lines.append(
+            "This real-online pair is rejected for an overhead/full-E4 "
+            "acceptance claim because "
+            + "; ".join(rejection_reasons)
+            + "."
+        )
+    lines.append("")
     if summary["excluded_diagnostics"]:
         lines.extend(
             [
@@ -709,6 +818,11 @@ def main() -> int:
         and enabled["sidecar"]["metadata"]["analysis_status"] == "ok"
     )
     summary = {
+        "analysis_status": {
+            "disabled": disabled["sidecar"]["metadata"]["analysis_status"],
+            "enabled": enabled["sidecar"]["metadata"]["analysis_status"],
+        },
+        "calibration_valid": calibration_valid,
         "calibration_acceptance": "PASS" if calibration_valid else "FAIL",
         "capture_acceptance": (
             "PASS"
@@ -732,6 +846,7 @@ def main() -> int:
             _excluded_diagnostic(path) for path in args.excluded_diagnostic
         ],
         "full_idle_evidence_acceptance": "PASS" if full_run_valid else "FAIL",
+        "full_run_valid": full_run_valid,
         "matching_checks": matching_checks,
         "metrics": _metrics(
             disabled,
@@ -746,6 +861,10 @@ def main() -> int:
             else "rejected_unmatched_or_dirty_source"
         ),
         "protocol_acceptance": "PASS" if protocol_valid else "FAIL",
+        "protocol_valid": protocol_valid,
+        "token_metrics_valid": matching_checks[
+            "token_metrics_from_sse_token_ids"
+        ],
     }
     args.output_dir.mkdir(parents=True, exist_ok=True)
     (args.output_dir / "overhead_ab_summary.json").write_text(

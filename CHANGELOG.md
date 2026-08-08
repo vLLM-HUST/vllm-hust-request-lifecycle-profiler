@@ -20,6 +20,10 @@
 
 ### Changed
 
+- Made accepted clock-marker A/B Markdown derive its interpretation from the
+  same protocol, calibration, source-validity, analysis-status, and token-timing
+  gates as JSON, and synchronized the claim ledger with the accepted three-pair
+  low-load NPU6 result and its narrow scope.
 - Clarified changelog ownership: template changes must be recorded in this repository's own `CHANGELOG.md`, not in `/home/shuhao/sagellm/CHANGELOG.md`.
 - Standardized local developer metadata by aligning `.[dev]` dependencies, pytest testpaths, and CONTRIBUTING workflow wording with the other standalone plugin repos.
 - Changed the template's default environment guidance to use a dedicated `vllm-request-lifecycle-profiler-exp` clone of the shared vLLM baseline instead of reusing the shared env directly.

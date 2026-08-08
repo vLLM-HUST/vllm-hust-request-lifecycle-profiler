@@ -53,8 +53,8 @@
 Calibration is `calibrated` with 108/87/21 input/inlier/rejected markers, 70/17 fit/validation markers.
 Marker→device residual p50/p95/max: 8331.446/30692.740/30692.740 ns; profiler→caller residual p50/p95/max: 2976.414/35461.322/35461.322 ns; composed profiler→device residual p50/p95/max: 45509.814/93077.393/93077.393 ns; bracket p95 105966.556 ns; host-clock uncertainty p95 35461.174 device ns; record-call bracket uncertainty p95 40680.830 device ns; epsilon 212802 ns; drift -4.186365/21.529720 ppm for the marker→device/profiler→caller legs. The composed residual is a shared-observation diagnostic, not independent validation.
 Marker resolution provenance: 0 direct-overlap and 87 ordinal-affine-fallback markers.
-E4 emitted 60 calibrated exact-connection slices covering 2835462 ns of queued-visible-task delay; these remain diagnostic because the run-level analysis status is invalid_input (0 non-point and 105 point-event non-positive-duration TASK rows).
+E4 emitted 60 accepted calibrated exact-connection slices covering 2835462 ns of queued-visible-task delay. Both variant analysis statuses are `ok`; protocol and calibration gates pass; and the enabled source contains 0 non-point invalid-duration TASK rows. Its 105 non-positive-duration point observations remain legal points, not invalid intervals.
 
 ## Interpretation boundary
 
-This retained real-online pair is rejected for an overhead acceptance claim because its source checkout was dirty outside the output directory and its client did not preserve token-ID arrival timestamps. The non-token deltas remain diagnostics only. Full-boundary device time also remains diagnostic while the sidecar run status is invalid_input.
+This real-online pair passes capture, protocol, calibration, and full idle-evidence acceptance and is an accepted input to the repeated matched A/B aggregate. Its standalone overhead status remains `observed_single_pair_no_confidence_interval`; it does not establish a population, high-load, graph-mode, or memory/HBM overhead bound.
