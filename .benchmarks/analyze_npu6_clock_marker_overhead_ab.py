@@ -53,6 +53,14 @@ def _load_json(path: Path) -> dict[str, Any]:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
+def _sha256(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as stream:
+        for chunk in iter(lambda: stream.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
 def _portable_path(value: str | Path) -> str:
     path = Path(value)
     try:
@@ -283,6 +291,7 @@ def _variant(
         "iteration": _iteration_summary(run_dir / "iteration_timings.tsv"),
         "marker_bracket_count": marker_count,
         "profile_db": _portable_path(profile_dbs[0]),
+        "profile_db_sha256": _sha256(profile_dbs[0]),
         "provenance": _load_json(run_dir / "provenance.json"),
         "request_identity": _request_identity(client_dir / "probe_results.json"),
         "token_timing_identity": _token_timing_identity(
@@ -334,6 +343,67 @@ def _source_matching_checks(
             and enabled_workload["dirty"] is False
         ),
     }
+
+
+def _sidecar_semantic_matching_checks(
+    disabled: dict[str, Any], enabled: dict[str, Any]
+) -> dict[str, bool]:
+    disabled_metadata = disabled["sidecar"]["metadata"]
+    enabled_metadata = enabled["sidecar"]["metadata"]
+    return {
+        "sidecar_contract_version": (
+            disabled_metadata["contract_version"]
+            == enabled_metadata["contract_version"]
+            == "idle-evidence-contract-v4.4"
+        ),
+        "sidecar_attribution_rule_version": (
+            disabled_metadata["attribution_rule_version"]
+            == enabled_metadata["attribution_rule_version"]
+            == "host_device_projection_v2"
+        ),
+    }
+
+
+def _protocol_meets_contract(
+    disabled: dict[str, Any],
+    enabled: dict[str, Any],
+    matching_checks: dict[str, bool],
+) -> bool:
+    return bool(
+        all(matching_checks.values())
+        and disabled["client"]["success_count"]
+        == disabled["client"]["request_count"]
+        and enabled["client"]["success_count"]
+        == enabled["client"]["request_count"]
+        and disabled["sidecar"]["audit"]["audit_status"] == "PASS"
+        and enabled["sidecar"]["audit"]["audit_status"] == "PASS"
+        and disabled["marker_bracket_count"] == 0
+        and enabled["marker_bracket_count"] > 0
+    )
+
+
+def _calibration_meets_contract(enabled: dict[str, Any]) -> bool:
+    model = enabled["sidecar"]["clock_model"]
+    metadata = enabled["sidecar"]["metadata"]
+    return bool(
+        model["alignment_status"] == "calibrated"
+        and model["has_profiler_host_mapping"] == 1
+        and model["mapping_kind"] == "composed_affine"
+        and model["source_clock_domain"] == "profiler_host"
+        and model["intermediate_clock_domain"] == "caller_clock_realtime"
+        and model["target_clock_domain"] == "device"
+        and model["profiler_caller_observation_kind"]
+        == "record_api_midpoint_to_record_bracket_midpoint"
+        and model["marker_device_observation_kind"]
+        == "record_sync_bracket_midpoint_to_task_start"
+        and metadata["contract_version"] == "idle-evidence-contract-v4.4"
+        and metadata["attribution_rule_version"] == "host_device_projection_v2"
+        and model["validation_marker_count"] > 0
+        and model["direct_overlap_marker_count"] == 0
+        and set(enabled["sidecar"]["marker_resolution_methods"])
+        <= {"ordinal_affine_fallback", "unresolved"}
+        and enabled["sidecar"]["audit"]["audit_status"] == "PASS"
+    )
 
 
 def _metric(
@@ -532,7 +602,8 @@ def _markdown(summary: dict[str, Any]) -> str:
         "| Check | Match |",
         "| --- | --- |",
     ]
-    for name, value in summary["matching_checks"].items():
+    for name in sorted(summary["matching_checks"]):
+        value = summary["matching_checks"][name]
         lines.append(f"| {name} | `{'yes' if value else 'no'}` |")
     lines.extend(
         [
@@ -736,6 +807,7 @@ def main() -> int:
     )
     matching_checks = {
         **source_matching_checks,
+        **_sidecar_semantic_matching_checks(disabled, enabled),
         "client_command_except_runtime_endpoints": (
             _same_command_except_runtime_endpoints(
                 disabled_provenance["client_command"],
@@ -782,35 +854,10 @@ def main() -> int:
         e4_key,
         {"count": 0, "duration_ns": 0},
     )
-    protocol_valid = (
-        all(matching_checks.values())
-        and disabled["client"]["success_count"] == disabled["client"]["request_count"]
-        and enabled["client"]["success_count"] == enabled["client"]["request_count"]
-        and disabled["sidecar"]["audit"]["audit_status"] == "PASS"
-        and enabled["sidecar"]["audit"]["audit_status"] == "PASS"
-        and disabled["marker_bracket_count"] == 0
-        and enabled["marker_bracket_count"] > 0
+    protocol_valid = _protocol_meets_contract(
+        disabled, enabled, matching_checks
     )
-    calibration_valid = (
-        enabled_model["alignment_status"] == "calibrated"
-        and enabled_model["has_profiler_host_mapping"] == 1
-        and enabled_model["mapping_kind"] == "composed_affine"
-        and enabled_model["source_clock_domain"] == "profiler_host"
-        and enabled_model["intermediate_clock_domain"] == "caller_clock_realtime"
-        and enabled_model["profiler_caller_observation_kind"]
-        == "record_api_midpoint_to_record_bracket_midpoint"
-        and enabled_model["marker_device_observation_kind"]
-        == "record_sync_bracket_midpoint_to_task_start"
-        and enabled["sidecar"]["metadata"]["contract_version"]
-        == "idle-evidence-contract-v4.4"
-        and enabled["sidecar"]["metadata"]["attribution_rule_version"]
-        == "host_device_projection_v2"
-        and enabled_model["validation_marker_count"] > 0
-        and enabled_model["direct_overlap_marker_count"] == 0
-        and set(enabled["sidecar"]["marker_resolution_methods"])
-        <= {"ordinal_affine_fallback", "unresolved"}
-        and enabled["sidecar"]["audit"]["audit_status"] == "PASS"
-    )
+    calibration_valid = _calibration_meets_contract(enabled)
     full_run_valid = (
         protocol_valid
         and calibration_valid

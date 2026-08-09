@@ -23,6 +23,8 @@
 | profiler_options | `yes` |
 | request_shape | `yes` |
 | server_command_except_runtime_endpoint | `yes` |
+| sidecar_attribution_rule_version | `yes` |
+| sidecar_contract_version | `yes` |
 | token_metrics_from_sse_token_ids | `yes` |
 | workload_commit | `yes` |
 | workload_repository_clean | `yes` |

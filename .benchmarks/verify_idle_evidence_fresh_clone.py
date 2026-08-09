@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import copy
 import gzip
 import hashlib
 import importlib.util
@@ -11,6 +12,7 @@ import json
 import shutil
 import sqlite3
 import subprocess
+import sys
 import tempfile
 from pathlib import Path
 from typing import Any
@@ -25,6 +27,9 @@ AGGREGATE_REPORT = (
 )
 BUNDLE_MANIFEST = RESULT_ROOT / "fresh_clone_inputs/manifest.json"
 PAIR_ANALYZER = REPO_ROOT / ".benchmarks/analyze_npu6_clock_marker_overhead_ab.py"
+REPEATED_ANALYZER = (
+    REPO_ROOT / ".benchmarks/analyze_repeated_clock_marker_overhead_ab.py"
+)
 CROSS_CLOCK_COUNTERS = (
     "cross_clock_fail_closed_errors",
     "host_evidence_source_errors",
@@ -85,6 +90,71 @@ def _normalize_model(row: dict[str, Any]) -> dict[str, Any]:
     result.pop("run_id", None)
     result.pop("clock_model_id", None)
     return result
+
+
+def _normalize_pair_report(report: dict[str, Any]) -> dict[str, Any]:
+    result = copy.deepcopy(report)
+    result["enabled_calibration"] = _normalize_model(
+        result["enabled_calibration"]
+    )
+    for variant in ("disabled", "enabled"):
+        row = result[variant]
+        row.pop("profile_db", None)
+        row.pop("variant_dir", None)
+        sidecar = row["sidecar"]
+        sidecar.pop("sidecar_path", None)
+        sidecar["audit"] = _normalize_audit(sidecar["audit"])
+        sidecar["clock_model"] = _normalize_model(sidecar["clock_model"])
+        metadata = sidecar["metadata"]
+        for field in ("metadata_json", "run_id", "source_path"):
+            metadata.pop(field, None)
+    for diagnostic in result.get("excluded_diagnostics", []):
+        diagnostic.pop("variant_dir", None)
+    return result
+
+
+def _normalize_aggregate_report(report: dict[str, Any]) -> dict[str, Any]:
+    result = copy.deepcopy(report)
+    result.pop("artifact_manifest", None)
+    return result
+
+
+def _first_difference(expected: Any, observed: Any, path: str = "$") -> str:
+    if type(expected) is not type(observed):
+        return (
+            f"{path}: expected type {type(expected).__name__}, "
+            f"observed {type(observed).__name__}"
+        )
+    if isinstance(expected, dict):
+        expected_keys = set(expected)
+        observed_keys = set(observed)
+        if expected_keys != observed_keys:
+            return (
+                f"{path}: missing={sorted(expected_keys - observed_keys)}, "
+                f"extra={sorted(observed_keys - expected_keys)}"
+            )
+        for key in sorted(expected):
+            difference = _first_difference(
+                expected[key], observed[key], f"{path}.{key}"
+            )
+            if difference:
+                return difference
+        return ""
+    if isinstance(expected, list):
+        if len(expected) != len(observed):
+            return f"{path}: expected length {len(expected)}, observed {len(observed)}"
+        for index, (expected_item, observed_item) in enumerate(
+            zip(expected, observed)
+        ):
+            difference = _first_difference(
+                expected_item, observed_item, f"{path}[{index}]"
+            )
+            if difference:
+                return difference
+        return ""
+    if expected != observed:
+        return f"{path}: expected {expected!r}, observed {observed!r}"
+    return ""
 
 
 def _rows_by_key(
@@ -263,6 +333,21 @@ def verify_static_bundle(
     return bundle, aggregate
 
 
+def _run_checked(command: list[str], *, cwd: Path, label: str) -> None:
+    completed = subprocess.run(
+        command,
+        cwd=cwd,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    if completed.returncode != 0:
+        raise RuntimeError(
+            f"{label} failed with exit code {completed.returncode}:\n"
+            f"stdout:\n{completed.stdout}\nstderr:\n{completed.stderr}"
+        )
+
+
 def verify_fresh_clone(
     *,
     analyzer_repo: Path,
@@ -297,9 +382,17 @@ def verify_fresh_clone(
         for pair_id in ("pair_01", "pair_02", "pair_03")
     }
     regenerated_count = 0
+    recomputed_pair_count = 0
     pair_analyzer = _load_pair_analyzer()
     with tempfile.TemporaryDirectory(prefix="idle-evidence-fresh-clone-") as tmp:
         extraction_root = Path(tmp)
+        for entry in bundle["direct_artifacts"]:
+            if entry["role"] == "pair_acceptance_report":
+                continue
+            source = RESULT_ROOT / entry["path"]
+            destination = extraction_root / entry["path"]
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(source, destination)
         for logical_path, entry in archived_by_source.items():
             archive_path = _safe_repo_path(entry["archive"]["path"])
             output_path = extraction_root / logical_path
@@ -319,7 +412,9 @@ def verify_fresh_clone(
             pair_id = entry["pair_id"]
             variant = entry["variant"]
             source_path = entry["source_msprof_path"]
-            generated = extraction_root / pair_id / variant / "traceloom_sidecar.db"
+            generated = extraction_root / entry["expected_derived_sidecar"][
+                "path"
+            ]
             generated.parent.mkdir(parents=True, exist_ok=True)
             command = [
                 str(traceloom.resolve()),
@@ -338,7 +433,7 @@ def verify_fresh_clone(
                 command.extend(
                     [
                         "--clock-marker-brackets",
-                        str((RESULT_ROOT / marker["path"]).resolve()),
+                        str((extraction_root / marker["path"]).resolve()),
                     ]
                 )
             completed = subprocess.run(
@@ -375,12 +470,86 @@ def verify_fresh_clone(
             ]:
                 raise ValueError(f"{pair_id}/{variant}: TASK diagnostics drift")
             regenerated_count += 1
-            generated.unlink()
+
+        for pair_id, expected in pair_summaries.items():
+            pair_root = extraction_root / pair_id
+            report_dir = pair_root / "report"
+            _run_checked(
+                [
+                    sys.executable,
+                    str(PAIR_ANALYZER),
+                    "--disabled-dir",
+                    str(pair_root / "marker_disabled"),
+                    "--enabled-dir",
+                    str(pair_root / "marker_enabled"),
+                    "--output-dir",
+                    str(report_dir),
+                    "--audit-sql",
+                    str(audit_path.resolve()),
+                ],
+                cwd=extraction_root,
+                label=f"pair report recomputation for {pair_id}",
+            )
+            observed_report = _load_json(report_dir / "overhead_ab_summary.json")
+            normalized_expected = _normalize_pair_report(expected)
+            normalized_observed = _normalize_pair_report(observed_report)
+            difference = _first_difference(
+                normalized_expected, normalized_observed
+            )
+            if difference:
+                raise ValueError(
+                    f"{pair_id}: recomputed pair report drift: {difference}"
+                )
+            observed_markdown = (
+                report_dir / "overhead_ab_summary.md"
+            ).read_text(encoding="utf-8")
+            expected_markdown = (
+                RESULT_ROOT / pair_id / "report/overhead_ab_summary.md"
+            ).read_text(encoding="utf-8")
+            if observed_markdown != expected_markdown:
+                raise ValueError(f"{pair_id}: recomputed pair Markdown drift")
+            recomputed_pair_count += 1
+
+        aggregate_dir = extraction_root / "aggregate_report"
+        _run_checked(
+            [
+                sys.executable,
+                str(REPEATED_ANALYZER),
+                "--root",
+                str(extraction_root),
+                "--output-dir",
+                str(aggregate_dir),
+            ],
+            cwd=extraction_root,
+            label="aggregate report recomputation",
+        )
+        observed_aggregate = _load_json(
+            aggregate_dir / "repeated_overhead_ab_summary.json"
+        )
+        expected_aggregate = _load_json(AGGREGATE_REPORT)
+        aggregate_difference = _first_difference(
+            _normalize_aggregate_report(expected_aggregate),
+            _normalize_aggregate_report(observed_aggregate),
+        )
+        if aggregate_difference:
+            raise ValueError(
+                "recomputed aggregate report drift: " + aggregate_difference
+            )
+        observed_aggregate_markdown = (
+            aggregate_dir / "repeated_overhead_ab_summary.md"
+        ).read_text(encoding="utf-8")
+        expected_aggregate_markdown = AGGREGATE_REPORT.with_suffix(
+            ".md"
+        ).read_text(encoding="utf-8")
+        if observed_aggregate_markdown != expected_aggregate_markdown:
+            raise ValueError("recomputed aggregate Markdown drift")
 
     return {
-        "accepted_report_count": 3,
+        "accepted_report_count": recomputed_pair_count,
+        "aggregate_report_recomputed": True,
         "archived_raw_source_count": len(archived_by_source),
         "cross_clock_audit_counter_errors": 0,
+        "recomputed_pair_report_count": recomputed_pair_count,
         "regenerated_sidecar_count": regenerated_count,
         "status": "PASS",
     }

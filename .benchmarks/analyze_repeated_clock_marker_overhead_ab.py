@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+from datetime import datetime
 from pathlib import Path
 from typing import Any
 
@@ -44,6 +45,157 @@ def _sha256(path: Path) -> str:
         for chunk in iter(lambda: stream.read(1024 * 1024), b""):
             digest.update(chunk)
     return digest.hexdigest()
+
+
+def _canonical_sha256(value: Any) -> str:
+    payload = json.dumps(value, separators=(",", ":"), sort_keys=True).encode()
+    return hashlib.sha256(payload).hexdigest()
+
+
+def _normalized_command(command: list[str]) -> list[str]:
+    result = list(command)
+    for option, replacement in (
+        ("--endpoint", "<variant-endpoint>"),
+        ("--output-dir", "<variant-output>"),
+        ("--port", "<variant-port>"),
+    ):
+        if option in result:
+            result[result.index(option) + 1] = replacement
+    return result
+
+
+def _variant_frozen_configuration(
+    report: dict[str, Any], variant: str
+) -> dict[str, Any]:
+    row = report[variant]
+    provenance = row["provenance"]
+    client_metadata = row["client_run_metadata"]
+    sidecar_metadata = row["sidecar"]["metadata"]
+    clock_model = row["sidecar"]["clock_model"]
+    return {
+        "artifact_label": provenance["artifact_label"],
+        "case_id": provenance["case_id"],
+        "client_command": _normalized_command(provenance["client_command"]),
+        "client_model": client_metadata["model"],
+        "clock_contract_version": provenance["clock_contract_version"],
+        "device_id": clock_model["device_id"],
+        "installed_runtime": provenance["installed_runtime"],
+        "marker_enabled": provenance["marker_enabled"],
+        "mode": provenance["mode"],
+        "model": provenance["model"],
+        "observer_mode": client_metadata["observer_mode"],
+        "probe_commit": client_metadata["repo"]["commit"],
+        "profiler_boundary": provenance["profiler_boundary"],
+        "profiler_options": provenance["profiler_options"],
+        "request_shape": provenance["request_shape"],
+        "server_command": _normalized_command(provenance["server_command"]),
+        "sidecar_attribution_rule_version": sidecar_metadata[
+            "attribution_rule_version"
+        ],
+        "sidecar_contract_version": sidecar_metadata["contract_version"],
+        "sidecar_host_api_rules_sha256": sidecar_metadata[
+            "host_api_rules_sha256"
+        ],
+        "sidecar_host_api_rules_version": sidecar_metadata[
+            "host_api_rules_version"
+        ],
+        "sidecar_semantic_rules_sha256": sidecar_metadata[
+            "semantic_rules_sha256"
+        ],
+        "sidecar_semantic_rules_version": sidecar_metadata[
+            "semantic_rules_version"
+        ],
+        "sidecar_source_kind": sidecar_metadata["source_kind"],
+        "target_clock_domain": clock_model["target_clock_domain"],
+        "workload_commit": provenance["workload_commit"],
+        "workload_source_commit": client_metadata["workload_source"][
+            "commit"
+        ],
+    }
+
+
+def _pair_frozen_configuration(report: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "design": report["design"],
+        "disabled": _variant_frozen_configuration(report, "disabled"),
+        "enabled": _variant_frozen_configuration(report, "enabled"),
+    }
+
+
+def _capture_timestamp(report: dict[str, Any], variant: str) -> datetime:
+    value = report[variant]["provenance"]["timestamp_utc"]
+    timestamp = datetime.fromisoformat(value)
+    if timestamp.tzinfo is None:
+        raise ValueError(f"{variant}: capture timestamp lacks timezone")
+    return timestamp
+
+
+def _validate_repetitions(
+    report_paths: list[Path], reports: list[dict[str, Any]]
+) -> dict[str, Any]:
+    capture_hashes: list[str] = []
+    capture_timestamps: list[datetime] = []
+    capture_intervals: list[tuple[int, int, str]] = []
+    observed_order: list[str] = []
+    frozen = _pair_frozen_configuration(reports[0])
+
+    for index, (path, report) in enumerate(zip(report_paths, reports)):
+        configuration = _pair_frozen_configuration(report)
+        if configuration != frozen:
+            raise ValueError(
+                f"{path}: frozen capture configuration differs from pair_01"
+            )
+        disabled_time = _capture_timestamp(report, "disabled")
+        enabled_time = _capture_timestamp(report, "enabled")
+        order = "A/B" if disabled_time < enabled_time else "B/A"
+        expected_order = "A/B" if index % 2 == 0 else "B/A"
+        if order != expected_order:
+            raise ValueError(
+                f"{path}: capture order is {order}, expected {expected_order}"
+            )
+        observed_order.append(order)
+
+        for variant, marker_enabled, mode in (
+            ("disabled", False, "marker-disabled"),
+            ("enabled", True, "marker-enabled"),
+        ):
+            row = report[variant]
+            provenance = row["provenance"]
+            if provenance["marker_enabled"] is not marker_enabled:
+                raise ValueError(f"{path}: invalid {variant} marker mode")
+            if provenance["mode"] != mode:
+                raise ValueError(f"{path}: invalid {variant} provenance mode")
+            source_hash = row.get("profile_db_sha256")
+            if not isinstance(source_hash, str) or len(source_hash) != 64:
+                raise ValueError(f"{path}: missing {variant} source hash")
+            capture_hashes.append(source_hash)
+            capture_timestamps.append(_capture_timestamp(report, variant))
+            metadata = row["sidecar"]["metadata"]
+            start_ns = int(metadata["span_start_ns"])
+            end_ns = int(metadata["span_end_ns"])
+            if end_ns <= start_ns:
+                raise ValueError(f"{path}: invalid {variant} capture interval")
+            capture_intervals.append((start_ns, end_ns, f"{path}:{variant}"))
+
+    if len(set(capture_hashes)) != len(capture_hashes):
+        raise ValueError("repeated matched A/B reuses a source capture hash")
+    if len(set(capture_timestamps)) != len(capture_timestamps):
+        raise ValueError("repeated matched A/B reuses a capture timestamp")
+    for previous, current in zip(
+        sorted(capture_intervals), sorted(capture_intervals)[1:]
+    ):
+        if current[0] < previous[1]:
+            raise ValueError(
+                "repeated matched A/B capture intervals overlap: "
+                f"{previous[2]} and {current[2]}"
+            )
+    return {
+        "capture_count": len(capture_hashes),
+        "capture_order": observed_order,
+        "distinct_source_hash_count": len(set(capture_hashes)),
+        "frozen_configuration_sha256": _canonical_sha256(frozen),
+        "non_overlapping_capture_intervals": True,
+    }
 
 
 def _artifact_manifest(root: Path) -> list[dict[str, Any]]:
@@ -113,6 +265,7 @@ def aggregate(root: Path) -> dict[str, Any]:
         if failed_matches:
             raise ValueError(f"{path}: failed matching checks: {failed_matches}")
 
+    repetition_validation = _validate_repetitions(report_paths, reports)
     design = reports[0]["design"]
     for path, report in zip(report_paths[1:], reports[1:]):
         if report["design"] != design:
@@ -221,6 +374,7 @@ def aggregate(root: Path) -> dict[str, Any]:
         },
         "pair_count": len(reports),
         "pair_ids": [path.parents[1].name for path in report_paths],
+        "repetition_validation": repetition_validation,
         "design": design,
         "total_requests_per_variant": sum(
             int(report["design"]["request_count"]) for report in reports
@@ -263,6 +417,19 @@ def _markdown(summary: dict[str, Any]) -> str:
         "- derived sidecar regeneration and semantic audit: `true`",
         "- byte-identical original derived-sidecar retrieval: `false`",
         f"- pair_count: `{summary['pair_count']}`",
+        (
+            "- capture order: `"
+            + ", ".join(summary["repetition_validation"]["capture_order"])
+            + "`"
+        ),
+        (
+            "- distinct raw captures: `"
+            f"{summary['repetition_validation']['distinct_source_hash_count']}`"
+        ),
+        (
+            "- frozen configuration SHA-256: `"
+            f"{summary['repetition_validation']['frozen_configuration_sha256']}`"
+        ),
         f"- total requests per variant: `{summary['total_requests_per_variant']}`",
         f"- pooled correlated E4: `{summary['correlated_e4']['pooled_count']}` slices / `{summary['correlated_e4']['pooled_duration_ns']}` ns",
         "",

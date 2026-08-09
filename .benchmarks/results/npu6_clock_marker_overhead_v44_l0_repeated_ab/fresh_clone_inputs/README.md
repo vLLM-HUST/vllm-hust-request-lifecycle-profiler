@@ -10,7 +10,9 @@ checkout without publishing the 2.6 GB of derived SQLite sidecars.
   `9a816aaeda5d937c07d04e13901df1462d12f979`, and the audit SQL hash.
 - `.benchmarks/verify_idle_evidence_fresh_clone.py` decompresses each raw
   database, regenerates all six sidecars, executes the cross-clock SQL audit,
-  and compares stable sidecar semantics with each accepted pair report.
+  reruns all three pair analyzers and the repeated A/B aggregator, and compares
+  those recomputed outputs with the committed reports. Existing PASS badges
+  are never treated as acceptance authority.
 
 With the pinned analyzer checked out and built in the sibling directory, run:
 
@@ -18,7 +20,9 @@ With the pinned analyzer checked out and built in the sibling directory, run:
 make idle-evidence-fresh-clone-audit PYTHON=python3
 ```
 
-The original derived sidecar byte layout is not archived. The acceptance
-claim is reproducibility from lossless raw profiler inputs plus exact tool and
-audit provenance, not byte-identical reproduction of incidental SQLite IDs or
-source-path metadata.
+The repeated gate also requires six distinct raw-source hashes,
+non-overlapping capture intervals, the frozen A/B–B/A–A/B order, and one
+cross-pair configuration digest. The original derived sidecar byte layout is
+not archived. The acceptance claim is reproducibility from lossless raw
+profiler inputs plus exact tool and audit provenance, not byte-identical
+reproduction of incidental SQLite IDs or source-path metadata.

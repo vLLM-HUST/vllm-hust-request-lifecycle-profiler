@@ -11,6 +11,9 @@
 - derived sidecar regeneration and semantic audit: `true`
 - byte-identical original derived-sidecar retrieval: `false`
 - pair_count: `3`
+- capture order: `A/B, B/A, A/B`
+- distinct raw captures: `6`
+- frozen configuration SHA-256: `0c5cc6fccd6034bc7072ba0b7461405a713a4a27e919b3296b8f3ba781e84719`
 - total requests per variant: `12`
 - pooled correlated E4: `169` slices / `3918602` ns
 

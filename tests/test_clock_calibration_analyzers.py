@@ -96,6 +96,33 @@ def test_overhead_source_gate_rejects_dirty_or_mismatched_revision() -> None:
     ]
 
 
+def test_overhead_pair_requires_v44_on_both_sides_and_device_target() -> None:
+    module = _load_benchmark_module("analyze_npu6_clock_marker_overhead_ab.py")
+    report = (
+        REPO_ROOT
+        / ".benchmarks/results/npu6_clock_marker_overhead_v44_l0_repeated_ab"
+        / "pair_01/report/overhead_ab_summary.json"
+    )
+    summary = json.loads(report.read_text(encoding="utf-8"))
+    disabled = copy.deepcopy(summary["disabled"])
+    enabled = copy.deepcopy(summary["enabled"])
+
+    assert all(
+        module._sidecar_semantic_matching_checks(disabled, enabled).values()
+    )
+    assert module._calibration_meets_contract(enabled)
+
+    disabled["sidecar"]["metadata"]["contract_version"] = (
+        "idle-evidence-contract-v4.3"
+    )
+    assert not module._sidecar_semantic_matching_checks(disabled, enabled)[
+        "sidecar_contract_version"
+    ]
+
+    enabled["sidecar"]["clock_model"]["target_clock_domain"] = "caller_host"
+    assert not module._calibration_meets_contract(enabled)
+
+
 def test_accepted_overhead_markdown_cannot_emit_rejected_template_text() -> None:
     module = _load_benchmark_module("analyze_npu6_clock_marker_overhead_ab.py")
     report = (

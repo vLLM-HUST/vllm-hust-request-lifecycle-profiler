@@ -213,6 +213,7 @@
     },
     "marker_bracket_count": 0,
     "profile_db": ".benchmarks/results/npu6_clock_marker_overhead_v44_l0_repeated_ab/pair_02/marker_disabled/profile/PROF_000001_20260808145357371_02011316AODHLLEH/msprof_20260808145441.db",
+    "profile_db_sha256": "ed9d767fa3bbd213d7e2f4e626ae7827bc2d487b41aa0f418a4f438b2f5a109b",
     "provenance": {
       "artifact_label": "real-online v4.4 fixed-rate matched marker overhead",
       "case_id": "shared_scenario_structured_agent_decode",
@@ -678,6 +679,7 @@
     },
     "marker_bracket_count": 108,
     "profile_db": ".benchmarks/results/npu6_clock_marker_overhead_v44_l0_repeated_ab/pair_02/marker_enabled/profile/PROF_000001_20260808145209464_02008899GHIJKHQP/msprof_20260808145253.db",
+    "profile_db_sha256": "3519ef9a7582e9377252a21a66423e40d4cd642c39fae7bab63e2611a93ebe2b",
     "provenance": {
       "artifact_label": "real-online v4.4 fixed-rate matched marker overhead",
       "case_id": "shared_scenario_structured_agent_decode",
@@ -1035,6 +1037,8 @@
     "profiler_options": true,
     "request_shape": true,
     "server_command_except_runtime_endpoint": true,
+    "sidecar_attribution_rule_version": true,
+    "sidecar_contract_version": true,
     "token_metrics_from_sse_token_ids": true,
     "workload_commit": true,
     "workload_repository_clean": true,

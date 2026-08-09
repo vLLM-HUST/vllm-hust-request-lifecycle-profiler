@@ -23,6 +23,10 @@
 
 ### Changed
 
+- Made fresh-clone v4.4 acceptance recompute all pair and aggregate reports
+  from archived raw profiler inputs, and fail closed on reused captures,
+  non-alternating order, cross-pair configuration drift, disabled-side
+  contract drift, or a non-device calibration target.
 - Made accepted clock-marker A/B Markdown derive its interpretation from the
   same protocol, calibration, source-validity, analysis-status, and token-timing
   gates as JSON, and synchronized the claim ledger with the accepted three-pair

@@ -57,6 +57,11 @@ jobs:
         with:
           python-version: "3.12"
 
+      - name: Install native build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes cmake g++ libsqlite3-dev
+
       - name: Build pinned analyzer with SQLite adapters
         run: |
           cmake \
@@ -68,6 +73,7 @@ jobs:
             --build _deps/vllm-hust-perf-analyzer/build/fresh-clone \
             --target traceloom \
             --parallel 2
+          test -x _deps/vllm-hust-perf-analyzer/build/fresh-clone/native/traceloom
 
       - name: Regenerate and audit all six accepted sidecars
         run: |

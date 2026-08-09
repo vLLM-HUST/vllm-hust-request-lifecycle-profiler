@@ -123,15 +123,15 @@
       "pair_id": "pair_01",
       "path": "pair_01/report/overhead_ab_summary.json",
       "role": "pair_acceptance_report",
-      "sha256": "6dc59a7c40cdd56dece03889a7d836cb1a21f5d37a2ec1d6e489fc2223fdc6d0",
-      "size_bytes": 46273
+      "sha256": "dceaab2aa14a12f7ecd1afdaba8800e03132c5a65040b1f819b3f66f544036c2",
+      "size_bytes": 46543
     },
     {
       "pair_id": "pair_01",
       "path": "pair_01/report/overhead_ab_summary.md",
       "role": "pair_acceptance_report",
-      "sha256": "ffe43804d9ab1f6280067febf9dc1e50e9724bc1e0f78eea4fe94e82058b66be",
-      "size_bytes": 3675
+      "sha256": "d137cd2b8aeef3421b6750464f2d35df1dd2227ef7b98d99e2f46d056fcaed97",
+      "size_bytes": 3757
     },
     {
       "pair_id": "pair_02",
@@ -256,15 +256,15 @@
       "pair_id": "pair_02",
       "path": "pair_02/report/overhead_ab_summary.json",
       "role": "pair_acceptance_report",
-      "sha256": "2a5d852dc30b1ea7c65dfa86d3b639720c3f2c7492b895926fb5fbe9badbd647",
-      "size_bytes": 46230
+      "sha256": "b7ca4544b017a38b455122ab4ff4cef14a353df26471d9fa534ce6c5fd229d45",
+      "size_bytes": 46500
     },
     {
       "pair_id": "pair_02",
       "path": "pair_02/report/overhead_ab_summary.md",
       "role": "pair_acceptance_report",
-      "sha256": "18b119327a890a91f29bc8d2872505276af471709cced25b1eb581cdb61069b1",
-      "size_bytes": 3660
+      "sha256": "6d5ac673bfe6494a2d09997abf00f12ad49586a53d8b2584ca7e8774cbeb0870",
+      "size_bytes": 3742
     },
     {
       "pair_id": "pair_03",
@@ -389,15 +389,15 @@
       "pair_id": "pair_03",
       "path": "pair_03/report/overhead_ab_summary.json",
       "role": "pair_acceptance_report",
-      "sha256": "f770bc0e113bcf2c5bf5ba66d0bb515cac19aaa81e95e7b3501648b008c1b6e3",
-      "size_bytes": 46290
+      "sha256": "4abe820772954a07ef7ad74bcdf097de36492867dacccbbbe19c92db536d3b94",
+      "size_bytes": 46560
     },
     {
       "pair_id": "pair_03",
       "path": "pair_03/report/overhead_ab_summary.md",
       "role": "pair_acceptance_report",
-      "sha256": "3a7945c7aac6fb2af24dec5066d9743424427e740c925ff236386a94683de8e4",
-      "size_bytes": 3669
+      "sha256": "5a8ce8c0a6bc35398ed4dbb78773e1e2d8582f2f4956e421ab98ada43531b7d6",
+      "size_bytes": 3751
     }
   ],
   "calibration_acceptance": "PASS",
@@ -565,6 +565,8 @@
     "profiler_options": true,
     "request_shape": true,
     "server_command_except_runtime_endpoint": true,
+    "sidecar_attribution_rule_version": true,
+    "sidecar_contract_version": true,
     "token_metrics_from_sse_token_ids": true,
     "workload_commit": true,
     "workload_repository_clean": true,
@@ -1323,6 +1325,17 @@
     "manifest_scope": "six lossless raw msprof databases are committed as deterministic gzip archives; 45 direct inputs are committed; six derived sidecars are regenerated and semantically audited",
     "original_derived_sidecar_byte_retrieval": false,
     "status": "fresh_clone_raw_sources_and_regeneration_recipe"
+  },
+  "repetition_validation": {
+    "capture_count": 6,
+    "capture_order": [
+      "A/B",
+      "B/A",
+      "A/B"
+    ],
+    "distinct_source_hash_count": 6,
+    "frozen_configuration_sha256": "0c5cc6fccd6034bc7072ba0b7461405a713a4a27e919b3296b8f3ba781e84719",
+    "non_overlapping_capture_intervals": true
   },
   "schema_version": "clock-marker-repeated-overhead-ab-v1",
   "total_requests_per_variant": 12
