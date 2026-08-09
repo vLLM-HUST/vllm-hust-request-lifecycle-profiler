@@ -43,13 +43,13 @@ jobs:
     timeout-minutes: 10
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0
           persist-credentials: false
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.11"
 
@@ -99,16 +99,37 @@ jobs:
     timeout-minutes: 15
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
+          fetch-depth: 0
           persist-credentials: false
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.11"
           cache: pip
           cache-dependency-path: pyproject.toml
+
+      - name: Fetch pinned public runtime attestation source
+        env:
+          RUNTIME_SOURCE_DIR: ${{ runner.temp }}/vllm-hust-g1
+          RUNTIME_SOURCE_SHA: 5f7872976bd56a0861bb0072eaac68260ba7d578
+        run: |
+          set -euo pipefail
+          git init "$RUNTIME_SOURCE_DIR"
+          git -C "$RUNTIME_SOURCE_DIR" remote add origin \
+            https://github.com/vLLM-HUST/vllm-hust.git
+          git -C "$RUNTIME_SOURCE_DIR" fetch --depth=2 --filter=blob:none \
+            origin "$RUNTIME_SOURCE_SHA"
+          git -C "$RUNTIME_SOURCE_DIR" update-ref HEAD "$RUNTIME_SOURCE_SHA"
+          git -C "$RUNTIME_SOURCE_DIR" sparse-checkout init --no-cone
+          git -C "$RUNTIME_SOURCE_DIR" sparse-checkout set --no-cone \
+            /vllm/v1/kv_recovery_profile.py
+          git -C "$RUNTIME_SOURCE_DIR" read-tree -mu HEAD
+          test "$(git -C "$RUNTIME_SOURCE_DIR" rev-parse HEAD)" = \
+            "$RUNTIME_SOURCE_SHA"
+          test -f "$RUNTIME_SOURCE_DIR/vllm/v1/kv_recovery_profile.py"
 
       - name: Install development dependencies
         run: python -m pip install -e ".[dev]"
@@ -119,6 +140,7 @@ jobs:
       - name: Run unit tests
         env:
           PYTHONPATH: src
+          VLLM_HUST_G1_SRC: ${{ runner.temp }}/vllm-hust-g1
         run: python -m pytest -q
 
       - name: Build source and wheel distributions
