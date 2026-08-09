@@ -1,6 +1,23 @@
 name: v4.4 idle-evidence fresh-clone audit
 
 on:
+  push:
+    branches:
+      - main
+      - feat/host-device-clock-calibration
+    paths:
+      - ".benchmarks/analyze_npu6_clock_marker_overhead_ab.py"
+      - ".benchmarks/analyze_repeated_clock_marker_overhead_ab.py"
+      - ".benchmarks/build_idle_evidence_fresh_clone_bundle.py"
+      - ".benchmarks/verify_idle_evidence_fresh_clone.py"
+      - ".benchmarks/results/npu6_clock_marker_overhead_v44_l0_repeated_ab/**"
+      - ".github/workflows/idle-evidence-v44.yml"
+      - "docs/claim_ledger.md"
+      - "docs/host_device_clock_calibration.md"
+      - "Makefile"
+      - "tests/test_clock_calibration_analyzers.py"
+      - "tests/test_idle_evidence_fresh_clone.py"
+      - "tests/test_repeated_clock_marker_overhead_ab.py"
   pull_request:
     paths:
       - ".benchmarks/analyze_npu6_clock_marker_overhead_ab.py"
