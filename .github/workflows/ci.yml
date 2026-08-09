@@ -1,0 +1,125 @@
+name: CPU and contract CI
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/ci.yml"
+      - ".gitmodules"
+      - "contracts/**"
+      - "docs/**"
+      - "src/**"
+      - "tests/**"
+      - "scripts/**"
+      - "third_party/llm-serving-workloads"
+      - "Makefile"
+      - "pyproject.toml"
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/ci.yml"
+      - ".gitmodules"
+      - "contracts/**"
+      - "docs/**"
+      - "src/**"
+      - "tests/**"
+      - "scripts/**"
+      - "third_party/llm-serving-workloads"
+      - "Makefile"
+      - "pyproject.toml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  contract-integrity:
+    name: Contract integrity
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Check changed-file whitespace
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          set -euo pipefail
+          if [[ "$EVENT_NAME" == "pull_request" ]]; then
+            git diff --check "$BASE_SHA...$HEAD_SHA"
+          elif [[ "$EVENT_NAME" == "push" && ! "$BASE_SHA" =~ ^0+$ ]]; then
+            git diff --check "$BASE_SHA" "$HEAD_SHA"
+          else
+            git show --check --format=fuller "$HEAD_SHA" --
+          fi
+
+      - name: Validate frozen P0 contracts
+        run: python tests/test_p0_frozen_contracts.py
+
+      - name: Validate contract JSON and Markdown fences
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          for path in sorted(Path("contracts").rglob("*.json")):
+              json.loads(path.read_text(encoding="utf-8"))
+
+          markdown_paths = [
+              *Path("contracts").rglob("*.md"),
+              *Path("docs").rglob("*.md"),
+          ]
+          for path in sorted(markdown_paths):
+              lines = path.read_text(encoding="utf-8").splitlines()
+              fence_count = sum(
+                  line.lstrip().startswith("```") for line in lines
+              )
+              if fence_count % 2:
+                  raise SystemExit(f"unbalanced fenced code blocks: {path}")
+          PY
+
+  cpu-tests:
+    name: CPU tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: pyproject.toml
+
+      - name: Install development dependencies
+        run: python -m pip install -e ".[dev]"
+
+      - name: Run critical lint checks
+        run: python -m ruff check --select E9,F63,F7,F82 src tests scripts
+
+      - name: Run unit tests
+        env:
+          PYTHONPATH: src
+        run: python -m pytest -q
+
+      - name: Build source and wheel distributions
+        run: python -m build
