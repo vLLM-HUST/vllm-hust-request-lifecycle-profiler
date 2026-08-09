@@ -2,17 +2,6 @@ name: CPU and contract CI
 
 on:
   pull_request:
-    paths:
-      - ".github/workflows/ci.yml"
-      - ".gitmodules"
-      - "contracts/**"
-      - "docs/**"
-      - "src/**"
-      - "tests/**"
-      - "scripts/**"
-      - "third_party/llm-serving-workloads"
-      - "Makefile"
-      - "pyproject.toml"
   push:
     branches:
       - main
