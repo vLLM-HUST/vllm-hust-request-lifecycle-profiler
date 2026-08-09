@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import math
 from datetime import datetime
 from pathlib import Path
 from typing import Any
@@ -35,7 +36,9 @@ def _distribution(values: list[float]) -> dict[str, float | int]:
         "p50": _percentile(values, 0.50),
         "p95": _percentile(values, 0.95),
         "max": max(values),
-        "mean": sum(values) / len(values),
+        # Python 3.12 changed built-in sum() to use compensated summation.
+        # fsum() freezes report bytes across supported Python runtimes.
+        "mean": math.fsum(values) / len(values),
     }
 
 
@@ -286,8 +289,8 @@ def aggregate(root: Path) -> dict[str, Any]:
             for row in rows
             if row["delta_percent"] is not None
         ]
-        pooled_disabled = sum(disabled) / len(disabled)
-        pooled_enabled = sum(enabled) / len(enabled)
+        pooled_disabled = math.fsum(disabled) / len(disabled)
+        pooled_enabled = math.fsum(enabled) / len(enabled)
         pooled_delta = pooled_enabled - pooled_disabled
         metric_summaries.append({
             "metric": metric_name,

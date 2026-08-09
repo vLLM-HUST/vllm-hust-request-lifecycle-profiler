@@ -77,14 +77,14 @@ jobs:
 
       - name: Regenerate and audit all six accepted sidecars
         run: |
-          python .benchmarks/verify_idle_evidence_fresh_clone.py \
+          python3 .benchmarks/verify_idle_evidence_fresh_clone.py \
             --analyzer-repo _deps/vllm-hust-perf-analyzer \
             --traceloom _deps/vllm-hust-perf-analyzer/build/fresh-clone/native/traceloom
 
       - name: Run report and bundle regression tests
         run: |
-          python -m pip install pytest
-          PYTHONPATH=src python -m pytest -q \
+          python3 -m pip install pytest
+          PYTHONPATH=src python3 -m pytest -q \
             tests/test_clock_calibration_analyzers.py \
             tests/test_idle_evidence_fresh_clone.py \
             tests/test_repeated_clock_marker_overhead_ab.py

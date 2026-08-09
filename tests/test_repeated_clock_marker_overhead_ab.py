@@ -177,6 +177,16 @@ def test_aggregates_repeated_pair_distribution(tmp_path: Path) -> None:
     assert result["correlated_e4"]["pooled_duration_ns"] == 150
 
 
+def test_distribution_uses_cross_runtime_stable_summation() -> None:
+    module = _module()
+    values = [
+        -0.011432623541677343,
+        -0.31289387412839365,
+        -0.16679157575391948,
+    ]
+    assert module._distribution(values)["mean"] == -0.16370602447466348
+
+
 def _write_reports(tmp_path: Path, summaries: list[dict]) -> None:
     for index, summary in enumerate(summaries):
         report = tmp_path / f"pair_{index:02d}" / "report"
