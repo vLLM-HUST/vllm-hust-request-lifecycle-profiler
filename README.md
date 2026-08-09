@@ -99,19 +99,21 @@ The package now provides an opt-in `AscendClockMarkerCollector` for host
 brackets around device-visible timeline events. The matching TraceLoom analyzer
 resolves each profiled `aclrtRecordEvent` through a unique connectionId to
 `TASK.startNs`, fits an explicit profiler-host→caller-realtime→device composed
-clock model under the draft v4.4 amendment. A narrow caller timestamp bracket
+clock model under the frozen v4.4 contract. A narrow caller timestamp bracket
 around the record API trains the first leg; the outer bracket through event
 synchronization trains only the marker/device leg. Host API evidence is admitted
 only through robust overlap/delay windows whose epsilon contains both residual
 and both bracket-uncertainty terms. Raw device syscnt is never accepted as
-profiler nanoseconds. Three new repeated real NPU6 captures pass calibration and
-the strengthened SQL audit; the composed residual now exposes the previously
-cancelled record→device latency. Prior serving and marker-overhead sidecars lack
-the new record timestamp and are retracted under v4.4. A recollected fixed-rate
-pair validates enabled-side calibration but is rejected for overhead acceptance
-because its source checkout was dirty and its client timestamped SSE frames
-rather than decoded token IDs. Positive serving E4 and clean matched
-marker-overhead evidence remain open. See
+profiler nanoseconds. Three repeated real NPU6 calibration micro-captures pass
+the composed-clock and strengthened SQL gates with 21/21 inliers, a 17/4
+fit/validation split, zero direct cross-domain overlaps, and sequence-bijection
+provenance. A separate three-pair alternating low-load serving experiment is
+clean and source-valid: all six captures have `analysis_status=ok`, all enabled
+variants calibrate, and the analyzer emits 169 accepted
+`queued_visible_task_delay` slices covering 3,918,602 ns in total. The matched
+A/B reports use decoded SSE token IDs and pass capture, protocol, calibration,
+full-E4, and SQL acceptance. This evidence does not establish high-load,
+graph-mode, memory/HBM, population, or universal E4/overhead bounds. See
 [`docs/host_device_clock_calibration.md`](docs/host_device_clock_calibration.md).
 
 ## Test

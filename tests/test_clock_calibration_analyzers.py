@@ -123,6 +123,65 @@ def test_overhead_pair_requires_v44_on_both_sides_and_device_target() -> None:
     assert not module._calibration_meets_contract(enabled)
 
 
+def test_overhead_calibration_gate_enforces_marker_conservation() -> None:
+    module = _load_benchmark_module("analyze_npu6_clock_marker_overhead_ab.py")
+    report = (
+        REPO_ROOT
+        / ".benchmarks/results/npu6_clock_marker_overhead_v44_l0_repeated_ab"
+        / "pair_01/report/overhead_ab_summary.json"
+    )
+    enabled = json.loads(report.read_text(encoding="utf-8"))["enabled"]
+    assert module._calibration_meets_contract(enabled)
+
+    too_few = copy.deepcopy(enabled)
+    model = too_few["sidecar"]["clock_model"]
+    model.update(
+        input_marker_count=5,
+        inlier_marker_count=5,
+        rejected_marker_count=0,
+        fit_marker_count=4,
+        validation_marker_count=1,
+        ordinal_affine_fallback_marker_count=5,
+    )
+    too_few["sidecar"]["marker_resolution_methods"] = {
+        "ordinal_affine_fallback": 5
+    }
+    assert not module._calibration_meets_contract(too_few)
+
+    inconsistent = copy.deepcopy(enabled)
+    inconsistent["sidecar"]["clock_model"]["rejected_marker_count"] += 1
+    assert not module._calibration_meets_contract(inconsistent)
+
+
+def test_full_e4_gate_requires_positive_correlated_extent() -> None:
+    module = _load_benchmark_module("analyze_npu6_clock_marker_overhead_ab.py")
+    assert module._positive_e4_meets_contract({"count": 1, "duration_ns": 1})
+    assert not module._positive_e4_meets_contract({"count": 0, "duration_ns": 1})
+    assert not module._positive_e4_meets_contract({"count": 1, "duration_ns": 0})
+
+
+def test_variant_rejects_divergent_client_duplicate_documents(tmp_path: Path) -> None:
+    module = _load_benchmark_module("analyze_npu6_clock_marker_overhead_ab.py")
+    source = (
+        REPO_ROOT
+        / ".benchmarks/results/npu6_clock_marker_overhead_v44_l0_repeated_ab"
+        / "pair_01/marker_enabled"
+    )
+    client_dir = tmp_path / "run/client"
+    client_dir.mkdir(parents=True)
+    for name in ("probe_results.json", "summary.json", "run_metadata.json"):
+        (client_dir / name).write_bytes((source / "run/client" / name).read_bytes())
+    summary = json.loads((client_dir / "summary.json").read_text(encoding="utf-8"))
+    summary["success_count"] -= 1
+    (client_dir / "summary.json").write_text(
+        json.dumps(summary), encoding="utf-8"
+    )
+
+    # Duplicate validation runs before profile or sidecar consumption.
+    with pytest.raises(ValueError, match="summary duplicate drift"):
+        module._variant(tmp_path, "select 1")
+
+
 def test_accepted_overhead_markdown_cannot_emit_rejected_template_text() -> None:
     module = _load_benchmark_module("analyze_npu6_clock_marker_overhead_ab.py")
     report = (

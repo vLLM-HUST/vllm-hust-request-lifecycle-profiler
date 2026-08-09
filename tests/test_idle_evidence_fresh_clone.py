@@ -5,6 +5,8 @@ import importlib.util
 import json
 from pathlib import Path
 
+import pytest
+
 
 def _module():
     path = (
@@ -61,3 +63,16 @@ def test_pair_report_comparison_ignores_only_path_identity_metadata() -> None:
     assert module._normalize_pair_report(stale) != (
         module._normalize_pair_report(expected)
     )
+
+
+def test_semantic_drift_error_reports_first_field() -> None:
+    module = _module()
+    expected = {"clock_model": {"epsilon_ns": 42, "status": "calibrated"}}
+    observed = copy.deepcopy(expected)
+    observed["clock_model"]["epsilon_ns"] = 43
+
+    with pytest.raises(
+        ValueError,
+        match=r"semantic drift: \$\.clock_model\.epsilon_ns: expected 42, observed 43",
+    ):
+        module._require_same_semantics("semantic drift", expected, observed)

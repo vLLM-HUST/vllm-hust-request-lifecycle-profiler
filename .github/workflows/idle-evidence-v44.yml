@@ -57,6 +57,8 @@ jobs:
     steps:
       - name: Check out authority repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -71,7 +73,7 @@ jobs:
 
   raw-cross-clock-audit:
     name: Raw input, hash, and cross-clock reconstruction
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     timeout-minutes: 30
     steps:
       - name: Check out authority repository

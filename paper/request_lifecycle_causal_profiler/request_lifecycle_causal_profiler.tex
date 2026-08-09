@@ -36,7 +36,7 @@ requests validate scenario correspondence, not independent estimates of
 diagnosis accuracy. In a separate concurrency sweep, the profiler localizes two
 12.2\,s-class tails to the coarse runtime prefill span, narrowing the next
 experiment without identifying a scheduler, KV-cache, graph, or kernel root
-cause. Queue, KV-pressure, and cleanup ground truth, controlled online runs,
+cause. Queue, KV-pressure, and cleanup ground truth, controlled graph-mode runs,
 and broad overhead measurements remain missing. The current evidence therefore
 supports the diagnostic method and a focused research agenda, but not a
 submission-ready evaluation.
@@ -239,8 +239,9 @@ Theil--Sen path. The collector now records a narrow caller-clock bracket around
 the record API separately from the outer record-through-synchronize bracket.
 The first affine leg pairs the profiled record midpoint with the narrow bracket
 midpoint; only the second leg uses the outer midpoint. Each capture has 21
-inlier markers with a 17/4 fit/validation split, 21 direct-overlap resolutions,
-no fallback, and a passing audit. Across 12 pooled validation markers,
+inlier markers with a 17/4 fit/validation split, zero raw cross-domain overlap,
+21 affine-validated sequence resolutions, and a passing audit. Across 12 pooled
+validation markers,
 marker-to-device residual p50/p95/max is 0.812/4.744/4.744\,$\mu$s and
 profiler-to-caller residual is 0.194/0.896/0.896\,$\mu$s. The composed
 shared-observation diagnostic is 20.901/26.538/26.538\,$\mu$s: unlike the
@@ -250,29 +251,35 @@ record-to-device delay. Per-capture epsilon is 62.729, 71.010, and
 uncertainties. One micro-capture has \texttt{analysis\_status=ok}, but all have
 zero correlated duration and therefore provide mechanism rather than positive
 E4 evidence. The prior serving 1133-to-1 replay lacks the new timestamp and is
-retracted under v4.4; valid positive serving E4 remains an open gate.
+retracted under v4.4. Positive E4 evidence instead comes from the independent
+serving experiment below.
 
 \subsection{Overhead evidence}
 
-We retained a fixed-rate marker-disabled/enabled NPU6 pair collected with the
-v4.4 collector. The enabled run calibrates 565 inliers after sequence-only
-marker resolution. This pair is rejected for overhead acceptance: both client
-metadata files record a dirty source checkout, the probe timestamped SSE frames
-rather than decoded token IDs, and both profiler sidecars have
-\texttt{analysis\_status=invalid\_input}. ITL/TPOT are therefore retracted and
-the remaining deltas are diagnostic only. A clean token-aware matched pair,
-CPU/host-memory/NPU-HBM coverage, graph mode, and repeated-pair confidence
-intervals remain open; overhead remains excluded from headline results.
+We collected three alternating clean matched low-load NPU6 pairs (A/B, B/A,
+A/B), with four measured requests per variant. All six profiler sidecars have
+\texttt{analysis\_status=ok}; all enabled variants calibrate using sequence
+bijection and emit 60, 55, and 54 accepted exact-connection E4 slices. The
+pooled E4 extent is 3,918,602\,ns. Every pair passes capture, protocol,
+calibration, full-E4, matching, source-validity, and SQL gates, and the client
+derives ITL/TPOT from decoded SSE token IDs. Pair-mean enabled-minus-disabled
+deltas are -0.164\% request throughput, -1.495\% TTFT p95, -1.328\% ITL p95,
+-0.175\% TPOT p95, -0.783\% decode-iteration p95, and -0.490\% device
+productive time. Negative deltas are sampling variation, not speedups. This
+accepts marker overhead only for the recorded low-load workload and sample;
+CPU/host-memory/NPU-HBM coverage, graph mode, high load, and population bounds
+remain open.
 
 \section{Limitations and Required Evidence}
 
-The current evaluation has four submission blockers. First, the controlled
+The current evaluation has three submission blockers. First, the controlled
 fault matrix does not establish benchmark-owned graph-mode server custody; the
 new calibration/overhead harness owns its server but runs eager mode. Second,
 queue, KV-pressure, and cleanup ground truth are missing. Third, raw-log,
-rules-disabled, and timed manual baselines have not been measured. Fourth, a
-valid positive v4.4 serving E4 capture is still missing, and v4.4 overhead has
-not yet been repeated for confidence intervals or memory costs.
+rules-disabled, and timed manual baselines have not been measured. The new
+positive v4.4 serving E4 and repeated low-load overhead evidence close the
+previous clock-path blockers, but do not supply graph-mode, high-load,
+memory/HBM, or population-level overhead bounds.
 
 These are evidence blockers, not writing tasks. The project should remain a
 research draft until a frozen, repository-controlled protocol produces

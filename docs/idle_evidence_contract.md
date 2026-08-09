@@ -1,6 +1,6 @@
 # Idle Evidence Contract (M0)
 
-Status: Draft v4.4 composed-clock amendment (proposed for M0 approval)
+Status: Frozen v4.4 composed-clock contract
 
 Target: cross-layer device idle-gap and synchronization evidence, as defined in
 intellistream/vllm-request-lifecycle-profiler-plugin#2 (M0) and

@@ -249,6 +249,12 @@ def _first_difference(expected: Any, observed: Any, path: str = "$") -> str:
     return ""
 
 
+def _require_same_semantics(label: str, expected: Any, observed: Any) -> None:
+    difference = _first_difference(expected, observed)
+    if difference:
+        raise ValueError(f"{label}: {difference}")
+
+
 def _rows_by_key(
     connection: sqlite3.Connection, query: str, key: str
 ) -> dict[str, dict[str, Any]]:
@@ -460,7 +466,7 @@ def _recompute_calibration(
                 str(sidecar),
                 "--sidecar-only",
                 "--threads",
-                "2",
+                "1",
             ],
             cwd=REPO_ROOT,
             label=f"calibration sidecar regeneration for {capture['name']}",
@@ -600,7 +606,7 @@ def verify_fresh_clone(
                 str(generated),
                 "--sidecar-only",
                 "--threads",
-                "2",
+                "1",
             ]
             marker = entry["marker_input"]
             if marker is not None:
@@ -624,10 +630,11 @@ def verify_fresh_clone(
                 )
             observed = _sidecar_semantics(generated, audit_sql)
             expected = _expected_semantics(pair_summaries[pair_id], variant)
-            if observed != expected:
-                raise ValueError(
-                    f"{pair_id}/{variant}: regenerated sidecar semantics drift"
-                )
+            _require_same_semantics(
+                f"{pair_id}/{variant}: regenerated sidecar semantics drift",
+                expected,
+                observed,
+            )
             audit = observed["audit"]
             if audit["audit_status"] != "PASS":
                 raise ValueError(f"{pair_id}/{variant}: SQL audit did not pass")

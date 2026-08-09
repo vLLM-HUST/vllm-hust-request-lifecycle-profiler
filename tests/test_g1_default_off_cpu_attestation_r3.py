@@ -38,6 +38,17 @@ def sha256(path: Path) -> str:
 
 
 def assert_commit_is_ancestor(commit: str) -> None:
+    available = subprocess.run(
+        ["git", "cat-file", "-e", f"{commit}^{{commit}}"],
+        cwd=REPO_ROOT,
+        check=False,
+        capture_output=True,
+    )
+    if available.returncode != 0:
+        pytest.skip(
+            "the publication commit is unavailable in this shallow checkout; "
+            "fetch complete parent history to validate ancestry"
+        )
     subprocess.run(
         ["git", "merge-base", "--is-ancestor", commit, "HEAD"],
         cwd=REPO_ROOT,

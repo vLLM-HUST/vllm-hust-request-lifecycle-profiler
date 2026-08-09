@@ -127,8 +127,7 @@ def _iteration_summary(path: Path) -> dict[str, Any]:
     }
 
 
-def _request_identity(path: Path) -> dict[str, Any]:
-    probe = _load_json(path)
+def _request_identity(probe: dict[str, Any]) -> dict[str, Any]:
     records = [
         {
             "case_index": row["case_index"],
@@ -145,8 +144,8 @@ def _request_identity(path: Path) -> dict[str, Any]:
     }
 
 
-def _token_timing_identity(path: Path) -> dict[str, Any]:
-    records = _load_json(path)["records"]
+def _token_timing_identity(probe: dict[str, Any]) -> dict[str, Any]:
+    records = probe["records"]
     valid = bool(records) and all(
         row.get("token_timing_source") == "sse_choice_token_ids"
         and isinstance(row.get("generated_token_count"), int)
@@ -277,6 +276,13 @@ def _variant(
 ) -> dict[str, Any]:
     run_dir = path / "run"
     client_dir = run_dir / "client"
+    probe = _load_json(client_dir / "probe_results.json")
+    client_summary = _load_json(client_dir / "summary.json")
+    client_run_metadata = _load_json(client_dir / "run_metadata.json")
+    if probe.get("summary") != client_summary:
+        raise ValueError(f"{client_dir}: probe_results summary duplicate drift")
+    if probe.get("metadata") != client_run_metadata:
+        raise ValueError(f"{client_dir}: probe_results metadata duplicate drift")
     profile_dbs = sorted((path / "profile").glob("PROF_*/msprof_*.db"))
     if len(profile_dbs) != 1:
         raise ValueError(f"{path}: expected exactly one exported msprof DB")
@@ -286,17 +292,15 @@ def _variant(
         with marker_path.open(encoding="utf-8") as handle:
             marker_count = max(0, sum(1 for _ in handle) - 1)
     return {
-        "client": _load_json(client_dir / "summary.json"),
-        "client_run_metadata": _load_json(client_dir / "run_metadata.json"),
+        "client": client_summary,
+        "client_run_metadata": client_run_metadata,
         "iteration": _iteration_summary(run_dir / "iteration_timings.tsv"),
         "marker_bracket_count": marker_count,
         "profile_db": _portable_path(profile_dbs[0]),
         "profile_db_sha256": _sha256(profile_dbs[0]),
         "provenance": _load_json(run_dir / "provenance.json"),
-        "request_identity": _request_identity(client_dir / "probe_results.json"),
-        "token_timing_identity": _token_timing_identity(
-            client_dir / "probe_results.json"
-        ),
+        "request_identity": _request_identity(probe),
+        "token_timing_identity": _token_timing_identity(probe),
         "sidecar": _sidecar_summary(
             sidecar_path or run_dir / "traceloom_sidecar.db", audit_sql
         ),
@@ -383,27 +387,58 @@ def _protocol_meets_contract(
 
 
 def _calibration_meets_contract(enabled: dict[str, Any]) -> bool:
-    model = enabled["sidecar"]["clock_model"]
-    metadata = enabled["sidecar"]["metadata"]
-    return bool(
-        model["alignment_status"] == "calibrated"
-        and model["has_profiler_host_mapping"] == 1
-        and model["mapping_kind"] == "composed_affine"
-        and model["source_clock_domain"] == "profiler_host"
-        and model["intermediate_clock_domain"] == "caller_clock_realtime"
-        and model["target_clock_domain"] == "device"
-        and model["profiler_caller_observation_kind"]
-        == "record_api_midpoint_to_record_bracket_midpoint"
-        and model["marker_device_observation_kind"]
-        == "record_sync_bracket_midpoint_to_task_start"
-        and metadata["contract_version"] == "idle-evidence-contract-v4.4"
-        and metadata["attribution_rule_version"] == "host_device_projection_v2"
-        and model["validation_marker_count"] > 0
-        and model["direct_overlap_marker_count"] == 0
-        and set(enabled["sidecar"]["marker_resolution_methods"])
-        <= {"ordinal_affine_fallback", "unresolved"}
-        and enabled["sidecar"]["audit"]["audit_status"] == "PASS"
-    )
+    try:
+        model = enabled["sidecar"]["clock_model"]
+        metadata = enabled["sidecar"]["metadata"]
+        resolution_methods = enabled["sidecar"]["marker_resolution_methods"]
+        input_count = int(model["input_marker_count"])
+        inlier_count = int(model["inlier_marker_count"])
+        rejected_count = int(model["rejected_marker_count"])
+        fit_count = int(model["fit_marker_count"])
+        validation_count = int(model["validation_marker_count"])
+        resolution_counts = [int(count) for count in resolution_methods.values()]
+        resolution_count = sum(resolution_counts)
+        return bool(
+            model["alignment_status"] == "calibrated"
+            and model["has_profiler_host_mapping"] == 1
+            and model["mapping_kind"] == "composed_affine"
+            and model["source_clock_domain"] == "profiler_host"
+            and model["intermediate_clock_domain"] == "caller_clock_realtime"
+            and model["target_clock_domain"] == "device"
+            and model["profiler_caller_observation_kind"]
+            == "record_api_midpoint_to_record_bracket_midpoint"
+            and model["marker_device_observation_kind"]
+            == "record_sync_bracket_midpoint_to_task_start"
+            and metadata["contract_version"] == "idle-evidence-contract-v4.4"
+            and metadata["attribution_rule_version"]
+            == "host_device_projection_v2"
+            and input_count >= 6
+            and inlier_count >= 6
+            and rejected_count >= 0
+            and fit_count > 0
+            and validation_count > 0
+            and all(count >= 0 for count in resolution_counts)
+            and input_count == inlier_count + rejected_count
+            and inlier_count == fit_count + validation_count
+            and model["direct_overlap_marker_count"] == 0
+            and model["ordinal_affine_fallback_marker_count"] == inlier_count
+            and set(resolution_methods)
+            <= {"ordinal_affine_fallback", "unresolved"}
+            and resolution_count == input_count
+            and enabled["sidecar"]["audit"]["audit_status"] == "PASS"
+        )
+    except (AttributeError, KeyError, TypeError, ValueError):
+        return False
+
+
+def _positive_e4_meets_contract(e4: dict[str, Any]) -> bool:
+    try:
+        return (
+            int(e4.get("count", 0)) > 0
+            and int(e4.get("duration_ns", 0)) > 0
+        )
+    except (AttributeError, TypeError, ValueError):
+        return False
 
 
 def _metric(
@@ -861,6 +896,7 @@ def main() -> int:
     full_run_valid = (
         protocol_valid
         and calibration_valid
+        and _positive_e4_meets_contract(enabled_e4)
         and disabled["sidecar"]["metadata"]["analysis_status"] == "ok"
         and enabled["sidecar"]["metadata"]["analysis_status"] == "ok"
     )
