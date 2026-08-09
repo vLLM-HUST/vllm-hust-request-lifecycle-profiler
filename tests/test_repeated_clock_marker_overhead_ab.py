@@ -163,7 +163,7 @@ def test_aggregates_repeated_pair_distribution(tmp_path: Path) -> None:
         "original_derived_sidecar_byte_retrieval": False,
         "manifest_scope": (
             "six lossless raw msprof databases are committed as "
-            "deterministic gzip archives; 45 direct inputs are committed; "
+            "deterministic gzip archives; 39 direct inputs are committed; "
             "six derived sidecars are regenerated and semantically audited"
         ),
     }
@@ -233,7 +233,7 @@ def test_artifact_manifest_hashes_audit_inputs(tmp_path: Path) -> None:
             run = pair / variant / "run"
             (run / "client").mkdir(parents=True)
             for relative in (
-                "traceloom_sidecar.db", "traceloom_result.json",
+                "traceloom_sidecar.db",
                 "provenance.json",
                 "client/probe_results.json", "client/run_metadata.json",
                 "client/summary.json", "iteration_timings.tsv",
@@ -251,7 +251,10 @@ def test_artifact_manifest_hashes_audit_inputs(tmp_path: Path) -> None:
             )
 
     manifest = module._artifact_manifest(tmp_path)
-    assert len(manifest) == 57
+    assert len(manifest) == 51
+    assert not any(
+        row["role"] == "derived_analysis_result" for row in manifest
+    )
     assert all(len(row["sha256"]) == 64 for row in manifest)
     assert {row["role"] for row in manifest} >= {
         "source_msprof_database", "derived_sidecar", "clock_marker_brackets"

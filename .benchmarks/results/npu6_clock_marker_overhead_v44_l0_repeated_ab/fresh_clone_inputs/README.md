@@ -5,14 +5,15 @@ checkout without publishing the 2.6 GB of derived SQLite sidecars.
 
 - `raw_msprof/` contains deterministic, lossless gzip archives of the six raw
   msprof databases used by the three matched A/B pairs.
-- `manifest.json` binds those archives, the 45 directly committed inputs, all
-  57 original artifact hashes, analyzer commit
+- `manifest.json` binds those archives, the 39 directly committed inputs, all
+  51 acceptance-input hashes, analyzer commit
   `9a816aaeda5d937c07d04e13901df1462d12f979`, and the audit SQL hash.
 - `.benchmarks/verify_idle_evidence_fresh_clone.py` decompresses each raw
   database, regenerates all six sidecars, executes the cross-clock SQL audit,
-  reruns all three pair analyzers and the repeated A/B aggregator, and compares
-  those recomputed outputs with the committed reports. Existing PASS badges
-  are never treated as acceptance authority.
+  reruns all three pair analyzers and the repeated A/B aggregator, regenerates
+  the three calibration micro-capture sidecars, and compares both serving and
+  calibration outputs with the committed summaries. Existing PASS badges are
+  never treated as acceptance authority.
 
 With the pinned analyzer checked out and built in the sibling directory, run:
 

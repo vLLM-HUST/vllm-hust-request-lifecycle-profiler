@@ -28,7 +28,7 @@ create one collector and reuse its timeline event:
 from vllm_request_lifecycle_profiler import AscendClockMarkerCollector
 
 collector = AscendClockMarkerCollector.from_env(
-    device_id=6,
+    device_id=runtime_selected_device_id,
     stream_handle=native_aclrt_stream_pointer,
     stream_id=profiler_stream_id_if_known,
 )
@@ -195,47 +195,16 @@ capture: `host_explanation_contract_errors`,
 `queued_task_link_errors`; all four are zero in all three captures.
 The same directory also contains `AUDIT.md` and
 `audit_inputs_manifest.json`. They pin the exact TraceLoom commit and
-content-address the committed bracket TSVs, source msprof databases, derived
-sidecars, and summary artifacts so an independent checkout can verify and
-rebuild the acceptance inputs without relying on machine-local paths.
+content-address the committed bracket TSVs, source msprof databases, probe
+summaries, and acceptance summaries. Derived sidecars are deliberately not
+committed: CI regenerates all three with the pinned analyzer and recomputes the
+calibration JSON/Markdown before accepting the evidence.
 
-The earlier fixed-rate serving sidecars and the reported 1133→1 slice change
-were produced before the v4.4 observation amendment. They lack
-`record_after_ns`, still encode the superseded first-leg correspondence, and
-MUST NOT be used as current cross-clock evidence. Their matched workload
-measurements remain historical diagnostics only. Because v4.4 adds one runtime
-timestamp read per marker, the marker OFF/ON A/B and any serving E4 claim must
-be recollected. A positive serving claim additionally requires
-`analysis_status=ok`.
-
-An additional `--task-time=l2` probe under
-`.benchmarks/results/npu6_clock_marker_l2_validity_probe/` still contains 84
-zero-duration kernel/memcpy tasks (plus 650 point events). Increasing the
-profiler task-time level does not close this source-validity blocker.
-
-The superseded pre-v4.4 marker-overhead report remains at
-`.benchmarks/results/npu6_clock_marker_overhead_fixed_rate_ab/report/` and is
-historical only. The current report is
-`.benchmarks/results/npu6_clock_marker_overhead_v44_fixed_rate_ab/`. Both new
-variants use the same model, fixed request schedule, seed, 2 req/s offered
-load, 24 s window, workload/server configuration, profiler options, and msprof
-boundary; the distinct loopback ports only isolate the two sequential server
-processes. Each completes 48/48 requests. The disabled run emits zero markers;
-the enabled run emits 587 successful new-format brackets and calibrates 565
-inliers (453 fit, 112 validation, 22 rejected) with epsilon 164088 ns. Both SQL
-audits pass. However, both client metadata files record
-`dirty_excluding_output_dir=true`, and the older probe timestamped SSE frames
-rather than decoded token IDs.
-
-The retained non-token deltas are diagnostic only. ITL/TPOT are retracted and
-omitted because frame arrival is not token arrival. The enabled calibration is
-still valid after re-resolution with 0 direct-overlap and 565 validated
-sequence markers, but the structured result is now
-`protocol_acceptance=FAIL`, `calibration_acceptance=PASS`, and
-`capture_acceptance=FAIL`. A clean matched recollection using decoded delta
-`token_ids` is required before making a marker-overhead claim. Both source
-profiles also contain non-point non-positive-duration TASK rows and therefore
-have `analysis_status=invalid_input`.
+Superseded v4.3 captures, rejected dirty-source A/B attempts, and their
+reproducible loop-tree/result/sidecar outputs are intentionally absent from the
+PR result layer. They remain recoverable from Git history but are not current
+acceptance inputs. This prevents historical diagnostics from being mistaken
+for v4.4 evidence.
 
 The accepted recollection is
 `.benchmarks/results/npu6_clock_marker_overhead_v44_l0_repeated_ab/`. It uses
@@ -264,10 +233,10 @@ decode-iteration p95, and -0.490% device productive time. Negative deltas are
 sampling variation, not a speedup claim. The narrow conclusion is that this
 12-request-per-variant low-load sample detects no marker-induced regression;
 larger-load and graph-mode bounds remain future work. The final JSON embeds
-SHA-256 and byte size for every source msprof database, derived sidecar,
-marker TSV, client result, provenance record, and per-pair report. The
+SHA-256 and byte size for every source msprof database, marker TSV, client
+result, provenance record, and per-pair report. The
 fresh-clone bundle commits lossless deterministic-gzip copies of all six raw
-msprof databases plus the 45 direct audit inputs. It pins analyzer commit
+msprof databases plus the 39 direct audit inputs. It pins analyzer commit
 `9a816aaeda5d937c07d04e13901df1462d12f979`, regenerates all six derived
 sidecars, executes the cross-clock SQL audit, and compares stable sidecar
 semantics with the accepted reports. It also recomputes every pair report and
@@ -282,7 +251,7 @@ reproduction is not claimed.
 The deterministic fixtures remain `simulation/model`/contract evidence. The
 three micro-captures support the `real-online` composed-calibration claim; the
 three accepted serving pairs additionally support the v4.4 positive E4 path
-and a workload-specific repeated overhead result. The earlier 48-request pair
-is still rejected and preserved only as a profiler-pathology diagnostic.
-These results do not prove causality, establish graph-mode behavior, or bound
-overhead outside the recorded low-load configuration.
+and a workload-specific repeated overhead result. Rejected historical attempts
+are not part of the current PR artifact surface. These results do not prove
+causality, establish graph-mode behavior, or bound overhead outside the
+recorded low-load configuration.

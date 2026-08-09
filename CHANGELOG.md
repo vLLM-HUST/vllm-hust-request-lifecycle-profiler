@@ -23,6 +23,9 @@
 
 ### Changed
 
+- Split the v4.4 GitHub gate into visible contract, complete parent-test, and
+  raw/cross-clock reconstruction jobs; removed superseded result trees and
+  reproducible sidecar/result files from the committed evidence layer.
 - Made fresh-clone v4.4 acceptance recompute all pair and aggregate reports
   from archived raw profiler inputs, and fail closed on reused captures,
   non-alternating order, cross-pair configuration drift, disabled-side

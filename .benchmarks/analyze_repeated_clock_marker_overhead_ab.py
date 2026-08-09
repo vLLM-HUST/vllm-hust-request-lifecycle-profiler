@@ -217,7 +217,6 @@ def _artifact_manifest(root: Path) -> list[dict[str, Any]]:
             run_dir = variant_dir / "run"
             for role, relative in (
                 ("derived_sidecar", "traceloom_sidecar.db"),
-                ("derived_analysis_result", "traceloom_result.json"),
                 ("capture_provenance", "provenance.json"),
                 ("client_probe_results", "client/probe_results.json"),
                 ("client_run_metadata", "client/run_metadata.json"),
@@ -371,7 +370,7 @@ def aggregate(root: Path) -> dict[str, Any]:
             "original_derived_sidecar_byte_retrieval": False,
             "manifest_scope": (
                 "six lossless raw msprof databases are committed as "
-                "deterministic gzip archives; 45 direct inputs are committed; "
+                "deterministic gzip archives; 39 direct inputs are committed; "
                 "six derived sidecars are regenerated and semantically audited"
             ),
         },

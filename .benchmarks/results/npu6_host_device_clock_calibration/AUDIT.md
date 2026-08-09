@@ -1,10 +1,11 @@
 # NPU6 v4.4 calibration audit bundle
 
 This directory commits the bracket TSV, source `msprof` SQLite database, and
-derived TraceLoom sidecar for each accepted repeated capture. Paths are
-repository-relative. `audit_inputs_manifest.json` binds every acceptance input
-and summary to its byte size and SHA-256 digest, and pins the analyzer to
-TraceLoom commit `bdea6fe63c69693473cd6a7a5f31ef83ef07fb33`.
+probe summary for each accepted repeated capture. Derived TraceLoom sidecars,
+loop trees, and result JSON are regenerated and are not committed.
+`audit_inputs_manifest.json` binds every retained input and acceptance summary
+to its byte size and SHA-256 digest, and pins the analyzer to TraceLoom commit
+`9a816aaeda5d937c07d04e13901df1462d12f979`.
 
 Verify the committed bundle from the repository root:
 
@@ -66,6 +67,10 @@ python3 .benchmarks/analyze_host_device_clock_calibration.py \
   --output-dir "$AUDIT_OUTPUT/summary" \
   --require-three
 ```
+
+CI runs this reconstruction through
+`.benchmarks/verify_idle_evidence_fresh_clone.py` and requires the recomputed
+JSON and Markdown to match the committed summaries.
 
 The accepted bundle validates the real marker-to-profiler-to-calibration chain.
 It does not establish positive serving E4 attribution; correlated duration is

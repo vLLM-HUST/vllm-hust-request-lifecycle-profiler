@@ -20,13 +20,21 @@ def _module():
 
 
 def test_checked_in_fresh_clone_bundle_is_complete_and_consistent() -> None:
-    bundle, aggregate = _module().verify_static_bundle()
+    module = _module()
+    bundle, aggregate = module.verify_static_bundle()
+    calibration = module.verify_calibration_sources()
 
     assert bundle["schema_version"] == "idle-evidence-fresh-clone-bundle-v1"
     assert bundle["artifact_coverage"]["uncovered_artifact_count"] == 0
     assert len(bundle["archived_raw_sources"]) == 6
     assert len(bundle["regenerated_artifacts"]) == 6
     assert aggregate["full_idle_evidence_acceptance"] == "PASS"
+    assert calibration["schema_version"] == 2
+    assert len(calibration["captures"]) == 3
+
+
+def test_result_surface_excludes_reproducible_derived_artifacts() -> None:
+    _module()._assert_layered_result_surface()
 
 
 def test_pair_report_comparison_ignores_only_path_identity_metadata() -> None:

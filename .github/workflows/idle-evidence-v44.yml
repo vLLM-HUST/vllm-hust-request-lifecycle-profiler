@@ -6,39 +6,71 @@ on:
       - main
       - feat/host-device-clock-calibration
     paths:
-      - ".benchmarks/analyze_npu6_clock_marker_overhead_ab.py"
-      - ".benchmarks/analyze_repeated_clock_marker_overhead_ab.py"
-      - ".benchmarks/build_idle_evidence_fresh_clone_bundle.py"
-      - ".benchmarks/verify_idle_evidence_fresh_clone.py"
-      - ".benchmarks/results/npu6_clock_marker_overhead_v44_l0_repeated_ab/**"
+      - ".benchmarks/**"
       - ".github/workflows/idle-evidence-v44.yml"
-      - "docs/claim_ledger.md"
-      - "docs/host_device_clock_calibration.md"
+      - "docs/**"
       - "Makefile"
-      - "tests/test_clock_calibration_analyzers.py"
-      - "tests/test_idle_evidence_fresh_clone.py"
-      - "tests/test_repeated_clock_marker_overhead_ab.py"
+      - "src/**"
+      - "tests/**"
   pull_request:
     paths:
-      - ".benchmarks/analyze_npu6_clock_marker_overhead_ab.py"
-      - ".benchmarks/analyze_repeated_clock_marker_overhead_ab.py"
-      - ".benchmarks/build_idle_evidence_fresh_clone_bundle.py"
-      - ".benchmarks/verify_idle_evidence_fresh_clone.py"
-      - ".benchmarks/results/npu6_clock_marker_overhead_v44_l0_repeated_ab/**"
+      - ".benchmarks/**"
       - ".github/workflows/idle-evidence-v44.yml"
-      - "docs/claim_ledger.md"
-      - "docs/host_device_clock_calibration.md"
+      - "docs/**"
       - "Makefile"
-      - "tests/test_clock_calibration_analyzers.py"
-      - "tests/test_idle_evidence_fresh_clone.py"
-      - "tests/test_repeated_clock_marker_overhead_ab.py"
+      - "src/**"
+      - "tests/**"
   workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
-  reproduce-idle-evidence:
+  contract:
+    name: Contract and report gates
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out authority repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install test dependency
+        run: python3 -m pip install pytest
+
+      - name: Validate v4.4 contract and report fail-closed gates
+        run: |
+          PYTHONPATH=src python3 -m pytest -q \
+            tests/test_clock_markers.py \
+            tests/test_clock_calibration_analyzers.py \
+            tests/test_idle_evidence_fresh_clone.py \
+            tests/test_repeated_clock_marker_overhead_ab.py
+
+  parent-tests:
+    name: Complete parent test suite
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out authority repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install test dependency
+        run: python3 -m pip install pytest
+
+      - name: Run complete parent tests
+        run: PYTHONPATH=src python3 -m pytest -q
+
+  raw-cross-clock-audit:
+    name: Raw input, hash, and cross-clock reconstruction
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -75,16 +107,8 @@ jobs:
             --parallel 2
           test -x _deps/vllm-hust-perf-analyzer/build/fresh-clone/native/traceloom
 
-      - name: Regenerate and audit all six accepted sidecars
+      - name: Regenerate and audit serving and calibration sidecars
         run: |
           python3 .benchmarks/verify_idle_evidence_fresh_clone.py \
             --analyzer-repo _deps/vllm-hust-perf-analyzer \
             --traceloom _deps/vllm-hust-perf-analyzer/build/fresh-clone/native/traceloom
-
-      - name: Run report and bundle regression tests
-        run: |
-          python3 -m pip install pytest
-          PYTHONPATH=src python3 -m pytest -q \
-            tests/test_clock_calibration_analyzers.py \
-            tests/test_idle_evidence_fresh_clone.py \
-            tests/test_repeated_clock_marker_overhead_ab.py

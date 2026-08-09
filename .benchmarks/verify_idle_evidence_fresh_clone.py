@@ -30,6 +30,14 @@ PAIR_ANALYZER = REPO_ROOT / ".benchmarks/analyze_npu6_clock_marker_overhead_ab.p
 REPEATED_ANALYZER = (
     REPO_ROOT / ".benchmarks/analyze_repeated_clock_marker_overhead_ab.py"
 )
+CALIBRATION_ANALYZER = (
+    REPO_ROOT / ".benchmarks/analyze_host_device_clock_calibration.py"
+)
+CALIBRATION_ROOT = (
+    REPO_ROOT / ".benchmarks/results/npu6_host_device_clock_calibration"
+)
+CALIBRATION_MANIFEST = CALIBRATION_ROOT / "audit_inputs_manifest.json"
+CALIBRATION_SUMMARY = CALIBRATION_ROOT / "calibration_summary.json"
 CROSS_CLOCK_COUNTERS = (
     "cross_clock_fail_closed_errors",
     "host_evidence_source_errors",
@@ -117,6 +125,90 @@ def _normalize_aggregate_report(report: dict[str, Any]) -> dict[str, Any]:
     result = copy.deepcopy(report)
     result.pop("artifact_manifest", None)
     return result
+
+
+def _normalize_calibration_report(report: dict[str, Any]) -> dict[str, Any]:
+    result = copy.deepcopy(report)
+    for capture in result["captures"]:
+        capture.pop("sidecar_path", None)
+    return result
+
+
+def _assert_layered_result_surface() -> None:
+    tracked = set(
+        subprocess.check_output(
+            ["git", "ls-files", ".benchmarks/results"],
+            cwd=REPO_ROOT,
+            text=True,
+        ).splitlines()
+    )
+    forbidden_prefixes = (
+        ".benchmarks/results/npu6_clock_marker_l2_validity_probe/",
+        ".benchmarks/results/npu6_clock_marker_overhead_fixed_rate_ab/",
+        ".benchmarks/results/npu6_clock_marker_overhead_v44_fixed_rate_ab/",
+        ".benchmarks/results/npu6_host_device_clock_calibration/"
+        "capture_02_real_calibrated/",
+        ".benchmarks/results/npu6_host_device_clock_calibration/"
+        "capture_03_real_calibrated/",
+        ".benchmarks/results/npu6_host_device_clock_calibration/"
+        "capture_04_real_calibrated/",
+    )
+    redundant_names = (
+        "/traceloom_result",
+        "/traceloom_sidecar",
+        "/loop_tree",
+    )
+    violations = sorted(
+        path
+        for path in tracked
+        if path.startswith(forbidden_prefixes)
+        or (
+            path.startswith(str(CALIBRATION_ROOT.relative_to(REPO_ROOT)) + "/")
+            and any(name in path for name in redundant_names)
+        )
+        or (
+            path.startswith(str(RESULT_ROOT.relative_to(REPO_ROOT)) + "/pair_")
+            and "/traceloom_result" in path
+        )
+    )
+    if violations:
+        raise ValueError(
+            "benchmark result layer contains obsolete or reproducible derived "
+            f"artifacts: {violations}"
+        )
+
+
+def verify_calibration_sources(
+    *, manifest_path: Path = CALIBRATION_MANIFEST
+) -> dict[str, Any]:
+    manifest = _load_json(manifest_path)
+    if manifest["schema_version"] != 2:
+        raise ValueError("unsupported calibration audit manifest")
+    if len(manifest["captures"]) != 3:
+        raise ValueError("calibration audit requires exactly three captures")
+    for capture in manifest["captures"]:
+        artifacts = capture["artifacts"]
+        if set(artifacts) != {
+            "clock_marker_brackets",
+            "probe_summary",
+            "source_msprof_db",
+        }:
+            raise ValueError(
+                f"{capture['name']}: calibration manifest contains derived input"
+            )
+        for artifact in artifacts.values():
+            _assert_file(
+                _safe_repo_path(artifact["path"]),
+                sha256=artifact["sha256"],
+                size_bytes=artifact["size_bytes"],
+            )
+    for artifact in manifest["summary_artifacts"].values():
+        _assert_file(
+            _safe_repo_path(artifact["path"]),
+            sha256=artifact["sha256"],
+            size_bytes=artifact["size_bytes"],
+        )
+    return manifest
 
 
 def _first_difference(expected: Any, observed: Any, path: str = "$") -> str:
@@ -269,6 +361,7 @@ def _expected_semantics(summary: dict[str, Any], variant: str) -> dict[str, Any]
 def verify_static_bundle(
     *, manifest_path: Path = BUNDLE_MANIFEST
 ) -> tuple[dict[str, Any], dict[str, Any]]:
+    _assert_layered_result_surface()
     bundle = _load_json(manifest_path)
     aggregate = _load_json(AGGREGATE_REPORT)
     artifact_manifest = aggregate["artifact_manifest"]
@@ -281,9 +374,9 @@ def verify_static_bundle(
     coverage = bundle["artifact_coverage"]
     if coverage != {
         "archived_lossless_raw_source_count": 6,
-        "direct_committed_artifact_count": 45,
+        "direct_committed_artifact_count": 39,
         "regenerated_derived_sidecar_count": 6,
-        "source_artifact_count": 57,
+        "source_artifact_count": 51,
         "uncovered_artifact_count": 0,
     }:
         raise ValueError(f"unexpected artifact coverage: {coverage}")
@@ -331,6 +424,87 @@ def verify_static_bundle(
             if text in markdown:
                 raise ValueError(f"{markdown_path}: stale rejection text {text!r}")
     return bundle, aggregate
+
+
+def _recompute_calibration(
+    *,
+    analyzer_repo: Path,
+    traceloom: Path,
+    audit_path: Path,
+    output_root: Path,
+) -> int:
+    manifest = verify_calibration_sources()
+    if manifest["analyzer"]["commit"] != subprocess.check_output(
+        ["git", "rev-parse", "HEAD"], cwd=analyzer_repo, text=True
+    ).strip():
+        raise ValueError("calibration manifest analyzer commit mismatch")
+    sidecars: list[Path] = []
+    for capture in manifest["captures"]:
+        artifacts = capture["artifacts"]
+        sidecar = (
+            output_root
+            / capture["name"]
+            / "traceloom_sidecar_v44_recomputed.db"
+        )
+        sidecar.parent.mkdir(parents=True, exist_ok=True)
+        _run_checked(
+            [
+                str(traceloom.resolve()),
+                "--source-db",
+                artifacts["source_msprof_db"]["path"],
+                "--source-kind",
+                "ascend_sqlite_hot_path",
+                "--clock-marker-brackets",
+                artifacts["clock_marker_brackets"]["path"],
+                "--compat-db-out",
+                str(sidecar),
+                "--sidecar-only",
+                "--threads",
+                "2",
+            ],
+            cwd=REPO_ROOT,
+            label=f"calibration sidecar regeneration for {capture['name']}",
+        )
+        sidecars.append(sidecar)
+
+    report_dir = output_root / "summary"
+    command = [
+        sys.executable,
+        str(CALIBRATION_ANALYZER),
+    ]
+    for sidecar in sidecars:
+        command.extend(["--sidecar", str(sidecar)])
+    command.extend(
+        [
+            "--output-dir",
+            str(report_dir),
+            "--require-three",
+            "--audit-sql",
+            str(audit_path.resolve()),
+        ]
+    )
+    _run_checked(
+        command,
+        cwd=REPO_ROOT,
+        label="calibration summary recomputation",
+    )
+    expected = _load_json(CALIBRATION_SUMMARY)
+    observed = _load_json(report_dir / "calibration_summary.json")
+    difference = _first_difference(
+        _normalize_calibration_report(expected),
+        _normalize_calibration_report(observed),
+    )
+    if difference:
+        raise ValueError("recomputed calibration report drift: " + difference)
+    expected_markdown = CALIBRATION_SUMMARY.with_suffix(".md").read_text(
+        encoding="utf-8"
+    )
+    observed_markdown = (report_dir / "calibration_summary.md").read_text(
+        encoding="utf-8"
+    )
+    if observed_markdown != expected_markdown:
+        raise ValueError("recomputed calibration Markdown drift")
+    return len(sidecars)
 
 
 def _run_checked(command: list[str], *, cwd: Path, label: str) -> None:
@@ -544,10 +718,19 @@ def verify_fresh_clone(
         if observed_aggregate_markdown != expected_aggregate_markdown:
             raise ValueError("recomputed aggregate Markdown drift")
 
+        calibration_count = _recompute_calibration(
+            analyzer_repo=analyzer_repo,
+            traceloom=traceloom,
+            audit_path=audit_path,
+            output_root=extraction_root / "calibration",
+        )
+
     return {
         "accepted_report_count": recomputed_pair_count,
         "aggregate_report_recomputed": True,
         "archived_raw_source_count": len(archived_by_source),
+        "calibration_sidecar_count": calibration_count,
+        "calibration_summary_recomputed": True,
         "cross_clock_audit_counter_errors": 0,
         "recomputed_pair_report_count": recomputed_pair_count,
         "regenerated_sidecar_count": regenerated_count,

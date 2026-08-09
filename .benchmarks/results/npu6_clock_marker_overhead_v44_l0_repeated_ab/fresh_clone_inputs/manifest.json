@@ -112,19 +112,12 @@
   ],
   "artifact_coverage": {
     "archived_lossless_raw_source_count": 6,
-    "direct_committed_artifact_count": 45,
+    "direct_committed_artifact_count": 39,
     "regenerated_derived_sidecar_count": 6,
-    "source_artifact_count": 57,
+    "source_artifact_count": 51,
     "uncovered_artifact_count": 0
   },
   "direct_artifacts": [
-    {
-      "pair_id": "pair_01",
-      "path": "pair_01/marker_disabled/run/traceloom_result.json",
-      "role": "derived_analysis_result",
-      "sha256": "9ebcd85255840c58e35bb1f593f759bc92aa62233b23bff448064270be806e56",
-      "size_bytes": 3758
-    },
     {
       "pair_id": "pair_01",
       "path": "pair_01/marker_disabled/run/provenance.json",
@@ -159,13 +152,6 @@
       "role": "iteration_timings",
       "sha256": "e15c9a1c6d601ab19d589300776a4ee58cd6cfae9e94e7179acbf4b4035c5c49",
       "size_bytes": 7973
-    },
-    {
-      "pair_id": "pair_01",
-      "path": "pair_01/marker_enabled/run/traceloom_result.json",
-      "role": "derived_analysis_result",
-      "sha256": "a86c71f75c4b1069764547d7f79bb5729d370b4c3708af765e860dd97663d059",
-      "size_bytes": 3755
     },
     {
       "pair_id": "pair_01",
@@ -225,13 +211,6 @@
     },
     {
       "pair_id": "pair_02",
-      "path": "pair_02/marker_disabled/run/traceloom_result.json",
-      "role": "derived_analysis_result",
-      "sha256": "7eb785bd1461f32e7d35bfb8c1c91a195f44d1a5c9e4eba0a3632e8589635bf5",
-      "size_bytes": 3759
-    },
-    {
-      "pair_id": "pair_02",
       "path": "pair_02/marker_disabled/run/provenance.json",
       "role": "capture_provenance",
       "sha256": "db8d92a37565c2488edf26bb13675b212e83c1d238575e328adba79c87236ac9",
@@ -264,13 +243,6 @@
       "role": "iteration_timings",
       "sha256": "e230131aa877e126c8ab908f154ba2a838eb4db75a416184055c6d9fa88c868d",
       "size_bytes": 7974
-    },
-    {
-      "pair_id": "pair_02",
-      "path": "pair_02/marker_enabled/run/traceloom_result.json",
-      "role": "derived_analysis_result",
-      "sha256": "bf08fe92a26364576fb3d6a61cd5d06511df1af42e51406586d54fd1de53bbe4",
-      "size_bytes": 3758
     },
     {
       "pair_id": "pair_02",
@@ -330,13 +302,6 @@
     },
     {
       "pair_id": "pair_03",
-      "path": "pair_03/marker_disabled/run/traceloom_result.json",
-      "role": "derived_analysis_result",
-      "sha256": "c128e1606ab33d234bd21bcc496f78cf7784ff01304ec76f50aa8e51b6ad7648",
-      "size_bytes": 3759
-    },
-    {
-      "pair_id": "pair_03",
       "path": "pair_03/marker_disabled/run/provenance.json",
       "role": "capture_provenance",
       "sha256": "e0f5339fec44e4a0ff6fe9622081a5ef052b579ba55e2530b1f735cec050dd30",
@@ -369,13 +334,6 @@
       "role": "iteration_timings",
       "sha256": "429d52b44f588707792690deb2f38c17f2709fa171763255c161be9943ff40d0",
       "size_bytes": 7973
-    },
-    {
-      "pair_id": "pair_03",
-      "path": "pair_03/marker_enabled/run/traceloom_result.json",
-      "role": "derived_analysis_result",
-      "sha256": "03a9739d4ad3c101fd99e0616be8186e39a92f4df900fb42a312d581268b384f",
-      "size_bytes": 3756
     },
     {
       "pair_id": "pair_03",
@@ -583,13 +541,6 @@
     },
     {
       "pair_id": "pair_01",
-      "path": "pair_01/marker_disabled/run/traceloom_result.json",
-      "role": "derived_analysis_result",
-      "sha256": "9ebcd85255840c58e35bb1f593f759bc92aa62233b23bff448064270be806e56",
-      "size_bytes": 3758
-    },
-    {
-      "pair_id": "pair_01",
       "path": "pair_01/marker_disabled/run/provenance.json",
       "role": "capture_provenance",
       "sha256": "ff7d936413a790eefd809ad56fa1466b2e74907bc5b24824f13deb2b80562548",
@@ -636,13 +587,6 @@
       "role": "derived_sidecar",
       "sha256": "898423888221dc63c8a18a4b2e0c24fc78db03f888361cfe52a44b2f2cc7272a",
       "size_bytes": 440791040
-    },
-    {
-      "pair_id": "pair_01",
-      "path": "pair_01/marker_enabled/run/traceloom_result.json",
-      "role": "derived_analysis_result",
-      "sha256": "a86c71f75c4b1069764547d7f79bb5729d370b4c3708af765e860dd97663d059",
-      "size_bytes": 3755
     },
     {
       "pair_id": "pair_01",
@@ -716,13 +660,6 @@
     },
     {
       "pair_id": "pair_02",
-      "path": "pair_02/marker_disabled/run/traceloom_result.json",
-      "role": "derived_analysis_result",
-      "sha256": "7eb785bd1461f32e7d35bfb8c1c91a195f44d1a5c9e4eba0a3632e8589635bf5",
-      "size_bytes": 3759
-    },
-    {
-      "pair_id": "pair_02",
       "path": "pair_02/marker_disabled/run/provenance.json",
       "role": "capture_provenance",
       "sha256": "db8d92a37565c2488edf26bb13675b212e83c1d238575e328adba79c87236ac9",
@@ -769,13 +706,6 @@
       "role": "derived_sidecar",
       "sha256": "9ef6ed41e8e2ddd680621a1032711c47416ff018424acc49c363de6bf114a8f6",
       "size_bytes": 439640064
-    },
-    {
-      "pair_id": "pair_02",
-      "path": "pair_02/marker_enabled/run/traceloom_result.json",
-      "role": "derived_analysis_result",
-      "sha256": "bf08fe92a26364576fb3d6a61cd5d06511df1af42e51406586d54fd1de53bbe4",
-      "size_bytes": 3758
     },
     {
       "pair_id": "pair_02",
@@ -849,13 +779,6 @@
     },
     {
       "pair_id": "pair_03",
-      "path": "pair_03/marker_disabled/run/traceloom_result.json",
-      "role": "derived_analysis_result",
-      "sha256": "c128e1606ab33d234bd21bcc496f78cf7784ff01304ec76f50aa8e51b6ad7648",
-      "size_bytes": 3759
-    },
-    {
-      "pair_id": "pair_03",
       "path": "pair_03/marker_disabled/run/provenance.json",
       "role": "capture_provenance",
       "sha256": "e0f5339fec44e4a0ff6fe9622081a5ef052b579ba55e2530b1f735cec050dd30",
@@ -902,13 +825,6 @@
       "role": "derived_sidecar",
       "sha256": "85822d4f9df15c879a9076435095531fb5b7f142471f090c79d2dad8ddace092",
       "size_bytes": 440082432
-    },
-    {
-      "pair_id": "pair_03",
-      "path": "pair_03/marker_enabled/run/traceloom_result.json",
-      "role": "derived_analysis_result",
-      "sha256": "03a9739d4ad3c101fd99e0616be8186e39a92f4df900fb42a312d581268b384f",
-      "size_bytes": 3756
     },
     {
       "pair_id": "pair_03",
@@ -967,6 +883,6 @@
       "size_bytes": 3751
     }
   ],
-  "source_artifact_manifest_sha256": "09a547219034ac41d032f4d57bd96741c5650a06356d36fb4e17e4ceb1c62cb4",
+  "source_artifact_manifest_sha256": "233656c0c0b1c726df92d35847640b5533775cbd3aff097740b56595df40afa4",
   "source_result_root": ".benchmarks/results/npu6_clock_marker_overhead_v44_l0_repeated_ab"
 }

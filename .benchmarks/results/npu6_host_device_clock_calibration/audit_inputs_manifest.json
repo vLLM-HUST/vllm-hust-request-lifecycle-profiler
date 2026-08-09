@@ -1,8 +1,11 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "hash_algorithm": "sha256",
-  "tool_repository": "https://github.com/vLLM-HUST/vllm-hust-perf-analyzer",
-  "tool_commit": "bdea6fe63c69693473cd6a7a5f31ef83ef07fb33",
+  "analyzer": {
+    "repository": "https://github.com/vLLM-HUST/vllm-hust-perf-analyzer",
+    "commit": "9a816aaeda5d937c07d04e13901df1462d12f979",
+    "derived_sidecars": "regenerated_not_committed"
+  },
   "captures": [
     {
       "name": "capture_05_v44_real",
@@ -22,11 +25,6 @@
           "path": ".benchmarks/results/npu6_host_device_clock_calibration/capture_05_v44_real/profile/PROF_000001_20260808111408927_01861962RFGMIPIJ/msprof_20260808111416.db",
           "size_bytes": 118784,
           "sha256": "2f9ef02201fec3d5470738ff9f73f673086f6e4e5dd6f1597d86bbed9ed3ebb9"
-        },
-        "sidecar": {
-          "path": ".benchmarks/results/npu6_host_device_clock_calibration/capture_05_v44_real/traceloom_sidecar_v44_sequence.db",
-          "size_bytes": 1376256,
-          "sha256": "b358020008b129c1bce70cc0431fb77bf430bcec0d843ccc33b94a00c0ce4e66"
         }
       }
     },
@@ -48,11 +46,6 @@
           "path": ".benchmarks/results/npu6_host_device_clock_calibration/capture_06_v44_real/profile/PROF_000001_20260808111514183_01863898PPCAEOOK/msprof_20260808111521.db",
           "size_bytes": 118784,
           "sha256": "598e22a9325aafb0184619df50b78ca50ea8686267c2027eb9147f258993b7ac"
-        },
-        "sidecar": {
-          "path": ".benchmarks/results/npu6_host_device_clock_calibration/capture_06_v44_real/traceloom_sidecar_v44_sequence.db",
-          "size_bytes": 1380352,
-          "sha256": "8b013861e14288ae6ce6314fa580af6bebcf9115fddb7c4bcdeb674c2e7d51ab"
         }
       }
     },
@@ -74,11 +67,6 @@
           "path": ".benchmarks/results/npu6_host_device_clock_calibration/capture_07_v44_real/profile/PROF_000001_20260808111531951_01864298RFOJABQC/msprof_20260808111539.db",
           "size_bytes": 118784,
           "sha256": "386badedcde5e0d04b9f14fb606b63807b6ba7a3ca71fc8b4be610ffd17b5413"
-        },
-        "sidecar": {
-          "path": ".benchmarks/results/npu6_host_device_clock_calibration/capture_07_v44_real/traceloom_sidecar_v44_sequence.db",
-          "size_bytes": 1380352,
-          "sha256": "a51291cdf8cb9ec6ebf9e9cf263e784a9250a7a89135c1a7536b5e231ab7490a"
         }
       }
     }
