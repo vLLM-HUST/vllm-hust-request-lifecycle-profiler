@@ -14,6 +14,7 @@ import sqlite3
 import subprocess
 import sys
 import tempfile
+from decimal import Decimal, InvalidOperation
 from pathlib import Path
 from typing import Any
 
@@ -44,6 +45,8 @@ CROSS_CLOCK_COUNTERS = (
     "host_explanation_contract_errors",
     "queued_task_link_errors",
 )
+PORTABLE_FLOAT_NS_TOLERANCE = Decimal("0.5")
+PORTABLE_FLOAT_PPM_TOLERANCE = Decimal("0.000001")
 
 
 def _sha256(path: Path) -> str:
@@ -63,13 +66,17 @@ def _load_json(path: Path) -> dict[str, Any]:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
-def _load_pair_analyzer() -> Any:
-    spec = importlib.util.spec_from_file_location("pair_analyzer", PAIR_ANALYZER)
+def _load_analyzer(path: Path, module_name: str) -> Any:
+    spec = importlib.util.spec_from_file_location(module_name, path)
     if spec is None or spec.loader is None:
-        raise RuntimeError(f"cannot import {PAIR_ANALYZER}")
+        raise RuntimeError(f"cannot import {path}")
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
+
+
+def _load_pair_analyzer() -> Any:
+    return _load_analyzer(PAIR_ANALYZER, "pair_analyzer")
 
 
 def _safe_repo_path(relative: str) -> Path:
@@ -211,6 +218,41 @@ def verify_calibration_sources(
     return manifest
 
 
+def _portable_numeric_tolerance(path: str) -> Decimal | None:
+    components = path.replace("[", ".").replace("]", "").split(".")
+    if any(component.endswith("_ns") for component in components):
+        return PORTABLE_FLOAT_NS_TOLERANCE
+    if any(component.endswith("_ppm") for component in components):
+        return PORTABLE_FLOAT_PPM_TOLERANCE
+    return None
+
+
+def _portable_decimal(value: Any) -> Decimal | None:
+    if isinstance(value, float):
+        result = Decimal(str(value))
+    elif isinstance(value, str):
+        try:
+            result = Decimal(value)
+        except InvalidOperation:
+            return None
+    else:
+        return None
+    return result if result.is_finite() else None
+
+
+def _portable_numeric_match(expected: Any, observed: Any, path: str) -> bool:
+    tolerance = _portable_numeric_tolerance(path)
+    if tolerance is None or type(expected) is not type(observed):
+        return False
+    expected_decimal = _portable_decimal(expected)
+    observed_decimal = _portable_decimal(observed)
+    return (
+        expected_decimal is not None
+        and observed_decimal is not None
+        and abs(expected_decimal - observed_decimal) <= tolerance
+    )
+
+
 def _first_difference(expected: Any, observed: Any, path: str = "$") -> str:
     if type(expected) is not type(observed):
         return (
@@ -244,6 +286,8 @@ def _first_difference(expected: Any, observed: Any, path: str = "$") -> str:
             if difference:
                 return difference
         return ""
+    if _portable_numeric_match(expected, observed, path):
+        return ""
     if expected != observed:
         return f"{path}: expected {expected!r}, observed {observed!r}"
     return ""
@@ -253,6 +297,33 @@ def _require_same_semantics(label: str, expected: Any, observed: Any) -> None:
     difference = _first_difference(expected, observed)
     if difference:
         raise ValueError(f"{label}: {difference}")
+
+
+def _portable_projection(expected: Any, observed: Any, path: str = "$") -> Any:
+    """Project tolerated diagnostics onto accepted values for Markdown checks."""
+    if type(expected) is not type(observed):
+        return copy.deepcopy(observed)
+    if isinstance(expected, dict):
+        if set(expected) != set(observed):
+            return copy.deepcopy(observed)
+        return {
+            key: _portable_projection(
+                expected[key], observed[key], f"{path}.{key}"
+            )
+            for key in expected
+        }
+    if isinstance(expected, list):
+        if len(expected) != len(observed):
+            return copy.deepcopy(observed)
+        return [
+            _portable_projection(expected_item, observed_item, f"{path}[{index}]")
+            for index, (expected_item, observed_item) in enumerate(
+                zip(expected, observed)
+            )
+        ]
+    if _portable_numeric_match(expected, observed, path):
+        return copy.deepcopy(expected)
+    return copy.deepcopy(observed)
 
 
 def _rows_by_key(
@@ -508,8 +579,16 @@ def _recompute_calibration(
     observed_markdown = (report_dir / "calibration_summary.md").read_text(
         encoding="utf-8"
     )
-    if observed_markdown != expected_markdown:
-        raise ValueError("recomputed calibration Markdown drift")
+    calibration_analyzer = _load_analyzer(
+        CALIBRATION_ANALYZER, "calibration_analyzer"
+    )
+    if observed_markdown != calibration_analyzer._markdown(observed):
+        raise ValueError("recomputed calibration Markdown is internally inconsistent")
+    portable_markdown = calibration_analyzer._markdown(
+        _portable_projection(expected, observed)
+    )
+    if portable_markdown != expected_markdown:
+        raise ValueError("recomputed calibration Markdown semantic drift")
     return len(sidecars)
 
 
@@ -687,8 +766,15 @@ def verify_fresh_clone(
             expected_markdown = (
                 RESULT_ROOT / pair_id / "report/overhead_ab_summary.md"
             ).read_text(encoding="utf-8")
-            if observed_markdown != expected_markdown:
-                raise ValueError(f"{pair_id}: recomputed pair Markdown drift")
+            if observed_markdown != pair_analyzer._markdown(observed_report):
+                raise ValueError(
+                    f"{pair_id}: recomputed pair Markdown is internally inconsistent"
+                )
+            portable_markdown = pair_analyzer._markdown(
+                _portable_projection(expected, observed_report)
+            )
+            if portable_markdown != expected_markdown:
+                raise ValueError(f"{pair_id}: recomputed pair Markdown semantic drift")
             recomputed_pair_count += 1
 
         aggregate_dir = extraction_root / "aggregate_report"
@@ -722,8 +808,20 @@ def verify_fresh_clone(
         expected_aggregate_markdown = AGGREGATE_REPORT.with_suffix(
             ".md"
         ).read_text(encoding="utf-8")
-        if observed_aggregate_markdown != expected_aggregate_markdown:
-            raise ValueError("recomputed aggregate Markdown drift")
+        repeated_analyzer = _load_analyzer(
+            REPEATED_ANALYZER, "repeated_analyzer"
+        )
+        if observed_aggregate_markdown != repeated_analyzer._markdown(
+            observed_aggregate
+        ):
+            raise ValueError(
+                "recomputed aggregate Markdown is internally inconsistent"
+            )
+        portable_aggregate_markdown = repeated_analyzer._markdown(
+            _portable_projection(expected_aggregate, observed_aggregate)
+        )
+        if portable_aggregate_markdown != expected_aggregate_markdown:
+            raise ValueError("recomputed aggregate Markdown semantic drift")
 
         calibration_count = _recompute_calibration(
             analyzer_repo=analyzer_repo,

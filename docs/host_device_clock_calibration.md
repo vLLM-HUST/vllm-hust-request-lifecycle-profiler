@@ -239,7 +239,10 @@ fresh-clone bundle commits lossless deterministic-gzip copies of all six raw
 msprof databases plus the 39 direct audit inputs. It pins analyzer commit
 `9a816aaeda5d937c07d04e13901df1462d12f979`, regenerates all six derived
 sidecars, executes the cross-clock SQL audit, and compares stable sidecar
-semantics with the accepted reports. It also recomputes every pair report and
+semantics with the accepted reports. Cross-platform comparison uses the
+contract's sub-nanosecond/ppm tolerance only for derived floating diagnostics;
+all integer intervals, epsilon values, identities, counts, audit counters, and
+attribution decisions remain exact. It also recomputes every pair report and
 the aggregate from those regenerated sidecars and the checked-in direct
 inputs. The repeated gate rejects reused source hashes, overlapping capture
 intervals, non-alternating order, or cross-pair configuration drift. The

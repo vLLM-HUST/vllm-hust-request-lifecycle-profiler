@@ -76,3 +76,65 @@ def test_semantic_drift_error_reports_first_field() -> None:
         match=r"semantic drift: \$\.clock_model\.epsilon_ns: expected 42, observed 43",
     ):
         module._require_same_semantics("semantic drift", expected, observed)
+
+
+def test_sub_nanosecond_float_diagnostics_are_portable() -> None:
+    module = _module()
+    expected = {
+        "clock_model": {
+            "absolute_residual_max_ns": 30_692.74048813325,
+            "drift_ppm": "17.343265",
+        },
+        "pooled": {
+            "composed_absolute_validation_residual_ns": {
+                "p95": "26538.197786"
+            }
+        },
+    }
+    observed = copy.deepcopy(expected)
+    observed["clock_model"]["absolute_residual_max_ns"] = 30_692.625
+    observed["clock_model"]["drift_ppm"] = "17.3432645"
+    observed["pooled"]["composed_absolute_validation_residual_ns"]["p95"] = (
+        "26538.000000"
+    )
+
+    module._require_same_semantics("semantic drift", expected, observed)
+    assert module._portable_projection(expected, observed) == expected
+
+
+def test_portable_float_tolerance_does_not_hide_material_or_integer_drift() -> None:
+    module = _module()
+
+    with pytest.raises(ValueError, match="absolute_residual_max_ns"):
+        module._require_same_semantics(
+            "semantic drift",
+            {"absolute_residual_max_ns": 30_692.75},
+            {"absolute_residual_max_ns": 30_692.249},
+        )
+    with pytest.raises(ValueError, match="epsilon_ns"):
+        module._require_same_semantics(
+            "semantic drift", {"epsilon_ns": 42}, {"epsilon_ns": 43}
+        )
+    with pytest.raises(ValueError, match="unrelated_metric"):
+        module._require_same_semantics(
+            "semantic drift", {"unrelated_metric": 1.0}, {"unrelated_metric": 1.1}
+        )
+
+
+def test_tolerated_diagnostic_drift_preserves_markdown_semantics() -> None:
+    module = _module()
+    analyzer = module._load_pair_analyzer()
+    report_path = (
+        module.RESULT_ROOT
+        / "pair_01"
+        / "report"
+        / "overhead_ab_summary.json"
+    )
+    markdown_path = report_path.with_suffix(".md")
+    expected = json.loads(report_path.read_text(encoding="utf-8"))
+    observed = copy.deepcopy(expected)
+    observed["enabled_calibration"]["absolute_residual_max_ns"] -= 0.125
+
+    assert analyzer._markdown(observed) != markdown_path.read_text(encoding="utf-8")
+    projected = module._portable_projection(expected, observed)
+    assert analyzer._markdown(projected) == markdown_path.read_text(encoding="utf-8")

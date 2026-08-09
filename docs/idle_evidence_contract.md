@@ -533,6 +533,14 @@ f(h) = d_ref + a * (h - h_ref)
   numerical and median rules defined here. Implementations MUST match
   golden-fixture tolerances; bit-identical output across languages and float
   implementations is NOT claimed.
+- Cross-platform golden comparison permits at most `0.5 ns` absolute drift in
+  derived floating-point or decimal-string diagnostics beneath an `_ns` field,
+  and at most `0.000001 ppm` beneath a `_ppm` field. Integer nanosecond values,
+  interval boundaries, `epsilon_ns`, marker identity/provenance, counts,
+  statuses, clock-domain labels, serialized scales, audit counters, and every
+  attribution decision remain exact. Regenerated Markdown MUST match its
+  regenerated JSON and, after only those tolerated diagnostic values are
+  projected onto the accepted reference, match the accepted Markdown.
 - `scale` serialization is fixed: decimal with 12 fractional digits (the
   scale is a ns/ns ratio; ppm-level drift needs ~6 digits, 12 leaves
   headroom). Mapped timestamps `f(h)` MUST be rounded to integer nanoseconds

@@ -74,7 +74,7 @@ jobs:
           python-version: "3.12"
 
       - name: Install test dependency
-        run: python3 -m pip install pytest
+        run: python3 -m pip install pytest regex
 
       - name: Run complete parent tests
         env:
