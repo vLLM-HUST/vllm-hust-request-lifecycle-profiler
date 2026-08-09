@@ -42,23 +42,9 @@ def assert_commit_is_local_ancestor(repo: Path, commit: str) -> None:
 
 def runtime_repo(record: dict[str, object]) -> Path:
     override = os.environ.get("VLLM_HUST_G1_SRC", "").strip()
-    if not override:
-        recorded = record["source_baselines"]["runtime"]["local_worktree"]
-        pytest.skip(
-            "set VLLM_HUST_G1_SRC to an exact runtime checkout; the recorded "
-            f"machine-local worktree {recorded!r} is provenance, not a portable path"
-        )
-    try:
-        repository = Path(override).resolve(strict=True)
-        subprocess.run(
-            ["git", "rev-parse", "--git-dir"],
-            cwd=repository,
-            check=True,
-            capture_output=True,
-        )
-    except (OSError, subprocess.CalledProcessError) as error:
-        pytest.fail(f"VLLM_HUST_G1_SRC is not an accessible Git checkout: {error}")
-    return repository
+    if override:
+        return Path(override)
+    return Path(record["source_baselines"]["runtime"]["local_worktree"])
 
 
 def profiler_history_repo() -> Path:

@@ -60,6 +60,14 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Check out exact G1 runtime history
+        uses: actions/checkout@v4
+        with:
+          repository: vLLM-HUST/vllm-hust
+          ref: 5f7872976bd56a0861bb0072eaac68260ba7d578
+          path: _deps/vllm-hust-g1
+          fetch-depth: 2
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -69,6 +77,8 @@ jobs:
         run: python3 -m pip install pytest
 
       - name: Run complete parent tests
+        env:
+          VLLM_HUST_G1_SRC: ${{ github.workspace }}/_deps/vllm-hust-g1
         run: PYTHONPATH=src python3 -m pytest -q
 
   raw-cross-clock-audit:
@@ -94,13 +104,14 @@ jobs:
       - name: Install native build dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install --yes cmake g++ libsqlite3-dev
+          sudo apt-get install --yes cmake g++-12 libsqlite3-dev
 
       - name: Build pinned analyzer with SQLite adapters
         run: |
           cmake \
             -S _deps/vllm-hust-perf-analyzer \
             -B _deps/vllm-hust-perf-analyzer/build/fresh-clone \
+            -DCMAKE_CXX_COMPILER=g++-12 \
             -DTRACELOOM_NATIVE_BUILD_TESTS=OFF \
             -DTRACELOOM_NATIVE_ENABLE_ASCEND_SQLITE=ON
           cmake \
