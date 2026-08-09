@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import copy
+import hashlib
 import importlib.util
 import json
 from decimal import Decimal
@@ -89,6 +90,27 @@ def test_calibration_distribution_match_uses_frozen_sub_ns_tolerance() -> None:
         module._require_distribution_matches(
             Path("capture.db"), "marker-device residual", values, material
         )
+
+
+def test_calibration_identity_is_content_derived_and_structurally_bound() -> None:
+    module = _load_benchmark_module("analyze_host_device_clock_calibration.py")
+    metadata_json = '{"analysis_status":"ok"}'
+    run_id = hashlib.sha256(metadata_json.encode("utf-8")).hexdigest()
+    metadata = {"metadata_json": metadata_json, "db_idx": 0}
+    model = {
+        "run_id": run_id,
+        "device_id": 6,
+        "clock_model_id": f"{run_id}:clock_model:0:6",
+    }
+
+    module._require_identity_integrity(Path("capture.db"), model, metadata)
+
+    bad_run = dict(model, run_id="0" * 64)
+    with pytest.raises(ValueError, match="run_id does not hash"):
+        module._require_identity_integrity(Path("capture.db"), bad_run, metadata)
+    bad_model = dict(model, clock_model_id=f"{run_id}:clock_model:1:6")
+    with pytest.raises(ValueError, match="clock_model_id does not match"):
+        module._require_identity_integrity(Path("capture.db"), bad_model, metadata)
 
 
 def test_overhead_source_gate_rejects_dirty_or_mismatched_revision() -> None:

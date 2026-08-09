@@ -541,6 +541,13 @@ f(h) = d_ref + a * (h - h_ref)
   attribution decision remain exact. Regenerated Markdown MUST match its
   regenerated JSON and, after only those tolerated diagnostic values are
   projected onto the accepted reference, match the accepted Markdown.
+- Because `run_id` hashes the complete canonical metadata, a tolerated
+  floating diagnostic difference legitimately changes `run_id` and IDs derived
+  from it. A fresh-clone comparison MAY normalize those identifier values only
+  after independently verifying `run_id = SHA-256(metadata_json)`, validating
+  every derived-ID relationship, requiring distinct run IDs, and proving that
+  the repeated raw input identities are distinct. Identifier referential
+  integrity remains exact within each regenerated sidecar.
 - `scale` serialization is fixed: decimal with 12 fractional digits (the
   scale is a ns/ns ratio; ppm-level drift needs ~6 digits, 12 leaves
   headroom). Mapped timestamps `f(h)` MUST be rounded to integer nanoseconds

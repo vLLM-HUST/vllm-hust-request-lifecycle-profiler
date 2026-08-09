@@ -35,6 +35,19 @@ def test_checked_in_fresh_clone_bundle_is_complete_and_consistent() -> None:
     assert len(calibration["captures"]) == 3
 
 
+def test_calibration_inputs_are_independent_content_identities() -> None:
+    module = _module()
+    manifest = json.loads(module.CALIBRATION_MANIFEST.read_text(encoding="utf-8"))
+    module._require_unique_calibration_inputs(manifest)
+
+    duplicate = copy.deepcopy(manifest)
+    duplicate["captures"][1]["artifacts"]["source_msprof_db"]["sha256"] = (
+        duplicate["captures"][0]["artifacts"]["source_msprof_db"]["sha256"]
+    )
+    with pytest.raises(ValueError, match="reuse source_msprof_db"):
+        module._require_unique_calibration_inputs(duplicate)
+
+
 def test_result_surface_excludes_reproducible_derived_artifacts() -> None:
     _module()._assert_layered_result_surface()
 
@@ -138,3 +151,23 @@ def test_tolerated_diagnostic_drift_preserves_markdown_semantics() -> None:
     assert analyzer._markdown(observed) != markdown_path.read_text(encoding="utf-8")
     projected = module._portable_projection(expected, observed)
     assert analyzer._markdown(projected) == markdown_path.read_text(encoding="utf-8")
+
+
+def test_calibration_report_normalizes_only_verified_rebuild_identities() -> None:
+    module = _module()
+    expected = json.loads(module.CALIBRATION_SUMMARY.read_text(encoding="utf-8"))
+    observed = copy.deepcopy(expected)
+    for index, capture in enumerate(observed["captures"]):
+        run_id = f"{index + 1:064x}"
+        capture["run_id"] = run_id
+        capture["clock_model_id"] = (
+            f"{run_id}:clock_model:0:{capture['device_id']}"
+        )
+
+    assert module._normalize_calibration_report(observed) == (
+        module._normalize_calibration_report(expected)
+    )
+    observed["unique_run_id_count"] -= 1
+    assert module._normalize_calibration_report(observed) != (
+        module._normalize_calibration_report(expected)
+    )

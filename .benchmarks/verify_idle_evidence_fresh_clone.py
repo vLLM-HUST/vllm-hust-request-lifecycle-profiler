@@ -138,7 +138,21 @@ def _normalize_calibration_report(report: dict[str, Any]) -> dict[str, Any]:
     result = copy.deepcopy(report)
     for capture in result["captures"]:
         capture.pop("sidecar_path", None)
+        capture.pop("run_id", None)
+        capture.pop("clock_model_id", None)
     return result
+
+
+def _require_unique_calibration_inputs(manifest: dict[str, Any]) -> None:
+    for artifact_name in ("source_msprof_db", "clock_marker_brackets"):
+        digests = [
+            capture["artifacts"][artifact_name]["sha256"]
+            for capture in manifest["captures"]
+        ]
+        if len(set(digests)) != len(digests):
+            raise ValueError(
+                f"calibration captures reuse {artifact_name} content identity"
+            )
 
 
 def _assert_layered_result_surface() -> None:
@@ -193,6 +207,7 @@ def verify_calibration_sources(
         raise ValueError("unsupported calibration audit manifest")
     if len(manifest["captures"]) != 3:
         raise ValueError("calibration audit requires exactly three captures")
+    _require_unique_calibration_inputs(manifest)
     for capture in manifest["captures"]:
         artifacts = capture["artifacts"]
         if set(artifacts) != {

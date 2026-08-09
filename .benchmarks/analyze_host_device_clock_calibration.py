@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import sqlite3
 from decimal import ROUND_CEILING, Decimal
@@ -116,6 +117,20 @@ def _require_real_resolution_method(path: Path, method: object) -> str:
     if value not in ALLOWED_REAL_RESOLUTION_METHODS:
         raise ValueError(f"{path}: unsupported real marker resolution method {value!r}")
     return value
+
+
+def _require_identity_integrity(
+    path: Path, model: dict[str, Any], metadata: sqlite3.Row
+) -> None:
+    metadata_json = str(metadata["metadata_json"])
+    expected_run_id = hashlib.sha256(metadata_json.encode("utf-8")).hexdigest()
+    if model["run_id"] != expected_run_id:
+        raise ValueError(f"{path}: run_id does not hash canonical metadata_json")
+    expected_clock_model_id = (
+        f"{model['run_id']}:clock_model:{metadata['db_idx']}:{model['device_id']}"
+    )
+    if model["clock_model_id"] != expected_clock_model_id:
+        raise ValueError(f"{path}: clock_model_id does not match run/device identity")
 
 
 def _capture_meets_acceptance_contract(capture: dict[str, Any]) -> bool:
@@ -436,10 +451,13 @@ def _one_capture(
         }
         metadata = connection.execute(
             "select analysis_status, collection_status, source_kind, source_path, "
-            "contract_version, attribution_rule_version "
+            "contract_version, attribution_rule_version, db_idx, metadata_json "
             "from traceloom_run_metadata where run_id = ?",
             (model["run_id"],),
         ).fetchone()
+        if metadata is None:
+            raise ValueError(f"{path}: clock model has no run metadata")
+        _require_identity_integrity(path, model, metadata)
         if metadata["contract_version"] != "idle-evidence-contract-v4.4":
             raise ValueError(f"{path}: expected idle-evidence-contract-v4.4")
         if metadata["attribution_rule_version"] != "host_device_projection_v2":

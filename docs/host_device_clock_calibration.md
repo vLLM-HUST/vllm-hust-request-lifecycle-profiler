@@ -241,11 +241,15 @@ msprof databases plus the 39 direct audit inputs. It pins analyzer commit
 sidecars, executes the cross-clock SQL audit, and compares stable sidecar
 semantics with the accepted reports. Cross-platform comparison uses the
 contract's sub-nanosecond/ppm tolerance only for derived floating diagnostics;
-all integer intervals, epsilon values, identities, counts, audit counters, and
-attribution decisions remain exact. It also recomputes every pair report and
-the aggregate from those regenerated sidecars and the checked-in direct
-inputs. The repeated gate rejects reused source hashes, overlapping capture
-intervals, non-alternating order, or cross-pair configuration drift. The
+all integer intervals, epsilon values, marker/link identities, counts, audit
+counters, and attribution decisions remain exact. Content-derived run/model
+IDs are validated against canonical metadata and their structural relationship
+before their cross-platform literal values are normalized; all intra-sidecar
+references and three-capture uniqueness remain strict. It also recomputes every
+pair report and the aggregate from those regenerated sidecars and the
+checked-in direct inputs. The repeated gate rejects reused source hashes,
+overlapping capture intervals, non-alternating order, or cross-pair
+configuration drift. The
 original 2.6 GB derived-sidecar byte layout is not archived and byte-identical
 reproduction is not claimed.
 
