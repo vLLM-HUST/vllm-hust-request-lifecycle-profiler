@@ -1,0 +1,23 @@
+name: v4.4 idle-evidence fresh-clone audit
+
+on:
+  pull_request:
+    paths:
+      - ".benchmarks/**"
+      - ".github/workflows/idle-evidence-v44.yml"
+      - "docs/**"
+      - "Makefile"
+      - "src/**"
+      - "tests/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  bootstrap:
+    name: Workflow bootstrap
+    runs-on: ubuntu-latest
+    steps:
+      - name: Confirm default-branch workflow registration
+        run: echo "v4.4 idle-evidence workflow bootstrap is registered"
