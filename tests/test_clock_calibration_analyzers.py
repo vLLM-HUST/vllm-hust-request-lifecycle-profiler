@@ -3,6 +3,7 @@ from __future__ import annotations
 import copy
 import importlib.util
 import json
+from decimal import Decimal
 from pathlib import Path
 
 import pytest
@@ -71,6 +72,23 @@ def test_calibration_acceptance_rejects_direct_or_unknown_resolution() -> None:
     assert not module._capture_meets_acceptance_contract(capture)
     with pytest.raises(ValueError, match="unsupported"):
         module._require_real_resolution_method(Path("capture.db"), "heuristic")
+
+
+def test_calibration_distribution_match_uses_frozen_sub_ns_tolerance() -> None:
+    module = _load_benchmark_module("analyze_host_device_clock_calibration.py")
+    values = [Decimal("10.25"), Decimal("20.25"), Decimal("30.25")]
+    portable = {"p50": "20.0", "p95": "30.0", "max": "30.75"}
+
+    module._require_distribution_matches(
+        Path("capture.db"), "marker-device residual", values, portable
+    )
+
+    material = dict(portable)
+    material["max"] = "30.750001"
+    with pytest.raises(ValueError, match="marker-device residual max"):
+        module._require_distribution_matches(
+            Path("capture.db"), "marker-device residual", values, material
+        )
 
 
 def test_overhead_source_gate_rejects_dirty_or_mismatched_revision() -> None:

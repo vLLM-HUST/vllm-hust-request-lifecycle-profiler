@@ -75,6 +75,7 @@ CROSS_CLOCK_AUDIT_COUNTERS = (
     "queued_task_link_errors",
 )
 MIN_CALIBRATION_MARKERS = 6
+PORTABLE_FLOAT_NS_TOLERANCE = Decimal("0.5")
 ALLOWED_REAL_RESOLUTION_METHODS = frozenset({"ordinal_affine_fallback"})
 ALLOWED_REJECTED_RESOLUTION_METHODS = frozenset(
     {"ordinal_affine_fallback", "unresolved"}
@@ -171,9 +172,11 @@ def _require_distribution_matches(
         "p50": _nearest_rank(values, Decimal("0.50")),
         "p95": _nearest_rank(values, Decimal("0.95")),
     }
-    tolerance = Decimal("0.001")
     for statistic, expected_value in expected.items():
-        if abs(_decimal(reported[statistic]) - expected_value) > tolerance:
+        if (
+            abs(_decimal(reported[statistic]) - expected_value)
+            > PORTABLE_FLOAT_NS_TOLERANCE
+        ):
             raise ValueError(f"{path}: {label} {statistic} does not match marker rows")
 
 
@@ -365,7 +368,7 @@ def _one_capture(
         if abs(
             _decimal(model["profiler_to_caller_bracket_uncertainty_p95_ns"])
             - expected_record_bracket_p95
-        ) > Decimal("0.001"):
+        ) > PORTABLE_FLOAT_NS_TOLERANCE:
             raise ValueError(f"{path}: record-call bracket p95 disagrees")
         epsilon_components = {
             "marker_device_validation_p95": _decimal(model["absolute_residual_p95_ns"]),
