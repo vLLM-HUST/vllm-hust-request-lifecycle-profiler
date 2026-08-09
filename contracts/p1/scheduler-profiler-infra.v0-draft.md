@@ -187,7 +187,12 @@ PR-I0 is a prerequisite to the complete wire-contract review. It must bind:
   `execute_model` result observation;
 - gate-evaluation cardinality and maximum observations per cycle;
 - exact prefill/decode counting variables;
-- whether more than one batch/future can be in flight.
+- whether more than one batch/future can be in flight;
+- the authority, input field set, canonicalization, digest encoding, and
+  versioned contract location for the analyzer-derived run identity;
+- the runtime process-to-profiler process/context binding source, including
+  PID namespace and process-start identity, executor role, rank/device, and
+  profiler-visible PID/context representation.
 
 Commit identity alone is insufficient when a scheduler or adapter file differs
 from the commit tree.
@@ -235,8 +240,11 @@ content-addressed owner approval before this rule becomes active.
 The architecture distinguishes:
 
 - `experiment_run_uuid`: assigned by the experiment repository before launch;
-- `traceloom_run_id`: SHA-256/JCS identity derived according to the existing
-  TraceLoom run-metadata contract;
+- `traceloom_run_id`: candidate name for an analyzer-derived run identity. No
+  currently cited analyzer contract authoritatively freezes its derivation;
+  its input field set, canonicalization, digest encoding, authority path, and
+  contract version MUST be selected and evidenced by PR-I0 before PR-C1, then
+  bound exactly by PR-C1;
 - `process_uuid`: one runtime process invocation, shared across streams;
 - `engine_instance_id`: one EngineCore instance within the run;
 - `scheduler_process_uuid`: the process that owns the schedule cycle and
@@ -251,6 +259,10 @@ The architecture distinguishes:
 The manifest must contain an explicit
 `experiment_run_uuid <-> traceloom_run_id` mapping. A field named
 `run_id / run_uuid` or an implementation-selected alternative is forbidden.
+The mapping does not by itself authorize a particular `traceloom_run_id`
+derivation. If PR-I0 cannot identify and ratify the analyzer authority, PR-C1
+must define a new versioned derivation rather than claim compatibility with an
+uncited existing contract.
 
 ## 5. Initial supported profile
 
@@ -609,6 +621,45 @@ EngineCore-to-executor route and whether it carries an explicit handoff ID. A
 manifest-declared single worker/rank may scope calibrated correlation, but it
 does not create exact identity.
 
+An execution anchor is not eligible for correlation until the scheduler-side
+`executor_target_process_uuid` resolves through an approved
+`runtime_profiler_process_binding` to the profiler-visible host process and
+context. The binding receipt must preserve semantically equivalent facts to:
+
+```text
+runtime_profiler_process_binding_id
+experiment_run_uuid
+executor_target_process_uuid
+runtime_pid
+runtime_pid_namespace_identity
+runtime_process_start_identity
+executor_role
+rank_id
+device_id
+profiler_visible_pid
+profiler_context_identity
+binding_source
+binding_status
+```
+
+`binding_status` is exactly one of `exact`, `ambiguous`, `unmatched`, or
+`unsupported`; only `exact` can scope an admitted execution-step join. This
+process-binding status is independent of the execution-step join status.
+
+PID alone is insufficient because it can be reused after process restart.
+`runtime_process_start_identity` must distinguish process invocations, for
+example with host boot identity plus procfs process-start ticks. The exact
+receipt fields and acquisition authority are frozen after PR-I0; they need not
+all be scheduler hot-path wire fields.
+
+Calibrated correlation requires an approved runtime-process to
+profiler-process/context binding. Rank, device, and time overlap alone do not
+create process identity. A missing binding produces `unmatched`, multiple
+admissible bindings produce `ambiguous`, and a mode with no approved observable
+binding is `unsupported` in both the binding and attempted-join diagnostics.
+An exact process binding scopes the candidate set; it does not upgrade a
+temporal step join to `exact_identity`.
+
 PR-I0/PR-I5 must name and validate the anchor source. If no supported anchor can
 be constructed uniquely, the execution step is unmatched or unsupported.
 
@@ -631,19 +682,22 @@ join_relation
 anchor_source
 profiler_execution_anchor_id
 candidate_count
+runtime_profiler_process_binding_id
+process_binding_status
 clock_model_id
 clock_uncertainty_ns
 ```
 
 `exact_identity` requires an explicit profiler-visible step-ID handoff and
-validated uniqueness. Time overlap can never produce exact identity.
+validated uniqueness inside one approved runtime-profiler process binding.
+Time overlap can never produce exact identity.
 
 `calibrated_correlated` requires:
 
 - a valid clock model covering the whole envelope;
 - an approved robust containment/overlap rule under endpoint uncertainty;
-- matching run and approved executor-target process/context, rank/device, and
-  supported-mode scope;
+- matching run and one approved executor-target-to-profiler process/context
+  binding, rank/device, and supported-mode scope;
 - exactly one admissible profiler execution anchor;
 - no competing anchor under the same rule.
 
@@ -662,13 +716,77 @@ for aggregate v1.
 Before formal collection, owner review must freeze:
 
 - the robust temporal predicate;
-- minimum eligible-envelope join coverage;
+- minimum eligible-step and execution-duration join coverage;
 - maximum ambiguous and unmatched fractions;
-- deterministic tail-window coverage strata;
+- deterministic tail-cohort/window construction and coverage thresholds;
 - treatment of zero-token/control batches.
 
 A run cannot promote only convenient matched steps while silently excluding
 the tail or overloaded window.
+
+### 12.4 Join-coverage population and denominator
+
+Coverage is computed from scheduler evidence before profiler matching. For a
+declared window `W`, the manifest first fixes `W` in the scheduler host-time
+coordinate without using profiler match outcomes. Define `D_step(W)` as the
+set of complete execution steps that:
+
+- belong to the declared run, engine, runtime profile, and supported mode;
+- consume a `work` logical batch with `device_attribution_eligible == true`;
+- have a valid positive monotonic execution envelope; and
+- have a non-empty intersection with `W`.
+
+Each execution step occurs once in `D_step(W)`, even when it intersects
+multiple request intervals. Missing process bindings, invalid or absent
+scheduler-to-profiler clock models, profiler collection gaps, and missing or
+ambiguous anchors do not remove an otherwise eligible step from the
+denominator; they prevent that step from entering the admitted-join numerator.
+Semantic exclusions and their reason codes are reported, and other hard gates
+still reject malformed or incomplete scheduler evidence.
+
+Let `J_step(W)` be the subset of `D_step(W)` whose join status is an admitted
+`exact_identity` or `calibrated_correlated` result. Coverage has two distinct
+units:
+
+```text
+step_join_coverage(W)
+  = count(J_step(W)) / count(D_step(W))
+
+execution_duration_join_coverage(W)
+  = measure(union(step_envelope intersect W for step in J_step(W)))
+    / measure(union(step_envelope intersect W for step in D_step(W)))
+```
+
+The duration calculation uses overlap-safe half-open interval unions. These
+ratios must be reported separately and must never be averaged or relabelled as
+request coverage. A zero denominator is `UNDEFINED`, not 100%, and cannot pass
+a formal coverage gate.
+
+Overall coverage uses the manifest-declared main analysis window. Tail
+coverage uses a request-derived window constructed without request-to-step
+membership:
+
+1. Select the tail cohort from complete, eligible base-lifecycle requests in
+   the predeclared analysis population, using the manifest-frozen TTFT metric,
+   quantile or threshold, and deterministic tie rule.
+2. For every selected request, construct its canonical engine waiting interval
+   from the approved lifecycle queue-entry boundary to its first-token
+   boundary, then map it into the scheduler host-time coordinate through the
+   approved lifecycle-to-scheduler clock/process relation.
+3. Define `W_tail` as the half-open union of those intervals, intersected only
+   with the predeclared main analysis window and the declared run/engine scope.
+   It MUST NOT be clipped to profiler availability, successful joins, or
+   convenient scheduler activity.
+4. Evaluate both coverage ratios above using `W_tail`.
+
+PR-C1 must freeze the exact lifecycle eligibility rule, TTFT source and
+population, tail threshold/quantile, tie handling, interval endpoints, scope,
+the lifecycle-to-scheduler mapping and boundary-overlap rule, and numeric
+coverage thresholds. Failure to construct `W_tail` makes tail coverage
+`UNDEFINED` and fails formal promotion; it cannot shrink the cohort or
+denominator. Aggregate v1 does not claim that an individual tail request's
+waiting interval is covered by a particular step; per-request-window coverage
+requires the future membership-enabled profile.
 
 ## 13. Profiler interval attribution and conservation
 
@@ -732,11 +850,14 @@ cycle_batch_links
 batch_execution_links
 scheduler_clock_bridge_samples
 scheduler_clock_models
+runtime_profiler_process_bindings
 profiler_execution_anchors
 scheduler_profiler_joins
 scheduler_interval_attribution
 scheduler_loss_intervals
 scheduler_join_diagnostics
+scheduler_tail_windows
+scheduler_join_coverage
 scheduler_audit_summary
 ```
 
@@ -750,6 +871,8 @@ profile_stream
 engine_instance_id
 scheduler_process_uuid
 executor_target_process_uuid
+runtime_profiler_process_binding_id
+process_binding_status
 device_id
 rank_id
 runtime_profile_id
@@ -831,6 +954,8 @@ Formal aggregate attribution requires:
 all expected lifecycle shards complete
 AND all expected scheduler shards complete
 AND every required lifecycle/scheduler pair resolves to one process identity
+AND every join-bearing executor target resolves through one approved
+    runtime-profiler process/context binding
 AND the pinned vLLM-0.21 base-lifecycle adapter receipt is valid
 ```
 
@@ -843,7 +968,8 @@ nearest-neighbor inference.
 ### V0 — Runtime authority and call-site map
 
 PASS requires the complete PR-I0 artifact described in Section 3, including
-source-file and patch-set identity and a supported-mode matrix.
+source-file and patch-set identity, analyzer-run-identity authority,
+runtime-profiler process-binding authority, and a supported-mode matrix.
 
 ### V1 — Shard-overlay and disabled compatibility
 
@@ -893,12 +1019,22 @@ clock-parameter table.
 Fixtures prove:
 
 - explicit ID handoff is required for exact identity;
+- exact process scope requires an approved runtime process-to-profiler
+  PID/context binding with process-start identity;
+- PID reuse after restart, multiple workers, a missing binding, and multiple
+  admissible contexts fail closed as specified;
+- rank/device/time agreement without a process binding never admits a join;
 - robust unique temporal relation produces only calibrated correlation;
 - raw child-task multiplicity does not create anchor ambiguity;
 - two admissible execution anchors produce ambiguity;
 - nearest timestamps are never selected;
 - invalid clock models promote no join;
-- overall and tail-stratum coverage gates fail closed.
+- overall and tail windows preserve their pre-join denominators;
+- tail windows are derived deterministically from request-level lifecycle
+  evidence without claiming request-to-step membership;
+- step-count and overlap-safe execution-duration coverage remain distinct;
+- zero denominators are `UNDEFINED`; and
+- overall and tail coverage gates fail closed.
 
 ### V7 — Two-level duration conservation
 
@@ -914,7 +1050,9 @@ runtime scheduler observation
 -> paired lifecycle/scheduler shards and receipts
 -> monotonic clock bridge
 -> TraceLoom ingestion
+-> runtime-profiler process/context binding
 -> execution-anchor join classification
+-> overall/tail coverage materialization
 -> interval attribution
 -> SQL audit
 -> reproducible materialization
@@ -953,7 +1091,9 @@ From a fresh clone and immutable raw/retrievable inputs, reconstruct and audit:
 
 - scheduler IR;
 - clock model;
+- runtime-profiler process/context bindings;
 - profiler execution anchors and joins;
+- request-derived tail windows and coverage reports;
 - interval attribution;
 - completeness and SQL reports;
 - observer-overhead reports.
@@ -974,7 +1114,9 @@ constraint_accounting_errors
 constraint_coverage_errors
 scheduler_clock_errors
 cross_segment_join_errors
+runtime_profiler_process_binding_errors
 scheduler_profiler_join_errors
+join_coverage_denominator_errors
 join_coverage_errors
 tail_join_coverage_errors
 scheduler_loss_promotion_errors
@@ -1002,8 +1144,11 @@ AND cycle -> logical-batch -> execution relations valid
 AND all constraint evaluations completely accounted
 AND clock model valid for the full promoted interval
 AND no cross-segment join
+AND every admitted join uses one exact and approved runtime-profiler
+    process/context binding
 AND join status is exact_identity or admitted calibrated_correlated
-AND overall and tail-stratum join coverage PASS
+AND overall and tail step-count join coverage PASS
+AND overall and tail execution-duration join coverage PASS
 AND both duration-conservation levels PASS
 AND all hard SQL counters are zero
 AND destination scheduler-incremental overhead PASS
@@ -1026,9 +1171,11 @@ Retain or reference with immutable hashes:
 - scheduler profile config, shards, and receipts;
 - monotonic/realtime bridge observations and clock report;
 - raw/retrievable msprof databases and collection-completeness report;
+- runtime-to-profiler process/context binding receipts and audit report;
 - analyzer and taxonomy/rules provenance;
 - profiler execution-anchor and scheduler-join report;
-- join coverage and tail-stratum report;
+- join coverage report with the pre-join overall/tail populations, request-
+  derived tail-window definition, and separate step-count/duration units;
 - interval attribution tables and two-level conservation audit;
 - SQL audit and fresh-clone reconstruction manifest.
 
@@ -1050,6 +1197,10 @@ process_uuid
 engine_instance_id
 scheduler_process_uuid
 executor_target_process_uuid
+runtime_profiler_process_binding_id
+process_binding_status
+profiler_visible_pid
+profiler_context_identity
 device_id
 rank_id
 
@@ -1109,14 +1260,42 @@ validity_status
 Constraint observations/summaries and interval provenance remain normalized
 source tables rather than being flattened away.
 
+TraceLoom must also expose a coverage view such as
+`v_scheduler_join_coverage` containing at least:
+
+```text
+experiment_run_uuid
+engine_instance_id
+coverage_window_kind
+coverage_window_definition_id
+tail_cohort_definition_id
+eligible_step_count
+admitted_join_step_count
+ambiguous_step_count
+unmatched_step_count
+unsupported_step_count
+step_join_coverage
+eligible_execution_union_ns
+admitted_execution_union_ns
+execution_duration_join_coverage
+coverage_status
+```
+
+`coverage_window_kind` distinguishes at least `overall` and `tail`. The tail
+cohort/window definition retains its request metric source, population,
+threshold or quantile, tie rule, lifecycle endpoints, and analysis-window
+intersection. Denominator exclusions remain available by reason in normalized
+diagnostics.
+
 ## 22. Approval and PR sequence
 
 ### PR-I0 — Runtime profile and call-site map
 
 Repository: authority repository plus the selected runtime carrier.
 
-Deliver the complete prerequisite in Section 3. No hot-path implementation is
-authorized.
+Deliver the complete prerequisite in Section 3, including the analyzer run-ID
+authority decision and runtime-to-profiler process/context binding design. No
+hot-path implementation is authorized.
 
 ### PR-C1 — Complete wire and overlay approval candidate
 
@@ -1128,6 +1307,9 @@ After PR-I0, deliver:
 - exact ID and relation representation;
 - exact constraint representation;
 - exact limits and one-shard capacity proof;
+- exact analyzer-derived run-ID derivation and versioned authority;
+- exact runtime-profiler process-binding receipt schema and authority;
+- exact overall/tail coverage definitions and numeric thresholds;
 - exact multi-stream overlay digest;
 - schema/contract/runtime-profile/config digests;
 - owner approval candidate and tests.
@@ -1149,7 +1331,7 @@ by PR-I0.
 ### PR-I3 — TraceLoom ingestion and IR
 
 Implement scheduler ingestion, normalized tables, manifest/roster binding,
-and completeness audits.
+runtime-profiler process-binding ingestion, and completeness audits.
 
 ### PR-I4 — Monotonic clock bridge
 
@@ -1159,8 +1341,8 @@ fixtures under the approved clock parameters.
 ### PR-I5 — Execution-anchor join and attribution
 
 Implement profiler execution anchors, exact/correlated join classification,
-coverage gates, existing idle taxonomy reuse, two-level interval conservation,
-and materialized views.
+process-binding validation, coverage gates, existing idle taxonomy reuse,
+two-level interval conservation, and materialized views.
 
 ### PR-I6 — Profiler acceptance evidence
 
@@ -1178,12 +1360,16 @@ until PR-I0 and explicit decisions resolve:
 
 - exact record schemas, ID encodings, filename-safe stream identity, and
   maximum record size;
+- analyzer-derived run-ID field set, canonicalization, digest encoding,
+  authority path, and version;
 - runtime adapter repository/patch carrier and exact source identities;
-- supported execution cardinality and profiler execution-anchor source;
+- supported execution cardinality, runtime-profiler process-binding source,
+  and profiler execution-anchor source;
 - per-evaluation versus sufficient-statistic constraint encoding;
 - queue/byte/control/artifact/close limits for the one-shard design;
 - clock sample, gap, fit, residual, drift, jump, and extrapolation values;
-- robust join predicate and overall/tail coverage thresholds;
+- robust join predicate, tail cohort/TTFT population, and numeric overall/tail
+  step-count and execution-duration coverage thresholds;
 - deterministic real-envelope audit strata/count/seed;
 - incremental and whole-stack overhead margins, decision method, and power;
 - vLLM-0.21 base-lifecycle adapter conformance and joint roster behavior.
@@ -1198,6 +1384,9 @@ Reviewers should explicitly confirm:
 
 - scope is aggregate queueing attribution;
 - PR-I0 precedes the complete wire contract and implementation;
+- `traceloom_run_id` is only a candidate analyzer-derived identity until its
+  exact versioned derivation is selected and evidenced by PR-I0, then bound by
+  PR-C1;
 - the frozen P0 bytes are not silently edited;
 - one shard/sequence per `(process_uuid, profile_stream)` is the intended
   overlay;
@@ -1212,7 +1401,12 @@ Reviewers should explicitly confirm:
 - scheduler durations remain monotonic;
 - analyzer owns post-hoc clock segmentation;
 - profiler joins target execution anchors rather than raw child tasks;
+- every admitted join has an approved runtime process-to-profiler PID/context
+  binding;
+- rank/device/time alone never establish process identity;
 - calibrated correlation is admitted only with explicit labels and coverage;
+- tail windows come from predeclared request-level lifecycle evidence, while
+  step-count and execution-duration coverage keep distinct denominators;
 - idle taxonomy is reused with two-level conservation;
 - paired lifecycle/scheduler completeness is mandatory;
 - both incremental and whole-stack observer overhead are tested;
@@ -1224,9 +1418,11 @@ If the architecture is accepted, use wording equivalent to:
 
 > Architecture approved for PR-I0. This approval accepts the aggregate scope,
 > cycle/logical-batch/execution model, multi-profile shard overlay direction,
-> raw constraint evidence boundary, clock composition, execution-anchor join,
-> two-level duration conservation, and acceptance order. It does not freeze
-> `rlp.scheduler/v1alpha1`, amend the owner-frozen P0 bytes, authorize hot-path
-> implementation, or admit mechanism evidence. A complete wire-contract and
-> overlay approval candidate must be submitted after PR-I0 with exact digests
-> and all required evidence parameters.
+> raw constraint evidence boundary, clock composition, runtime-profiler
+> process binding, execution-anchor join, request-derived tail windows,
+> separate step-count/duration coverage, two-level duration conservation, and
+> acceptance order. It does not freeze `rlp.scheduler/v1alpha1`, amend the
+> owner-frozen P0 bytes, authorize hot-path implementation, or admit mechanism
+> evidence. A complete wire-contract and overlay approval candidate must be
+> submitted after PR-I0 with exact digests and all required evidence
+> parameters.
