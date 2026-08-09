@@ -13,20 +13,20 @@
 
 | Check | Match |
 | --- | --- |
-| probe_repository_revision | `yes` |
-| probe_repository_clean | `yes` |
-| workload_repository_revision | `yes` |
-| workload_repository_clean | `yes` |
 | client_command_except_runtime_endpoints | `yes` |
 | fixed_request_schedule | `yes` |
-| token_metrics_from_sse_token_ids | `yes` |
 | installed_runtime | `yes` |
 | model | `yes` |
+| probe_repository_clean | `yes` |
+| probe_repository_revision | `yes` |
 | profiler_boundary | `yes` |
 | profiler_options | `yes` |
 | request_shape | `yes` |
 | server_command_except_runtime_endpoint | `yes` |
+| token_metrics_from_sse_token_ids | `yes` |
 | workload_commit | `yes` |
+| workload_repository_clean | `yes` |
+| workload_repository_revision | `yes` |
 
 ## Observed enabled - disabled deltas
 

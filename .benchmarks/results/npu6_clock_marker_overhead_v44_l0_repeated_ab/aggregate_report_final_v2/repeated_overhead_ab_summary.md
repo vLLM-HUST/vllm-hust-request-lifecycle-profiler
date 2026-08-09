@@ -4,8 +4,12 @@
 - protocol_acceptance: `PASS`
 - full_idle_evidence_acceptance: `PASS`
 - overhead_claim_status: `accepted_repeated_matched_ab`
-- raw artifact publication: `local_content_addressed_only`
-- external raw archive URI: `null`
+- raw artifact publication: `fresh_clone_raw_sources_and_regeneration_recipe`
+- fresh-clone bundle: `.benchmarks/results/npu6_clock_marker_overhead_v44_l0_repeated_ab/fresh_clone_inputs/manifest.json`
+- analyzer commit: `9a816aaeda5d937c07d04e13901df1462d12f979`
+- lossless raw msprof retrieval: `true`
+- derived sidecar regeneration and semantic audit: `true`
+- byte-identical original derived-sidecar retrieval: `false`
 - pair_count: `3`
 - total requests per variant: `12`
 - pooled correlated E4: `169` slices / `3918602` ns

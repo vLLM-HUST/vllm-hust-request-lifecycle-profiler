@@ -199,12 +199,24 @@ def aggregate(root: Path) -> dict[str, Any]:
         "full_idle_evidence_acceptance": "PASS",
         "overhead_claim_status": "accepted_repeated_matched_ab",
         "raw_artifact_publication": {
-            "status": "local_content_addressed_only",
+            "status": "fresh_clone_raw_sources_and_regeneration_recipe",
+            "bundle_manifest": (
+                ".benchmarks/results/"
+                "npu6_clock_marker_overhead_v44_l0_repeated_ab/"
+                "fresh_clone_inputs/manifest.json"
+            ),
+            "analyzer_repository": "vLLM-HUST/vllm-hust-perf-analyzer",
+            "analyzer_commit": (
+                "9a816aaeda5d937c07d04e13901df1462d12f979"
+            ),
             "external_archive_uri": None,
-            "independent_raw_byte_retrieval": False,
+            "independent_raw_source_byte_retrieval": True,
+            "derived_sidecar_regeneration": True,
+            "original_derived_sidecar_byte_retrieval": False,
             "manifest_scope": (
-                "sha256_and_size_only; raw msprof databases and derived "
-                "sidecars are not stored in Git or Git LFS"
+                "six lossless raw msprof databases are committed as "
+                "deterministic gzip archives; 45 direct inputs are committed; "
+                "six derived sidecars are regenerated and semantically audited"
             ),
         },
         "pair_count": len(reports),
@@ -245,7 +257,11 @@ def _markdown(summary: dict[str, Any]) -> str:
         f"- full_idle_evidence_acceptance: `{summary['full_idle_evidence_acceptance']}`",
         f"- overhead_claim_status: `{summary['overhead_claim_status']}`",
         f"- raw artifact publication: `{summary['raw_artifact_publication']['status']}`",
-        "- external raw archive URI: `null`",
+        f"- fresh-clone bundle: `{summary['raw_artifact_publication']['bundle_manifest']}`",
+        f"- analyzer commit: `{summary['raw_artifact_publication']['analyzer_commit']}`",
+        "- lossless raw msprof retrieval: `true`",
+        "- derived sidecar regeneration and semantic audit: `true`",
+        "- byte-identical original derived-sidecar retrieval: `false`",
         f"- pair_count: `{summary['pair_count']}`",
         f"- total requests per variant: `{summary['total_requests_per_variant']}`",
         f"- pooled correlated E4: `{summary['correlated_e4']['pooled_count']}` slices / `{summary['correlated_e4']['pooled_duration_ns']}` ns",

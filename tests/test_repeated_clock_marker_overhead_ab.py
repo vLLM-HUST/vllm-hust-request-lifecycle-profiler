@@ -76,12 +76,22 @@ def test_aggregates_repeated_pair_distribution(tmp_path: Path) -> None:
     assert result["capture_acceptance"] == "PASS"
     assert result["overhead_claim_status"] == "accepted_repeated_matched_ab"
     assert result["raw_artifact_publication"] == {
-        "status": "local_content_addressed_only",
+        "status": "fresh_clone_raw_sources_and_regeneration_recipe",
+        "bundle_manifest": (
+            ".benchmarks/results/"
+            "npu6_clock_marker_overhead_v44_l0_repeated_ab/"
+            "fresh_clone_inputs/manifest.json"
+        ),
+        "analyzer_repository": "vLLM-HUST/vllm-hust-perf-analyzer",
+        "analyzer_commit": "9a816aaeda5d937c07d04e13901df1462d12f979",
         "external_archive_uri": None,
-        "independent_raw_byte_retrieval": False,
+        "independent_raw_source_byte_retrieval": True,
+        "derived_sidecar_regeneration": True,
+        "original_derived_sidecar_byte_retrieval": False,
         "manifest_scope": (
-            "sha256_and_size_only; raw msprof databases and derived "
-            "sidecars are not stored in Git or Git LFS"
+            "six lossless raw msprof databases are committed as "
+            "deterministic gzip archives; 45 direct inputs are committed; "
+            "six derived sidecars are regenerated and semantically audited"
         ),
     }
     assert result["pair_count"] == 3

@@ -130,7 +130,7 @@
       "pair_id": "pair_01",
       "path": "pair_01/report/overhead_ab_summary.md",
       "role": "pair_acceptance_report",
-      "sha256": "00d6016d00dc2c31e5973dbf54aaade8f69322b50235f810429418865cc0a76f",
+      "sha256": "ffe43804d9ab1f6280067febf9dc1e50e9724bc1e0f78eea4fe94e82058b66be",
       "size_bytes": 3675
     },
     {
@@ -263,7 +263,7 @@
       "pair_id": "pair_02",
       "path": "pair_02/report/overhead_ab_summary.md",
       "role": "pair_acceptance_report",
-      "sha256": "977969febe28fa5fe06aa104180b0fe7c03767125d148a3c684ba3c9a98e4b93",
+      "sha256": "18b119327a890a91f29bc8d2872505276af471709cced25b1eb581cdb61069b1",
       "size_bytes": 3660
     },
     {
@@ -396,7 +396,7 @@
       "pair_id": "pair_03",
       "path": "pair_03/report/overhead_ab_summary.md",
       "role": "pair_acceptance_report",
-      "sha256": "ed8929cb248a5d30b2366aa78920c2ff4a05e999102c516529f8a56c75aa1cf1",
+      "sha256": "3a7945c7aac6fb2af24dec5066d9743424427e740c925ff236386a94683de8e4",
       "size_bytes": 3669
     }
   ],
@@ -1314,10 +1314,15 @@
   ],
   "protocol_acceptance": "PASS",
   "raw_artifact_publication": {
+    "analyzer_commit": "9a816aaeda5d937c07d04e13901df1462d12f979",
+    "analyzer_repository": "vLLM-HUST/vllm-hust-perf-analyzer",
+    "bundle_manifest": ".benchmarks/results/npu6_clock_marker_overhead_v44_l0_repeated_ab/fresh_clone_inputs/manifest.json",
+    "derived_sidecar_regeneration": true,
     "external_archive_uri": null,
-    "independent_raw_byte_retrieval": false,
-    "manifest_scope": "sha256_and_size_only; raw msprof databases and derived sidecars are not stored in Git or Git LFS",
-    "status": "local_content_addressed_only"
+    "independent_raw_source_byte_retrieval": true,
+    "manifest_scope": "six lossless raw msprof databases are committed as deterministic gzip archives; 45 direct inputs are committed; six derived sidecars are regenerated and semantically audited",
+    "original_derived_sidecar_byte_retrieval": false,
+    "status": "fresh_clone_raw_sources_and_regeneration_recipe"
   },
   "schema_version": "clock-marker-repeated-overhead-ab-v1",
   "total_requests_per_variant": 12

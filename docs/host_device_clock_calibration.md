@@ -265,11 +265,13 @@ sampling variation, not a speedup claim. The narrow conclusion is that this
 12-request-per-variant low-load sample detects no marker-induced regression;
 larger-load and graph-mode bounds remain future work. The final JSON embeds
 SHA-256 and byte size for every source msprof database, derived sidecar,
-marker TSV, client result, provenance record, and per-pair report. The report
-also records `raw_artifact_publication.status=local_content_addressed_only`,
-`external_archive_uri=null`, and
-`independent_raw_byte_retrieval=false`: the hash manifest is not a downloadable
-artifact archive, and the raw corpus is intentionally absent from Git/LFS.
+marker TSV, client result, provenance record, and per-pair report. The
+fresh-clone bundle commits lossless deterministic-gzip copies of all six raw
+msprof databases plus the 45 direct audit inputs. It pins analyzer commit
+`9a816aaeda5d937c07d04e13901df1462d12f979`, regenerates all six derived
+sidecars, executes the cross-clock SQL audit, and compares stable sidecar
+semantics with the accepted reports. The original 2.6 GB derived-sidecar byte
+layout is not archived and byte-identical reproduction is not claimed.
 
 ## 5. Evidence boundary
 

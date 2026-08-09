@@ -4,6 +4,9 @@
 
 ### Added
 
+- Added a fresh-clone v4.4 idle-evidence audit bundle with lossless raw msprof
+  inputs, pinned analyzer provenance, deterministic sidecar regeneration,
+  cross-clock SQL checks, accepted-report consistency checks, and PR CI.
 - Added a strict repeated clock-marker A/B aggregator, content-addressed audit
   manifest, regression tests, and three accepted NPU6 serving pairs that close
   the v4.4 real E4 positive path and workload-specific overhead measurement.

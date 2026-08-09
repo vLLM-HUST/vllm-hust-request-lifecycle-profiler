@@ -14,6 +14,8 @@ WORKLOAD_REPO ?= $(abspath $(CURDIR)/third_party/llm-serving-workloads)
 DEV_HUB ?= $(abspath $(CURDIR)/third_party/vllm-hust-dev-hub)
 MANAGED_ENV_FILE ?= $(abspath $(CURDIR)/.benchmarks/profiles/npu6_vllm_hust_trace.env)
 TRACE_SUITE_OUTPUT_DIR ?= .benchmarks/results/npu6_existing_server_trace_probe_repeated_smoke
+IDLE_EVIDENCE_ANALYZER_REPO ?= $(abspath $(CURDIR)/../vllm-hust-perf-analyzer)
+IDLE_EVIDENCE_TRACELOOM ?= $(IDLE_EVIDENCE_ANALYZER_REPO)/build/native-tests/native/traceloom
 
 PACKAGE_IMPORT := vllm_request_lifecycle_profiler
 BENCH_DIR := .benchmarks
@@ -21,7 +23,7 @@ PAPER_DIR := paper/request_lifecycle_causal_profiler
 
 .DEFAULT_GOAL := help
 
-.PHONY: help bootstrap-shared-env install-dev smoke test shared-workloads-smoke shared-workloads-test offline-intervention-gate synthetic-fault-injection trace-diagnosis npu6-controlled-fault-matrix npu6-runtime-hook-pair-plan npu6-runtime-concurrency-anomaly-analysis top-tier-readiness npu6-trace-preflight npu6-existing-server-trace-probe npu6-existing-server-trace-suite-smoke npu6-existing-server-slow-stream-trace-smoke npu6-slow-stream-trace-diagnosis npu6-existing-server-trace-overhead-smoke managed-install managed-start managed-restart managed-stop managed-status managed-health managed-logs managed-foreground lint format build bench paper paper-assets paper-pdf paper-clean clean
+.PHONY: help bootstrap-shared-env install-dev smoke test shared-workloads-smoke shared-workloads-test offline-intervention-gate synthetic-fault-injection trace-diagnosis npu6-controlled-fault-matrix npu6-runtime-hook-pair-plan npu6-runtime-concurrency-anomaly-analysis idle-evidence-fresh-clone-audit top-tier-readiness npu6-trace-preflight npu6-existing-server-trace-probe npu6-existing-server-trace-suite-smoke npu6-existing-server-slow-stream-trace-smoke npu6-slow-stream-trace-diagnosis npu6-existing-server-trace-overhead-smoke managed-install managed-start managed-restart managed-stop managed-status managed-health managed-logs managed-foreground lint format build bench paper paper-assets paper-pdf paper-clean clean
 
 help:
 	@printf '%s\n' \
@@ -39,6 +41,7 @@ help:
 		'  make npu6-controlled-fault-matrix Aggregate checked-in NPU6 controlled-fault artifacts and gaps' \
 		'  make npu6-runtime-hook-pair-plan Aggregate or list hook-disabled/enabled runtime probe runs' \
 		'  make npu6-runtime-concurrency-anomaly-analysis Analyze checked-in NPU6 concurrency runtime-hook anomaly' \
+		'  make idle-evidence-fresh-clone-audit Rebuild and audit v4.4 sidecars from checked-in raw msprof inputs' \
 		'  make top-tier-readiness Run no-NPU checks and refresh submission-facing artifacts' \
 		'  make npu6-trace-preflight Run read-only NPU6 existing-server trace preflight' \
 		'  make npu6-existing-server-trace-probe Run client-observed lifecycle trace probe on NPU6' \
@@ -109,6 +112,11 @@ npu6-runtime-hook-pair-plan:
 
 npu6-runtime-concurrency-anomaly-analysis:
 	PYTHONPATH=src $(PYTHON) .benchmarks/analyze_runtime_concurrency_anomaly.py
+
+idle-evidence-fresh-clone-audit:
+	PYTHONPATH=src $(PYTHON) .benchmarks/verify_idle_evidence_fresh_clone.py \
+		--analyzer-repo '$(IDLE_EVIDENCE_ANALYZER_REPO)' \
+		--traceloom '$(IDLE_EVIDENCE_TRACELOOM)'
 
 top-tier-readiness: test synthetic-fault-injection trace-diagnosis npu6-controlled-fault-matrix npu6-runtime-hook-pair-plan npu6-runtime-concurrency-anomaly-analysis paper-assets
 	@PYTHONPATH=src $(PYTHON) -c "import json, pathlib, sys; p=pathlib.Path('.benchmarks/results/npu6_runtime_hook_pair_plan/summary.json'); data=json.loads(p.read_text()); rows=data.get('rows', []); enabled=next((r for r in rows if r.get('mode') == 'hook-enabled'), {}); summary=enabled.get('runtime_trace_summary') or {}; complete=summary.get('complete_chain_count', 0); total=summary.get('request_chain_count', 0); missing=summary.get('missing_stage_counts', {}); print({'runtime_hook_complete_chains': complete, 'runtime_hook_total_chains': total, 'missing_stage_counts': missing}); sys.exit(0 if total and complete == total and not missing else 1)"
