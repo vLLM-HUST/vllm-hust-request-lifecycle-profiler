@@ -122,6 +122,14 @@ The runtime implementation must live in a reproducible repository/branch or a
 content-addressed patch set. An uncommitted installation edit is not a formal
 runtime identity.
 
+PR-I0 binds the selected carrier, canonical remote, exact base commit/tree,
+clean-base state, and audited source-file hashes. It does not bind a scheduler
+hot-path implementation produced before the wire exists. After PR-C1 owner
+approval freezes the exact wire bytes, PR-I2 binds the implementation commit or
+content-addressed patch set, its post-apply file hashes, and clean-tree or
+approved-overlay receipt. This ordering prevents the pre-wire audit from
+silently authorizing an implementation of unfrozen bytes.
+
 ### 2.3 Analyzer repository
 
 TraceLoom owns:
@@ -174,10 +182,9 @@ The source of truth is
 PR-I0 is a prerequisite to the complete wire-contract review. It must bind:
 
 - authoritative platform/profile SHA-256;
-- exact core and device-plugin commits;
+- exact core and device-plugin canonical remotes, commits, and commit-tree IDs;
 - exact scheduler and relevant EngineCore source-file SHA-256 values;
-- the approved adapter patch-set or implementation commit;
-- clean-tree status or an explicitly approved dirty-overlay receipt;
+- the selected runtime patch carrier and its clean base-tree receipt;
 - repository, file, method, process/thread, and observation point for every
   proposed field;
 - supported and unsupported execution-mode matrix;
@@ -196,6 +203,12 @@ PR-I0 is a prerequisite to the complete wire-contract review. It must bind:
 
 Commit identity alone is insufficient when a scheduler or adapter file differs
 from the commit tree.
+
+PR-I0 may inventory an existing pilot overlay as diagnostic evidence, but that
+overlay is not the PR-I2 implementation identity. Requiring a post-wire
+implementation digest in PR-I0 while prohibiting hot-path implementation before
+PR-C1 would be circular; the implementation digest is therefore a PR-I2 exit
+artifact, not a PR-I0 or PR-C1 prerequisite.
 
 ## 4. Dependency and compatibility architecture
 
@@ -284,6 +297,8 @@ Formal v1 evidence is restricted to:
 - decoder-only generation;
 - `n=1` and one prompt per request;
 - eager execution;
+- `UniProcExecutor` with `async_scheduling=false`;
+- `max_concurrent_batches=1` and at most one execution step in flight;
 - no speculative decoding;
 - no cross-host or multi-device temporal disambiguation;
 - no unsupported batch-queue or asynchronous scheduling mode.
@@ -293,6 +308,14 @@ future queue on the authoritative path. If multiple scheduler outputs can be in
 flight and the wire contract cannot carry their identity without ambiguity,
 that mode is unsupported. The analyzer may not reconstruct it by choosing the
 nearest timestamp.
+
+The pinned call-site audit establishes that world size 1 defaults to the
+`uni` backend and that `UniProcExecutor.max_concurrent_batches` is 2 when async
+scheduling is enabled and 1 otherwise. A retained authoritative attempt that
+logs async scheduling as enabled is outside this initial profile even if it is
+single-rank and in-process. Formal preflight must read the effective values and
+reject the run unless async scheduling is explicitly disabled and the observed
+maximum is 1.
 
 ## 6. Semantic entities
 
@@ -469,18 +492,19 @@ A cycle can evaluate one constraint multiple times and can observe competing
 constraints. A single mutually exclusive cycle-level stop reason is
 insufficient.
 
-PR-I0 must determine the maximum gate-evaluation cardinality. The subsequent
-wire contract must choose and freeze one bounded representation:
+The pinned call-site audit finds no request-cardinality-independent maximum for
+lossless per-evaluation records: the waiting traversal can scan `waiting` and
+`skipped_waiting` populations that are not bounded by `max_num_seqs`. Aggregate
+v1 therefore selects a lossless-for-approved-aggregate-queries fixed-size
+summary. PR-C1 must freeze its queue, constraint, gate-state, and decision/mode
+buckets plus one deterministic first witness for every non-empty bucket. It
+must not emit one hot-path data record per evaluation.
 
-1. lossless per-evaluation observations with a fixed maximum and explicit
-   `constraint_observation_id` and `gate_ordinal`; or
-2. a lossless-for-approved-aggregate-queries fixed-size summary whose mode and
-   gate-state bucket counts account for every evaluation, plus deterministic
-   raw witnesses defined before data collection.
+The fixed summary must satisfy:
 
-In either representation:
-
-- evaluated, encoded/accounted, and unclassified counts must balance;
+- `evaluated_count == accounted_count + unclassified_count`;
+- the sum of all approved bucket counts equals `accounted_count`;
+- a first witness exists exactly for each non-empty approved bucket;
 - every omitted or truncated evaluation invalidates the cycle for binding
   evidence;
 - no historical-request-sized container is permitted;
@@ -488,6 +512,10 @@ In either representation:
   evidence;
 - multiple gates in one cycle must remain visible;
 - capacity and observer-overhead proofs use the maximum encoded form.
+
+A future membership-enabled or per-evaluation profile requires a new
+cardinality and capacity proof; it is not an alternate encoding of aggregate
+v1.
 
 ### 8.5 Derived binding and legacy compatibility
 
@@ -643,12 +671,15 @@ experiment_run_uuid
 executor_target_process_uuid
 runtime_pid
 runtime_pid_namespace_identity
+runtime_nspid_vector
 runtime_process_start_identity
 executor_role
 rank_id
 device_id
 profiler_visible_pid
-profiler_context_identity
+profiler_pid_namespace_identity
+profiler_pid_representation
+profiler_context_identity_or_bounded_set
 binding_source
 binding_status
 ```
@@ -662,6 +693,15 @@ PID alone is insufficient because it can be reused after process restart.
 example with host boot identity plus procfs process-start ticks. The exact
 receipt fields and acquisition authority are frozen after PR-I0; they need not
 all be scheduler hot-path wire fields.
+
+When the runtime is containerized, the receipt must carry the namespace mapping
+needed to relate its local PID to the profiler-visible PID; equal numeric PIDs
+from different namespaces are not a match. The profiler side must declare
+whether its PID is host/global or namespace-local. Multiple raw profiler
+contexts for one process are allowed only through an approved deterministic
+context identity or bounded-set rule that preserves the full inventory.
+Otherwise the binding or attempted join is ambiguous rather than silently
+collapsing contexts.
 
 Calibrated correlation requires an approved runtime-process to
 profiler-process/context binding. Rank, device, and time overlap alone do not
@@ -1002,8 +1042,12 @@ nearest-neighbor inference.
 ### V0 — Runtime authority and call-site map
 
 PASS requires the complete PR-I0 artifact described in Section 3, including
-source-file and patch-set identity, analyzer-run-identity authority,
-runtime-profiler process-binding authority, and a supported-mode matrix.
+source-file, base-tree, and selected patch-carrier identity;
+analyzer-run-identity authority; runtime-profiler process-binding authority;
+and a supported-mode matrix.
+
+V0 does not require or authorize the post-PR-C1 implementation digest. PR-I2
+must bind that digest before any runtime implementation is admitted.
 
 ### V1 — Shard-overlay and disabled compatibility
 
@@ -1205,7 +1249,8 @@ Retain or reference with immutable hashes:
 - experiment run manifest and run-ID mapping;
 - predeclared logical process/profile roster and launch binding receipt;
 - authoritative platform/profile receipt;
-- core, device-plugin, scheduler-file, and adapter patch identities;
+- core/device-plugin base-tree and scheduler-file identities plus the post-PR-C1
+  adapter implementation commit/patch receipt;
 - base lifecycle conformance receipt, shard manifest, shards, and receipts;
 - scheduler profile config, shards, and receipts;
 - monotonic/realtime bridge observations and clock report;
@@ -1334,8 +1379,11 @@ diagnostics.
 Repository: authority repository plus the selected runtime carrier.
 
 Deliver the complete prerequisite in Section 3, including the analyzer run-ID
-authority decision and runtime-to-profiler process/context binding design. No
-hot-path implementation is authorized.
+authority decision, runtime-to-profiler process/context binding design, exact
+carrier repository/branch strategy, canonical remote, base commit/tree, and
+audited source-file hashes. Existing pilot overlays may be inventoried but do
+not become the formal implementation identity. No hot-path implementation is
+authorized.
 
 ### PR-C1 — Complete wire and overlay approval candidate
 
@@ -1368,7 +1416,10 @@ approved wire bytes.
 
 Implement pinned cycle/state/constraint/output/execution observations,
 relation propagation, and periodic bridge sampling in the repository selected
-by PR-I0.
+by PR-I0. Bind the exact implementation commit or content-addressed patch-set
+digest, post-apply audited file hashes, exporter dependency identity, and clean
+tree or approved dirty-overlay receipt. A deployment whose installed bytes do
+not match this receipt is unsupported.
 
 ### PR-I3 — TraceLoom ingestion and IR
 
@@ -1407,7 +1458,7 @@ until PR-I0 and explicit decisions resolve:
 - runtime adapter repository/patch carrier and exact source identities;
 - supported execution cardinality, runtime-profiler process-binding source,
   and profiler execution-anchor source;
-- per-evaluation versus sufficient-statistic constraint encoding;
+- exact fixed-size constraint-summary buckets, counters, and witness encoding;
 - queue/byte/control/artifact/close limits for the one-shard design;
 - clock sample, gap, fit, residual, drift, jump, and extrapolation values;
 - robust join predicate, tail cohort/TTFT population, and numeric overall/tail
@@ -1434,11 +1485,17 @@ Reviewers should explicitly confirm:
 - one shard/sequence per `(process_uuid, profile_stream)` is the intended
   overlay;
 - repository ownership distinguishes core runtime from device plugin;
-- current runtime identity includes file/patch state, not commit alone;
+- PR-I0 binds carrier/base source identity, PR-C1 freezes wire bytes, and PR-I2
+  binds implementation commit/patch identity;
+- current runtime identity includes audited file and overlay state, not commit
+  alone;
+- the initial profile explicitly disables async scheduling and admits one
+  in-flight execution step;
 - zero-token SchedulerOutput remains represented;
 - final execution completion includes sampling where applicable;
 - state and cardinality count units are unambiguous;
-- constraint evidence is multi-gate, complete, bounded, and analyzer-derived;
+- constraint evidence uses the selected fixed-size aggregate summary and is
+  multi-gate, complete, bounded, and analyzer-derived;
 - event-v3 booleans are legacy compatibility outputs;
 - full request membership is not required for aggregate v1;
 - scheduler durations remain monotonic;
@@ -1464,8 +1521,11 @@ If the architecture is accepted, use wording equivalent to:
 > raw constraint evidence boundary, clock composition, runtime-profiler
 > process binding, execution-anchor join, request-derived tail windows,
 > separate step-count/duration coverage, two-level duration conservation, and
-> acceptance order. It does not freeze `rlp.scheduler/v1alpha1`, amend the
+> acceptance order. PR-I0 freezes the selected runtime carrier and audited base
+> source identity; it does not freeze an implementation patch. It does not
+> freeze `rlp.scheduler/v1alpha1`, amend the
 > owner-frozen P0 bytes, authorize hot-path implementation, or admit mechanism
 > evidence. A complete wire-contract and overlay approval candidate must be
 > submitted after PR-I0 with exact digests and all required evidence
-> parameters.
+> parameters. Only after those wire bytes are owner approved may PR-I2 bind and
+> implement the runtime patch.
