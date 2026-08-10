@@ -49,6 +49,7 @@ def test_p0_owner_freeze_binds_the_approved_artifact_bytes() -> None:
     assert manifest["status"] == "owner_frozen"
     assert manifest["owner_freeze"]["status"] == "approved"
     assert manifest["owner_freeze"]["record"] == "owner-freeze-approval.json"
+    assert manifest["owner_freeze"]["p1_communication_mode"] == "none"
     assert approval["status"] == "owner_approved"
     assert approval["contract_approval"]["accepted_items"] == list(range(1, 9))
     assert approval["p1_scope"] == EXPECTED_P1_SCOPE

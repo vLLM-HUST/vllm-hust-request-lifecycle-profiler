@@ -1,23 +1,34 @@
 from __future__ import annotations
 
-import pytest
+import subprocess
+from pathlib import Path
 
-from vllm_request_lifecycle_profiler import shared_workloads
 from vllm_request_lifecycle_profiler.shared_workloads import build_shared_workload_report
 from vllm_request_lifecycle_profiler.shared_workloads import generate_case_requests
 from vllm_request_lifecycle_profiler.shared_workloads import load_workloads_module
 from vllm_request_lifecycle_profiler.shared_workloads import supported_shared_case_ids
 
 
-if not any(
-	candidate.is_dir()
-	for candidate in shared_workloads._candidate_workload_src_paths()
-):
-	pytest.skip(
-		"pinned llm-serving-workloads checkout is not available",
-		allow_module_level=True,
-	)
-load_workloads_module()
+workloads = load_workloads_module()
+REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
+PINNED_WORKLOAD_COMMIT = "76e24c85bcab76ecfabb831c9444002b6efffd58"
+
+
+def test_shared_workload_source_matches_the_pinned_contract() -> None:
+	gitlink = subprocess.check_output(
+		[
+			"git",
+			"ls-tree",
+			"HEAD",
+			"third_party/llm-serving-workloads",
+		],
+		cwd=REPOSITORY_ROOT,
+		text=True,
+	).split()
+	assert gitlink[:3] == ["160000", "commit", PINNED_WORKLOAD_COMMIT]
+	fixture_commit = getattr(workloads, "PINNED_WORKLOAD_COMMIT", None)
+	if fixture_commit is not None:
+		assert fixture_commit == PINNED_WORKLOAD_COMMIT
 
 
 def test_supported_shared_case_ids_are_available() -> None:
