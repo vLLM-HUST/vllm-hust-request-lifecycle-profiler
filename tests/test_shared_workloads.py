@@ -2,19 +2,22 @@ from __future__ import annotations
 
 import pytest
 
+from vllm_request_lifecycle_profiler import shared_workloads
 from vllm_request_lifecycle_profiler.shared_workloads import build_shared_workload_report
 from vllm_request_lifecycle_profiler.shared_workloads import generate_case_requests
 from vllm_request_lifecycle_profiler.shared_workloads import load_workloads_module
 from vllm_request_lifecycle_profiler.shared_workloads import supported_shared_case_ids
 
 
-try:
-	load_workloads_module()
-except RuntimeError:
+if not any(
+	candidate.is_dir()
+	for candidate in shared_workloads._candidate_workload_src_paths()
+):
 	pytest.skip(
 		"pinned llm-serving-workloads checkout is not available",
 		allow_module_level=True,
 	)
+load_workloads_module()
 
 
 def test_supported_shared_case_ids_are_available() -> None:

@@ -21,6 +21,16 @@ EXPECTED_ARTIFACTS = {
     },
 }
 
+EXPECTED_P1_SCOPE = {
+    "communication_mode": "none",
+    "device_plugin_commit": "cafad89a5e103f31ea517c1edb56130578c3cd56",
+    "device_plugin_repository": "vLLM-HUST/vllm-ascend-hust",
+    "issue_2_dependency_preserved_for_non_none_modes": True,
+    "issue_2_profile": None,
+    "runtime_commit": "f229ba7cad21a4dba58681af6738a9fd947388e2",
+    "runtime_repository": "vLLM-HUST/vllm-hust",
+}
+
 
 def _load_json(path: Path) -> dict[str, Any]:
     payload = json.loads(path.read_text(encoding="utf-8"))
@@ -41,6 +51,7 @@ def test_p0_owner_freeze_binds_the_approved_artifact_bytes() -> None:
     assert manifest["owner_freeze"]["record"] == "owner-freeze-approval.json"
     assert approval["status"] == "owner_approved"
     assert approval["contract_approval"]["accepted_items"] == list(range(1, 9))
+    assert approval["p1_scope"] == EXPECTED_P1_SCOPE
 
     approved_artifacts = {
         artifact["role"]: artifact for artifact in approval["approved_artifacts"]
