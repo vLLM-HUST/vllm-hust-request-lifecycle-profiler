@@ -70,10 +70,20 @@ roster is:
 | --- | --- | --- |
 | `lifecycle` | `rlp.trace/v1alpha1` | Owner-frozen request lifecycle trace |
 | `scheduler` | proposed `rlp.scheduler/v1alpha1` | Scheduler semantic evidence |
+| `kv_recovery` | `rlp.kv-recovery/v1alpha1` | Owner-frozen optional KV-recovery profile |
 
 The final wire contract MUST freeze the encoded representation and filename-
 safe slug for each value. An unknown stream is unsupported and cannot be
-promoted by treating it as lifecycle or scheduler data.
+promoted by treating it as lifecycle, scheduler, or KV-recovery data.
+
+`kv_recovery` is a compatibility registration for the already approved
+profile, not a new schema or activation decision. Its existing wire bytes,
+`<base>.rlp-kv-recovery.<process_uuid>.jsonl` path, record sequence, loss
+ledger, summary, and receipt remain governed by
+`contracts/p1/kv-recovery-profile.v0-draft.md`. The logical
+`profile_stream=kv_recovery` scope may be carried by the manifest/shard binding
+without adding a field to those approved records. This overlay therefore does
+not supersede or rewrite the KV-recovery profile's sharding contract.
 
 ### 2.3 Shard and sequence scope
 
@@ -114,13 +124,14 @@ queues and writer states. For each stream it MUST preserve independently:
 - content digest;
 - committed-shard receipt.
 
-Lifecycle and scheduler records MUST NOT share a `record_seq`, loss ledger, or
+Records from different streams MUST NOT share a `record_seq`, loss ledger, or
 summary merely because their writers are managed by the same owner.
 
-The lifecycle shard's existing path and bytes remain unchanged. The scheduler
-wire contract MUST define a distinct create-exclusive, mode-`0600` path. A path
-collision, cross-stream append, or a shard whose stream identity disagrees
-with its manifest fails the affected profile closed for evidence while serving
+The lifecycle shard's existing path and bytes and the KV-recovery profile's
+existing path and bytes remain unchanged. The scheduler wire contract MUST
+define a distinct create-exclusive, mode-`0600` path. A path collision,
+cross-stream append, or a shard whose stream identity disagrees with its
+manifest fails the affected profile closed for evidence while serving
 continues fail-open.
 
 ## 4. Activation and disabled behavior
@@ -155,10 +166,12 @@ to its actual `process_uuid` and shard path. Post-processing MUST NOT discover
 the expected set by globbing only the shards that happened to exist.
 
 Formal scheduler-profiler evidence is jointly admitted only when every
-required lifecycle and scheduler shard and receipt is complete. Individually
-valid shards remain immutable diagnostic artifacts; a missing paired shard
-does not authorize fabrication, timestamp inference, or deletion of the valid
-artifact.
+required lifecycle and scheduler shard and receipt is complete. If the
+experiment predeclares another enabled profile such as `kv_recovery`, every
+required shard and receipt for that stream must also be complete under its own
+contract. Individually valid shards remain immutable diagnostic artifacts; a
+missing paired shard does not authorize fabrication, timestamp inference, or
+deletion of the valid artifact.
 
 ## 6. Boundedness policy
 
@@ -193,7 +206,7 @@ The normalizer MUST reject:
 - a scheduler shard using a lifecycle record sequence or summary;
 - a manifest that maps one logical stream instance to multiple shards;
 - cross-stream ID resolution that omits `profile_stream` scope;
-- a scheduler/lifecycle pair with different runtime process identity.
+- any required cross-stream pair with different runtime process identity.
 
 ## 8. Approval and implementation gate
 
@@ -206,7 +219,8 @@ content digests for:
 4. the lifecycle-preserving scheduler shard path convention;
 5. per-stream queue, byte, control-reserve, and close limits;
 6. the paired manifest/receipt and completeness rules;
-7. compatibility tests proving unchanged lifecycle bytes and disabled behavior.
+7. compatibility tests proving unchanged lifecycle and KV-recovery bytes,
+   paths, and disabled behavior.
 
 Architecture review of this file does not amend the owner-frozen P0 contract.
 No runtime implementation may claim this overlay is active until the new

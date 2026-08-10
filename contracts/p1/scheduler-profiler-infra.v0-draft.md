@@ -240,11 +240,18 @@ content-addressed owner approval before this rule becomes active.
 The architecture distinguishes:
 
 - `experiment_run_uuid`: assigned by the experiment repository before launch;
-- `traceloom_run_id`: candidate name for an analyzer-derived run identity. No
-  currently cited analyzer contract authoritatively freezes its derivation;
-  its input field set, canonicalization, digest encoding, authority path, and
-  contract version MUST be selected and evidenced by PR-I0 before PR-C1, then
-  bound exactly by PR-C1;
+- `traceloom_run_id`: candidate scheduler-profile name for the analyzer
+  `run_id` defined by `docs/idle_evidence_contract.md`, status
+  `Draft v4.3 (proposed for M0 approval)`, architecture-candidate file SHA-256
+  `8edb42b706b6cab14dfde2b109841cb8af090883c9ea86696ee779de21d0c9ed`.
+  That draft defines the value as
+  `lowercase_hex(SHA-256(JCS(metadata_without_run_id)))` under RFC 8785. The
+  two names MUST denote identical bytes when this dependency is selected;
+  this exact alias does not upgrade the draft to approved authority. PR-I0
+  MUST reverify the path, version, digest, input metadata schema, and
+  canonicalization authority. PR-C1 MUST either freeze that exact derivation
+  or bind a separately versioned identity through an explicit
+  content-addressed bijection and migration rule;
 - `process_uuid`: one runtime process invocation, shared across streams;
 - `engine_instance_id`: one EngineCore instance within the run;
 - `scheduler_process_uuid`: the process that owns the schedule cycle and
@@ -252,17 +259,21 @@ The architecture distinguishes:
 - `executor_target_process_uuid`: the worker/executor process selected by an
   approved runtime handoff, nullable only when PR-I0 proves in-process
   execution or the target is not yet observable;
-- `profile_stream`: lifecycle or scheduler;
+- `profile_stream`: lifecycle, scheduler, or the registered `kv_recovery`
+  compatibility stream; only streams enabled in the predeclared experiment
+  roster are required for that run;
 - `device_id` and `rank_id`: explicit even though the initial profile is
   single-device/rank.
 
 The manifest must contain an explicit
-`experiment_run_uuid <-> traceloom_run_id` mapping. A field named
-`run_id / run_uuid` or an implementation-selected alternative is forbidden.
-The mapping does not by itself authorize a particular `traceloom_run_id`
-derivation. If PR-I0 cannot identify and ratify the analyzer authority, PR-C1
-must define a new versioned derivation rather than claim compatibility with an
-uncited existing contract.
+`experiment_run_uuid <-> traceloom_run_id` mapping. Analyzer materialization
+to the v4.3 tables uses the exact same value in their `run_id` column; an
+implementation-selected second hash is forbidden. Scheduler wire fields named
+only `run_id` or `run_uuid` remain forbidden because they omit the selected
+contract scope. The mapping does not itself ratify the draft. If PR-I0 cannot
+ratify the cited derivation unchanged, PR-C1 must freeze the explicit
+content-addressed bijection/migration rule instead of claiming identity with
+v4.3.
 
 ## 5. Initial supported profile
 
@@ -678,15 +689,27 @@ unsupported
 Every result retains:
 
 ```text
+join_status
 join_relation
 anchor_source
-profiler_execution_anchor_id
+selected_profiler_execution_anchor_id  # nullable
 candidate_count
 runtime_profiler_process_binding_id
 process_binding_status
 clock_model_id
 clock_uncertainty_ns
 ```
+
+Every attempted join also materializes a bounded
+`scheduler_profiler_join_candidates` relation with one row for every
+admissible candidate anchor, keyed by the join-result ID and
+`profiler_execution_anchor_id`. `candidate_count` MUST equal the number of
+those rows. `selected_profiler_execution_anchor_id` is nonnull only for
+`exact_identity` or `calibrated_correlated`, where it names the sole candidate.
+It is null for `ambiguous`, `unmatched`, and `unsupported`. In particular, an
+ambiguous result preserves all candidate IDs and never chooses a representative
+anchor. PR-C1 must freeze the maximum candidates per attempted join and the
+overflow behavior; overflow is evidence-fail-closed, not truncation.
 
 `exact_identity` requires an explicit profiler-visible step-ID handoff and
 validated uniqueness inside one approved runtime-profiler process binding.
@@ -769,10 +792,14 @@ membership:
 1. Select the tail cohort from complete, eligible base-lifecycle requests in
    the predeclared analysis population, using the manifest-frozen TTFT metric,
    quantile or threshold, and deterministic tie rule.
-2. For every selected request, construct its canonical engine waiting interval
-   from the approved lifecycle queue-entry boundary to its first-token
-   boundary, then map it into the scheduler host-time coordinate through the
-   approved lifecycle-to-scheduler clock/process relation.
+2. For every selected request, construct a pre-first-token attribution
+   interval from the approved lifecycle queue-entry boundary to its
+   first-token boundary, then map it into the scheduler host-time coordinate
+   through the approved lifecycle-to-scheduler clock/process relation. This is
+   deliberately not the canonical Queue phase: the frozen Queue phase ends at
+   `admission_started`, while this wider interval also contains Admission and
+   Prefill. It is used only to define the TTFT-tail analysis window and must
+   not be reported as queue duration or queue coverage.
 3. Define `W_tail` as the half-open union of those intervals, intersected only
    with the predeclared main analysis window and the declared run/engine scope.
    It MUST NOT be clipped to profiler availability, successful joins, or
@@ -785,8 +812,8 @@ the lifecycle-to-scheduler mapping and boundary-overlap rule, and numeric
 coverage thresholds. Failure to construct `W_tail` makes tail coverage
 `UNDEFINED` and fails formal promotion; it cannot shrink the cohort or
 denominator. Aggregate v1 does not claim that an individual tail request's
-waiting interval is covered by a particular step; per-request-window coverage
-requires the future membership-enabled profile.
+pre-first-token attribution interval is covered by a particular step;
+per-request-window coverage requires the future membership-enabled profile.
 
 ## 13. Profiler interval attribution and conservation
 
@@ -853,6 +880,7 @@ scheduler_clock_models
 runtime_profiler_process_bindings
 profiler_execution_anchors
 scheduler_profiler_joins
+scheduler_profiler_join_candidates
 scheduler_interval_attribution
 scheduler_loss_intervals
 scheduler_join_diagnostics
@@ -936,10 +964,16 @@ only with:
 - valid content digest;
 - drained close outcome;
 - zero unexplained data-sequence gaps;
+- zero writer and serialization failures over the entire shard;
+- zero data drops and zero loss intervals over the entire shard;
 - zero dropped control records;
-- zero loss in claim-bearing windows;
 - matching schema/config/runtime identities;
 - committed shard receipt.
+
+Claim-window filtering never relaxes shard completeness. Accounted loss
+outside a selected analysis or tail window still invalidates the whole
+scheduler shard, exactly as required by the unchanged frozen P0 completeness
+rule.
 
 A missing summary, writer crash, digest mismatch, missing shard, or missing
 receipt fails closed even when no loss record was persisted.
@@ -976,6 +1010,8 @@ runtime-profiler process-binding authority, and a supported-mode matrix.
 Tests must prove:
 
 - unchanged lifecycle wire bytes and legacy path;
+- unchanged KV-recovery wire bytes and profile path when that optional stream
+  is enabled;
 - one shard/sequence per `(process_uuid, profile_stream)`;
 - shared process UUID across enabled streams;
 - independent ledgers, summaries, digests, and receipts;
@@ -1027,6 +1063,8 @@ Fixtures prove:
 - robust unique temporal relation produces only calibrated correlation;
 - raw child-task multiplicity does not create anchor ambiguity;
 - two admissible execution anchors produce ambiguity;
+- every ambiguous join preserves all candidate anchor IDs in the bounded
+  candidate relation and leaves the selected anchor null;
 - nearest timestamps are never selected;
 - invalid clock models promote no join;
 - overall and tail windows preserve their pre-join denominators;
@@ -1138,6 +1176,7 @@ AND exact runtime/adapter identity approved
 AND pinned vLLM-0.21 base-lifecycle conformance receipt valid
 AND all expected lifecycle shards complete
 AND all expected scheduler shards complete
+AND every additional predeclared enabled profile shard complete
 AND lifecycle/scheduler process-profile roster paired exactly
 AND balanced summaries, valid digests, and zero unaccounted loss
 AND cycle -> logical-batch -> execution relations valid
@@ -1236,7 +1275,8 @@ execution_dispatch_monotonic_ns
 final_model_result_monotonic_ns
 host_execution_envelope_ns
 
-profiler_execution_anchor_id
+selected_profiler_execution_anchor_id
+candidate_count
 join_status
 join_relation
 anchor_source
@@ -1308,6 +1348,8 @@ After PR-I0, deliver:
 - exact constraint representation;
 - exact limits and one-shard capacity proof;
 - exact analyzer-derived run-ID derivation and versioned authority;
+- exact alias or content-addressed bijection/migration binding to the cited
+  idle-evidence v4.3 `run_id`;
 - exact runtime-profiler process-binding receipt schema and authority;
 - exact overall/tail coverage definitions and numeric thresholds;
 - exact multi-stream overlay digest;
@@ -1385,8 +1427,9 @@ Reviewers should explicitly confirm:
 - scope is aggregate queueing attribution;
 - PR-I0 precedes the complete wire contract and implementation;
 - `traceloom_run_id` is only a candidate analyzer-derived identity until its
-  exact versioned derivation is selected and evidenced by PR-I0, then bound by
-  PR-C1;
+  cited idle-evidence Draft v4.3 path/version/digest and exact JCS derivation
+  are reverified by PR-I0 and frozen by PR-C1, or PR-C1 freezes an explicit
+  content-addressed bijection/migration instead;
 - the frozen P0 bytes are not silently edited;
 - one shard/sequence per `(process_uuid, profile_stream)` is the intended
   overlay;
