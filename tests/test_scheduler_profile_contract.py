@@ -1,0 +1,193 @@
+from __future__ import annotations
+
+import copy
+import hashlib
+import importlib.util
+from pathlib import Path
+
+import pytest
+
+ROOT = Path(__file__).resolve().parents[1]
+SCRIPT = ROOT / "scripts" / "verify_scheduler_profile_contract.py"
+SPEC = importlib.util.spec_from_file_location("scheduler_profile_contract", SCRIPT)
+assert SPEC is not None and SPEC.loader is not None
+CONTRACT = importlib.util.module_from_spec(SPEC)
+SPEC.loader.exec_module(CONTRACT)
+
+
+def _golden_records() -> list[dict[str, object]]:
+    return CONTRACT.load_json(CONTRACT.FIXTURES / "scheduler-wire-golden.json")[
+        "records"
+    ]
+
+
+def _record(record_type: str) -> dict[str, object]:
+    return copy.deepcopy(
+        next(
+            record
+            for record in _golden_records()
+            if record["record_type"] == record_type
+        )
+    )
+
+
+def test_complete_candidate_verifies() -> None:
+    report = CONTRACT.verify()
+    assert report["valid"] is True
+    assert report["identity_vectors"]["positive"] == 3
+    assert report["identity_vectors"]["mapping"] == 1
+    assert report["process_binding"]["binding_status"] == "exact"
+    assert report["wire_golden"]["records"] == 12
+    assert report["wire_golden"]["data_records"] == 9
+    assert (
+        report["wire_golden"]["generated_maximal_cycle_bytes"]
+        <= report["wire_golden"]["record_limit_bytes"]
+    )
+
+
+def test_run_identity_has_two_independent_canonicalizers_and_one_byte_mutation() -> (
+    None
+):
+    vectors = CONTRACT.load_json(CONTRACT.FIXTURES / "run-identity-vectors.json")[
+        "vectors"
+    ]
+    baseline = CONTRACT.canonicalize(vectors[0]["metadata_without_run_id"])
+    mutation = CONTRACT.canonicalize(vectors[2]["metadata_without_run_id"])
+    assert baseline == CONTRACT.canonicalize_independent(
+        vectors[0]["metadata_without_run_id"]
+    )
+    assert mutation == CONTRACT.canonicalize_independent(
+        vectors[2]["metadata_without_run_id"]
+    )
+    assert len(baseline) == len(mutation)
+    assert (
+        sum(left != right for left, right in zip(baseline, mutation, strict=True)) == 1
+    )
+    assert hashlib.sha256(baseline).hexdigest() != hashlib.sha256(mutation).hexdigest()
+
+
+def test_identity_negative_vectors_fail_with_frozen_errors() -> None:
+    report = CONTRACT.verify_identity_vectors(
+        CONTRACT.FIXTURES / "run-identity-vectors.json"
+    )
+    assert report["negative_errors"] == [
+        "invalid_members:options",
+        "invalid_members:run_identity",
+        "devices_not_sorted_unique",
+        "invalid_revision",
+        "invalid_members:run_identity",
+    ]
+
+
+def test_wire_rejects_unknown_member_and_boolean_integer() -> None:
+    cycle = _record("schedule_cycle")
+    cycle["unknown"] = 1
+    with pytest.raises(CONTRACT.ContractError, match="invalid_members:schedule_cycle"):
+        CONTRACT.validate_record(cycle, 8192)
+
+    cycle = _record("schedule_cycle")
+    cycle["record_seq"] = True
+    with pytest.raises(CONTRACT.ContractError, match="invalid_uint64:record_seq"):
+        CONTRACT.validate_record(cycle, 8192)
+
+
+def test_zero_token_batch_is_retained_but_never_device_eligible() -> None:
+    batch = _record("logical_batch")
+    batch.update(
+        {
+            "logical_batch_kind": "empty_control",
+            "scheduled_token_count": 0,
+            "prefill_token_count": 0,
+            "decode_token_count": 0,
+            "device_attribution_eligible": True,
+        }
+    )
+    with pytest.raises(CONTRACT.ContractError, match="invalid_empty_control_batch"):
+        CONTRACT.validate_record(batch, 8192)
+
+
+def test_constraint_bucket_balance_and_order_are_closed() -> None:
+    cycle = _record("schedule_cycle")
+    cycle["token_budget_summary"]["buckets"][3]["count"] = 2
+    with pytest.raises(CONTRACT.ContractError, match="constraint_balance"):
+        CONTRACT.validate_record(cycle, 8192)
+
+    cycle = _record("schedule_cycle")
+    buckets = cycle["active_sequence_cap_summary"]["buckets"]
+    buckets[0], buckets[1] = buckets[1], buckets[0]
+    with pytest.raises(CONTRACT.ContractError, match="invalid_bucket_order"):
+        CONTRACT.validate_record(cycle, 8192)
+
+
+def test_process_binding_is_content_addressed_and_exact_requires_prework_capture() -> (
+    None
+):
+    receipt = CONTRACT.load_json(CONTRACT.PROCESS_BINDING_PATH)
+    CONTRACT.validate_process_binding(receipt)
+
+    mutated = copy.deepcopy(receipt)
+    mutated["runtime_pid"] += 1
+    with pytest.raises(CONTRACT.ContractError, match="process_binding_id_mismatch"):
+        CONTRACT.validate_process_binding(mutated)
+
+    mutated = copy.deepcopy(receipt)
+    mutated["captured_before_admitted_work"] = False
+    with pytest.raises(CONTRACT.ContractError, match="invalid_exact_binding"):
+        CONTRACT.validate_process_binding(mutated)
+
+
+def test_config_rejects_boolean_capacity_and_fraction_outside_domain() -> None:
+    config = CONTRACT.load_json(CONTRACT.CONFIG_PATH)
+    mutated = copy.deepcopy(config)
+    mutated["wire_limits"]["data_capacity_records"] = True
+    with pytest.raises(CONTRACT.ContractError, match="invalid_wire_limit"):
+        CONTRACT.verify_config(mutated)
+
+    mutated = copy.deepcopy(config)
+    mutated["coverage"]["tail"]["max_unmatched_step_fraction"] = 1.01
+    with pytest.raises(CONTRACT.ContractError, match="invalid_coverage_threshold"):
+        CONTRACT.verify_config(mutated)
+
+
+def test_candidate_overflow_is_never_silent_truncation() -> None:
+    config = CONTRACT.load_json(CONTRACT.CONFIG_PATH)
+    assert config["join"]["max_candidates_per_attempted_join"] == 8
+    behavior = config["join"]["candidate_overflow_behavior"]
+    assert "retain no candidate rows" in behavior
+    assert "candidate_overflow=true" in behavior
+    assert "join_status=unsupported" in behavior
+    assert "fail formal evidence closed" in behavior
+
+
+def test_golden_contains_every_record_and_all_constraint_modes() -> None:
+    records = _golden_records()
+    assert {record["record_type"] for record in records} == set(
+        CONTRACT.FIELDS_BY_RECORD_TYPE
+    )
+    cycles = [record for record in records if record["record_type"] == "schedule_cycle"]
+    token_modes = {
+        bucket["mode"]
+        for cycle in cycles
+        for bucket in cycle["token_budget_summary"]["buckets"]
+        if bucket["count"]
+    }
+    cap_modes = {
+        bucket["mode"]
+        for cycle in cycles
+        for bucket in cycle["active_sequence_cap_summary"]["buckets"]
+        if bucket["count"]
+    }
+    assert token_modes == {"not_limited", "clipped", "stopped_no_chunk"}
+    assert cap_modes == {"not_limited", "stopped_at_cap"}
+    assert any(
+        record.get("logical_batch_kind") == "empty_control" for record in records
+    )
+
+
+def test_pr_c1_adds_no_runtime_scheduler_profiler_implementation() -> None:
+    production_hits = []
+    for path in (ROOT / "src").rglob("*.py"):
+        text = path.read_text(encoding="utf-8")
+        if "rlp.scheduler/v1alpha1" in text or "scheduler_profile" in text:
+            production_hits.append(path.relative_to(ROOT).as_posix())
+    assert production_hits == []

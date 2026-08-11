@@ -1,0 +1,342 @@
+{
+  "schema_version": 1,
+  "mapping_vectors": [
+    {
+      "name": "legacy_absent_portable_mapping",
+      "mapping": {
+        "schema_version": "rlp.traceloom-run-mapping/v1alpha1",
+        "experiment_run_uuid": "11111111-1111-4111-8111-111111111111",
+        "materialization_uuid": "22222222-2222-4222-8222-222222222222",
+        "traceloom_run_id": "dc27a4c76a7ca878876ae9c2f715d593a452ecd1bb42949ceb20738dd77c3280",
+        "legacy_contract_path": "src/vllm_hust_perf_analyzer/models.py",
+        "legacy_contract_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "legacy_analyzer_run_id": null,
+        "source_inventory_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "mapping_sha256": "faec54084ba233b2266039f5d39293afb9bddc929ad1a9c1c4ae8db9e081f930"
+      }
+    }
+  ],
+  "vectors": [
+    {
+      "name": "unicode_array",
+      "metadata_without_run_id": {
+        "source_label": "derived-artifact",
+        "options": {
+          "tags": [
+            "数组",
+            "order"
+          ],
+          "strict": true,
+          "revision": 0,
+          "label": "队列–α"
+        },
+        "materialization_uuid": "22222222-2222-4222-8222-222222222222",
+        "idle_evidence": {
+          "contract_version": "idle-evidence-contract-v4.4",
+          "contract_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+        },
+        "experiment_run_uuid": "11111111-1111-4111-8111-111111111111",
+        "device_materializations": [
+          {
+            "source_inventory_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "rank_id": 0,
+            "device_id": 0
+          }
+        ],
+        "contract_id": "rlp.traceloom-run/v1alpha1",
+        "analyzer": {
+          "repository": "vLLM-HUST/vllm-hust-perf-analyzer",
+          "commit": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        },
+        "scheduler_profile": {
+          "overlay_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+          "manifest_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+          "contract_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+          "config_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+        }
+      },
+      "canonical_utf8": "{\"analyzer\":{\"commit\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"repository\":\"vLLM-HUST/vllm-hust-perf-analyzer\"},\"contract_id\":\"rlp.traceloom-run/v1alpha1\",\"device_materializations\":[{\"device_id\":0,\"rank_id\":0,\"source_inventory_sha256\":\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\"}],\"experiment_run_uuid\":\"11111111-1111-4111-8111-111111111111\",\"idle_evidence\":{\"contract_sha256\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"contract_version\":\"idle-evidence-contract-v4.4\"},\"materialization_uuid\":\"22222222-2222-4222-8222-222222222222\",\"options\":{\"label\":\"队列–α\",\"revision\":0,\"strict\":true,\"tags\":[\"数组\",\"order\"]},\"scheduler_profile\":{\"config_sha256\":\"dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd\",\"contract_sha256\":\"eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee\",\"manifest_sha256\":\"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff\",\"overlay_sha256\":\"0000000000000000000000000000000000000000000000000000000000000000\"},\"source_label\":\"derived-artifact\"}",
+      "traceloom_run_id": "dc27a4c76a7ca878876ae9c2f715d593a452ecd1bb42949ceb20738dd77c3280"
+    },
+    {
+      "name": "safe_integer_null",
+      "metadata_without_run_id": {
+        "analyzer": {
+          "commit": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "repository": "vLLM-HUST/vllm-hust-perf-analyzer"
+        },
+        "contract_id": "rlp.traceloom-run/v1alpha1",
+        "device_materializations": [
+          {
+            "device_id": 0,
+            "rank_id": 0,
+            "source_inventory_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+          },
+          {
+            "device_id": 1,
+            "rank_id": 1,
+            "source_inventory_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+          }
+        ],
+        "experiment_run_uuid": "11111111-1111-4111-8111-111111111111",
+        "idle_evidence": {
+          "contract_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "contract_version": "idle-evidence-contract-v4.4"
+        },
+        "materialization_uuid": "33333333-3333-4333-8333-333333333333",
+        "options": {
+          "label": null,
+          "revision": 9007199254740991,
+          "strict": false,
+          "tags": [
+            "z",
+            "a"
+          ]
+        },
+        "scheduler_profile": {
+          "config_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "contract_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+          "manifest_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+          "overlay_sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+        },
+        "source_label": "derived-artifact"
+      },
+      "canonical_utf8": "{\"analyzer\":{\"commit\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"repository\":\"vLLM-HUST/vllm-hust-perf-analyzer\"},\"contract_id\":\"rlp.traceloom-run/v1alpha1\",\"device_materializations\":[{\"device_id\":0,\"rank_id\":0,\"source_inventory_sha256\":\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\"},{\"device_id\":1,\"rank_id\":1,\"source_inventory_sha256\":\"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff\"}],\"experiment_run_uuid\":\"11111111-1111-4111-8111-111111111111\",\"idle_evidence\":{\"contract_sha256\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"contract_version\":\"idle-evidence-contract-v4.4\"},\"materialization_uuid\":\"33333333-3333-4333-8333-333333333333\",\"options\":{\"label\":null,\"revision\":9007199254740991,\"strict\":false,\"tags\":[\"z\",\"a\"]},\"scheduler_profile\":{\"config_sha256\":\"dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd\",\"contract_sha256\":\"eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee\",\"manifest_sha256\":\"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff\",\"overlay_sha256\":\"0000000000000000000000000000000000000000000000000000000000000000\"},\"source_label\":\"derived-artifact\"}",
+      "traceloom_run_id": "ea940fb2f6f9ca22190989c297c925444f534dd277035db8940ac294c0bff1d5"
+    },
+    {
+      "name": "one_byte_mutation",
+      "metadata_without_run_id": {
+        "analyzer": {
+          "commit": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "repository": "vLLM-HUST/vllm-hust-perf-analyzer"
+        },
+        "contract_id": "rlp.traceloom-run/v1alpha1",
+        "device_materializations": [
+          {
+            "device_id": 0,
+            "rank_id": 0,
+            "source_inventory_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+          }
+        ],
+        "experiment_run_uuid": "11111111-1111-4111-8111-111111111111",
+        "idle_evidence": {
+          "contract_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "contract_version": "idle-evidence-contract-v4.4"
+        },
+        "materialization_uuid": "22222222-2222-4222-8222-222222222222",
+        "options": {
+          "label": "队列–α",
+          "revision": 1,
+          "strict": true,
+          "tags": [
+            "数组",
+            "order"
+          ]
+        },
+        "scheduler_profile": {
+          "config_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "contract_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+          "manifest_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+          "overlay_sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+        },
+        "source_label": "derived-artifact"
+      },
+      "canonical_utf8": "{\"analyzer\":{\"commit\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"repository\":\"vLLM-HUST/vllm-hust-perf-analyzer\"},\"contract_id\":\"rlp.traceloom-run/v1alpha1\",\"device_materializations\":[{\"device_id\":0,\"rank_id\":0,\"source_inventory_sha256\":\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\"}],\"experiment_run_uuid\":\"11111111-1111-4111-8111-111111111111\",\"idle_evidence\":{\"contract_sha256\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"contract_version\":\"idle-evidence-contract-v4.4\"},\"materialization_uuid\":\"22222222-2222-4222-8222-222222222222\",\"options\":{\"label\":\"队列–α\",\"revision\":1,\"strict\":true,\"tags\":[\"数组\",\"order\"]},\"scheduler_profile\":{\"config_sha256\":\"dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd\",\"contract_sha256\":\"eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee\",\"manifest_sha256\":\"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff\",\"overlay_sha256\":\"0000000000000000000000000000000000000000000000000000000000000000\"},\"source_label\":\"derived-artifact\"}",
+      "traceloom_run_id": "0acfa88c7dbd3e9ca84d1d5ebf7ea9d69d29f468c1046e83d488a07c82ac9eb5"
+    }
+  ],
+  "negative_vectors": [
+    {
+      "name": "omitted_is_not_null",
+      "metadata_without_run_id": {
+        "analyzer": {
+          "commit": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "repository": "vLLM-HUST/vllm-hust-perf-analyzer"
+        },
+        "contract_id": "rlp.traceloom-run/v1alpha1",
+        "device_materializations": [
+          {
+            "device_id": 0,
+            "rank_id": 0,
+            "source_inventory_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+          }
+        ],
+        "experiment_run_uuid": "11111111-1111-4111-8111-111111111111",
+        "idle_evidence": {
+          "contract_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "contract_version": "idle-evidence-contract-v4.4"
+        },
+        "materialization_uuid": "22222222-2222-4222-8222-222222222222",
+        "options": {
+          "revision": 0,
+          "strict": true,
+          "tags": []
+        },
+        "scheduler_profile": {
+          "config_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "contract_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+          "manifest_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+          "overlay_sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+        },
+        "source_label": "derived-artifact"
+      },
+      "error_code": "invalid_members:options"
+    },
+    {
+      "name": "run_id_member_forbidden",
+      "metadata_without_run_id": {
+        "analyzer": {
+          "commit": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "repository": "vLLM-HUST/vllm-hust-perf-analyzer"
+        },
+        "contract_id": "rlp.traceloom-run/v1alpha1",
+        "device_materializations": [
+          {
+            "device_id": 0,
+            "rank_id": 0,
+            "source_inventory_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+          }
+        ],
+        "experiment_run_uuid": "11111111-1111-4111-8111-111111111111",
+        "idle_evidence": {
+          "contract_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "contract_version": "idle-evidence-contract-v4.4"
+        },
+        "materialization_uuid": "22222222-2222-4222-8222-222222222222",
+        "options": {
+          "label": null,
+          "revision": 0,
+          "strict": true,
+          "tags": []
+        },
+        "run_id": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+        "scheduler_profile": {
+          "config_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "contract_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+          "manifest_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+          "overlay_sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+        },
+        "source_label": "derived-artifact"
+      },
+      "error_code": "invalid_members:run_identity"
+    },
+    {
+      "name": "device_order_is_normative",
+      "metadata_without_run_id": {
+        "analyzer": {
+          "commit": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "repository": "vLLM-HUST/vllm-hust-perf-analyzer"
+        },
+        "contract_id": "rlp.traceloom-run/v1alpha1",
+        "device_materializations": [
+          {
+            "device_id": 1,
+            "rank_id": 1,
+            "source_inventory_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+          },
+          {
+            "device_id": 0,
+            "rank_id": 0,
+            "source_inventory_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+          }
+        ],
+        "experiment_run_uuid": "11111111-1111-4111-8111-111111111111",
+        "idle_evidence": {
+          "contract_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "contract_version": "idle-evidence-contract-v4.4"
+        },
+        "materialization_uuid": "22222222-2222-4222-8222-222222222222",
+        "options": {
+          "label": null,
+          "revision": 0,
+          "strict": true,
+          "tags": []
+        },
+        "scheduler_profile": {
+          "config_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "contract_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+          "manifest_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+          "overlay_sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+        },
+        "source_label": "derived-artifact"
+      },
+      "error_code": "devices_not_sorted_unique"
+    },
+    {
+      "name": "boolean_is_not_integer",
+      "metadata_without_run_id": {
+        "analyzer": {
+          "commit": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "repository": "vLLM-HUST/vllm-hust-perf-analyzer"
+        },
+        "contract_id": "rlp.traceloom-run/v1alpha1",
+        "device_materializations": [
+          {
+            "device_id": 0,
+            "rank_id": 0,
+            "source_inventory_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+          }
+        ],
+        "experiment_run_uuid": "11111111-1111-4111-8111-111111111111",
+        "idle_evidence": {
+          "contract_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "contract_version": "idle-evidence-contract-v4.4"
+        },
+        "materialization_uuid": "22222222-2222-4222-8222-222222222222",
+        "options": {
+          "label": null,
+          "revision": false,
+          "strict": true,
+          "tags": []
+        },
+        "scheduler_profile": {
+          "config_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "contract_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+          "manifest_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+          "overlay_sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+        },
+        "source_label": "derived-artifact"
+      },
+      "error_code": "invalid_revision"
+    },
+    {
+      "name": "raw_source_path_forbidden",
+      "metadata_without_run_id": {
+        "analyzer": {
+          "commit": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "repository": "vLLM-HUST/vllm-hust-perf-analyzer"
+        },
+        "contract_id": "rlp.traceloom-run/v1alpha1",
+        "device_materializations": [
+          {
+            "device_id": 0,
+            "rank_id": 0,
+            "source_inventory_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+          }
+        ],
+        "experiment_run_uuid": "11111111-1111-4111-8111-111111111111",
+        "idle_evidence": {
+          "contract_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "contract_version": "idle-evidence-contract-v4.4"
+        },
+        "materialization_uuid": "22222222-2222-4222-8222-222222222222",
+        "options": {
+          "label": null,
+          "revision": 0,
+          "strict": true,
+          "tags": []
+        },
+        "scheduler_profile": {
+          "config_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "contract_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+          "manifest_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+          "overlay_sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+        },
+        "source_label": "derived-artifact",
+        "source_path": "/host-specific/profile"
+      },
+      "error_code": "invalid_members:run_identity"
+    }
+  ]
+}

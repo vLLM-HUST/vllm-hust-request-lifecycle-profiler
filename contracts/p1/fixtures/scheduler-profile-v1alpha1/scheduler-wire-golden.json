@@ -1,0 +1,443 @@
+{
+  "schema_version": 1,
+  "records": [
+    {
+      "schema_version": "rlp.scheduler/v1alpha1",
+      "record_type": "scheduler_start",
+      "process_uuid": "0123456789abcdef0123456789abcdef",
+      "profile_stream": "scheduler",
+      "experiment_run_uuid": "11111111-1111-4111-8111-111111111111",
+      "engine_instance_id": "fedcba9876543210fedcba9876543210",
+      "started_monotonic_ns": 0,
+      "clock_source": "CLOCK_MONOTONIC",
+      "clock_domain_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "scheduler_process_uuid": "0123456789abcdef0123456789abcdef",
+      "executor_target_process_uuid": "0123456789abcdef0123456789abcdef",
+      "runtime_core_commit": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "device_plugin_commit": "cccccccccccccccccccccccccccccccccccccccc",
+      "parent_protocol_commit": "8c3214933e7438f55da0ace98002a69d22570f5d",
+      "scheduler_profile_contract_sha256": "1a6455b413958efe27d1ff0bee44f3cfb6d5db792685d993a03407393da02338",
+      "scheduler_profile_config_sha256": "f3653eece116ca951326f2a4b9806095fb8e035406a181432b01fae8f931b4fb",
+      "multistream_overlay_sha256": "e905874bb196917a35fa3587d7da9754240e9f71e265234df3a1f416170a10ca",
+      "runtime_profile_id": "vllm-0.21-uniproc-sync-one-device-v1",
+      "limits": {
+        "artifact_bytes_max": 2374590464,
+        "clock_bridge_max_records": 1801,
+        "clock_bridge_records_per_writer_gap_max": 3,
+        "close_timeout_ms": 5000,
+        "data_capacity_records": 1024,
+        "disk_free_margin_bytes": 67108864,
+        "disk_free_required_bytes": 2441699328,
+        "max_batch_bytes": 524288,
+        "max_batch_records": 128,
+        "max_loss_interval_records_per_shard": 64,
+        "max_cycle_rate_per_rolling_second": 40,
+        "max_cycles_in_formal_run": 72000,
+        "max_data_records_per_cycle": 4,
+        "max_formal_run_duration_s": 1800,
+        "max_record_bytes_including_lf": 8192,
+        "max_writer_service_gap_ms": 2000,
+        "max_queued_bytes": 8912896,
+        "producer_safety_factor": 2,
+        "reserved_capacity_records": 64,
+        "shard_mode_octal": "0600",
+        "shard_path_template": "<base>.rlp-scheduler.<process_uuid>.jsonl",
+        "shard_scope": "one_append_only_shard_per_process_uuid_and_profile_stream",
+        "write_interval_ms": 100
+      }
+    },
+    {
+      "schema_version": "rlp.scheduler/v1alpha1",
+      "record_type": "schedule_cycle",
+      "process_uuid": "0123456789abcdef0123456789abcdef",
+      "profile_stream": "scheduler",
+      "experiment_run_uuid": "11111111-1111-4111-8111-111111111111",
+      "engine_instance_id": "fedcba9876543210fedcba9876543210",
+      "record_seq": 0,
+      "cycle_seq": 0,
+      "schedule_cycle_id": "0123456789abcdef0123456789abcdef:scheduler:cycle:0",
+      "logical_batch_id": "0123456789abcdef0123456789abcdef:scheduler:batch:0",
+      "cycle_start_monotonic_ns": 1000,
+      "cycle_end_monotonic_ns": 1100,
+      "cycle_outcome": "completed",
+      "waiting_engine_request_count_before": 3,
+      "running_engine_request_count_before": 1,
+      "waiting_engine_request_count_after": 1,
+      "running_engine_request_count_after": 2,
+      "configured_batched_token_budget": 4096,
+      "effective_batched_token_budget": 4096,
+      "configured_active_sequence_cap": 512,
+      "effective_active_sequence_cap": 512,
+      "token_budget_summary": {
+        "constraint_id": "batched_token_budget",
+        "gate_status": "evaluated",
+        "not_evaluated_reason": null,
+        "evaluated_count": 3,
+        "accounted_count": 3,
+        "unclassified_count": 0,
+        "buckets": [
+          {
+            "queue": "running",
+            "mode": "not_limited",
+            "count": 0,
+            "first_witness": null
+          },
+          {
+            "queue": "running",
+            "mode": "clipped",
+            "count": 0,
+            "first_witness": null
+          },
+          {
+            "queue": "running",
+            "mode": "stopped_no_chunk",
+            "count": 0,
+            "first_witness": null
+          },
+          {
+            "queue": "waiting",
+            "mode": "not_limited",
+            "count": 1,
+            "first_witness": {
+              "evaluation_ordinal": 0,
+              "candidate_tokens_at_gate": 8,
+              "token_budget_before_at_gate": 4096,
+              "granted_tokens_at_budget_gate": 8,
+              "running_count_at_budget_gate": 1,
+              "waiting_count_at_budget_gate": 3,
+              "effective_cap_at_budget_gate": 512
+            }
+          },
+          {
+            "queue": "waiting",
+            "mode": "clipped",
+            "count": 1,
+            "first_witness": {
+              "evaluation_ordinal": 1,
+              "candidate_tokens_at_gate": 4096,
+              "token_budget_before_at_gate": 4088,
+              "granted_tokens_at_budget_gate": 4088,
+              "running_count_at_budget_gate": 2,
+              "waiting_count_at_budget_gate": 2,
+              "effective_cap_at_budget_gate": 512
+            }
+          },
+          {
+            "queue": "waiting",
+            "mode": "stopped_no_chunk",
+            "count": 1,
+            "first_witness": {
+              "evaluation_ordinal": 2,
+              "candidate_tokens_at_gate": 1,
+              "token_budget_before_at_gate": 0,
+              "granted_tokens_at_budget_gate": 0,
+              "running_count_at_budget_gate": 2,
+              "waiting_count_at_budget_gate": 1,
+              "effective_cap_at_budget_gate": 512
+            }
+          },
+          {
+            "queue": "skipped_waiting",
+            "mode": "not_limited",
+            "count": 0,
+            "first_witness": null
+          },
+          {
+            "queue": "skipped_waiting",
+            "mode": "clipped",
+            "count": 0,
+            "first_witness": null
+          },
+          {
+            "queue": "skipped_waiting",
+            "mode": "stopped_no_chunk",
+            "count": 0,
+            "first_witness": null
+          }
+        ],
+        "first_unclassified_witness": null
+      },
+      "active_sequence_cap_summary": {
+        "constraint_id": "active_sequence_cap",
+        "gate_status": "evaluated",
+        "not_evaluated_reason": null,
+        "evaluated_count": 2,
+        "accounted_count": 2,
+        "unclassified_count": 0,
+        "buckets": [
+          {
+            "queue": "running",
+            "mode": "not_limited",
+            "count": 0,
+            "first_witness": null
+          },
+          {
+            "queue": "running",
+            "mode": "stopped_at_cap",
+            "count": 0,
+            "first_witness": null
+          },
+          {
+            "queue": "waiting",
+            "mode": "not_limited",
+            "count": 1,
+            "first_witness": {
+              "evaluation_ordinal": 0,
+              "cap_gate_waiting_count": 3,
+              "token_budget_at_cap_gate": 4096,
+              "running_count_at_cap_gate": 1,
+              "effective_cap_at_gate": 512
+            }
+          },
+          {
+            "queue": "waiting",
+            "mode": "stopped_at_cap",
+            "count": 1,
+            "first_witness": {
+              "evaluation_ordinal": 1,
+              "cap_gate_waiting_count": 1,
+              "token_budget_at_cap_gate": 0,
+              "running_count_at_cap_gate": 512,
+              "effective_cap_at_gate": 512
+            }
+          },
+          {
+            "queue": "skipped_waiting",
+            "mode": "not_limited",
+            "count": 0,
+            "first_witness": null
+          },
+          {
+            "queue": "skipped_waiting",
+            "mode": "stopped_at_cap",
+            "count": 0,
+            "first_witness": null
+          }
+        ],
+        "first_unclassified_witness": null
+      }
+    },
+    {
+      "schema_version": "rlp.scheduler/v1alpha1",
+      "record_type": "logical_batch",
+      "process_uuid": "0123456789abcdef0123456789abcdef",
+      "profile_stream": "scheduler",
+      "experiment_run_uuid": "11111111-1111-4111-8111-111111111111",
+      "engine_instance_id": "fedcba9876543210fedcba9876543210",
+      "record_seq": 1,
+      "batch_seq": 0,
+      "logical_batch_id": "0123456789abcdef0123456789abcdef:scheduler:batch:0",
+      "schedule_cycle_id": "0123456789abcdef0123456789abcdef:scheduler:cycle:0",
+      "execution_step_id": "0123456789abcdef0123456789abcdef:scheduler:step:0",
+      "logical_batch_kind": "work",
+      "scheduled_token_count": 16,
+      "scheduled_engine_request_count": 2,
+      "prefill_token_count": 8,
+      "decode_token_count": 8,
+      "device_attribution_eligible": true
+    },
+    {
+      "schema_version": "rlp.scheduler/v1alpha1",
+      "record_type": "execution_step_start",
+      "process_uuid": "0123456789abcdef0123456789abcdef",
+      "profile_stream": "scheduler",
+      "experiment_run_uuid": "11111111-1111-4111-8111-111111111111",
+      "engine_instance_id": "fedcba9876543210fedcba9876543210",
+      "record_seq": 2,
+      "execution_step_seq": 0,
+      "execution_step_id": "0123456789abcdef0123456789abcdef:scheduler:step:0",
+      "logical_batch_id": "0123456789abcdef0123456789abcdef:scheduler:batch:0",
+      "scheduler_process_uuid": "0123456789abcdef0123456789abcdef",
+      "executor_target_process_uuid": "0123456789abcdef0123456789abcdef",
+      "rank_id": 0,
+      "device_id": 0,
+      "dispatch_monotonic_ns": 1200,
+      "dispatch_kind": "uniproc_execute_model"
+    },
+    {
+      "schema_version": "rlp.scheduler/v1alpha1",
+      "record_type": "execution_step_end",
+      "process_uuid": "0123456789abcdef0123456789abcdef",
+      "profile_stream": "scheduler",
+      "experiment_run_uuid": "11111111-1111-4111-8111-111111111111",
+      "engine_instance_id": "fedcba9876543210fedcba9876543210",
+      "record_seq": 3,
+      "execution_step_seq": 0,
+      "execution_step_id": "0123456789abcdef0123456789abcdef:scheduler:step:0",
+      "logical_batch_id": "0123456789abcdef0123456789abcdef:scheduler:batch:0",
+      "final_result_monotonic_ns": 2000,
+      "execution_outcome": "completed",
+      "sampling_status": "included_in_envelope"
+    },
+    {
+      "schema_version": "rlp.scheduler/v1alpha1",
+      "record_type": "schedule_cycle",
+      "process_uuid": "0123456789abcdef0123456789abcdef",
+      "profile_stream": "scheduler",
+      "experiment_run_uuid": "11111111-1111-4111-8111-111111111111",
+      "engine_instance_id": "fedcba9876543210fedcba9876543210",
+      "record_seq": 4,
+      "cycle_seq": 1,
+      "schedule_cycle_id": "0123456789abcdef0123456789abcdef:scheduler:cycle:1",
+      "logical_batch_id": "0123456789abcdef0123456789abcdef:scheduler:batch:1",
+      "cycle_start_monotonic_ns": 2100,
+      "cycle_end_monotonic_ns": 2200,
+      "cycle_outcome": "completed",
+      "waiting_engine_request_count_before": 0,
+      "running_engine_request_count_before": 0,
+      "waiting_engine_request_count_after": 0,
+      "running_engine_request_count_after": 0,
+      "configured_batched_token_budget": 4096,
+      "effective_batched_token_budget": 4096,
+      "configured_active_sequence_cap": 512,
+      "effective_active_sequence_cap": 512,
+      "token_budget_summary": {
+        "constraint_id": "batched_token_budget",
+        "gate_status": "not_evaluated",
+        "not_evaluated_reason": "no_candidates",
+        "evaluated_count": 0,
+        "accounted_count": 0,
+        "unclassified_count": 0,
+        "buckets": [
+          {"queue": "running", "mode": "not_limited", "count": 0, "first_witness": null},
+          {"queue": "running", "mode": "clipped", "count": 0, "first_witness": null},
+          {"queue": "running", "mode": "stopped_no_chunk", "count": 0, "first_witness": null},
+          {"queue": "waiting", "mode": "not_limited", "count": 0, "first_witness": null},
+          {"queue": "waiting", "mode": "clipped", "count": 0, "first_witness": null},
+          {"queue": "waiting", "mode": "stopped_no_chunk", "count": 0, "first_witness": null},
+          {"queue": "skipped_waiting", "mode": "not_limited", "count": 0, "first_witness": null},
+          {"queue": "skipped_waiting", "mode": "clipped", "count": 0, "first_witness": null},
+          {"queue": "skipped_waiting", "mode": "stopped_no_chunk", "count": 0, "first_witness": null}
+        ],
+        "first_unclassified_witness": null
+      },
+      "active_sequence_cap_summary": {
+        "constraint_id": "active_sequence_cap",
+        "gate_status": "not_evaluated",
+        "not_evaluated_reason": "no_candidates",
+        "evaluated_count": 0,
+        "accounted_count": 0,
+        "unclassified_count": 0,
+        "buckets": [
+          {"queue": "running", "mode": "not_limited", "count": 0, "first_witness": null},
+          {"queue": "running", "mode": "stopped_at_cap", "count": 0, "first_witness": null},
+          {"queue": "waiting", "mode": "not_limited", "count": 0, "first_witness": null},
+          {"queue": "waiting", "mode": "stopped_at_cap", "count": 0, "first_witness": null},
+          {"queue": "skipped_waiting", "mode": "not_limited", "count": 0, "first_witness": null},
+          {"queue": "skipped_waiting", "mode": "stopped_at_cap", "count": 0, "first_witness": null}
+        ],
+        "first_unclassified_witness": null
+      }
+    },
+    {
+      "schema_version": "rlp.scheduler/v1alpha1",
+      "record_type": "logical_batch",
+      "process_uuid": "0123456789abcdef0123456789abcdef",
+      "profile_stream": "scheduler",
+      "experiment_run_uuid": "11111111-1111-4111-8111-111111111111",
+      "engine_instance_id": "fedcba9876543210fedcba9876543210",
+      "record_seq": 5,
+      "batch_seq": 1,
+      "logical_batch_id": "0123456789abcdef0123456789abcdef:scheduler:batch:1",
+      "schedule_cycle_id": "0123456789abcdef0123456789abcdef:scheduler:cycle:1",
+      "execution_step_id": "0123456789abcdef0123456789abcdef:scheduler:step:1",
+      "logical_batch_kind": "empty_control",
+      "scheduled_token_count": 0,
+      "scheduled_engine_request_count": 0,
+      "prefill_token_count": 0,
+      "decode_token_count": 0,
+      "device_attribution_eligible": false
+    },
+    {
+      "schema_version": "rlp.scheduler/v1alpha1",
+      "record_type": "execution_step_start",
+      "process_uuid": "0123456789abcdef0123456789abcdef",
+      "profile_stream": "scheduler",
+      "experiment_run_uuid": "11111111-1111-4111-8111-111111111111",
+      "engine_instance_id": "fedcba9876543210fedcba9876543210",
+      "record_seq": 6,
+      "execution_step_seq": 1,
+      "execution_step_id": "0123456789abcdef0123456789abcdef:scheduler:step:1",
+      "logical_batch_id": "0123456789abcdef0123456789abcdef:scheduler:batch:1",
+      "scheduler_process_uuid": "0123456789abcdef0123456789abcdef",
+      "executor_target_process_uuid": "0123456789abcdef0123456789abcdef",
+      "rank_id": 0,
+      "device_id": 0,
+      "dispatch_monotonic_ns": 2300,
+      "dispatch_kind": "uniproc_execute_model"
+    },
+    {
+      "schema_version": "rlp.scheduler/v1alpha1",
+      "record_type": "execution_step_end",
+      "process_uuid": "0123456789abcdef0123456789abcdef",
+      "profile_stream": "scheduler",
+      "experiment_run_uuid": "11111111-1111-4111-8111-111111111111",
+      "engine_instance_id": "fedcba9876543210fedcba9876543210",
+      "record_seq": 7,
+      "execution_step_seq": 1,
+      "execution_step_id": "0123456789abcdef0123456789abcdef:scheduler:step:1",
+      "logical_batch_id": "0123456789abcdef0123456789abcdef:scheduler:batch:1",
+      "final_result_monotonic_ns": 2400,
+      "execution_outcome": "completed",
+      "sampling_status": "not_applicable"
+    },
+    {
+      "schema_version": "rlp.scheduler/v1alpha1",
+      "record_type": "clock_bridge_sample",
+      "process_uuid": "0123456789abcdef0123456789abcdef",
+      "profile_stream": "scheduler",
+      "experiment_run_uuid": "11111111-1111-4111-8111-111111111111",
+      "engine_instance_id": "fedcba9876543210fedcba9876543210",
+      "record_seq": 8,
+      "sample_sequence": 0,
+      "clock_domain_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "monotonic_before_ns": 3000,
+      "realtime_ns": 1000003000,
+      "monotonic_after_ns": 3100
+    },
+    {
+      "schema_version": "rlp.scheduler/v1alpha1",
+      "record_type": "loss_interval",
+      "process_uuid": "0123456789abcdef0123456789abcdef",
+      "profile_stream": "scheduler",
+      "experiment_run_uuid": "11111111-1111-4111-8111-111111111111",
+      "engine_instance_id": "fedcba9876543210fedcba9876543210",
+      "loss_interval_seq": 0,
+      "loss_interval_id": "0123456789abcdef0123456789abcdef:scheduler:loss:0",
+      "reason": "queue_overflow",
+      "first_dropped_record_seq": 9,
+      "last_dropped_record_seq": 9,
+      "dropped_count": 1,
+      "schedule_cycle_count": 1,
+      "logical_batch_count": 0,
+      "execution_step_start_count": 0,
+      "execution_step_end_count": 0,
+      "clock_bridge_sample_count": 0,
+      "first_observed_monotonic_ns": 3101,
+      "last_observed_monotonic_ns": 3150
+    },
+    {
+      "schema_version": "rlp.scheduler/v1alpha1",
+      "record_type": "scheduler_summary",
+      "process_uuid": "0123456789abcdef0123456789abcdef",
+      "profile_stream": "scheduler",
+      "experiment_run_uuid": "11111111-1111-4111-8111-111111111111",
+      "engine_instance_id": "fedcba9876543210fedcba9876543210",
+      "ended_monotonic_ns": 3200,
+      "attempted_data_count": 10,
+      "written_schedule_cycle_count": 2,
+      "written_logical_batch_count": 2,
+      "written_execution_step_start_count": 2,
+      "written_execution_step_end_count": 2,
+      "written_clock_bridge_sample_count": 1,
+      "written_loss_interval_count": 1,
+      "dropped_data_count": 1,
+      "dropped_control_count": 0,
+      "first_data_record_seq": 0,
+      "last_data_record_seq": 9,
+      "writer_failure_count": 0,
+      "close_outcome": "drained",
+      "content_sha256": "83b0dfc33b310f045f0ce2b52cbee7ea97a51a74b27ae172c9c1a669e0f0c298"
+    }
+  ]
+}

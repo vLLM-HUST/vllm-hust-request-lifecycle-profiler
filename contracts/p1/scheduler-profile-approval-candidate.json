@@ -1,0 +1,107 @@
+{
+  "artifact_kind": "scheduler_profile_pr_c1_approval_candidate",
+  "artifact_status": "owner_review_required",
+  "schema_version": 1,
+  "parent_architecture": {
+    "repository": "intellistream/vllm-request-lifecycle-profiler-plugin",
+    "pull_request": 14,
+    "commit": "8c3214933e7438f55da0ace98002a69d22570f5d",
+    "tree": "eb6ee5be148e0d710cec81e98dd191cde18f4aa2",
+    "status": "architecture_review_candidate"
+  },
+  "pr_i0_authority": {
+    "repository": "intellistream/ascend-llm-realworkload-prof",
+    "pull_request": 30,
+    "commit": "1f098581de46c9ece108e036a3468cf740eb1a87",
+    "tree": "b9fe35ed07df6a52c8ee93e46b6ed835d4c8b88f",
+    "ci_status": "all_effective_checks_pass"
+  },
+  "analyzer_dependency": {
+    "repository": "vLLM-HUST/vllm-hust-perf-analyzer",
+    "pull_request": 31,
+    "commit": "cb11928184d9cc8a86bd1f706349e943113b777c",
+    "tree": "f69cddc605b53f4edb7477b14e0757a86fe28797",
+    "status": "draft_dependency"
+  },
+  "base_contracts": [
+    {
+      "path": "contracts/p0/runtime/minimum-runtime-contract.v0-draft.md",
+      "sha256": "122963930919073179d4844422d21e85da3a522def3ace723eb992eac43cdade",
+      "status": "owner_frozen"
+    },
+    {
+      "path": "contracts/p0/runtime/phase-taxonomy.v0-draft.md",
+      "sha256": "82aae94c5d124b846f77684e239714d51791115608e786079c4ea4bd4ca05abd",
+      "status": "owner_frozen"
+    },
+    {
+      "path": "contracts/p0/p0-manifest.json",
+      "sha256": "8e5c492f6efbed6c4662b69f1f8373d8fa0acceaec1b12d05b50d9504f8e9953",
+      "status": "owner_frozen"
+    },
+    {
+      "path": "contracts/p0/owner-freeze-approval.json",
+      "sha256": "7eabdd2872829defdb59eceb6c8dd8c8aaccb89dfda13d0e094f4df2c7bb0a85",
+      "status": "owner_frozen"
+    }
+  ],
+  "proposed_artifacts": [
+    {
+      "role": "scheduler_wire_contract",
+      "path": "contracts/p1/scheduler-profile.v1alpha1-draft.md",
+      "sha256": "1a6455b413958efe27d1ff0bee44f3cfb6d5db792685d993a03407393da02338"
+    },
+    {
+      "role": "scheduler_profile_config",
+      "path": "contracts/p1/scheduler-profile-config.v1alpha1.json",
+      "sha256": "f3653eece116ca951326f2a4b9806095fb8e035406a181432b01fae8f931b4fb"
+    },
+    {
+      "role": "multistream_overlay",
+      "path": "contracts/p1/scheduler-profile-multistream-overlay.v1alpha1-draft.md",
+      "sha256": "e905874bb196917a35fa3587d7da9754240e9f71e265234df3a1f416170a10ca"
+    },
+    {
+      "role": "run_identity_vectors",
+      "path": "contracts/p1/fixtures/scheduler-profile-v1alpha1/run-identity-vectors.json",
+      "sha256": "3a6663c888f6835d47c5097fdf6ee5c344de25e198dafb9073df6271ee7d64c6"
+    },
+    {
+      "role": "process_binding_golden",
+      "path": "contracts/p1/fixtures/scheduler-profile-v1alpha1/process-binding-golden.json",
+      "sha256": "965026f7fdb8fdff1bb070412bc2082d6d45bb5707bcfe806201a352af48242d"
+    },
+    {
+      "role": "scheduler_wire_golden",
+      "path": "contracts/p1/fixtures/scheduler-profile-v1alpha1/scheduler-wire-golden.json",
+      "sha256": "e401c5ad988a6cc1fdd098a7a2bafc87bf78dae040a666522473ecc17b323ecc"
+    },
+    {
+      "role": "contract_verifier",
+      "path": "scripts/verify_scheduler_profile_contract.py",
+      "sha256": "ee81d663a53f388d59a589947f5a253224691a7bbb373c61e84b4a1f1e1f9850"
+    },
+    {
+      "role": "contract_tests",
+      "path": "tests/test_scheduler_profile_contract.py",
+      "sha256": "c6349c03a1fdcf6a173ca14d6155861bcd85a1f254f2a374c350071562b508fb"
+    },
+    {
+      "role": "contract_ci",
+      "path": ".github/workflows/scheduler-profiler-contracts.yml",
+      "sha256": "ef8b6bfb05b5e05a9f4ba2627583dfc5db6a484624627daa94c8aba6851fa20a"
+    }
+  ],
+  "acceptance_items": [1, 2, 3, 4, 5, 6, 7, 8],
+  "owner_approval_requirement": "An owner must explicitly accept the exact SHA-256 digests in proposed_artifacts before PR-I1 or PR-I2 begins; any changed byte requires a new candidate.",
+  "gate_effects_before_owner_approval": {
+    "scheduler_wire_approved": false,
+    "multistream_overlay_approved": false,
+    "pr_i1_implementation_authorized": false,
+    "pr_i2_runtime_hooks_authorized": false,
+    "runtime_activation_authorized": false,
+    "formal_profiler_collection_authorized": false,
+    "scientific_evidence": false,
+    "merge_authorized": false
+  }
+}
