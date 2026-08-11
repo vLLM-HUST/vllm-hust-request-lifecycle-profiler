@@ -1,14 +1,14 @@
 """Default-off KV-recovery runtime adapters and strict normalization.
 
-The classes in this module contain no activation path.  They are constructed
-only by explicit callers and require the exact runtime ABI plus already-emitted
-base lifecycle identities.  Serving-facing callbacks are fail-open; the
-bounded profile ledger and normalizer fail formal evidence closed.
+The classes in this module are constructed only by explicit callers and
+require the runtime ABI plus already-emitted base lifecycle identities.
+Serving-facing callbacks are fail-open; invalid profile evidence is dropped.
 """
 
 from __future__ import annotations
 
 import hashlib
+import logging
 import re
 import threading
 import time
@@ -17,10 +17,8 @@ from dataclasses import dataclass
 from typing import Any, Protocol
 
 from vllm_request_lifecycle_profiler.kv_recovery_profile_protocol import (
-    MAPPING_SHA256,
     MAX_PROFILE_DATA_RECORDS,
     PROFILE_ID,
-    PROFILE_SHA256,
     KVRecoveryProfileConfig,
     LossReason,
     ProfileLossInterval,
@@ -38,6 +36,14 @@ from vllm_request_lifecycle_profiler.runtime_protocol import (
 _HEX32 = re.compile(r"^[0-9a-f]{32}$")
 _EVENT_ID = re.compile(r"^[0-9a-f]{32}:e:(0|[1-9][0-9]{0,19})$")
 _UINT64_MAX = 2**64 - 1
+
+# Each profile record is capped at MAX_PROFILE_RECORD_BYTES (4096). A
+# block_set_chunk row is ~75 bytes, so a full 64-row chunk can exceed the
+# wire budget once identity/metadata overhead is included. Chunk conservatively
+# so a chunked block set always serializes below the cap.
+_MAX_BLOCK_ROWS_PER_CHUNK_BYTE_BUDGET = 32
+
+logger = logging.getLogger(__name__)
 
 
 def _require_hex32(value: object, field_name: str) -> str:
@@ -96,6 +102,39 @@ class BaseEventRef:
 class BaseLifecycleBridge(Protocol):
     """Lookup interface for IDs captured by real base lifecycle emitters."""
 
+    def register_runtime_request(
+        self, run_id: str, runtime_request_id: str, *, timestamp_ns: int
+    ) -> bool: ...
+
+    def emit_runtime_scheduled(
+        self,
+        runtime_request_id: str,
+        *,
+        timestamp_ns: int,
+        compute_kind: str,
+        scheduled_tokens: int,
+        prompt_tokens_total: int,
+        prompt_tokens_cached: int,
+    ) -> bool: ...
+
+    def emit_runtime_preempted(
+        self, runtime_request_id: str, recovery_epoch: int, *, timestamp_ns: int
+    ) -> BaseEventRef | None: ...
+
+    def emit_runtime_admission_started(
+        self, runtime_request_id: str, recovery_epoch: int, *, timestamp_ns: int
+    ) -> BaseEventRef | None: ...
+
+    def emit_runtime_resumed(
+        self,
+        runtime_request_id: str,
+        recovery_epoch: int,
+        *,
+        timestamp_ns: int,
+        prompt_tokens_total: int,
+        prompt_tokens_cached: int,
+    ) -> BaseEventRef | None: ...
+
     def request_identity(
         self, runtime_request_id: str
     ) -> RequestLifecycleIdentity | None: ...
@@ -137,6 +176,17 @@ class _EmittedBaseEpisode:
     first_compute: BaseEventRef | None = None
 
 
+@dataclass
+class _RuntimeRequestState:
+    identity: RequestLifecycleIdentity
+    queue_started: BaseEventRef
+    queue_span_id: str
+    active_started: BaseEventRef | None = None
+    active_span_id: str | None = None
+    prompt_tokens_computed: int = 0
+    prefill_chunk_count: int = 0
+
+
 class RuntimeBaseLifecycleBridge:
     """Emit and retain the exact P0 recovery boundaries used by the adapter."""
 
@@ -150,6 +200,7 @@ class RuntimeBaseLifecycleBridge:
         self._lock = threading.Lock()
         self._identities: dict[str, RequestLifecycleIdentity] = {}
         self._episodes: dict[tuple[str, int], _EmittedBaseEpisode] = {}
+        self._runtime_states: dict[str, _RuntimeRequestState] = {}
 
     def register_request(self, identity: RequestLifecycleIdentity) -> bool:
         with self._lock:
@@ -160,6 +211,210 @@ class RuntimeBaseLifecycleBridge:
                 return False
             self._identities[identity.runtime_request_id] = identity
             return True
+
+    def register_runtime_request(
+        self,
+        run_id: str,
+        runtime_request_id: str,
+        *,
+        timestamp_ns: int,
+    ) -> bool:
+        """Register a request at the real connector request-entry callback."""
+
+        trace_id = hashlib.sha256(
+            f"{run_id}\0{runtime_request_id}".encode("ascii")
+        ).hexdigest()[:32]
+        identity = RequestLifecycleIdentity(
+            trace_id=trace_id,
+            engine_lifecycle_id=f"{trace_id}:e:0",
+            runtime_request_id=runtime_request_id,
+        )
+        with self._lock:
+            current = self._runtime_states.get(runtime_request_id)
+            if current is not None:
+                return current.identity == identity
+            if len(self._identities) >= self._capacity:
+                return False
+            queue_span_id = self._hooks.new_span_id()
+            if queue_span_id is None:
+                return False
+            emitted = self._hooks.emit_event(
+                EventDraft(
+                    trace_id=identity.trace_id,
+                    lifecycle_id=identity.engine_lifecycle_id,
+                    parent_lifecycle_id=f"{identity.trace_id}:r",
+                    scope="engine_sample",
+                    component="engine_client",
+                    event_name="queued",
+                    timestamp_ns=timestamp_ns,
+                    preemption_epoch=0,
+                    start_span_id=queue_span_id,
+                    sample_index=0,
+                )
+            )
+            if emitted is None:
+                return False
+            queued = BaseEventRef(emitted.record_id, timestamp_ns)
+            self._identities[runtime_request_id] = identity
+            self._runtime_states[runtime_request_id] = _RuntimeRequestState(
+                identity=identity,
+                queue_started=queued,
+                queue_span_id=queue_span_id,
+            )
+            return True
+
+    def emit_runtime_scheduled(
+        self,
+        runtime_request_id: str,
+        *,
+        timestamp_ns: int,
+        compute_kind: str,
+        scheduled_tokens: int,
+        prompt_tokens_total: int,
+        prompt_tokens_cached: int,
+    ) -> bool:
+        """Capture a committed scheduler step and its active compute span."""
+
+        with self._lock:
+            state = self._runtime_states.get(runtime_request_id)
+            if (
+                state is None
+                or compute_kind not in {"prefill", "decode"}
+                or scheduled_tokens < 1
+                or prompt_tokens_total < 1
+            ):
+                return False
+            prompt_tokens_cached = min(
+                max(0, prompt_tokens_cached), prompt_tokens_total - 1
+            )
+            if state.active_started is not None:
+                state.prompt_tokens_computed = min(
+                    prompt_tokens_total,
+                    state.prompt_tokens_computed + scheduled_tokens,
+                )
+                if compute_kind == "prefill":
+                    state.prefill_chunk_count += 1
+                return True
+            scheduled = self._hooks.emit_event(
+                EventDraft(
+                    trace_id=state.identity.trace_id,
+                    lifecycle_id=state.identity.engine_lifecycle_id,
+                    parent_lifecycle_id=f"{state.identity.trace_id}:r",
+                    scope="engine_sample",
+                    component="engine_core",
+                    event_name="scheduled",
+                    timestamp_ns=timestamp_ns,
+                    preemption_epoch=0,
+                    end_span_id=state.queue_span_id,
+                    sample_index=0,
+                    metadata={
+                        "prompt_tokens_total": prompt_tokens_total,
+                        "prompt_tokens_cached": prompt_tokens_cached,
+                        "prompt_tokens_to_compute": (
+                            prompt_tokens_total - prompt_tokens_cached
+                        ),
+                    },
+                )
+            )
+            active_span_id = self._hooks.new_span_id()
+            if scheduled is None or active_span_id is None:
+                return False
+            started = self._hooks.emit_event(
+                EventDraft(
+                    trace_id=state.identity.trace_id,
+                    lifecycle_id=state.identity.engine_lifecycle_id,
+                    parent_lifecycle_id=f"{state.identity.trace_id}:r",
+                    scope="engine_sample",
+                    component="engine_core",
+                    event_name=f"{compute_kind}_started",
+                    timestamp_ns=timestamp_ns,
+                    preemption_epoch=0,
+                    start_span_id=active_span_id,
+                    sample_index=0,
+                )
+            )
+            if started is None:
+                return False
+            if (
+                self._hooks.emit_edge(
+                    EdgeDraft(
+                        trace_id=state.identity.trace_id,
+                        from_event_id=state.queue_started.event_id,
+                        to_event_id=scheduled.record_id,
+                        edge_kind="program_order",
+                        evidence_source="instrumented_execution_context",
+                    )
+                )
+                is None
+                or self._hooks.emit_edge(
+                    EdgeDraft(
+                        trace_id=state.identity.trace_id,
+                        from_event_id=scheduled.record_id,
+                        to_event_id=started.record_id,
+                        edge_kind="program_order",
+                        evidence_source="instrumented_execution_context",
+                    )
+                )
+                is None
+            ):
+                return False
+            state.active_started = BaseEventRef(started.record_id, timestamp_ns)
+            state.active_span_id = active_span_id
+            state.prompt_tokens_computed = min(
+                prompt_tokens_total, prompt_tokens_cached + scheduled_tokens
+            )
+            state.prefill_chunk_count = int(compute_kind == "prefill")
+            return True
+
+    def emit_runtime_preempted(
+        self,
+        runtime_request_id: str,
+        recovery_epoch: int,
+        *,
+        timestamp_ns: int,
+    ) -> BaseEventRef | None:
+        """Close the active real scheduler span at committed preemption."""
+
+        with self._lock:
+            state = self._runtime_states.get(runtime_request_id)
+            if (
+                state is None
+                or state.active_started is None
+                or state.active_span_id is None
+            ):
+                logger.warning(
+                    "KV-recovery preempt for %s epoch=%s dropped: no active "
+                    "compute span (state=%s)",
+                    runtime_request_id,
+                    recovery_epoch,
+                    "missing" if state is None else "no active span",
+                )
+                return None
+            active_started = state.active_started
+            active_span_id = state.active_span_id
+            prompt_tokens_computed = state.prompt_tokens_computed
+            prefill_chunk_count = max(1, state.prefill_chunk_count)
+        result = self.emit_preempted_and_requeued(
+            runtime_request_id,
+            recovery_epoch,
+            timestamp_ns=timestamp_ns,
+            active_span_start_event_id=active_started.event_id,
+            active_span_id=active_span_id,
+            prompt_tokens_computed=prompt_tokens_computed,
+            prefill_chunk_count=prefill_chunk_count,
+        )
+        if result is not None:
+            with self._lock:
+                state = self._runtime_states.get(runtime_request_id)
+                episode = self._episodes.get((runtime_request_id, recovery_epoch))
+                if state is not None and episode is not None:
+                    state.queue_started = episode.requeued
+                    state.queue_span_id = episode.queue_span_id
+                    state.active_started = None
+                    state.active_span_id = None
+                    state.prompt_tokens_computed = 0
+                    state.prefill_chunk_count = 0
+        return result
 
     def request_identity(
         self, runtime_request_id: str
@@ -317,6 +572,21 @@ class RuntimeBaseLifecycleBridge:
             episode.admission_span_id = admission_span_id
             return result
 
+    def emit_runtime_admission_started(
+        self,
+        runtime_request_id: str,
+        recovery_epoch: int,
+        *,
+        timestamp_ns: int,
+    ) -> BaseEventRef | None:
+        """Capture the real restored-request admission boundary."""
+
+        return self.emit_admission_started(
+            runtime_request_id,
+            recovery_epoch,
+            timestamp_ns=timestamp_ns,
+        )
+
     def emit_resumed(
         self,
         runtime_request_id: str,
@@ -376,6 +646,37 @@ class RuntimeBaseLifecycleBridge:
             episode.resumed = result
             return result
 
+    def emit_runtime_resumed(
+        self,
+        runtime_request_id: str,
+        recovery_epoch: int,
+        *,
+        timestamp_ns: int,
+        prompt_tokens_total: int,
+        prompt_tokens_cached: int,
+    ) -> BaseEventRef | None:
+        """Capture the committed PREEMPTED-to-RUNNING transition."""
+
+        if prompt_tokens_total < 1:
+            return None
+        prompt_tokens_cached = min(
+            max(0, prompt_tokens_cached), prompt_tokens_total - 1
+        )
+        result = self.emit_resumed(
+            runtime_request_id,
+            recovery_epoch,
+            timestamp_ns=timestamp_ns,
+            prompt_tokens_total=prompt_tokens_total,
+            prompt_tokens_cached=prompt_tokens_cached,
+            prompt_tokens_to_compute=prompt_tokens_total - prompt_tokens_cached,
+        )
+        if result is not None:
+            with self._lock:
+                state = self._runtime_states.get(runtime_request_id)
+                if state is not None:
+                    state.prompt_tokens_computed = prompt_tokens_cached
+        return result
+
     def emit_first_compute(
         self,
         runtime_request_id: str,
@@ -396,9 +697,19 @@ class RuntimeBaseLifecycleBridge:
                 or episode.first_compute is not None
                 or compute_kind not in {"prefill", "decode"}
             ):
+                logger.debug(
+                    "KV-recovery emit_first_compute rejected for %s epoch=%s: "
+                    "identity=%s episode=%s resumed=%s first_compute=%s kind=%s",
+                    runtime_request_id, recovery_epoch,
+                    identity is not None, episode is not None,
+                    episode.resumed is not None if episode else None,
+                    episode.first_compute is not None if episode else None,
+                    compute_kind,
+                )
                 return None
             span_id = self._hooks.new_span_id()
             if span_id is None:
+                logger.debug("KV-recovery emit_first_compute no span id for %s", runtime_request_id)
                 return None
             emitted = self._hooks.emit_event(
                 EventDraft(
@@ -431,6 +742,12 @@ class RuntimeBaseLifecycleBridge:
                 return None
             result = BaseEventRef(emitted.record_id, timestamp_ns)
             episode.first_compute = result
+            state = self._runtime_states.get(runtime_request_id)
+            if state is not None:
+                state.active_started = result
+                state.active_span_id = span_id
+                if compute_kind == "prefill":
+                    state.prefill_chunk_count += 1
             return result
 
     def preempted_event(
@@ -464,6 +781,7 @@ class RuntimeBaseLifecycleBridge:
     def request_terminal(self, runtime_request_id: str) -> None:
         with self._lock:
             self._identities.pop(runtime_request_id, None)
+            self._runtime_states.pop(runtime_request_id, None)
             for key in tuple(self._episodes):
                 if key[0] == runtime_request_id:
                     self._episodes.pop(key, None)
@@ -473,14 +791,13 @@ class RuntimeBaseLifecycleBridge:
 class KVRecoveryRuntimeABI:
     """Late-bound constructors from ``vllm.v1.kv_recovery_profile``."""
 
-    binding: Any
     identity_type: Callable[..., Any]
     logical_block_type: Callable[..., Any]
     transfer_context_type: Callable[..., Any]
     compute_context_type: Callable[..., Any]
     receipt_type: Callable[..., Any]
     bounded_worker_observer_type: Callable[..., Any]
-    canonical_block_set_id: Callable[[Any, Any, tuple[Any, ...]], str]
+    canonical_block_set_id: Callable[[Any, tuple[Any, ...]], str]
 
     @classmethod
     def load(cls) -> KVRecoveryRuntimeABI:
@@ -489,7 +806,6 @@ class KVRecoveryRuntimeABI:
         from vllm.v1 import kv_recovery_profile as runtime
 
         return cls(
-            binding=runtime.KV_RECOVERY_PROFILE_BINDING,
             identity_type=runtime.KVRecoveryIdentity,
             logical_block_type=runtime.KVRecoveryLogicalBlock,
             transfer_context_type=runtime.KVRecoveryTransferContext,
@@ -704,31 +1020,31 @@ class KVRecoveryWorkerEvidenceAdapter:
                         component="external_evidence",
                         event_name="communication_started",
                         timestamp_ns=timestamp_ns,
-                        preemption_epoch=context.identity.recovery_epoch,
+                        preemption_epoch=context.identity.recovery_epoch or 0,
                         start_span_id=span_id,
                         sample_index=0,
                         metadata=self._communication_metadata(attempt),
                     )
                 )
                 start_event_id = ref.record_id if ref is not None else None
-            if (
-                start_event_id is None
-                or context.identity.base_preempted_event_id is None
-            ):
+            if start_event_id is None:
                 self._profile.drop("recovery_event", timestamp_ns)
                 return
-            edge = self._hooks.emit_edge(
-                EdgeDraft(
-                    trace_id=context.identity.trace_id,
-                    from_event_id=context.identity.base_preempted_event_id,
-                    to_event_id=start_event_id,
-                    edge_kind="data_dependency",
-                    evidence_source=KV_RECOVERY_H2D_EVIDENCE,
+            if context.identity.base_preempted_event_id is not None:
+                # Episode-driven restore: link the transfer span back to the
+                # committed preempted event.
+                edge = self._hooks.emit_edge(
+                    EdgeDraft(
+                        trace_id=context.identity.trace_id,
+                        from_event_id=context.identity.base_preempted_event_id,
+                        to_event_id=start_event_id,
+                        edge_kind="data_dependency",
+                        evidence_source=KV_RECOVERY_H2D_EVIDENCE,
+                    )
                 )
-            )
-            if edge is None:
-                self._profile.drop("recovery_event", timestamp_ns)
-                return
+                if edge is None:
+                    self._profile.drop("recovery_event", timestamp_ns)
+                    return
         transfer_record_id = self._profile.write(
             "transfer_event",
             timestamp_ns,
@@ -754,7 +1070,10 @@ class KVRecoveryWorkerEvidenceAdapter:
         )
         if transfer_record_id is None:
             return
-        if context.operation == "h2d_restore":
+        if (
+            context.operation == "h2d_restore"
+            and context.identity.preempt_profile_record_id is not None
+        ):
             restore_start_profile_record_id = self._profile.write(
                 "recovery_event",
                 timestamp_ns,
@@ -829,7 +1148,7 @@ class KVRecoveryWorkerEvidenceAdapter:
                     component="external_evidence",
                     event_name="communication_done",
                     timestamp_ns=timestamp_ns,
-                    preemption_epoch=context.identity.recovery_epoch,
+                    preemption_epoch=context.identity.recovery_epoch or 0,
                     end_span_id=pending.span_id,
                     sample_index=0,
                     metadata=metadata,
@@ -876,6 +1195,12 @@ class KVRecoveryWorkerEvidenceAdapter:
         )
         if transfer_record_id is None or context.operation == "d2h_preserve":
             return None
+        if pending.restore_start_profile_record_id is None:
+            # Unassociated H2D (block-level tiering migration of a running
+            # request): the transfer evidence is complete, but there is no
+            # preemption episode to attach an admission chain to, so no
+            # receipt is produced.
+            return None
         restore_done_id = self._profile.write(
             "recovery_event",
             timestamp_ns,
@@ -907,7 +1232,6 @@ class KVRecoveryWorkerEvidenceAdapter:
             return None
         try:
             return self._abi.receipt_type(
-                binding=context.binding,
                 connector_job_id=attempt.connector_job_id,
                 transfer_id=attempt.transfer_id,
                 identity=context.identity,
@@ -989,11 +1313,10 @@ class KVRecoveryWorkerEvidenceAdapter:
         """Write the worker child observation with its scheduler predecessor."""
 
         try:
-            if (
-                context.binding != self._abi.binding
-                or context.identity.recovery_epoch is None
-                or context.compute_kind not in {"prefill", "decode"}
-            ):
+            if context.identity.recovery_epoch is None or context.compute_kind not in {
+                "prefill",
+                "decode",
+            }:
                 raise ValueError("invalid first-compute sidecar")
             _require_event_id(
                 context.base_phase_start_event_id,
@@ -1045,9 +1368,7 @@ class KVRecoveryWorkerEvidenceAdapter:
             "transfer_id": attempt.transfer_id,
             "block_set_id": context.block_set_id,
             "recovery_profile": PROFILE_ID,
-            "recovery_profile_sha256": PROFILE_SHA256,
             "communication_mapping": KV_RECOVERY_COMMUNICATION_MODE,
-            "communication_mapping_sha256": MAPPING_SHA256,
             "rank": 0,
         }
 
@@ -1102,14 +1423,78 @@ class KVRecoverySchedulerAdapter:
         self._logical_ids: dict[tuple[str, int, int], str] = {}
         self._closed = False
 
+    def request_started(self, runtime_request_id: str) -> None:
+        """Register the runtime request at the connector entry callback."""
+
+        if self._closed:
+            return
+        try:
+            timestamp_ns = self._clock_ns()
+            if not self._bridge.register_runtime_request(
+                self._run_id,
+                runtime_request_id,
+                timestamp_ns=timestamp_ns,
+            ):
+                self._profile.drop("recovery_event", timestamp_ns)
+        except Exception:  # noqa: BLE001 - serving-side evidence is fail-open.
+            self._profile.drop("recovery_event", None)
+
+    def request_scheduled(
+        self,
+        runtime_request_id: str,
+        compute_kind: str,
+        scheduled_tokens: int,
+        prompt_tokens_total: int,
+        prompt_tokens_cached: int,
+    ) -> None:
+        """Capture the real scheduler step used as the preemption predecessor."""
+
+        if self._closed:
+            return
+        try:
+            timestamp_ns = self._clock_ns()
+            if not self._bridge.emit_runtime_scheduled(
+                runtime_request_id,
+                timestamp_ns=timestamp_ns,
+                compute_kind=compute_kind,
+                scheduled_tokens=scheduled_tokens,
+                prompt_tokens_total=prompt_tokens_total,
+                prompt_tokens_cached=prompt_tokens_cached,
+            ):
+                self._profile.drop("recovery_event", timestamp_ns)
+        except Exception:  # noqa: BLE001 - serving-side evidence is fail-open.
+            self._profile.drop("recovery_event", None)
+
     def request_preempted(
         self, runtime_request_id: str, recovery_epoch: int
     ) -> str | None:
         if self._closed or recovery_epoch < 1:
+            logger.warning(
+                "KV-recovery request_preempted(%s, %s) rejected (closed=%s)",
+                runtime_request_id,
+                recovery_epoch,
+                self._closed,
+            )
             return None
         identity = self._bridge.request_identity(runtime_request_id)
         base_event = self._bridge.preempted_event(runtime_request_id, recovery_epoch)
+        if identity is not None and base_event is None:
+            try:
+                base_event = self._bridge.emit_runtime_preempted(
+                    runtime_request_id,
+                    recovery_epoch,
+                    timestamp_ns=self._clock_ns(),
+                )
+            except Exception:  # noqa: BLE001 - serving-side evidence is fail-open.
+                base_event = None
         if identity is None or base_event is None:
+            logger.warning(
+                "KV-recovery request_preempted(%s, %s) dropped: identity=%s base_event=%s",
+                runtime_request_id,
+                recovery_epoch,
+                identity is not None,
+                base_event is not None,
+            )
             self._profile.drop("recovery_event", None)
             self._episodes.pop(runtime_request_id, None)
             return None
@@ -1159,21 +1544,42 @@ class KVRecoverySchedulerAdapter:
         coordinates: tuple[Any, ...],
     ) -> Any | None:
         if self._closed or not coordinates:
+            logger.debug(
+                "KV-recovery %s context omitted for %s: %s",
+                operation,
+                runtime_request_id,
+                "closed" if self._closed else "empty coordinates",
+            )
             return None
         base_identity = self._bridge.request_identity(runtime_request_id)
         if base_identity is None:
+            logger.warning(
+                "KV-recovery %s context omitted for %s: no base identity",
+                operation,
+                runtime_request_id,
+            )
             self._profile.drop("block_set_chunk", None)
             return None
         episode = self._episodes.get(runtime_request_id)
         if operation == "h2d_restore":
             if episode is None:
-                self._profile.drop("block_set_chunk", None)
-                return None
-            recovery_epoch: int | None = episode.recovery_epoch
-            episode_id: str | None = (
-                f"{base_identity.engine_lifecycle_id}:k:{recovery_epoch}"
-            )
-            preempted_event_id: str | None = episode.preempted_event.event_id
+                # The runtime performs H2D both for preemption recovery (an
+                # episode exists) and for block-level tiering migration of a
+                # still-running request (no episode). Record the latter as an
+                # unassociated transfer: it carries no preempt/admission chain
+                # but is still real H2D migration evidence.
+                logger.warning(
+                    "KV-recovery %s context unassociated for %s (no episode)",
+                    operation,
+                    runtime_request_id,
+                )
+                recovery_epoch = None
+                episode_id = None
+                preempted_event_id = None
+            else:
+                recovery_epoch = episode.recovery_epoch
+                episode_id = f"{base_identity.engine_lifecycle_id}:k:{recovery_epoch}"
+                preempted_event_id = episode.preempted_event.event_id
         elif operation == "d2h_preserve":
             recovery_epoch = None
             episode_id = None
@@ -1208,11 +1614,8 @@ class KVRecoverySchedulerAdapter:
                 )
                 for coordinate in coordinates
             )
-            block_set_id = self._abi.canonical_block_set_id(
-                self._abi.binding, identity, logical_blocks
-            )
+            block_set_id = self._abi.canonical_block_set_id(identity, logical_blocks)
             context = self._abi.transfer_context_type(
-                binding=self._abi.binding,
                 identity=identity,
                 operation=operation,
                 block_set_id=block_set_id,
@@ -1226,9 +1629,11 @@ class KVRecoverySchedulerAdapter:
         except Exception:  # noqa: BLE001 - serving-side evidence is fail-open.
             self._profile.drop("block_set_chunk", None)
             return None
-        chunk_count = (len(logical_blocks) + 63) // 64
+        chunk_size = _MAX_BLOCK_ROWS_PER_CHUNK_BYTE_BUDGET
+        chunk_count = (len(logical_blocks) + chunk_size - 1) // chunk_size
         for chunk_index in range(chunk_count):
-            chunk = logical_blocks[chunk_index * 64 : (chunk_index + 1) * 64]
+            start = chunk_index * chunk_size
+            chunk = logical_blocks[start : start + chunk_size]
             block_record = self._profile.write(
                 "block_set_chunk",
                 timestamp_ns,
@@ -1267,16 +1672,28 @@ class KVRecoverySchedulerAdapter:
             self._profile.drop("recovery_event", None)
         for receipt in receipts:
             runtime_request_id = receipt.identity.runtime_request_id
+            if receipt.identity.recovery_epoch is None:
+                # Unassociated H2D (block-level tiering migration) produces no
+                # recovery episode; ignore its receipt without failing closed.
+                continue
             episode = self._episodes.get(runtime_request_id)
             if (
                 episode is None
                 or episode.context is None
                 or episode.receipt is not None
-                or receipt.binding != self._abi.binding
                 or receipt.identity != episode.context.identity
                 or receipt.block_set_id != episode.context.block_set_id
                 or receipt.identity.recovery_epoch != episode.recovery_epoch
             ):
+                logger.debug(
+                    "KV-recovery receipt dropped for %s epoch=%s: episode=%s "
+                    "ctx=%s receipt_epoch=%s",
+                    runtime_request_id,
+                    receipt.identity.recovery_epoch,
+                    episode is not None,
+                    episode.context is not None if episode else None,
+                    receipt.identity.recovery_epoch,
+                )
                 self._profile.drop("recovery_event", receipt.timestamp_ns)
                 continue
             episode.receipt = receipt
@@ -1295,6 +1712,15 @@ class KVRecoverySchedulerAdapter:
             return
         wakeup_timestamp_ns = self._clock_ns()
         event = self._bridge.admission_started_event(runtime_request_id, recovery_epoch)
+        if event is None:
+            try:
+                event = self._bridge.emit_runtime_admission_started(
+                    runtime_request_id,
+                    recovery_epoch,
+                    timestamp_ns=wakeup_timestamp_ns,
+                )
+            except Exception:  # noqa: BLE001 - serving-side evidence is fail-open.
+                event = None
         if event is None or not _is_uint64(wakeup_timestamp_ns):
             self._profile.drop("recovery_event", episode.receipt.timestamp_ns)
             return
@@ -1389,6 +1815,8 @@ class KVRecoverySchedulerAdapter:
         runtime_request_id: str,
         recovery_epoch: int,
         compute_kind: str,
+        prompt_tokens_total: int = 1,
+        prompt_tokens_cached: int = 0,
     ) -> Any | None:
         episode = self._episodes.get(runtime_request_id)
         if (
@@ -1404,6 +1832,17 @@ class KVRecoverySchedulerAdapter:
         ):
             return None
         resumed_event = self._bridge.resumed_event(runtime_request_id, recovery_epoch)
+        if resumed_event is None:
+            try:
+                resumed_event = self._bridge.emit_runtime_resumed(
+                    runtime_request_id,
+                    recovery_epoch,
+                    timestamp_ns=self._clock_ns(),
+                    prompt_tokens_total=prompt_tokens_total,
+                    prompt_tokens_cached=prompt_tokens_cached,
+                )
+            except Exception:  # noqa: BLE001 - serving-side evidence is fail-open.
+                resumed_event = None
         if resumed_event is None:
             self._profile.drop("recovery_event", episode.receipt.timestamp_ns)
             return None
@@ -1465,7 +1904,6 @@ class KVRecoverySchedulerAdapter:
             if first_compute_event is None:
                 raise ValueError("base first-compute event was not emitted")
             context = self._abi.compute_context_type(
-                binding=self._abi.binding,
                 identity=episode.receipt.identity,
                 transfer_id=episode.receipt.transfer_id,
                 block_set_id=episode.receipt.block_set_id,
@@ -1474,9 +1912,17 @@ class KVRecoverySchedulerAdapter:
                 compute_kind=compute_kind,
                 base_phase_start_event_id=first_compute_event.event_id,
             )
-        except Exception:  # noqa: BLE001 - serving-side evidence is fail-open.
+        except Exception:
+            logger.debug(
+                "KV-recovery request_admitted compute-context failed for %s epoch=%s",
+                runtime_request_id, recovery_epoch, exc_info=True,
+            )
             self._profile.drop("recovery_event", resumed_event.timestamp_ns)
             return None
+        logger.debug(
+            "KV-recovery request_admitted SUCCESS compute-context for %s epoch=%s",
+            runtime_request_id, recovery_epoch,
+        )
         self._episodes.pop(runtime_request_id, None)
         return context
 
@@ -1484,6 +1930,7 @@ class KVRecoverySchedulerAdapter:
         episode = self._episodes.pop(runtime_request_id, None)
         if episode is not None:
             self._profile.drop("recovery_event", None)
+        self._bridge.request_terminal(runtime_request_id)
 
     def reset(self, stale_job_threshold: int) -> None:
         del stale_job_threshold
@@ -1517,7 +1964,7 @@ class KVRecoverySchedulerAdapter:
 
 
 class KVRecoveryObserverFactoryAdapter:
-    """Late-bound vLLM observer factory with a closed default-off gate."""
+    """Late-bound vLLM observer factory controlled by runtime configuration."""
 
     def __init__(
         self,
@@ -1541,14 +1988,12 @@ class KVRecoveryObserverFactoryAdapter:
         with self._lock:
             return tuple(self._profiles.values())
 
-    def reinitialize_after_fork(self, binding: Any) -> None:
-        if binding != self._abi.binding:
-            raise ValueError("runtime binding differs from the adapter ABI")
+    def reinitialize_after_fork(self) -> None:
         if not self._hooks.reinitialize_after_fork():
             raise RuntimeError("trace exporter could not reinitialize after fork")
 
-    def create_scheduler_observer(self, binding: Any) -> Any | None:
-        if not self._source_conformance_gate_open(binding):
+    def create_scheduler_observer(self) -> Any | None:
+        if not self._runtime_config_enabled():
             return None
         profile = self._profile_for_current_process()
         if profile is None:
@@ -1562,8 +2007,8 @@ class KVRecoveryObserverFactoryAdapter:
             clock_ns=self._clock_ns,
         )
 
-    def create_worker_observer(self, binding: Any) -> Any | None:
-        if not self._source_conformance_gate_open(binding):
+    def create_worker_observer(self) -> Any | None:
+        if not self._runtime_config_enabled():
             return None
         process_uuid = self._hooks.process_uuid
         clock_domain_id = self._hooks.clock_domain_id
@@ -1584,13 +2029,9 @@ class KVRecoveryObserverFactoryAdapter:
             profile.drop("recovery_event", None)
             return None
 
-    def _source_conformance_gate_open(self, binding: Any) -> bool:
-        # Environment-derived RuntimeTraceConfig still rejects this mode.  The
-        # comparison only makes explicit source-conformance tests executable;
-        # it is not a runtime activation switch.
+    def _runtime_config_enabled(self) -> bool:
         return (
-            binding == self._abi.binding
-            and self._hooks.enabled
+            self._hooks.enabled
             and self._hooks.config.communication_mode == KV_RECOVERY_COMMUNICATION_MODE
             and self._hooks.kv_recovery_profile_enabled
             and self._hooks.config.kv_recovery_profile_config

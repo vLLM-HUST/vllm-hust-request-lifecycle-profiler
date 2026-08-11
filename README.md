@@ -5,19 +5,16 @@ lifecycle tracing in LLM serving. It targets a single-NPU first implementation
 on NPU6 and follows the optimization-repository workflow used by the
 `llm-optimizations` workspace.
 
-## 2026-08-03 research focus
+## Current research focus
 
-The profiler directly owns the low-overhead state feedback and causal
-attribution questions. It may export inputs to roofline and statistical-gate
-projects, but trace ownership alone does not make those contributions complete.
-The minimal M0 phase/runtime protocol in `contracts/p0/` is owner-frozen. The
-parent exporter has an audited local CPU checkpoint. Following the two newest
-faculty comments on issue #1, merged PR #4 is now composed with that checkpoint
-on `feature/kv-recovery-integration`. The immediate gate is to freeze a
-compatible optional KV-recovery profile and connect its complete request/stage
-chain to a controlled runtime trace before any tiering/HBM-only matched
-experiment. Controlled intervention-based attribution remains the formal
-evaluation gate after P1 instrumentation. See
+The profiler owns low-overhead state feedback and causal attribution. It may
+export inputs to roofline and statistical-gate projects, but trace ownership
+alone does not make those contributions complete. The current implementation
+focus is an optional KV-recovery profile connected to the runtime
+`OffloadingConnector` path. It is default-off and becomes active only when the
+profiler environment and runtime `additional_config` both opt in. CPU
+integration tests precede service and hardware measurements. Controlled
+intervention-based attribution remains the evaluation goal. See
 [`RESEARCH_UPGRADE_20260727.md`](RESEARCH_UPGRADE_20260727.md).
 
 ## Research Question
@@ -28,12 +25,12 @@ stage instead of correlated symptoms?
 
 ## Repository Map
 
-- `AGENTS.md`: durable assignment, ownership, environment, evidence, and merge
-  policy for all later work.
+- Development and performance-evidence policy: see the workspace-level
+  `AGENTS.md` (kept local; not part of this repository).
 - `src/vllm_request_lifecycle_profiler/`: trace schema, attribution logic, and
   plugin code.
-- `contracts/p0/`: owner-frozen minimum M0 phase/runtime protocol, approval
-  record, and historical development-case inventory.
+- `contracts/`: historical design notes retained only for technical context;
+  they are not approval or activation gates.
 - `.benchmarks/`: trace probes and controlled fault-injection entrypoints.
 - `third_party/llm-serving-workloads/`: pinned shared workload suite.
 - `third_party/vllm-hust/`: pinned historical vLLM-HUST hook carrier used only
@@ -69,6 +66,34 @@ separate from `causal_evidence`: an unpaired long span remains
 the target delta without changing other spans. This is `simulation/model`
 readiness and remains `NOT_M0_PROVEN`; it is not controlled live attribution.
 
+### KV-recovery configuration
+
+The optional runtime path is disabled unless both sides opt in. Configure the
+profiler process with:
+
+```bash
+export VLLM_RLP_TRACE_EXPORT_PATH=/path/to/trace
+export VLLM_RLP_COMMUNICATION_MODE=issue2:kv-recovery-v1alpha1
+export VLLM_RLP_KV_RECOVERY_RUN_ID=0123456789abcdef0123456789abcdef
+export VLLM_RLP_PROFILER_PARENT_COMMIT=<40-lowercase-hex-commit>
+export VLLM_RLP_RUNTIME_CORE_COMMIT=<40-lowercase-hex-commit>
+export VLLM_RLP_DEVICE_PLUGIN_COMMIT=<40-lowercase-hex-commit>
+```
+
+The vLLM runtime configuration must also contain:
+
+```json
+{
+  "kv_recovery_profile_enabled": true,
+  "recompute_scheduler_enable": false
+}
+```
+
+The connector must resolve to `OffloadingConnector` with
+`TieringOffloadingSpec`. Omitting the profiler mode, run ID, runtime switch, or
+supported spec keeps the observer disabled. Initialization and observation
+failures disable profiling without failing serving.
+
 ## NPU and Environment
 
 - Reserved device: NPU6.
@@ -98,29 +123,17 @@ PYTHONPATH=src pytest -q
 make shared-workloads-smoke PYTHON=python3
 ```
 
-## Next Gate
+## Next step
 
-The P0 owner freeze is recorded in
-[`owner-freeze-approval.json`](contracts/p0/owner-freeze-approval.json). It
-pins the minimum runtime contract SHA-256
-`122963930919073179d4844422d21e85da3a522def3ace723eb992eac43cdade`,
-phase taxonomy SHA-256
-`82aae94c5d124b846f77684e239714d51791115608e786079c4ea4bd4ca05abd`,
-runtime `f229ba7cad21a4dba58681af6738a9fd947388e2`, device plugin
-`cafad89a5e103f31ea517c1edb56130578c3cd56`, and
-`communication_mode=none`. Those pins remain valid for the existing P1
-checkpoint, but actual tiering/offload is outside the frozen mode. The next
-gate follows completed offline composition of upstream profiler PR #4 merge
-`15717eae2630e80c11b113ccaeb3422871b35b40`: obtain review for an optional
-KV-recovery plus communication/specialty profile, add CPU whole-chain runtime
-validation, resolve the pinned scheduler compatibility hazard, and pass a
-version-aware READY preflight. Historical checkpoint
-`9f1464b8d017ef48e66b8b4c9bd4a5a37fdc563d` remains immutable; continue from
-`feature/kv-recovery-integration` rather than repeating that reconciliation.
+Complete the normal configuration path for the optional KV-recovery profiler,
+keep the disabled serving path unchanged, and validate the whole runtime-to-
+profile chain on CPU. After the implementation and CI are stable, run a small
+NPU service smoke before matched performance experiments. Performance claims
+must follow the cross-repository benchmark performance policy (workspace-level
+`AGENTS.md`, kept local).
 
 The checked-in hook-enabled NPU6 artifacts remain useful contaminated
 development evidence: the smoke pair has complete historical chains and a
 small-workload smoke delta observed once per mode. They are not primary
-blind-localization cases and do not prove M0. P1 should extend the existing
-hook/export path; formal controlled-live scoring additionally requires fresh
-opaque cases and frozen graph-mode specialty targets.
+blind-localization cases and do not prove M0. New controlled-live scoring
+requires fresh cases and a reproducible target configuration.

@@ -1,5 +1,49 @@
 # Experiment Plan
 
+> **G1 core seal (2026-08-08, revised after audit):** CPU controlled-trace
+> gate is achieved for the current working trees (profiler
+> `feature/kv-recovery-config-cleanup`, runtime
+> `feature/rlp-kv-recovery-g1-default-off`). Artifacts in
+> `.benchmarks/results/g1_cpu_controlled_trace_20260808/`:
+> `recovery_episode/` (real connector flow, six milestones, requeue=0),
+> `recovery_episode_requeue/` (full eight-milestone chain with two requeues
+> and real monotonic-ns artifact-level decomposition), `no_pressure/` (stores
+> only), all `drained` with zero loss; `g1_verification.md/json`,
+> `run_metadata.json`, and three test-batch logs (plugin 124 passed in the
+> vLLM venv; 122 passed in the prescribed conda env with the 2 cross-repo
+> integration tests requiring torch/vllm; runtime KV suites 82 passed).
+> Left to later gates: multi-process roster receipt (`[api_server,
+> engine_core]`) and the conda-env cross-repo runs (environment dependency).
+
+> **G2 admission (2026-08-08, revised after audit):** read-only
+> version-aware whole-trace preflight passed for the current working trees
+> (device-owner, model, schema/profile vs sealed G1 shards, expected-process
+> receipt via G1 summaries, trace-export, environment). Marker discipline
+> verified including the neither-marker and both-markers (fail-closed
+> archive) cases. Artifacts:
+> `.benchmarks/results/g2_readonly_admission_20260808/` (`READY.txt`,
+> `run_metadata.json`). Deferred to G3: live `/v1/models` endpoint check and
+> the real multi-process roster receipt, because G2 must not start a service.
+
+> **G3 minimum online trace smoke (2026-08-09):** PASS for the current
+> working trees. The Ascend `NPUModelRunner.execute_model` override
+> (`vllm-ascend vllm_ascend/worker/model_runner_v1.py`) did not call
+> `observe_kv_recovery_first_compute`, so the `first_prefill_or_decode` child
+> observation never fired on the live V1 Ascend runner; the call was added
+> immediately before `_model_forward` (mirroring the base V1 runner). A
+> controlled service (Qwen2.5-Coder-14B-Instruct on NPU6,
+> `gpu_memory_utilization=0.6`, `max_model_len=32768`, OffloadingConnector /
+> TieringOffloadingSpec, `kv_recovery_profile_enabled`) induced two real
+> preemption + H2D-restore episodes and produced two complete seven-stage
+> chains (`preempt -> restore_start -> restore_done -> scheduler_wakeup ->
+> admission -> first_prefill_or_decode`) with zero trace loss, live endpoint
+> verified, per-process committed receipts `[api_server, engine_core]` both
+> `drained`. Artifacts:
+> `.benchmarks/results/g3_minimum_online_trace_smoke_20260809/`
+> (`g3_verification.md/json`, `run_metadata.json`, raw shards/logs), labeled
+> `real-online` + `smoke-only` (capture evidence, not a matched performance
+> result). Next: G4 fixed-8-GiB matched modes.
+
 > **Current gate (2026-08-03):** treat the checked-in runs below as historical
 > development evidence. `feature/kv-recovery-integration` now composes merged
 > profiler PR #4 at `15717eae2630e80c11b113ccaeb3422871b35b40` with immutable
@@ -82,11 +126,17 @@ Execute the corrected ladder in order:
    across independent service lifecycles.
 6. **G5 — full capacity surface.** Run the #134 8/16/24/32-GiB capacity and
    workload matrix after the fixed-8-GiB mechanism comparison is sound.
+   **Status 2026-08-10: COMPLETE** — see `docs/g5_completion_record.md` and
+   `.benchmarks/results/g5_capacity_surface_20260810/`.
 7. **G6 — counterfactual.** If causal ranking selects copy, restore/wakeup,
    admission/requeue, or another mechanism, change only the rank-one predicted
    mechanism and rerun a matched pair. The public #134 experiment is mechanism
    evidence; it counts toward blind M0 scoring only under the separately frozen
    Team-A custody and reveal protocol.
+   **Status 2026-08-11: PASS (development-level)** — see
+   `docs/g6_counterfactual_spec.md` / `docs/g6_completion_record.md` and
+   `.benchmarks/results/g6_counterfactual_20260811/`. Blind M0 scoring remains
+   pending the separately frozen Team-A custody/reveal protocol.
 
 Stop and fail the run closed on stage loss/duplication/inversion, request or
 sequence ID drift, restore block drift, unreasoned requeue, trace loss, missing
@@ -144,7 +194,8 @@ coverage only; it does not support live NPU6 diagnosis or speedup claims.
 
 ## Phase 1: Existing-Server Probe on NPU6
 
-- Follow `docs/npu6_trace_probe_runbook.md` before probing any server.
+- Follow the local NPU6 trace-probe runbook (kept as a local working doc) before
+  probing any server.
 - Instrument baseline serving without changing runtime behavior.
 - Run shared workloads and emit per-request timelines.
 - Compare profiler reports against raw logs and simple stage timers.
@@ -312,7 +363,8 @@ pressure, graph capture or batch transition, and scheduler-output/batch-shape
 counters under the same hook-enabled pattern.
 
 The stricter live-fault matrix gate is documented in
-`docs/live_fault_matrix_plan.md`. It separates current coverage claims from the
+the local live-fault matrix plan (kept as a local working doc). It separates
+current coverage claims from the
 missing ASPLOS-level diagnosis claims: KV-pressure ground truth, timer-only
 baseline comparison, TPOT/HBM overhead beyond the smoke workload, and a larger
 workload matrix.

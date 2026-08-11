@@ -163,6 +163,12 @@ The worker forward candidates are:
 
 - MRV1: connector context followed by `_model_forward()` in
   `vllm/v1/worker/gpu_model_runner.py:4351-4387`;
+- Ascend MRV1 (`NPUModelRunner`, used by the Ascend NPU worker):
+  `vllm_ascend/worker/model_runner_v1.py` — `observe_kv_recovery_first_compute`
+  is called immediately before `_model_forward` inside the same
+  `maybe_get_kv_connector_output` context (added 2026-08-09; the override
+  previously omitted the observe call, which is why the live Ascend run was
+  missing `first_prefill_or_decode`);
 - V2 full graph: `vllm/v1/worker/gpu/model_runner.py:1285-1292`;
 - V2 piecewise/eager: the same file at `1294-1323`.
 
@@ -332,3 +338,52 @@ add reviewed calls only at:
 The calls must be no-ops when tracing is disabled, fail open for serving, fail
 closed for evidence, and reuse the existing bounded exporter machinery. Logs,
 metrics, or timestamps without IDs remain diagnostics only.
+
+## 2026-08-08 addendum: H2D evidence path wiring
+
+The previous "tiering-manager background migration" hypothesis was refined by a
+CPU reproduction and real NPU smoke against the `OffloadingConnector`
+scheduler/worker: the CPU->NPU H2D data copy always goes through the connector
+worker's `start_kv_transfers` -> `submit_load` path, and the runtime performs it
+in two situations:
+
+1. Preemption recovery: a preempted request resumes with its CPU-resident KV.
+   This carries a recovery episode and produces the full seven-stage chain.
+2. Block-level tiering migration: a still-running request has blocks evicted
+   to CPU under device pressure and reloaded without any preemption. This has
+   no episode.
+
+Defects that previously dropped the H2D evidence:
+
+- `vllm/v1/kv_recovery_profile.py` `invalidate_transfers` set the
+  process-wide `_evidence_disabled` latch on any scheduler discard handoff.
+  A preemption that invalidated in-flight store contexts therefore silently
+  disabled all later H2D evidence. The latch now stays off for discard
+  handoffs; only genuine state-capacity failures disable the observer.
+- `vllm/distributed/kv_transfer/kv_connector/v1/offloading/scheduler.py`
+  `build_connector_meta` added every in-flight transfer job of a preempted
+  request to the discard handoff, including store (D2H) jobs that are the
+  evidence anchor for the later restore. It now adds only non-store (load)
+  jobs on preemption; terminal and cache-reset handoffs still discard all
+  in-flight jobs as abandoned.
+- The profiler only accepted `h2d_restore` contexts with a recovery episode.
+  Real NPU runs showed the service reloading running requests' blocks without
+  preemption, so the adapter dropped them ("no active preemption episode").
+  `KVRecoveryTransferContext` now allows `recovery_epoch=None`, and the
+  scheduler adapter + worker sink record unassociated H2D as transfer evidence.
+- `block_set_chunk` used 64-row chunks, but a 64-row record exceeds the
+  4096-byte profile record cap (`encoded record exceeds 4096 bytes`), so the
+  H2D block set was dropped as `serialization_failure`. Chunking now uses a
+  byte-safe 32-row budget.
+
+Regression coverage: `tests/v1/test_kv_recovery_profile.py`
+(`test_connector_flush_invalidates_pending_context_exactly_once`,
+`test_h2d_requires_episode_and_d2h_forbids_episode`),
+`tests/v1/kv_connector/unit/offloading_connector/test_kv_recovery_worker.py`
+(`test_bounded_observer_wait_precedes_explicit_discard_invalidation`),
+`tests/v1/kv_connector/unit/offloading_connector/test_kv_recovery_scheduler.py`
+(`test_pressure_preemption_preserves_identity_through_real_connector_path`),
+and the cross-repository plugin gates
+`tests/test_kv_recovery_runtime_integration.py::test_actual_runtime_connector_flow_captures_full_h2d_recovery`
+and
+`tests/test_kv_recovery_runtime_integration.py::test_actual_runtime_records_unassociated_h2d_migration_without_episode`.

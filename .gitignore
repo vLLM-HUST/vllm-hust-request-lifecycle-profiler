@@ -27,3 +27,17 @@ paper/request_lifecycle_causal_profiler/tables/generated/
 scratch/
 tmp/
 /.cache/
+# New gate evidence result dirs (G1-G6 + M0 dev validation) kept local; docs summarize them
+.benchmarks/results/g[0-9]*/
+.benchmarks/results/m0_*/
+
+# Local record/handoff/memory docs (NOT pushed; kept local)
+/docs/claim_ledger.md
+/docs/idle_evidence_contract.md
+/docs/kv_recovery_service_smoke.md
+/docs/live_fault_matrix_plan.md
+/docs/npu6_trace_probe_runbook.md
+/docs/research_logic.md
+/docs/runtime_fault_attribution_roadmap.md
+/docs/submission_readiness_audit.md
+/.github/agents/request-lifecycle-profiler.agent.md

@@ -11,9 +11,7 @@ import pytest
 
 import vllm_request_lifecycle_profiler.runtime_hooks as runtime_hooks_module
 from vllm_request_lifecycle_profiler.kv_recovery_profile_protocol import (
-    MAPPING_SHA256,
     PROFILE_ID,
-    PROFILE_SHA256,
     KVRecoveryProfileConfig,
 )
 from vllm_request_lifecycle_profiler.kv_recovery_runtime import (
@@ -110,8 +108,6 @@ def test_paired_writer_publishes_mode_0600_shards_and_balanced_receipt(
     ]
     start, data, summary = records
     assert start["schema"] == PROFILE_ID
-    assert start["profile_sha256"] == PROFILE_SHA256
-    assert start["communication_mapping_sha256"] == MAPPING_SHA256
     assert start["process_uuid"] == data["process_uuid"] == summary["process_uuid"]
     assert summary["attempted_data_count"] == 1
     assert summary["written_block_set_chunk_count"] == 1
@@ -163,7 +159,6 @@ def test_producer_ledger_drains_into_the_paired_writer(tmp_path: Path) -> None:
             export_path=tmp_path / "trace",
             provenance=PROVENANCE,
             communication_mode=KV_RECOVERY_COMMUNICATION_MODE,
-            invalid_reason="unsupported_mode",
             kv_recovery_profile_config=profile_config,
         ),
         sink=sink,
