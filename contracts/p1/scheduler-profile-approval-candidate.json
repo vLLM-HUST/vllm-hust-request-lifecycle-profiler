@@ -89,7 +89,7 @@
     {
       "role": "contract_ci",
       "path": ".github/workflows/scheduler-profiler-contracts.yml",
-      "sha256": "ef8b6bfb05b5e05a9f4ba2627583dfc5db6a484624627daa94c8aba6851fa20a"
+      "sha256": "24a38be00a2f1f21ec5674b1fcab199fcf4a4dc1ac3ac14a5f6caa52114d0115"
     }
   ],
   "acceptance_items": [1, 2, 3, 4, 5, 6, 7, 8],
