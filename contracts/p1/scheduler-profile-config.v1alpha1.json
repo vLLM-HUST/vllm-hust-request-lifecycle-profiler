@@ -64,11 +64,13 @@
   },
   "runtime_profile": {
     "async_scheduling": false,
+    "communication_mode": "none",
     "data_parallel_size": 1,
     "decode_context_parallel_size": 1,
     "device_count": 1,
     "device_id": 0,
     "distributed_executor_backend": "uni",
+    "ec_transfer_connector_enabled": false,
     "eager_execution": true,
     "host_count": 1,
     "max_concurrent_batches": 1,
@@ -80,7 +82,8 @@
     "prompt_count": 1,
     "rank_id": 0,
     "speculative_decoding": false,
-    "tensor_parallel_size": 1
+    "tensor_parallel_size": 1,
+    "kv_transfer_connector_enabled": false
   },
   "schema_version": 1,
   "tail_window": {

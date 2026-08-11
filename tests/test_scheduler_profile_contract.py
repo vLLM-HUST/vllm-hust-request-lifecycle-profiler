@@ -3,6 +3,7 @@ from __future__ import annotations
 import copy
 import hashlib
 import importlib.util
+import json
 from pathlib import Path
 
 import pytest
@@ -31,6 +32,26 @@ def _record(record_type: str) -> dict[str, object]:
     )
 
 
+def _write_wire_fixture(tmp_path: Path, records: list[dict[str, object]]) -> Path:
+    fixture_records = copy.deepcopy(records)
+    fixture_records[-1]["content_sha256"] = hashlib.sha256(
+        b"".join(
+            CONTRACT.canonicalize(record) + b"\n" for record in fixture_records[:-1]
+        )
+    ).hexdigest()
+    path = tmp_path / "scheduler-wire.json"
+    path.write_text(
+        json.dumps(
+            {"schema_version": 1, "records": fixture_records},
+            ensure_ascii=False,
+            indent=2,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    return path
+
+
 def test_complete_candidate_verifies() -> None:
     report = CONTRACT.verify()
     assert report["valid"] is True
@@ -39,6 +60,10 @@ def test_complete_candidate_verifies() -> None:
     assert report["process_binding"]["binding_status"] == "exact"
     assert report["wire_golden"]["records"] == 12
     assert report["wire_golden"]["data_records"] == 9
+    written_sequences = [
+        record["record_seq"] for record in _golden_records() if "record_seq" in record
+    ]
+    assert written_sequences == [0, 1, 2, 3, 5, 6, 7, 8, 9]
     assert (
         report["wire_golden"]["generated_maximal_cycle_bytes"]
         <= report["wire_golden"]["record_limit_bytes"]
@@ -106,6 +131,22 @@ def test_zero_token_batch_is_retained_but_never_device_eligible() -> None:
         CONTRACT.validate_record(batch, 8192)
 
 
+def test_batch_kind_closes_scheduled_request_count_domain() -> None:
+    work = _record("logical_batch")
+    work["scheduled_engine_request_count"] = 0
+    with pytest.raises(CONTRACT.ContractError, match="invalid_work_batch"):
+        CONTRACT.validate_record(work, 8192)
+
+    empty = next(
+        copy.deepcopy(record)
+        for record in _golden_records()
+        if record.get("logical_batch_kind") == "empty_control"
+    )
+    empty["scheduled_engine_request_count"] = 1
+    with pytest.raises(CONTRACT.ContractError, match="invalid_empty_control_batch"):
+        CONTRACT.validate_record(empty, 8192)
+
+
 def test_constraint_bucket_balance_and_order_are_closed() -> None:
     cycle = _record("schedule_cycle")
     cycle["token_budget_summary"]["buckets"][3]["count"] = 2
@@ -147,6 +188,91 @@ def test_config_rejects_boolean_capacity_and_fraction_outside_domain() -> None:
     mutated["coverage"]["tail"]["max_unmatched_step_fraction"] = 1.01
     with pytest.raises(CONTRACT.ContractError, match="invalid_coverage_threshold"):
         CONTRACT.verify_config(mutated)
+
+
+@pytest.mark.parametrize(
+    ("field", "invalid_value"),
+    [
+        ("communication_mode", "kv_transfer"),
+        ("kv_transfer_connector_enabled", True),
+        ("ec_transfer_connector_enabled", True),
+    ],
+)
+def test_runtime_profile_freezes_connector_disabled_state(
+    field: str, invalid_value: object
+) -> None:
+    config = CONTRACT.load_json(CONTRACT.CONFIG_PATH)
+    mutated = copy.deepcopy(config)
+    mutated["runtime_profile"][field] = invalid_value
+    with pytest.raises(CONTRACT.ContractError, match="invalid_runtime_profile"):
+        CONTRACT.verify_config(mutated)
+
+
+def test_clock_bridge_sample_must_share_start_clock_domain(tmp_path: Path) -> None:
+    records = _golden_records()
+    sample = next(
+        record for record in records if record["record_type"] == "clock_bridge_sample"
+    )
+    sample["clock_domain_id"] = "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+    path = _write_wire_fixture(tmp_path, records)
+    config = CONTRACT.load_json(CONTRACT.CONFIG_PATH)
+    with pytest.raises(CONTRACT.ContractError, match="clock_domain_mismatch"):
+        CONTRACT.validate_wire_golden(path, config)
+
+
+def test_loss_interval_exactly_covers_an_interior_record_gap(tmp_path: Path) -> None:
+    records = _golden_records()
+    config = CONTRACT.load_json(CONTRACT.CONFIG_PATH)
+    valid_path = _write_wire_fixture(tmp_path, records)
+    CONTRACT.validate_wire_golden(valid_path, config)
+
+    loss = next(
+        record for record in records if record["record_type"] == "loss_interval"
+    )
+    loss["first_dropped_record_seq"] = 9
+    loss["last_dropped_record_seq"] = 9
+    invalid_path = _write_wire_fixture(tmp_path, records)
+    with pytest.raises(CONTRACT.ContractError, match="wire_record_sequence_coverage"):
+        CONTRACT.validate_wire_golden(invalid_path, config)
+
+
+def test_cycle_must_finish_before_linked_execution_dispatch(tmp_path: Path) -> None:
+    records = _golden_records()
+    cycle = next(
+        record for record in records if record["record_type"] == "schedule_cycle"
+    )
+    batch = next(
+        record
+        for record in records
+        if record["record_type"] == "logical_batch"
+        and record["logical_batch_id"] == cycle["logical_batch_id"]
+    )
+    start = next(
+        record
+        for record in records
+        if record["record_type"] == "execution_step_start"
+        and record["execution_step_id"] == batch["execution_step_id"]
+    )
+    start["dispatch_monotonic_ns"] = cycle["cycle_end_monotonic_ns"] - 1
+    path = _write_wire_fixture(tmp_path, records)
+    config = CONTRACT.load_json(CONTRACT.CONFIG_PATH)
+    with pytest.raises(CONTRACT.ContractError, match="invalid_cycle_execution_order"):
+        CONTRACT.validate_wire_golden(path, config)
+
+
+@pytest.mark.parametrize("duplicate_type", ["scheduler_start", "scheduler_summary"])
+def test_wire_rejects_duplicate_control_records(
+    tmp_path: Path, duplicate_type: str
+) -> None:
+    records = _golden_records()
+    duplicate = copy.deepcopy(
+        next(record for record in records if record["record_type"] == duplicate_type)
+    )
+    records.insert(-1, duplicate)
+    path = _write_wire_fixture(tmp_path, records)
+    config = CONTRACT.load_json(CONTRACT.CONFIG_PATH)
+    with pytest.raises(CONTRACT.ContractError, match="wire_control_cardinality"):
+        CONTRACT.validate_wire_golden(path, config)
 
 
 def test_candidate_overflow_is_never_silent_truncation() -> None:

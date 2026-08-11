@@ -22,7 +22,11 @@ Formal v1 input is restricted to one host, one visible Ascend device, rank 0,
 decoder-only generation, one prompt, `n=1`, eager mode, `UniProcExecutor`, and
 all TP/PP/DP/DCP sizes equal to one. Async scheduling, speculation,
 multimodal input, graph capture, a KV/EC transfer connector, multiple in-flight
-batches, and any unreceipted runtime source are unsupported.
+batches, and any unreceipted runtime source are unsupported. The machine
+profile therefore freezes `communication_mode="none"`,
+`kv_transfer_connector_enabled=false`, and
+`ec_transfer_connector_enabled=false`; absence of connector configuration is
+not accepted as proof that connectors are disabled.
 
 The effective runtime values must match the `runtime_profile` object in the
 machine-readable configuration. A mismatch may produce bounded diagnostic
@@ -62,7 +66,10 @@ Every data record additionally has `record_seq` (uint64). It is allocated
 atomically in producer-observation order before validation, serialization, or
 enqueue. It is an audit sequence, never a causal edge. `scheduler_start`,
 `loss_interval`, and `scheduler_summary` are control records and do not consume
-`record_seq`.
+`record_seq`. Written data sequences may contain gaps. Sorted written singleton
+sequences plus every loss-interval range must be disjoint and cover exactly
+`0..attempted_data_count-1`; a gap, overlap, duplicate, or out-of-range segment
+invalidates the shard.
 
 ## 3. Identity and relation representation
 
@@ -183,10 +190,11 @@ Always:
 scheduled_token_count = prefill_token_count + decode_token_count
 ```
 
-`work` requires a positive scheduled token count and
+`work` requires positive scheduled token and engine-request counts and
 `device_attribution_eligible=true`. `empty_control` requires all three token
-counts to be zero and `device_attribution_eligible=false`; it remains linked to
-its dispatched execution step and is never deleted from completeness audits.
+counts and the engine-request count to be zero and
+`device_attribution_eligible=false`; it remains linked to its dispatched
+execution step and is never deleted from completeness audits.
 `scheduled_engine_request_count` is the number of entries in the approved
 SchedulerOutput request-to-scheduled-token mapping. Prefix-cache tokens not
 scheduled for compute do not contribute; chunked prefill contributes only the
@@ -210,6 +218,7 @@ dispatch_kind                         uniproc_execute_model
 ```
 
 This is the host observation immediately before the approved executor dispatch.
+The linked `schedule_cycle.cycle_end_monotonic_ns` is not after this timestamp.
 It is not a device-task start.
 
 ### 4.5 `execution_step_end`

@@ -49,12 +49,12 @@
     {
       "role": "scheduler_wire_contract",
       "path": "contracts/p1/scheduler-profile.v1alpha1-draft.md",
-      "sha256": "1a6455b413958efe27d1ff0bee44f3cfb6d5db792685d993a03407393da02338"
+      "sha256": "f8ec53772fc2ef3a8d8bd5e9406000acb7a5b3a679cae80a79860bdf0168a28d"
     },
     {
       "role": "scheduler_profile_config",
       "path": "contracts/p1/scheduler-profile-config.v1alpha1.json",
-      "sha256": "f3653eece116ca951326f2a4b9806095fb8e035406a181432b01fae8f931b4fb"
+      "sha256": "4686b54cbaa7d9312199cd552f3d3b8ec0354ce6bf4a30682b7e4a7926efe08b"
     },
     {
       "role": "multistream_overlay",
@@ -74,17 +74,17 @@
     {
       "role": "scheduler_wire_golden",
       "path": "contracts/p1/fixtures/scheduler-profile-v1alpha1/scheduler-wire-golden.json",
-      "sha256": "e401c5ad988a6cc1fdd098a7a2bafc87bf78dae040a666522473ecc17b323ecc"
+      "sha256": "ae1e83ec2cf15b1520c92262940c1a05aa89d9ca4597dc04a26f85d0f0e3557d"
     },
     {
       "role": "contract_verifier",
       "path": "scripts/verify_scheduler_profile_contract.py",
-      "sha256": "ee81d663a53f388d59a589947f5a253224691a7bbb373c61e84b4a1f1e1f9850"
+      "sha256": "648e7e8260cbb4f694ece34229024eb19bbf7d7d60cca5dcc121e639ecadcb4c"
     },
     {
       "role": "contract_tests",
       "path": "tests/test_scheduler_profile_contract.py",
-      "sha256": "c6349c03a1fdcf6a173ca14d6155861bcd85a1f254f2a374c350071562b508fb"
+      "sha256": "c1af9fb92abc2b5f7f5ffb32d9e681fc486a56c84855efbd3c17c2dc8cea4f76"
     },
     {
       "role": "contract_ci",

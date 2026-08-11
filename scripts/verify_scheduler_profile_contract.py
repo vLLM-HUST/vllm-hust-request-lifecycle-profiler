@@ -103,6 +103,29 @@ EXPECTED_CANDIDATE_ARTIFACTS = {
     "contract_tests": "tests/test_scheduler_profile_contract.py",
     "contract_ci": ".github/workflows/scheduler-profiler-contracts.yml",
 }
+EXPECTED_RUNTIME_PROFILE = {
+    "async_scheduling": False,
+    "communication_mode": "none",
+    "data_parallel_size": 1,
+    "decode_context_parallel_size": 1,
+    "device_count": 1,
+    "device_id": 0,
+    "distributed_executor_backend": "uni",
+    "ec_transfer_connector_enabled": False,
+    "eager_execution": True,
+    "host_count": 1,
+    "kv_transfer_connector_enabled": False,
+    "max_concurrent_batches": 1,
+    "max_in_flight_execution_steps": 1,
+    "model_mode": "decoder_only_generation",
+    "multimodal": False,
+    "n": 1,
+    "pipeline_parallel_size": 1,
+    "prompt_count": 1,
+    "rank_id": 0,
+    "speculative_decoding": False,
+    "tensor_parallel_size": 1,
+}
 
 COMMON = {
     "schema_version",
@@ -807,7 +830,7 @@ def validate_record(record: Any, max_bytes: int) -> None:
         scheduled = _uint(record["scheduled_token_count"], 64, "scheduled_token_count")
         prefill = _uint(record["prefill_token_count"], 64, "prefill_token_count")
         decode = _uint(record["decode_token_count"], 64, "decode_token_count")
-        _uint(
+        request_count = _uint(
             record["scheduled_engine_request_count"],
             32,
             "scheduled_engine_request_count",
@@ -815,10 +838,18 @@ def validate_record(record: Any, max_bytes: int) -> None:
         if scheduled != prefill + decode:
             raise ContractError("batch_token_balance")
         if record["logical_batch_kind"] == "work":
-            if scheduled == 0 or record["device_attribution_eligible"] is not True:
+            if (
+                scheduled == 0
+                or request_count == 0
+                or record["device_attribution_eligible"] is not True
+            ):
                 raise ContractError("invalid_work_batch")
         elif record["logical_batch_kind"] == "empty_control":
-            if scheduled != 0 or record["device_attribution_eligible"] is not False:
+            if (
+                scheduled != 0
+                or request_count != 0
+                or record["device_attribution_eligible"] is not False
+            ):
                 raise ContractError("invalid_empty_control_batch")
         else:
             raise ContractError("invalid_batch_kind")
@@ -1007,6 +1038,38 @@ def _maximal_schedule_cycle(record: dict[str, Any]) -> dict[str, Any]:
     return result
 
 
+def _validate_record_sequence_coverage(
+    records: list[dict[str, Any]], summary: dict[str, Any]
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    data = [record for record in records if "record_seq" in record]
+    losses = [record for record in records if record["record_type"] == "loss_interval"]
+    written_sequences = [record["record_seq"] for record in data]
+    if written_sequences != sorted(set(written_sequences)):
+        raise ContractError("wire_record_sequence_order")
+    if [record["loss_interval_seq"] for record in losses] != list(range(len(losses))):
+        raise ContractError("wire_loss_interval_sequence")
+
+    segments = [(sequence, sequence) for sequence in written_sequences]
+    dropped_count = 0
+    for loss in losses:
+        first = loss["first_dropped_record_seq"]
+        last = loss["last_dropped_record_seq"]
+        segments.append((first, last))
+        dropped_count += loss["dropped_count"]
+    if dropped_count != summary["dropped_data_count"]:
+        raise ContractError("wire_loss_summary_mismatch")
+
+    attempted = summary["attempted_data_count"]
+    cursor = 0
+    for first, last in sorted(segments):
+        if first != cursor:
+            raise ContractError("wire_record_sequence_coverage")
+        cursor = last + 1
+    if cursor != attempted:
+        raise ContractError("wire_record_sequence_coverage")
+    return data, losses
+
+
 def validate_wire_golden(path: Path, config: dict[str, Any]) -> dict[str, Any]:
     payload = load_json(path)
     if payload.get("schema_version") != 1 or not isinstance(
@@ -1020,6 +1083,14 @@ def validate_wire_golden(path: Path, config: dict[str, Any]) -> dict[str, Any]:
         validate_record(record, config["wire_limits"]["max_record_bytes_including_lf"])
         records.append(record)
         lines.append(line)
+    if not records:
+        raise ContractError("empty_wire_fixture")
+    start_count = sum(record["record_type"] == "scheduler_start" for record in records)
+    summary_count = sum(
+        record["record_type"] == "scheduler_summary" for record in records
+    )
+    if start_count != 1 or summary_count != 1:
+        raise ContractError("wire_control_cardinality")
     if (
         records[0]["record_type"] != "scheduler_start"
         or records[-1]["record_type"] != "scheduler_summary"
@@ -1035,6 +1106,12 @@ def validate_wire_golden(path: Path, config: dict[str, Any]) -> dict[str, Any]:
     }
     if any(start[key] != digest for key, digest in expected_digests.items()):
         raise ContractError("wire_start_artifact_digest_mismatch")
+    if any(
+        record["clock_domain_id"] != start["clock_domain_id"]
+        for record in records
+        if record["record_type"] == "clock_bridge_sample"
+    ):
+        raise ContractError("clock_domain_mismatch")
     common_scope = {
         key: start[key]
         for key in (
@@ -1052,9 +1129,10 @@ def validate_wire_golden(path: Path, config: dict[str, Any]) -> dict[str, Any]:
     observed_types = {record["record_type"] for record in records}
     if observed_types != set(FIELDS_BY_RECORD_TYPE):
         raise ContractError("incomplete_record_type_golden")
-    data = [record for record in records if "record_seq" in record]
-    if [record["record_seq"] for record in data] != list(range(len(data))):
-        raise ContractError("wire_record_sequence")
+    summary = records[-1]
+    data, losses = _validate_record_sequence_coverage(records, summary)
+    if len(losses) > config["wire_limits"]["max_loss_interval_records_per_shard"]:
+        raise ContractError("wire_loss_interval_limit")
     cycles = {
         record["schedule_cycle_id"]: record
         for record in records
@@ -1097,11 +1175,10 @@ def validate_wire_golden(path: Path, config: dict[str, Any]) -> dict[str, Any]:
             != batch["logical_batch_id"]
         ):
             raise ContractError("batch_execution_relation")
-        if (
-            starts[step_id]["dispatch_monotonic_ns"]
-            > ends[step_id]["final_result_monotonic_ns"]
-        ):
-            raise ContractError("inverted_execution_step")
+        dispatch = starts[step_id]["dispatch_monotonic_ns"]
+        final_result = ends[step_id]["final_result_monotonic_ns"]
+        if cycle["cycle_end_monotonic_ns"] > dispatch or dispatch > final_result:
+            raise ContractError("invalid_cycle_execution_order")
     if not (len(cycles) == len(batches) == len(starts) == len(ends)):
         raise ContractError("non_bijective_cycle_batch_step_relation")
     open_steps: set[str] = set()
@@ -1116,7 +1193,6 @@ def validate_wire_golden(path: Path, config: dict[str, Any]) -> dict[str, Any]:
             open_steps.remove(record["execution_step_id"])
     if open_steps:
         raise ContractError("unclosed_execution_step")
-    summary = records[-1]
     actual_written = {
         "written_schedule_cycle_count": sum(
             record["record_type"] == "schedule_cycle" for record in data
@@ -1230,6 +1306,8 @@ def verify_config(config: dict[str, Any]) -> dict[str, Any]:
         or config["wire_schema"] != "rlp.scheduler/v1alpha1"
     ):
         raise ContractError("invalid_config_status")
+    if config["runtime_profile"] != EXPECTED_RUNTIME_PROFILE:
+        raise ContractError("invalid_runtime_profile")
     for key, value in limits.items():
         if key in {"shard_mode_octal", "shard_path_template", "shard_scope"}:
             if not isinstance(value, str) or not value:
