@@ -439,6 +439,14 @@ def test_normalizer_rejects_missing_duplicate_and_profile_loss(tmp_path: Path) -
     with pytest.raises(ValueError, match="profile evidence contains loss"):
         normalize_h2d_recovery(records, expected, profile_evidence_complete=False)
 
+    wrong_trace_edge = dict(edges[1], trace_id="f" * 32)
+    with pytest.raises(ValueError, match="missing or duplicated"):
+        normalize_h2d_recovery(
+            [wrong_trace_edge if row is edges[1] else row for row in records],
+            expected,
+            profile_evidence_complete=True,
+        )
+
 
 @pytest.mark.parametrize(
     "record_type",

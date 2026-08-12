@@ -1,9 +1,9 @@
-# G6 Completion Record (2026-08-11)
+# G6 Development Counterfactual Record (2026-08-11)
 
-> Gate: **G6 — counterfactual** (experiment_plan.md step 7).
-> Verdict: **PASS** (development-level rank-one counterfactual). This is
-> **NOT blind-scored**; blind M0 scoring requires the separately frozen
-> Team-A custody/reveal protocol.
+> Candidate: **G6 — counterfactual** (experiment_plan.md step 7). This is a
+> development-level observation, not a formal gate decision and not
+> blind-scored. M0 scoring requires fresh opaque cases and a genuine Team-A
+> custody/reveal evaluation.
 
 ## 1. Requirement checklist
 
@@ -25,7 +25,8 @@
 | complete seven-stage episodes | 3 (1/lifecycle), 0 loss | 0 |
 | median tail | **41.0 s** | **2.0 s** |
 
-Pass rule: base median tail > 10 s **and** head median tail < 5 s → **PASS**.
+Development threshold: base median tail > 10 s and head median tail < 5 s was
+met. This is not a formal performance or M0 verdict.
 
 ## 3. Interpretation
 
@@ -34,8 +35,8 @@ request — **appears in base and disappears in head** when the only changed
 variable is the recovery/restore mechanism. This is consistent with the H2D
 restore (copy + wakeup + re-admission) being causal for that tail. It is a
 development-level counterfactual; it does not establish blind-attribution
-accuracy, MRR, or time-to-localize (those require the Team-A custody/reveal
-protocol).
+accuracy, MRR, or time-to-localize (those require fresh opaque cases and a
+genuine Team-A custody/reveal evaluation).
 
 ## 4. Artifacts
 

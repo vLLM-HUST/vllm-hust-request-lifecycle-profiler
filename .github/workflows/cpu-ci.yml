@@ -1,0 +1,108 @@
+name: CPU CI
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/cpu-ci.yml"
+      - ".benchmarks/**"
+      - "docs/**"
+      - "paper/request_lifecycle_causal_profiler/experiments/**"
+      - "pyproject.toml"
+      - "scripts/**"
+      - "src/**"
+      - "tests/**"
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/cpu-ci.yml"
+      - ".benchmarks/**"
+      - "docs/**"
+      - "paper/request_lifecycle_causal_profiler/experiments/**"
+      - "pyproject.toml"
+      - "scripts/**"
+      - "src/**"
+      - "tests/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  tests:
+    name: Python ${{ matrix.python-version }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10", "3.11"]
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+          cache-dependency-path: pyproject.toml
+
+      - name: Fetch current runtime ABI source
+        env:
+          RUNTIME_SOURCE_DIR: ${{ runner.temp }}/vllm-hust-runtime
+          RUNTIME_SOURCE_SHA: 50a6df2bef5c06e7f38107dedd9214e61ff58df1
+        run: |
+          set -euo pipefail
+          git init "$RUNTIME_SOURCE_DIR"
+          git -C "$RUNTIME_SOURCE_DIR" remote add origin \
+            https://github.com/vLLM-HUST/vllm-hust.git
+          git -C "$RUNTIME_SOURCE_DIR" fetch --depth=1 origin "$RUNTIME_SOURCE_SHA"
+          git -C "$RUNTIME_SOURCE_DIR" checkout --detach FETCH_HEAD
+          test "$(git -C "$RUNTIME_SOURCE_DIR" rev-parse HEAD)" = \
+            "$RUNTIME_SOURCE_SHA"
+          printf 'VLLM_HUST_G1_SRC=%s\n' "$RUNTIME_SOURCE_DIR" >> "$GITHUB_ENV"
+
+      - name: Select fork-safe workload fixture
+        run: |
+          set -euo pipefail
+          fixture="$GITHUB_WORKSPACE/tests/fixtures/llm-serving-workloads-76e24c85/src"
+          test -f "$fixture/llm_serving_workloads/__init__.py"
+          printf 'LLM_SERVING_WORKLOADS_SRC=%s\n' "$fixture" >> "$GITHUB_ENV"
+
+      - name: Install development dependencies
+        run: python -m pip install -e ".[dev]"
+
+      - name: Check changed-file whitespace
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          set -euo pipefail
+          if [[ "$EVENT_NAME" == "pull_request" ]]; then
+            git diff --check "$BASE_SHA...$HEAD_SHA"
+          elif [[ "$EVENT_NAME" == "push" && "$BASE_SHA" =~ ^[0-9a-f]{40}$ && ! "$BASE_SHA" =~ ^0+$ ]]; then
+            git diff --check "$BASE_SHA" "$HEAD_SHA"
+          else
+            git show --check --format=fuller "$HEAD_SHA" --
+          fi
+
+      - name: Run critical lint checks
+        run: >-
+          python -m ruff check --select E9,F63,F7,F82
+          src tests .benchmarks scripts
+          paper/request_lifecycle_causal_profiler/experiments
+
+      - name: Run unit tests
+        run: python -m pytest -q
+
+      - name: Build source and wheel distributions
+        run: python -m build

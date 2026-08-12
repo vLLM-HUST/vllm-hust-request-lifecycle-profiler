@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import importlib.util
 import json
 import os
@@ -11,6 +12,7 @@ import pytest
 
 from vllm_request_lifecycle_profiler.kv_recovery_profile_protocol import (
     KVRecoveryProfileConfig,
+    profile_record_line,
 )
 from vllm_request_lifecycle_profiler.kv_recovery_runtime import (
     BaseEventRef,
@@ -106,8 +108,7 @@ def load_runtime_abi():
 
 
 def test_actual_runtime_abi_completes_profiler_whole_trace(tmp_path: Path) -> None:
-    abi = KVRecoveryRuntimeABI.load()
-    import vllm.v1.kv_recovery_profile as runtime
+    abi, runtime = load_runtime_abi()
 
     sink = JsonlTraceSink(
         tmp_path / "trace",
@@ -261,11 +262,59 @@ def test_actual_runtime_abi_completes_profiler_whole_trace(tmp_path: Path) -> No
     assert episode.requeue_count == 1
     assert len(episode.profile_event_ids) == 7
 
+    corrupted_base = [dict(row) for row in records]
+    process_start = next(
+        row for row in corrupted_base if row.get("record_type") == "process_start"
+    )
+    process_start["pid"] += 1
+    with pytest.raises(ValueError, match="process_summary content digest differs"):
+        normalize_kv_recovery_episode(
+            corrupted_base,
+            profile_records,
+            ExpectedKVRecoveryEpisode(
+                h2d=h2d_expected,
+                run_id=RUN_ID,
+                runtime_request_id=REQUEST_ID,
+                resumed_event_id=resumed.event_id,
+                first_compute_base_event_id=(compute_context.base_phase_start_event_id),
+                compute_kind="prefill",
+                requeue_reasons=("token_budget",),
+                process_uuids=(WORKER_UUID,),
+            ),
+            profile_evidence_complete=True,
+        )
+
+    corrupted_profile = [dict(row) for row in profile_records]
+    block_row = next(
+        row for row in corrupted_profile if row.get("record_type") == "block_set_chunk"
+    )
+    block_row["timestamp_ns"] += 1
+    with pytest.raises(ValueError, match="profile_summary content digest differs"):
+        normalize_kv_recovery_episode(
+            records,
+            corrupted_profile,
+            ExpectedKVRecoveryEpisode(
+                h2d=h2d_expected,
+                run_id=RUN_ID,
+                runtime_request_id=REQUEST_ID,
+                resumed_event_id=resumed.event_id,
+                first_compute_base_event_id=(compute_context.base_phase_start_event_id),
+                compute_kind="prefill",
+                requeue_reasons=("token_budget",),
+                process_uuids=(WORKER_UUID,),
+            ),
+            profile_evidence_complete=True,
+        )
+
     broken_profile = [dict(row) for row in profile_records]
     admission_row = next(
         row for row in broken_profile if row.get("stage") == "admission"
     )
     admission_row["from_profile_event_id"] = milestones[3]["record_id"]
+    broken_summary = broken_profile[-1]
+    broken_summary["content_sha256"] = hashlib.sha256(
+        b"".join(profile_record_line(row) for row in broken_profile[:-1])
+    ).hexdigest()
     with pytest.raises(ValueError, match="predecessor chain"):
         normalize_kv_recovery_episode(
             records,
@@ -511,6 +560,13 @@ def test_actual_runtime_connector_flow_captures_full_h2d_recovery(
     end-to-end (preempt, restore_start, restore_done, scheduler_wakeup,
     requeue, admission, first_prefill_or_decode) and close ``drained``.
     """
+    full_runtime_source = os.environ.get("VLLM_HUST_FULL_SRC", "").strip()
+    if not full_runtime_source:
+        pytest.skip("set VLLM_HUST_FULL_SRC for the full connector CPU gate")
+    source_path = str(Path(full_runtime_source).resolve())
+    if source_path not in sys.path:
+        sys.path.insert(0, source_path)
+
     abi = KVRecoveryRuntimeABI.load()
     import vllm.v1.kv_recovery_profile as runtime
 
@@ -732,8 +788,7 @@ def test_actual_runtime_records_unassociated_h2d_migration_without_episode(
     transfer_rows = [
         row
         for row in profile_records
-        if row["record_type"] == "transfer_event"
-        and row["operation"] == "h2d_restore"
+        if row["record_type"] == "transfer_event" and row["operation"] == "h2d_restore"
     ]
     assert [row["transfer_phase"] for row in transfer_rows] == ["submit", "done"]
     assert all(row["recovery_epoch"] is None for row in transfer_rows)

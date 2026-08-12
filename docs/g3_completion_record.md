@@ -1,9 +1,10 @@
-# G3 Completion Record (2026-08-09/10)
+# G3 Development Capture Record (2026-08-09/10)
 
-> Gate: **G3 — minimum online trace smoke** (experiment_plan.md step 4).
-> Verdict: **PASS** — two complete seven-stage recovery episodes on a live
-> controlled service, zero trace loss, clean drain, labeled
-> `real-online` + `smoke-only`.
+> Candidate: **G3 — minimum online trace smoke** (experiment_plan.md step 4).
+> This records a successful development capture: two complete seven-stage
+> recovery episodes on a live controlled service, zero trace loss, clean drain,
+> and labels `real-online` + `smoke-only`. It is not benchmark #95 accepted
+> performance evidence and does not prove M0.
 
 ## 1. Requirement checklist (what G3 required)
 
@@ -62,7 +63,7 @@ Fix (device-plugin, +6 lines): call
 
 ## 5. Conclusions
 
-1. Capture path proven on the real online service: the full seven-stage
+1. The development capture observed the full seven-stage
    recovery chain, request-ID association, and copy fields are recorded with
    zero loss. The missing `first_prefill_or_decode` was a wiring gap in the
    Ascend `NPUModelRunner.execute_model` override, not a protocol/ABI defect.
@@ -72,9 +73,9 @@ Fix (device-plugin, +6 lines): call
    (a request re-preempted or finishing mid-recovery) are recorded as
    `loss_interval` and fail the run closed. G4 matching must use scheduling
    that avoids such abandonment.
-4. Code hygiene: temporary WARNING diagnostics were downgraded to
-   `logger.debug`; no debug instrumentation remains; profiler 21 passed
-   (incl. cross-repo integration), runtime KV 82 passed.
+4. Producer callbacks do not invoke logging handlers for profile validation or
+   serialization failures; they account the loss and remain fail-open. Test
+   counts are development results and must be reproduced by CI for integration.
 
 ## 6. Known limitation / note
 

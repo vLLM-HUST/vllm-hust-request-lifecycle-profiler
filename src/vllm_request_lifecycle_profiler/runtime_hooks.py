@@ -527,12 +527,7 @@ class JsonlTraceSink:
                     fields=fields,
                 )
                 raw = profile_record_line(record)
-            except Exception:
-                logger.debug(
-                    "KV-recovery profile record %s failed validation",
-                    record_type,
-                    exc_info=True,
-                )
+            except Exception:  # noqa: BLE001 - serving must remain fail-open.
                 self._note_profile_drop_locked(
                     profile,
                     record_seq,
@@ -2642,12 +2637,7 @@ class RuntimeLifecycleHooks:
             return self._current_sink().write_kv_recovery_profile(
                 record_type, timestamp_ns, **fields
             )
-        except Exception:
-            logger.warning(
-                "KV-recovery profile record %s failed to serialize",
-                record_type,
-                exc_info=True,
-            )
+        except Exception:  # noqa: BLE001 - runtime emission is fail-open.
             self._defer_diagnostic("serialization_failure")
             return None
 

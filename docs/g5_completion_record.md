@@ -1,10 +1,9 @@
-# G5 Completion Record (2026-08-10)
+# G5 Development Capture Record (2026-08-10)
 
-> Gate: **G5 — full capacity surface** (experiment_plan.md step 6).
-> Verdict: **COMPLETE** per the plan. The #134 8/16/24/32-GiB ×
-> random/sharegpt/prefix matrix was executed (36 runs, ≥3 independent
-> lifecycles per point). Documented deviations: per-capacity
-> `gpu_memory_utilization` and `--enforce-eager` (see §5).
+> Candidate: **G5 — full capacity surface** (experiment_plan.md step 6).
+> This records a development matrix of 36 runs across the #134
+> 8/16/24/32-GiB × random/sharegpt/prefix surface. It is not benchmark #95
+> accepted performance evidence. Deviations are documented in §5.
 
 ## 1. Requirement checklist and delivery
 
@@ -76,9 +75,9 @@ the env fixed and captured complete episodes.
 - Aggregations: `/root/kv-recovery-service-g4/g5_results.json`,
   `g5_points.json`, `g5_pressure_capacity.json`.
 
-## 7. Verdict
+## 7. Development conclusion
 
-G5 complete per the plan. The official workload curve is flat and negative
-coverage across 8–32 GiB; the mechanism boundary is at 8 GiB (episodes) with
-no preemption at ≥16 GiB. Next: G6 counterfactual (rank-one mechanism change),
-per the plan, after causal ranking selects the mechanism.
+In this development capture, the official workload curve is flat and has
+negative coverage across 8–32 GiB. The observed mechanism boundary is at
+8 GiB (episodes), with no preemption at ≥16 GiB. Formal publication still
+requires benchmark #95-compliant accepted base/head artifacts.

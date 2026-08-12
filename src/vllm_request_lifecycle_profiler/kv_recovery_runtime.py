@@ -25,6 +25,7 @@ from vllm_request_lifecycle_profiler.kv_recovery_profile_protocol import (
     ProfileLossInterval,
     ProfileRecord,
     ProfileRecordType,
+    profile_record_line,
 )
 from vllm_request_lifecycle_profiler.runtime_hooks import RuntimeLifecycleHooks
 from vllm_request_lifecycle_profiler.runtime_protocol import (
@@ -32,6 +33,7 @@ from vllm_request_lifecycle_profiler.runtime_protocol import (
     KV_RECOVERY_H2D_EVIDENCE,
     EdgeDraft,
     EventDraft,
+    canonical_json_line,
 )
 
 _HEX32 = re.compile(r"^[0-9a-f]{32}$")
@@ -711,8 +713,10 @@ class RuntimeBaseLifecycleBridge:
                 logger.debug(
                     "KV-recovery emit_first_compute rejected for %s epoch=%s: "
                     "identity=%s episode=%s resumed=%s first_compute=%s kind=%s",
-                    runtime_request_id, recovery_epoch,
-                    identity is not None, episode is not None,
+                    runtime_request_id,
+                    recovery_epoch,
+                    identity is not None,
+                    episode is not None,
                     episode.resumed is not None if episode else None,
                     episode.first_compute is not None if episode else None,
                     compute_kind,
@@ -720,7 +724,10 @@ class RuntimeBaseLifecycleBridge:
                 return None
             span_id = self._hooks.new_span_id()
             if span_id is None:
-                logger.debug("KV-recovery emit_first_compute no span id for %s", runtime_request_id)
+                logger.debug(
+                    "KV-recovery emit_first_compute no span id for %s",
+                    runtime_request_id,
+                )
                 return None
             emitted = self._hooks.emit_event(
                 EventDraft(
@@ -1926,13 +1933,16 @@ class KVRecoverySchedulerAdapter:
         except Exception:
             logger.debug(
                 "KV-recovery request_admitted compute-context failed for %s epoch=%s",
-                runtime_request_id, recovery_epoch, exc_info=True,
+                runtime_request_id,
+                recovery_epoch,
+                exc_info=True,
             )
             self._profile.drop("recovery_event", resumed_event.timestamp_ns)
             return None
         logger.debug(
             "KV-recovery request_admitted SUCCESS compute-context for %s epoch=%s",
-            runtime_request_id, recovery_epoch,
+            runtime_request_id,
+            recovery_epoch,
         )
         self._episodes.pop(runtime_request_id, None)
         return context
@@ -2221,18 +2231,21 @@ def normalize_h2d_recovery(
         raise ValueError("communication bytes are not positive")
     expected_edges = (
         (
+            expected.trace_id,
             expected.preempted_event_id,
             start_id,
             "data_dependency",
             KV_RECOVERY_H2D_EVIDENCE,
         ),
         (
+            expected.trace_id,
             start_id,
             done_id,
             "program_order",
             "instrumented_execution_context",
         ),
         (
+            expected.trace_id,
             done_id,
             expected.admission_started_event_id,
             "data_dependency",
@@ -2245,6 +2258,7 @@ def normalize_h2d_recovery(
             edge
             for edge in edges
             if (
+                edge.get("trace_id"),
                 edge.get("from_event_id"),
                 edge.get("to_event_id"),
                 edge.get("edge_kind"),
@@ -2314,6 +2328,18 @@ def normalize_kv_recovery_episode(
     _validate_process_roster(base_rows, "process_summary", expected_processes)
     _validate_process_roster(profile_rows, "profile_start", expected_processes)
     _validate_process_roster(profile_rows, "profile_summary", expected_processes)
+    _validate_shard_content_digests(
+        base_rows,
+        expected_processes,
+        summary_type="process_summary",
+        encoder=canonical_json_line,
+    )
+    _validate_shard_content_digests(
+        profile_rows,
+        expected_processes,
+        summary_type="profile_summary",
+        encoder=profile_record_line,
+    )
     if any(row.get("record_type") == "loss_interval" for row in profile_rows):
         raise ValueError("profile evidence contains loss")
     _validate_profile_ledgers(profile_rows, expected_processes)
@@ -2504,6 +2530,30 @@ def _validate_process_roster(
     ]
     if len(observed) != len(expected_processes) or set(observed) != expected_processes:
         raise ValueError(f"{record_type} process roster differs")
+
+
+def _validate_shard_content_digests(
+    rows: tuple[Mapping[str, object], ...],
+    expected_processes: set[str],
+    *,
+    summary_type: str,
+    encoder: Callable[[Mapping[str, object]], bytes],
+) -> None:
+    """Recompute each parsed shard digest from its canonical record bytes."""
+
+    for process_uuid in expected_processes:
+        process_rows = [row for row in rows if row.get("process_uuid") == process_uuid]
+        summaries = [
+            row for row in process_rows if row.get("record_type") == summary_type
+        ]
+        if len(summaries) != 1:
+            raise ValueError(f"{summary_type} process roster differs")
+        content_hash = hashlib.sha256()
+        for row in process_rows:
+            if row.get("record_type") != summary_type:
+                content_hash.update(encoder(row))
+        if summaries[0].get("content_sha256") != content_hash.hexdigest():
+            raise ValueError(f"{summary_type} content digest differs")
 
 
 def _validate_profile_ledgers(
