@@ -19,6 +19,7 @@ from vllm_request_lifecycle_profiler.kv_recovery_runtime import (
     KVRecoverySchedulerAdapter,
     KVRecoveryWorkerEvidenceAdapter,
     RequestLifecycleIdentity,
+    RuntimeBaseLifecycleBridge,
     normalize_h2d_recovery,
 )
 from vllm_request_lifecycle_profiler.runtime_hooks import (
@@ -233,6 +234,25 @@ def read_committed_records(hooks: RuntimeLifecycleHooks) -> list[dict[str, objec
     path = hooks.committed_shard_path
     assert path is not None
     return [json.loads(line) for line in path.read_text().splitlines()]
+
+
+@pytest.mark.parametrize(
+    "runtime_request_id",
+    ["请求-1", "", "x" * 129, "line\nbreak"],
+)
+def test_runtime_bridge_rejects_invalid_request_id_without_emitting(
+    tmp_path: Path,
+    runtime_request_id: str,
+) -> None:
+    hooks = make_hooks(tmp_path)
+    bridge = RuntimeBaseLifecycleBridge(hooks)
+
+    assert not bridge.register_runtime_request(
+        RUN_ID, runtime_request_id, timestamp_ns=1
+    )
+    records = read_committed_records(hooks)
+
+    assert not any(row.get("record_type") == "event" for row in records)
 
 
 def base_endpoint_records() -> list[dict[str, object]]:

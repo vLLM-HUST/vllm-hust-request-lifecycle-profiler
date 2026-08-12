@@ -18,6 +18,7 @@ from typing import Any, Protocol
 
 from vllm_request_lifecycle_profiler.kv_recovery_profile_protocol import (
     MAX_PROFILE_DATA_RECORDS,
+    MAX_RUNTIME_REQUEST_ID_BYTES,
     PROFILE_ID,
     KVRecoveryProfileConfig,
     LossReason,
@@ -62,6 +63,15 @@ def _is_uint64(value: object) -> bool:
     return type(value) is int and 0 <= value <= _UINT64_MAX
 
 
+def _is_bounded_printable_ascii(value: object, max_bytes: int) -> bool:
+    return (
+        isinstance(value, str)
+        and value.isascii()
+        and value.isprintable()
+        and 1 <= len(value) <= max_bytes
+    )
+
+
 @dataclass(frozen=True)
 class RequestLifecycleIdentity:
     """Exact base lifecycle identity owned by the base runtime adapter."""
@@ -75,11 +85,8 @@ class RequestLifecycleIdentity:
         _require_hex32(self.trace_id, "trace_id")
         if self.engine_lifecycle_id != f"{self.trace_id}:e:{self.sample_index}":
             raise ValueError("engine_lifecycle_id does not match trace/sample")
-        if (
-            not isinstance(self.runtime_request_id, str)
-            or not self.runtime_request_id.isascii()
-            or not self.runtime_request_id.isprintable()
-            or not 1 <= len(self.runtime_request_id.encode("ascii")) <= 128
+        if not _is_bounded_printable_ascii(
+            self.runtime_request_id, MAX_RUNTIME_REQUEST_ID_BYTES
         ):
             raise ValueError("runtime_request_id is not bounded printable ASCII")
         if self.sample_index != 0:
@@ -221,6 +228,10 @@ class RuntimeBaseLifecycleBridge:
     ) -> bool:
         """Register a request at the real connector request-entry callback."""
 
+        if not _is_bounded_printable_ascii(
+            runtime_request_id, MAX_RUNTIME_REQUEST_ID_BYTES
+        ):
+            return False
         trace_id = hashlib.sha256(
             f"{run_id}\0{runtime_request_id}".encode("ascii")
         ).hexdigest()[:32]
