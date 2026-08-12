@@ -317,13 +317,11 @@ APIs are incompatible with the pinned runtime as documented in
 `pinned_pair_scheduler_compatibility.md`. It is not the G1 implementation
 family for this candidate.
 
-## 8. Proposed thin instrumentation points after all G0 gates
+## 8. Thin instrumentation points implemented after G0
 
-No implementation is authorized yet. Profile-owner approval alone only
-unblocks the remaining G0 configuration and CPU compatibility work. After the
-profile, separate issue-2 mapping, implementation family, exact resolved
-configuration, and CPU checks all pass their applicable approvals, G1 should
-add reviewed calls only at:
+The default-off G1 implementation uses the versioned profile, event mapping,
+selected implementation family, resolved configuration, and CPU compatibility
+tests. It adds calls only at:
 
 1. scheduler preemption commit, carrying the pre-free logical snapshot;
 2. connector job construction, adding bounded trace/epoch/logical-block
