@@ -73,6 +73,7 @@ class FakeLogicalBlock:
 
 @dataclass(frozen=True)
 class FakeContext:
+    binding: object
     identity: FakeIdentity
     operation: str
     block_set_id: str
@@ -88,6 +89,7 @@ class FakeAttempt:
 
 @dataclass(frozen=True)
 class FakeComputeContext:
+    binding: object
     identity: FakeIdentity
     transfer_id: str
     block_set_id: str
@@ -99,6 +101,7 @@ class FakeComputeContext:
 
 @dataclass(frozen=True)
 class FakeReceipt:
+    binding: object
     connector_job_id: int
     transfer_id: str
     identity: FakeIdentity
@@ -122,9 +125,11 @@ class FakeBoundedWorkerObserver:
 
 
 def canonical_block_set_id(
+    binding: object,
     identity: FakeIdentity,
     blocks: tuple[FakeLogicalBlock, ...],
 ) -> str:
+    del binding
     rows = "".join(
         f"{block.group_index}:{block.logical_ordinal}:{block.logical_block_id}\n"
         for block in blocks
@@ -135,7 +140,9 @@ def canonical_block_set_id(
     return hashlib.sha256(f"{prefix}{rows}".encode()).hexdigest()
 
 
+FAKE_BINDING = object()
 FAKE_ABI = KVRecoveryRuntimeABI(
+    binding=FAKE_BINDING,
     identity_type=FakeIdentity,
     logical_block_type=FakeLogicalBlock,
     transfer_context_type=FakeContext,
@@ -461,7 +468,7 @@ def test_profile_ledger_accounts_each_capacity_failure_category(record_type) -> 
     assert losses[0].counts[record_type] == 2
 
 
-def test_environment_configuration_requires_recovery_run_id(
+def test_environment_configuration_keeps_specialty_mode_disabled(
     tmp_path: Path,
 ) -> None:
     config = RuntimeTraceConfig.from_env(
@@ -475,28 +482,11 @@ def test_environment_configuration_requires_recovery_run_id(
     )
 
     assert config.communication_mode == KV_RECOVERY_COMMUNICATION_MODE
-    assert config.invalid_reason == "schema_incompatible"
+    assert config.invalid_reason == "unsupported_mode"
     assert not config.enabled
 
 
-def test_environment_configuration_enables_recovery_mode(tmp_path: Path) -> None:
-    config = RuntimeTraceConfig.from_env(
-        {
-            "VLLM_RLP_TRACE_EXPORT_PATH": str(tmp_path / "trace"),
-            "VLLM_RLP_COMMUNICATION_MODE": KV_RECOVERY_COMMUNICATION_MODE,
-            "VLLM_RLP_KV_RECOVERY_RUN_ID": RUN_ID,
-            "VLLM_RLP_PROFILER_PARENT_COMMIT": "a" * 40,
-            "VLLM_RLP_RUNTIME_CORE_COMMIT": "b" * 40,
-            "VLLM_RLP_DEVICE_PLUGIN_COMMIT": "c" * 40,
-        }
-    )
-
-    assert config.enabled
-    assert config.invalid_reason is None
-    assert config.kv_recovery_profile_config == KVRecoveryProfileConfig(run_id=RUN_ID)
-
-
-def test_factory_is_none_for_none_mode_and_enabled_for_recovery_mode(
+def test_factory_is_none_without_binding_and_executable_via_test_seam(
     tmp_path: Path,
 ) -> None:
     none_sink = JsonlTraceSink(
@@ -517,8 +507,8 @@ def test_factory_is_none_for_none_mode_and_enabled_for_recovery_mode(
     none_factory = KVRecoveryObserverFactoryAdapter(
         RUN_ID, none_hooks, FakeBridge(), FAKE_ABI
     )
-    assert none_factory.create_scheduler_observer() is None
-    assert none_factory.create_worker_observer() is None
+    assert none_factory.create_scheduler_observer(FAKE_BINDING) is None
+    assert none_factory.create_worker_observer(FAKE_BINDING) is None
     none_hooks.close()
 
     specialty_hooks = make_hooks(tmp_path)
@@ -529,12 +519,14 @@ def test_factory_is_none_for_none_mode_and_enabled_for_recovery_mode(
         FAKE_ABI,
         clock_ns=lambda: 125,
     )
+    assert specialty_factory.create_scheduler_observer() is None
+    assert specialty_factory.create_worker_observer() is None
     assert isinstance(
-        specialty_factory.create_scheduler_observer(),
+        specialty_factory.create_scheduler_observer(FAKE_BINDING),
         KVRecoverySchedulerAdapter,
     )
     assert isinstance(
-        specialty_factory.create_worker_observer(),
+        specialty_factory.create_worker_observer(FAKE_BINDING),
         FakeBoundedWorkerObserver,
     )
     assert len(specialty_factory.profile_ledgers) == 1

@@ -30,6 +30,7 @@ from vllm_request_lifecycle_profiler.runtime_hooks import (
 )
 from vllm_request_lifecycle_profiler.runtime_protocol import (
     KV_RECOVERY_COMMUNICATION_MODE,
+    EventDraft,
     RuntimeProvenance,
 )
 
@@ -94,6 +95,7 @@ def load_runtime_abi():
     sys.modules[module_name] = runtime
     spec.loader.exec_module(runtime)
     abi = KVRecoveryRuntimeABI(
+        binding=runtime.KV_RECOVERY_PROFILE_BINDING,
         identity_type=runtime.KVRecoveryIdentity,
         logical_block_type=runtime.KVRecoveryLogicalBlock,
         transfer_context_type=runtime.KVRecoveryTransferContext,
@@ -106,8 +108,7 @@ def load_runtime_abi():
 
 
 def test_actual_runtime_abi_completes_profiler_whole_trace(tmp_path: Path) -> None:
-    abi = KVRecoveryRuntimeABI.load()
-    import vllm.v1.kv_recovery_profile as runtime
+    abi, runtime = load_runtime_abi()
 
     sink = JsonlTraceSink(
         tmp_path / "trace",
@@ -123,29 +124,58 @@ def test_actual_runtime_abi_completes_profiler_whole_trace(tmp_path: Path) -> No
             export_path=tmp_path / "trace",
             provenance=RuntimeProvenance("a" * 40, "b" * 40, "c" * 40),
             communication_mode=KV_RECOVERY_COMMUNICATION_MODE,
+            invalid_reason="unsupported_mode",
             kv_recovery_profile_config=KVRecoveryProfileConfig(run_id=RUN_ID),
         ),
         sink=sink,
     )
     bridge = RuntimeBaseLifecycleBridge(hooks)
-    clock_values = iter((80, 90, 100, 110, 130, 135, 140, 145))
+    identity = RequestLifecycleIdentity(
+        TRACE_ID,
+        f"{TRACE_ID}:e:0",
+        REQUEST_ID,
+    )
+    assert bridge.register_request(identity)
+    active_span_id = hooks.new_span_id()
+    assert active_span_id is not None
+    active_start = hooks.emit_event(
+        EventDraft(
+            trace_id=TRACE_ID,
+            lifecycle_id=f"{TRACE_ID}:e:0",
+            parent_lifecycle_id=f"{TRACE_ID}:r",
+            scope="engine_sample",
+            component="engine_core",
+            event_name="prefill_started",
+            timestamp_ns=80,
+            preemption_epoch=0,
+            start_span_id=active_span_id,
+            sample_index=0,
+        )
+    )
+    assert active_start is not None
+    preempted = bridge.emit_preempted_and_requeued(
+        REQUEST_ID,
+        1,
+        timestamp_ns=90,
+        active_span_start_event_id=active_start.record_id,
+        active_span_id=active_span_id,
+        prompt_tokens_computed=1,
+        prefill_chunk_count=1,
+    )
+    assert preempted is not None
     factory = KVRecoveryObserverFactoryAdapter(
         RUN_ID,
         hooks,
         bridge,
         abi,
-        clock_ns=lambda: next(clock_values),
+        clock_ns=lambda: 125,
     )
-    scheduler = factory.create_scheduler_observer()
-    worker = factory.create_worker_observer()
+    scheduler = factory.create_scheduler_observer(abi.binding)
+    worker = factory.create_worker_observer(abi.binding)
     assert scheduler is not None
     assert worker is not None
 
-    scheduler.request_started(REQUEST_ID)
-    scheduler.request_scheduled(REQUEST_ID, "prefill", 1, 2, 0)
     scheduler.request_preempted(REQUEST_ID, 1)
-    preempted = bridge.preempted_event(REQUEST_ID, 1)
-    assert preempted is not None
     context = scheduler.prepare_transfer_context(
         REQUEST_ID,
         "h2d_restore",
@@ -157,17 +187,24 @@ def test_actual_runtime_abi_completes_profiler_whole_trace(tmp_path: Path) -> No
     assert context is not None
     attempt = worker.begin_transfer(7, context)
     assert attempt is not None
-    worker.transfer_submitted(attempt, 115)
+    worker.transfer_submitted(attempt, 100)
     receipt = worker.transfer_completed(7, 120, True, 256, 10)
     assert receipt is not None
     scheduler.consume_h2d_receipts((receipt,), False)
-    scheduler.request_admission_started(REQUEST_ID, 1)
-    admission_started = bridge.admission_started_event(REQUEST_ID, 1)
+    admission_started = bridge.emit_admission_started(REQUEST_ID, 1, timestamp_ns=130)
     assert admission_started is not None
+    scheduler.request_admission_started(REQUEST_ID, 1)
     scheduler.request_requeued(REQUEST_ID, 1, "token_budget")
-    compute_context = scheduler.request_admitted(REQUEST_ID, 1, "prefill", 2, 0)
-    resumed = bridge.resumed_event(REQUEST_ID, 1)
+    resumed = bridge.emit_resumed(
+        REQUEST_ID,
+        1,
+        timestamp_ns=140,
+        prompt_tokens_total=2,
+        prompt_tokens_cached=0,
+        prompt_tokens_to_compute=2,
+    )
     assert resumed is not None
+    compute_context = scheduler.request_admitted(REQUEST_ID, 1, "prefill")
     assert isinstance(compute_context, runtime.KVRecoveryComputeContext)
     assert compute_context.compute_kind == "prefill"
     worker.first_compute(compute_context, 150)
@@ -225,8 +262,8 @@ def test_actual_runtime_abi_completes_profiler_whole_trace(tmp_path: Path) -> No
     )
 
     h2d_expected = ExpectedH2DRecovery(
-        trace_id=context.identity.trace_id,
-        engine_lifecycle_id=context.identity.engine_lifecycle_id,
+        trace_id=TRACE_ID,
+        engine_lifecycle_id=f"{TRACE_ID}:e:0",
         recovery_epoch=1,
         transfer_id=receipt.transfer_id,
         block_set_id=receipt.block_set_id,
@@ -254,7 +291,7 @@ def test_actual_runtime_abi_completes_profiler_whole_trace(tmp_path: Path) -> No
         profile_evidence_complete=profile_complete,
     )
 
-    assert normalized.duration_ns == 5
+    assert normalized.duration_ns == 20
     assert normalized.bytes_moved == 256
     assert len(normalized.edge_ids) == 3
     assert episode.h2d == normalized
@@ -314,6 +351,7 @@ def test_actual_runtime_capacity_paths_consume_exact_profile_loss(
             export_path=tmp_path / "trace",
             provenance=RuntimeProvenance("a" * 40, "b" * 40, "c" * 40),
             communication_mode=KV_RECOVERY_COMMUNICATION_MODE,
+            invalid_reason="unsupported_mode",
             kv_recovery_profile_config=KVRecoveryProfileConfig(run_id=RUN_ID),
         ),
         sink=sink,
@@ -325,8 +363,8 @@ def test_actual_runtime_capacity_paths_consume_exact_profile_loss(
         abi,
         clock_ns=lambda: 125,
     )
-    scheduler = factory.create_scheduler_observer()
-    worker = factory.create_worker_observer()
+    scheduler = factory.create_scheduler_observer(abi.binding)
+    worker = factory.create_worker_observer(abi.binding)
     assert scheduler is not None and worker is not None
     if operation == "h2d_restore":
         scheduler.request_preempted(REQUEST_ID, 1)
@@ -377,6 +415,7 @@ def test_actual_runtime_wait_precedes_explicit_discard_invalidation(
             export_path=tmp_path / "trace",
             provenance=RuntimeProvenance("a" * 40, "b" * 40, "c" * 40),
             communication_mode=KV_RECOVERY_COMMUNICATION_MODE,
+            invalid_reason="unsupported_mode",
             kv_recovery_profile_config=KVRecoveryProfileConfig(run_id=RUN_ID),
         ),
         sink=sink,
@@ -388,8 +427,8 @@ def test_actual_runtime_wait_precedes_explicit_discard_invalidation(
         abi,
         clock_ns=lambda: 125,
     )
-    scheduler = factory.create_scheduler_observer()
-    worker = factory.create_worker_observer()
+    scheduler = factory.create_scheduler_observer(abi.binding)
+    worker = factory.create_worker_observer(abi.binding)
     assert scheduler is not None and worker is not None
     context = scheduler.prepare_transfer_context(
         REQUEST_ID,
@@ -406,14 +445,9 @@ def test_actual_runtime_wait_precedes_explicit_discard_invalidation(
     worker.wait_completed(runtime.KVRecoveryWaitAttempt(membership, 110))
     worker.invalidate_transfers({7})
 
-    # The discard handoff invalidates the context but must not disable the
-    # observer: the H2D restore that follows a preemption still needs to be
-    # captured.
-    assert not worker.evidence_disabled
+    assert worker.evidence_disabled
     assert worker.pending_d2h_count == 0
     assert worker.transfer_completed(7, 120, True, 128, 10) is None
-    later = worker.begin_transfer(9, context)
-    assert later is not None
     ledger = factory.profile_ledgers[0]
     profile_records, losses = ledger.snapshot()
     assert [record.record_type for record in profile_records] == [
@@ -421,12 +455,9 @@ def test_actual_runtime_wait_precedes_explicit_discard_invalidation(
         "transfer_event",
         "wait_set_chunk",
     ]
-    # The discard handoff produces one loss and the late completion of the
-    # invalidated context produces a second observable loss; both fail the
-    # profile closed while leaving the observer usable.
     assert len(losses) == 1
     assert losses[0].reason == "serialization_failure"
-    assert losses[0].counts["transfer_event"] == 2
+    assert losses[0].counts["transfer_event"] == 1
     assert not ledger.evidence_complete
 
     worker.close()
@@ -452,6 +483,7 @@ def test_actual_runtime_late_receipt_capacity_keeps_two_edge_prefix(
             export_path=tmp_path / "trace",
             provenance=RuntimeProvenance("a" * 40, "b" * 40, "c" * 40),
             communication_mode=KV_RECOVERY_COMMUNICATION_MODE,
+            invalid_reason="unsupported_mode",
             kv_recovery_profile_config=KVRecoveryProfileConfig(run_id=RUN_ID),
         ),
         sink=sink,
@@ -459,8 +491,8 @@ def test_actual_runtime_late_receipt_capacity_keeps_two_edge_prefix(
     factory = KVRecoveryObserverFactoryAdapter(
         RUN_ID, hooks, IntegrationBridge(), abi, clock_ns=lambda: 125
     )
-    scheduler = factory.create_scheduler_observer()
-    worker = factory.create_worker_observer()
+    scheduler = factory.create_scheduler_observer(abi.binding)
+    worker = factory.create_worker_observer(abi.binding)
     assert scheduler is not None and worker is not None
     scheduler.request_preempted(REQUEST_ID, 1)
     context = scheduler.prepare_transfer_context(
@@ -494,358 +526,3 @@ def test_actual_runtime_late_receipt_capacity_keeps_two_edge_prefix(
     assert len(losses) == 1
     assert losses[0].reason == "serialization_failure"
     assert losses[0].counts["recovery_event"] == 1
-
-
-def test_actual_runtime_connector_flow_captures_full_h2d_recovery(
-    tmp_path: Path,
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    """Drive the real OffloadingConnector scheduler/worker through a
-    preemption + H2D restore and assert the profiler produces the complete
-    seven-stage recovery chain with no evidence loss.
-
-    This is the cross-repository wiring gate: the observer factory from this
-    package is registered in the runtime's ``kv_recovery_profile`` module and
-    the actual connector flow (store -> preempt -> restore) runs on the CPU
-    test harness. The H2D restore that the runtime performs must be observed
-    end-to-end (preempt, restore_start, restore_done, scheduler_wakeup,
-    requeue, admission, first_prefill_or_decode) and close ``drained``.
-    """
-    abi = KVRecoveryRuntimeABI.load()
-    import vllm.v1.kv_recovery_profile as runtime
-
-    sink = JsonlTraceSink(
-        tmp_path / "trace",
-        RuntimeProvenance("a" * 40, "b" * 40, "c" * 40),
-        communication_mode=KV_RECOVERY_COMMUNICATION_MODE,
-        kv_recovery_profile_config=KVRecoveryProfileConfig(run_id=RUN_ID),
-        clock_ns=lambda: 1000,
-        clock_domain_reader=lambda: CLOCK_DOMAIN_ID,
-        process_uuid_factory=lambda: ENGINE_UUID,
-    )
-    hooks = RuntimeLifecycleHooks(
-        RuntimeTraceConfig(
-            export_path=tmp_path / "trace",
-            provenance=RuntimeProvenance("a" * 40, "b" * 40, "c" * 40),
-            communication_mode=KV_RECOVERY_COMMUNICATION_MODE,
-            kv_recovery_profile_config=KVRecoveryProfileConfig(run_id=RUN_ID),
-        ),
-        sink=sink,
-    )
-    bridge = RuntimeBaseLifecycleBridge(hooks)
-    factory = KVRecoveryObserverFactoryAdapter(
-        RUN_ID,
-        hooks,
-        bridge,
-        abi,
-    )
-    monkeypatch.setattr(runtime, "_observer_factory", factory)
-    runtime._observer_factory_ready_pid = runtime._observer_factory_pid
-
-    import vllm.distributed.kv_transfer.kv_connector.v1.offloading_connector as oc
-    from tests.v1.kv_connector.unit.offloading_connector.utils import request_runner
-
-    monkeypatch.setattr(oc, "kv_recovery_runtime_scope_enabled", lambda *a, **k: True)
-
-    from tests.v1.kv_connector.unit.offloading_connector.test_kv_recovery_scheduler import (
-        generate_store_output,
-    )
-
-    block_size = 4
-    block_size_factor = 3
-    offloaded_block_size = block_size * block_size_factor
-    _runner_gen = request_runner.__wrapped__()
-    runner = next(_runner_gen)(
-        block_size=block_size,
-        num_gpu_blocks=100,
-        async_scheduling=True,
-        block_size_factor=block_size_factor,
-    )
-
-    handler = runner.offloading_spec.handler
-    original_complete_jobs = handler.complete_jobs
-
-    def complete_jobs_with_measurements(job_ids):
-        original_complete_jobs(job_ids)
-        for result in handler.completed_transfers:
-            if result.transfer_size is None:
-                result.transfer_size = 128
-                result.transfer_time = 0.25
-
-    handler.complete_jobs = complete_jobs_with_measurements
-
-    # The real model runner calls observe_kv_recovery_first_compute with the
-    # scheduled request IDs at the forward entry; mirror that here so the
-    # worker can consume the admitted compute context.
-    original_start_kv = runner.worker_connector.connector_worker.start_kv_transfers
-
-    def start_kv_with_first_compute(metadata):
-        original_start_kv(metadata)
-        runner.worker_connector.observe_kv_recovery_first_compute(
-            {req.request_id for req in runner.scheduler.running}
-        )
-
-    runner.worker_connector.connector_worker.start_kv_transfers = (
-        start_kv_with_first_compute
-    )
-
-    free_blocks = runner.scheduler.kv_cache_manager.block_pool.free_block_queue
-    initial_free_blocks = free_blocks.num_free_blocks
-    runner.new_request(token_ids=[0] * offloaded_block_size * 2)
-    runner.manager.prepare_store.side_effect = lambda keys, req_context: (
-        generate_store_output(keys)
-    )
-    runner.run(decoded_tokens=[0], complete_transfers=False)
-
-    runner.manager.prepare_store.side_effect = lambda keys, req_context: (
-        generate_store_output(keys)
-    )
-    runner.run(
-        decoded_tokens=[0] * (2 * offloaded_block_size - block_size),
-        complete_transfers=False,
-    )
-
-    free_blocks.num_free_blocks = 0
-    runner.run(
-        decoded_tokens=[],
-        complete_transfers=False,
-        expected_flushed=tuple(range(9)),
-        expected_stored=tuple(range(9)),
-    )
-
-    free_blocks.num_free_blocks = initial_free_blocks
-    runner.scheduler.reset_prefix_cache()
-    runner.connector_scheduler._maximal_prefix_lookup = lambda key, context: 3
-    runner.manager.prepare_store.side_effect = lambda keys, req_context: (
-        generate_store_output(keys)
-    )
-    runner.run(
-        decoded_tokens=[0] * block_size,
-        expected_loaded=tuple(range(9)),
-    )
-
-    close_result = hooks.close()
-    assert close_result is not None
-    assert close_result.close_outcome == "drained"
-    profile_path = hooks.committed_kv_recovery_profile_shard_path
-    assert profile_path is not None
-    profile_records = [
-        json.loads(line) for line in profile_path.read_text().splitlines()
-    ]
-    milestones = [
-        row for row in profile_records if row["record_type"] == "recovery_event"
-    ]
-    # The runtime emits zero or more requeue records between scheduler_wakeup
-    # and admission (the harness admits directly, so none are expected here).
-    assert [row["stage"] for row in milestones] == [
-        "preempt",
-        "restore_start",
-        "restore_done",
-        "scheduler_wakeup",
-        "admission",
-        "first_prefill_or_decode",
-    ]
-    for predecessor, milestone in pairwise(milestones):
-        assert milestone["from_profile_event_id"] == predecessor["record_id"]
-    h2d_transfers = [
-        row
-        for row in profile_records
-        if row["record_type"] == "transfer_event" and row["operation"] == "h2d_restore"
-    ]
-    assert [row["transfer_phase"] for row in h2d_transfers] == ["submit", "done"]
-    summary = profile_records[-1]
-    assert summary["record_type"] == "profile_summary"
-    assert summary["dropped_data_count"] == 0
-    assert summary["written_loss_interval_count"] == 0
-    assert summary["written_recovery_event_count"] == 6
-    assert summary["written_transfer_event_count"] == 6
-    assert summary["written_block_set_chunk_count"] >= 3
-
-
-def test_actual_runtime_records_unassociated_h2d_migration_without_episode(
-    tmp_path: Path,
-) -> None:
-    """Block-level tiering H2D for a running request has no preemption
-    episode. The profiler must still record the transfer evidence (block set,
-    communication span, transfer submit/done) instead of failing closed."""
-    abi, runtime = load_runtime_abi()
-    sink = JsonlTraceSink(
-        tmp_path / "trace",
-        RuntimeProvenance("a" * 40, "b" * 40, "c" * 40),
-        communication_mode=KV_RECOVERY_COMMUNICATION_MODE,
-        kv_recovery_profile_config=KVRecoveryProfileConfig(run_id=RUN_ID),
-        clock_ns=lambda: 1000,
-        clock_domain_reader=lambda: CLOCK_DOMAIN_ID,
-        process_uuid_factory=lambda: WORKER_UUID,
-    )
-    hooks = RuntimeLifecycleHooks(
-        RuntimeTraceConfig(
-            export_path=tmp_path / "trace",
-            provenance=RuntimeProvenance("a" * 40, "b" * 40, "c" * 40),
-            communication_mode=KV_RECOVERY_COMMUNICATION_MODE,
-            kv_recovery_profile_config=KVRecoveryProfileConfig(run_id=RUN_ID),
-        ),
-        sink=sink,
-    )
-    bridge = RuntimeBaseLifecycleBridge(hooks)
-    factory = KVRecoveryObserverFactoryAdapter(
-        RUN_ID,
-        hooks,
-        bridge,
-        abi,
-        clock_ns=lambda: 1000,
-    )
-    scheduler = factory.create_scheduler_observer()
-    worker = factory.create_worker_observer()
-    assert scheduler is not None and worker is not None
-
-    # A running request with no preemption episode.
-    scheduler.request_started(REQUEST_ID)
-    scheduler.request_scheduled(REQUEST_ID, "prefill", 1, 2, 0)
-
-    context = scheduler.prepare_transfer_context(
-        REQUEST_ID,
-        "h2d_restore",
-        (
-            runtime.KVRecoveryBlockCoordinate(0, 0),
-            runtime.KVRecoveryBlockCoordinate(0, 1),
-        ),
-    )
-    assert context is not None
-    assert context.identity.recovery_epoch is None
-    assert context.identity.episode_id is None
-    attempt = worker.begin_transfer(7, context)
-    assert attempt is not None
-    worker.transfer_submitted(attempt, 110)
-    assert worker.transfer_completed(7, 120, True, 256, 10) is None
-    worker.close()
-    scheduler.close()
-
-    close_result = hooks.close()
-    assert close_result is not None
-    assert close_result.close_outcome == "drained"
-    profile_path = hooks.committed_kv_recovery_profile_shard_path
-    assert profile_path is not None
-    profile_records = [
-        json.loads(line) for line in profile_path.read_text().splitlines()
-    ]
-    transfer_rows = [
-        row
-        for row in profile_records
-        if row["record_type"] == "transfer_event"
-        and row["operation"] == "h2d_restore"
-    ]
-    assert [row["transfer_phase"] for row in transfer_rows] == ["submit", "done"]
-    assert all(row["recovery_epoch"] is None for row in transfer_rows)
-    assert all(row["episode_id"] is None for row in transfer_rows)
-    recovery_rows = [
-        row for row in profile_records if row["record_type"] == "recovery_event"
-    ]
-    # No preemption episode -> no recovery stages, and no loss interval.
-    assert recovery_rows == []
-    summary = profile_records[-1]
-    assert summary["record_type"] == "profile_summary"
-    assert summary["dropped_data_count"] == 0
-    assert summary["written_loss_interval_count"] == 0
-    assert summary["written_transfer_event_count"] == 2
-    assert summary["written_block_set_chunk_count"] == 1
-
-
-def test_actual_runtime_multiple_requeues_preserve_order_count_and_reasons(
-    tmp_path: Path,
-) -> None:
-    """Multiple post-wakeup requeues must keep bounded occurrence, order, and
-    reason vocabulary while the recovery chain still closes drained."""
-    abi, runtime = load_runtime_abi()
-    sink = JsonlTraceSink(
-        tmp_path / "trace",
-        RuntimeProvenance("a" * 40, "b" * 40, "c" * 40),
-        communication_mode=KV_RECOVERY_COMMUNICATION_MODE,
-        kv_recovery_profile_config=KVRecoveryProfileConfig(run_id=RUN_ID),
-        clock_ns=lambda: 1000,
-        clock_domain_reader=lambda: CLOCK_DOMAIN_ID,
-        process_uuid_factory=lambda: WORKER_UUID,
-    )
-    hooks = RuntimeLifecycleHooks(
-        RuntimeTraceConfig(
-            export_path=tmp_path / "trace",
-            provenance=RuntimeProvenance("a" * 40, "b" * 40, "c" * 40),
-            communication_mode=KV_RECOVERY_COMMUNICATION_MODE,
-            kv_recovery_profile_config=KVRecoveryProfileConfig(run_id=RUN_ID),
-        ),
-        sink=sink,
-    )
-    bridge = RuntimeBaseLifecycleBridge(hooks)
-    factory = KVRecoveryObserverFactoryAdapter(
-        RUN_ID,
-        hooks,
-        bridge,
-        abi,
-        clock_ns=lambda: 1000,
-    )
-    scheduler = factory.create_scheduler_observer()
-    worker = factory.create_worker_observer()
-    assert scheduler is not None and worker is not None
-
-    scheduler.request_started(REQUEST_ID)
-    scheduler.request_scheduled(REQUEST_ID, "prefill", 1, 2, 0)
-    scheduler.request_preempted(REQUEST_ID, 1)
-    context = scheduler.prepare_transfer_context(
-        REQUEST_ID,
-        "h2d_restore",
-        (
-            runtime.KVRecoveryBlockCoordinate(0, 0),
-            runtime.KVRecoveryBlockCoordinate(0, 1),
-        ),
-    )
-    assert context is not None
-    attempt = worker.begin_transfer(7, context)
-    assert attempt is not None
-    worker.transfer_submitted(attempt, 110)
-    receipt = worker.transfer_completed(7, 120, True, 256, 10)
-    assert receipt is not None
-    scheduler.consume_h2d_receipts((receipt,), False)
-    scheduler.request_admission_started(REQUEST_ID, 1)
-    # Two requeues with distinct bounded reasons, then admission.
-    scheduler.request_requeued(REQUEST_ID, 1, "token_budget")
-    scheduler.request_requeued(REQUEST_ID, 1, "block_capacity")
-    compute_context = scheduler.request_admitted(REQUEST_ID, 1, "prefill", 2, 0)
-    assert compute_context is not None
-    worker.first_compute(compute_context, 130)
-    worker.close()
-    scheduler.close()
-
-    close_result = hooks.close()
-    assert close_result is not None
-    assert close_result.close_outcome == "drained"
-    profile_path = hooks.committed_kv_recovery_profile_shard_path
-    assert profile_path is not None
-    profile_records = [
-        json.loads(line) for line in profile_path.read_text().splitlines()
-    ]
-    milestones = [
-        row for row in profile_records if row["record_type"] == "recovery_event"
-    ]
-    assert [row["stage"] for row in milestones] == [
-        "preempt",
-        "restore_start",
-        "restore_done",
-        "scheduler_wakeup",
-        "requeue",
-        "requeue",
-        "admission",
-        "first_prefill_or_decode",
-    ]
-    requeues = [row for row in milestones if row["stage"] == "requeue"]
-    assert [row["occurrence"] for row in requeues] == [0, 1]
-    assert [row["requeue_reason"] for row in requeues] == [
-        "token_budget",
-        "block_capacity",
-    ]
-    for predecessor, milestone in pairwise(milestones):
-        assert milestone["from_profile_event_id"] == predecessor["record_id"]
-    summary = profile_records[-1]
-    assert summary["record_type"] == "profile_summary"
-    assert summary["written_recovery_event_count"] == 8
-    assert summary["dropped_data_count"] == 0
-    assert summary["written_loss_interval_count"] == 0

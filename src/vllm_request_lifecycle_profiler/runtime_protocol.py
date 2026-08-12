@@ -664,7 +664,9 @@ def _validate_kv_recovery_communication_metadata(
         "transfer_id",
         "block_set_id",
         "recovery_profile",
+        "recovery_profile_sha256",
         "communication_mapping",
+        "communication_mapping_sha256",
         "rank",
     }
     expected_keys = common_keys | (
@@ -679,9 +681,14 @@ def _validate_kv_recovery_communication_metadata(
     transfer_id = metadata.get("transfer_id")
     if not isinstance(transfer_id, str) or not _TRANSFER_ID.fullmatch(transfer_id):
         raise ProtocolValidationError("recovery transfer_id is invalid")
-    block_set_id = metadata.get("block_set_id")
-    if not isinstance(block_set_id, str) or not _HEX64.fullmatch(block_set_id):
-        raise ProtocolValidationError("recovery metadata block_set_id is invalid")
+    for key in (
+        "block_set_id",
+        "recovery_profile_sha256",
+        "communication_mapping_sha256",
+    ):
+        value = metadata.get(key)
+        if not isinstance(value, str) or not _HEX64.fullmatch(value):
+            raise ProtocolValidationError(f"recovery metadata {key} is invalid")
     if metadata.get("recovery_profile") != "rlp.kv-recovery/v1alpha1":
         raise ProtocolValidationError("recovery profile ID is invalid")
     if metadata.get("communication_mapping") != KV_RECOVERY_COMMUNICATION_MODE:

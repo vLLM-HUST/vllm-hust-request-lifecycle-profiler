@@ -1,7 +1,7 @@
 # Experiment Plan
 
-> **G1 core seal (2026-08-08, revised after audit):** CPU controlled-trace
-> gate is achieved for the current working trees (profiler
+> **G1 development capture (2026-08-08, revised after audit):** CPU
+> controlled-trace artifacts were produced for the working trees (profiler
 > `feature/kv-recovery-config-cleanup`, runtime
 > `feature/rlp-kv-recovery-g1-default-off`). Artifacts in
 > `.benchmarks/results/g1_cpu_controlled_trace_20260808/`:
@@ -15,8 +15,8 @@
 > Left to later gates: multi-process roster receipt (`[api_server,
 > engine_core]`) and the conda-env cross-repo runs (environment dependency).
 
-> **G2 admission (2026-08-08, revised after audit):** read-only
-> version-aware whole-trace preflight passed for the current working trees
+> **G2 development preflight (2026-08-08, revised after audit):** a read-only
+> version-aware whole-trace preflight was recorded for the working trees
 > (device-owner, model, schema/profile vs sealed G1 shards, expected-process
 > receipt via G1 summaries, trace-export, environment). Marker discipline
 > verified including the neither-marker and both-markers (fail-closed
@@ -25,8 +25,10 @@
 > `run_metadata.json`). Deferred to G3: live `/v1/models` endpoint check and
 > the real multi-process roster receipt, because G2 must not start a service.
 
-> **G3 minimum online trace smoke (2026-08-09):** PASS for the current
-> working trees. The Ascend `NPUModelRunner.execute_model` override
+> **G3 development online trace smoke (2026-08-09):** the working-tree capture
+> reported a complete smoke trace, but this is not a gate decision and cannot
+> override closed authority or activation prerequisites. The Ascend
+> `NPUModelRunner.execute_model` override
 > (`vllm-ascend vllm_ascend/worker/model_runner_v1.py`) did not call
 > `observe_kv_recovery_first_compute`, so the `first_prefill_or_decode` child
 > observation never fired on the live V1 Ascend runner; the call was added
@@ -41,8 +43,8 @@
 > `drained`. Artifacts:
 > `.benchmarks/results/g3_minimum_online_trace_smoke_20260809/`
 > (`g3_verification.md/json`, `run_metadata.json`, raw shards/logs), labeled
-> `real-online` + `smoke-only` (capture evidence, not a matched performance
-> result). Next: G4 fixed-8-GiB matched modes.
+> `real-online` + `smoke-only` (development capture evidence, not a matched
+> performance result or authorization for later gates).
 
 > **Current gate (2026-08-03):** treat the checked-in runs below as historical
 > development evidence. `feature/kv-recovery-integration` now composes merged
@@ -126,14 +128,15 @@ Execute the corrected ladder in order:
    across independent service lifecycles.
 6. **G5 — full capacity surface.** Run the #134 8/16/24/32-GiB capacity and
    workload matrix after the fixed-8-GiB mechanism comparison is sound.
-   **Status 2026-08-10: COMPLETE** — see `docs/g5_completion_record.md` and
+   **Development capture recorded 2026-08-10; gate completion not established.**
+   See `docs/g5_completion_record.md` and
    `.benchmarks/results/g5_capacity_surface_20260810/`.
 7. **G6 — counterfactual.** If causal ranking selects copy, restore/wakeup,
    admission/requeue, or another mechanism, change only the rank-one predicted
    mechanism and rerun a matched pair. The public #134 experiment is mechanism
    evidence; it counts toward blind M0 scoring only under the separately frozen
    Team-A custody and reveal protocol.
-   **Status 2026-08-11: PASS (development-level)** — see
+   **Development threshold observed 2026-08-11; no gate verdict.** See
    `docs/g6_counterfactual_spec.md` / `docs/g6_completion_record.md` and
    `.benchmarks/results/g6_counterfactual_20260811/`. Blind M0 scoring remains
    pending the separately frozen Team-A custody/reveal protocol.

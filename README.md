@@ -10,10 +10,10 @@ on NPU6 and follows the optimization-repository workflow used by the
 The profiler owns low-overhead state feedback and causal attribution. It may
 export inputs to roofline and statistical-gate projects, but trace ownership
 alone does not make those contributions complete. The current implementation
-focus is an optional KV-recovery profile connected to the runtime
-`OffloadingConnector` path. It is default-off and becomes active only when the
-profiler environment and runtime `additional_config` both opt in. CPU
-integration tests precede service and hardware measurements. Controlled
+focus is a default-off KV-recovery integration candidate for the runtime
+`OffloadingConnector` path. Configuration alone does not authorize activation:
+the digest-bound authority, runtime-conformance, joint-admission, and explicit
+activation gates in `AGENTS.md` remain controlling. Controlled
 intervention-based attribution remains the evaluation goal. See
 [`RESEARCH_UPGRADE_20260727.md`](RESEARCH_UPGRADE_20260727.md).
 
@@ -25,12 +25,13 @@ stage instead of correlated symptoms?
 
 ## Repository Map
 
-- Development and performance-evidence policy: see the workspace-level
-  `AGENTS.md` (kept local; not part of this repository).
+- `AGENTS.md`: tracked development, authority, activation, evidence, and merge
+  policy for this repository.
 - `src/vllm_request_lifecycle_profiler/`: trace schema, attribution logic, and
   plugin code.
-- `contracts/`: historical design notes retained only for technical context;
-  they are not approval or activation gates.
+- `contracts/p0/`: owner-frozen minimum runtime protocol and approval record.
+- `contracts/p1/`: content-addressed profile, authority, admission, and
+  attestation records; each record retains its own declared gate effects.
 - `.benchmarks/`: trace probes and controlled fault-injection entrypoints.
 - `third_party/llm-serving-workloads/`: pinned shared workload suite.
 - `third_party/vllm-hust/`: pinned historical vLLM-HUST hook carrier used only
@@ -66,10 +67,11 @@ separate from `causal_evidence`: an unpaired long span remains
 the target delta without changing other spans. This is `simulation/model`
 readiness and remains `NOT_M0_PROVEN`; it is not controlled live attribution.
 
-### KV-recovery configuration
+### KV-recovery configuration candidate
 
-The optional runtime path is disabled unless both sides opt in. Configure the
-profiler process with:
+The following values describe the proposed two-sided configuration. They are
+not an activation recipe and MUST remain fail-closed until the exact runtime
+binding and all authority/admission gates recorded in `AGENTS.md` are satisfied.
 
 ```bash
 export VLLM_RLP_TRACE_EXPORT_PATH=/path/to/trace
@@ -89,10 +91,11 @@ The vLLM runtime configuration must also contain:
 }
 ```
 
-The connector must resolve to `OffloadingConnector` with
-`TieringOffloadingSpec`. Omitting the profiler mode, run ID, runtime switch, or
-supported spec keeps the observer disabled. Initialization and observation
-failures disable profiling without failing serving.
+The connector candidate is `OffloadingConnector` with
+`TieringOffloadingSpec`. Omitting any field keeps the observer disabled, but
+providing every field still does not override a closed authority or activation
+gate. Initialization and observation failures disable profiling without
+failing serving.
 
 ## NPU and Environment
 
@@ -125,12 +128,12 @@ make shared-workloads-smoke PYTHON=python3
 
 ## Next step
 
-Complete the normal configuration path for the optional KV-recovery profiler,
-keep the disabled serving path unchanged, and validate the whole runtime-to-
-profile chain on CPU. After the implementation and CI are stable, run a small
-NPU service smoke before matched performance experiments. Performance claims
-must follow the cross-repository benchmark performance policy (workspace-level
-`AGENTS.md`, kept local).
+Keep the optional KV-recovery path default-off, restore exact runtime-source and
+content-digest bindings, and validate the whole runtime-to-profile chain on CPU.
+Request the explicit authority, runtime-conformance, joint-admission, activation,
+and merge decisions required by `AGENTS.md` before any service or NPU run.
+Performance claims must follow the cross-repository benchmark performance
+policy.
 
 The checked-in hook-enabled NPU6 artifacts remain useful contaminated
 development evidence: the smoke pair has complete historical chains and a

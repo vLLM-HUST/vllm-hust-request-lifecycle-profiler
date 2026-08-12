@@ -61,7 +61,6 @@ TRACE_PARENT_COMMIT_ENV = "VLLM_RLP_PROFILER_PARENT_COMMIT"
 TRACE_RUNTIME_COMMIT_ENV = "VLLM_RLP_RUNTIME_CORE_COMMIT"
 TRACE_DEVICE_COMMIT_ENV = "VLLM_RLP_DEVICE_PLUGIN_COMMIT"
 TRACE_COMMUNICATION_MODE_ENV = "VLLM_RLP_COMMUNICATION_MODE"
-TRACE_KV_RECOVERY_RUN_ID_ENV = "VLLM_RLP_KV_RECOVERY_RUN_ID"
 
 _DIAGNOSTIC_REASON_ORDER = (
     "init_failure",
@@ -93,7 +92,7 @@ class RuntimeTraceConfig:
         if not raw_path:
             return cls(export_path=None)
         communication_mode = source.get(TRACE_COMMUNICATION_MODE_ENV, "none").strip()
-        if communication_mode not in {"none", KV_RECOVERY_COMMUNICATION_MODE}:
+        if communication_mode != "none":
             return cls(
                 export_path=Path(raw_path),
                 communication_mode=communication_mode,
@@ -112,24 +111,10 @@ class RuntimeTraceConfig:
                 communication_mode=communication_mode,
                 invalid_reason="schema_incompatible",
             )
-        profile_config = None
-        if communication_mode == KV_RECOVERY_COMMUNICATION_MODE:
-            try:
-                profile_config = KVRecoveryProfileConfig(
-                    run_id=source.get(TRACE_KV_RECOVERY_RUN_ID_ENV, "").strip()
-                )
-            except ValueError:
-                return cls(
-                    export_path=Path(raw_path),
-                    provenance=provenance,
-                    communication_mode=communication_mode,
-                    invalid_reason="schema_incompatible",
-                )
         return cls(
             export_path=Path(raw_path),
             provenance=provenance,
             communication_mode=communication_mode,
-            kv_recovery_profile_config=profile_config,
         )
 
     @property
@@ -141,11 +126,7 @@ class RuntimeTraceConfig:
         return (
             self.export_path is not None
             and self.provenance is not None
-            and self.communication_mode in {"none", KV_RECOVERY_COMMUNICATION_MODE}
-            and (
-                self.communication_mode != KV_RECOVERY_COMMUNICATION_MODE
-                or self.kv_recovery_profile_config is not None
-            )
+            and self.communication_mode == "none"
             and self.invalid_reason is None
         )
 
@@ -527,12 +508,7 @@ class JsonlTraceSink:
                     fields=fields,
                 )
                 raw = profile_record_line(record)
-            except Exception:
-                logger.debug(
-                    "KV-recovery profile record %s failed validation",
-                    record_type,
-                    exc_info=True,
-                )
+            except Exception:  # noqa: BLE001 - serving must remain fail-open.
                 self._note_profile_drop_locked(
                     profile,
                     record_seq,
@@ -578,6 +554,7 @@ class JsonlTraceSink:
                 "timestamp_ns",
                 "clock_domain_id",
                 "profile_id",
+                "profile_sha256",
             }
             assert profile.records is not None
             profile.records.append(
@@ -2642,12 +2619,7 @@ class RuntimeLifecycleHooks:
             return self._current_sink().write_kv_recovery_profile(
                 record_type, timestamp_ns, **fields
             )
-        except Exception:
-            logger.warning(
-                "KV-recovery profile record %s failed to serialize",
-                record_type,
-                exc_info=True,
-            )
+        except Exception:  # noqa: BLE001 - runtime emission is fail-open.
             self._defer_diagnostic("serialization_failure")
             return None
 

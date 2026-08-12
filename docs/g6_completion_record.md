@@ -1,9 +1,10 @@
-# G6 Completion Record (2026-08-11)
+# G6 Development Counterfactual Record (2026-08-11)
 
-> Gate: **G6 — counterfactual** (experiment_plan.md step 7).
-> Verdict: **PASS** (development-level rank-one counterfactual). This is
-> **NOT blind-scored**; blind M0 scoring requires the separately frozen
-> Team-A custody/reveal protocol.
+> Candidate gate: **G6 — counterfactual** (experiment_plan.md step 7). This is
+> a development-level observation, not a G6 gate decision and not blind-scored.
+> It cannot override closed authority, activation, provenance, or merge gates;
+> blind M0 scoring requires the separately frozen Team-A custody/reveal
+> protocol.
 
 ## 1. Requirement checklist
 
@@ -25,7 +26,8 @@
 | complete seven-stage episodes | 3 (1/lifecycle), 0 loss | 0 |
 | median tail | **41.0 s** | **2.0 s** |
 
-Pass rule: base median tail > 10 s **and** head median tail < 5 s → **PASS**.
+Development threshold: base median tail > 10 s and head median tail < 5 s was
+met. This is not a formal gate verdict.
 
 ## 3. Interpretation
 

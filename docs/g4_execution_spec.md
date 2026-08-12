@@ -33,11 +33,13 @@
 | `tiering_disabled` | OffloadingConnector + **`CPUOffloadingSpec`** (repo proposal; repo marks `OUTSIDE_CURRENT_PROFILE_OWNER_IMPLEMENTATION_DECISION` / proposed_non_executable) | `{"kv_connector":"OffloadingConnector","kv_role":"kv_both","kv_connector_extra_config":{"spec_name":"CPUOffloadingSpec","cpu_bytes_to_use":8589934592}}` | `None` (future mode) |
 | `tiering_enabled` | OffloadingConnector + **`TieringOffloadingSpec`** (module_path_policy=OMIT, device NPU spec forbidden) | `{"kv_connector":"OffloadingConnector","kv_role":"kv_both","kv_connector_extra_config":{"spec_name":"TieringOffloadingSpec","cpu_bytes_to_use":8589934592,"secondary_tiers":[]}}` | `issue2:kv-recovery-v1alpha1` |
 
-Repo status notes: the #134 candidate is `BLOCKED_INCOMPLETE_CONFIGURATION_CANDIDATE_REVIEWED`
-with `BLOCKED_TIERING_DISABLED_SEMANTICS` in the repo verifier. Per AGENTS.md,
-authority/approval gates are non-normative; the engineering mode semantics above
-are normative and are what this spec executes. `tiering_disabled`'s
-`CPUOffloadingSpec` executability must be boot-verified before the matrix.
+Repo status notes: the #134 candidate is
+`BLOCKED_INCOMPLETE_CONFIGURATION_CANDIDATE_REVIEWED` with
+`BLOCKED_TIERING_DISABLED_SEMANTICS` in the repository verifier. The authority
+and approval gates in `AGENTS.md` remain normative. This document records only
+the proposed engineering mode semantics and cannot authorize execution while a
+gate is closed. `tiering_disabled`'s `CPUOffloadingSpec` executability must also
+be boot-verified before any future authorized matrix.
 
 ## 4. Workload
 
@@ -45,16 +47,18 @@ Pressure profile (the official 1-RPS registry workloads are negative coverage at
 8 GiB — first-round finding): 4 concurrent `/v1/completions`, 15000-token prompt
 (seed 20260809), `max_tokens=8192`, temperature 0, streaming.
 
-## 5. Matrix protocol (completed 2026-08-10)
+## 5. Development-capture matrix (not gate completion)
 
-- 3 modes × 3 independent lifecycles, alternating order
-  (`disabled → enabled → hbm → …`). **Done** — see
+- A development capture recorded 3 modes × 3 independent lifecycles in
+  alternating order (`disabled → enabled → hbm → …`). It does not retroactively
+  satisfy closed authority or activation gates. See
   `docs/g4_execution_result.md` and
   `.benchmarks/results/g4_fixed_8gib_modes_20260810/run_summary.json`.
 - Per lifecycle: one independent server process (start → warm → pressure client
   → drain); report every repetition + median/IQR per mode.
-- Observer overhead: `tiering_enabled` ×3 tracing off vs the ×3 tracing-on rows.
-  **Done** — +1.1 s median (~0.3%).
+- The development capture compared `tiering_enabled` ×3 tracing off with ×3
+  tracing-on rows and observed +1.1 s median (~0.3%). This is not a formal
+  performance result.
 
 ## 6. Evidence per run
 

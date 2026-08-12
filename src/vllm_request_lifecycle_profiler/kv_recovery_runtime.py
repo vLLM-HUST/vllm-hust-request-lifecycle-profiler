@@ -8,7 +8,6 @@ Serving-facing callbacks are fail-open; invalid profile evidence is dropped.
 from __future__ import annotations
 
 import hashlib
-import logging
 import re
 import threading
 import time
@@ -17,9 +16,11 @@ from dataclasses import dataclass
 from typing import Any, Protocol
 
 from vllm_request_lifecycle_profiler.kv_recovery_profile_protocol import (
+    MAPPING_SHA256,
     MAX_PROFILE_DATA_RECORDS,
     MAX_RUNTIME_REQUEST_ID_BYTES,
     PROFILE_ID,
+    PROFILE_SHA256,
     KVRecoveryProfileConfig,
     LossReason,
     ProfileLossInterval,
@@ -43,9 +44,6 @@ _UINT64_MAX = 2**64 - 1
 # wire budget once identity/metadata overhead is included. Chunk conservatively
 # so a chunked block set always serializes below the cap.
 _MAX_BLOCK_ROWS_PER_CHUNK_BYTE_BUDGET = 32
-
-logger = logging.getLogger(__name__)
-
 
 def _require_hex32(value: object, field_name: str) -> str:
     if not isinstance(value, str) or not _HEX32.fullmatch(value):
@@ -393,13 +391,6 @@ class RuntimeBaseLifecycleBridge:
                 or state.active_started is None
                 or state.active_span_id is None
             ):
-                logger.warning(
-                    "KV-recovery preempt for %s epoch=%s dropped: no active "
-                    "compute span (state=%s)",
-                    runtime_request_id,
-                    recovery_epoch,
-                    "missing" if state is None else "no active span",
-                )
                 return None
             active_started = state.active_started
             active_span_id = state.active_span_id
@@ -708,19 +699,9 @@ class RuntimeBaseLifecycleBridge:
                 or episode.first_compute is not None
                 or compute_kind not in {"prefill", "decode"}
             ):
-                logger.debug(
-                    "KV-recovery emit_first_compute rejected for %s epoch=%s: "
-                    "identity=%s episode=%s resumed=%s first_compute=%s kind=%s",
-                    runtime_request_id, recovery_epoch,
-                    identity is not None, episode is not None,
-                    episode.resumed is not None if episode else None,
-                    episode.first_compute is not None if episode else None,
-                    compute_kind,
-                )
                 return None
             span_id = self._hooks.new_span_id()
             if span_id is None:
-                logger.debug("KV-recovery emit_first_compute no span id for %s", runtime_request_id)
                 return None
             emitted = self._hooks.emit_event(
                 EventDraft(
@@ -802,13 +783,14 @@ class RuntimeBaseLifecycleBridge:
 class KVRecoveryRuntimeABI:
     """Late-bound constructors from ``vllm.v1.kv_recovery_profile``."""
 
+    binding: Any
     identity_type: Callable[..., Any]
     logical_block_type: Callable[..., Any]
     transfer_context_type: Callable[..., Any]
     compute_context_type: Callable[..., Any]
     receipt_type: Callable[..., Any]
     bounded_worker_observer_type: Callable[..., Any]
-    canonical_block_set_id: Callable[[Any, tuple[Any, ...]], str]
+    canonical_block_set_id: Callable[[Any, Any, tuple[Any, ...]], str]
 
     @classmethod
     def load(cls) -> KVRecoveryRuntimeABI:
@@ -817,6 +799,7 @@ class KVRecoveryRuntimeABI:
         from vllm.v1 import kv_recovery_profile as runtime
 
         return cls(
+            binding=runtime.KV_RECOVERY_PROFILE_BINDING,
             identity_type=runtime.KVRecoveryIdentity,
             logical_block_type=runtime.KVRecoveryLogicalBlock,
             transfer_context_type=runtime.KVRecoveryTransferContext,
@@ -1243,6 +1226,7 @@ class KVRecoveryWorkerEvidenceAdapter:
             return None
         try:
             return self._abi.receipt_type(
+                binding=self._abi.binding,
                 connector_job_id=attempt.connector_job_id,
                 transfer_id=attempt.transfer_id,
                 identity=context.identity,
@@ -1379,7 +1363,9 @@ class KVRecoveryWorkerEvidenceAdapter:
             "transfer_id": attempt.transfer_id,
             "block_set_id": context.block_set_id,
             "recovery_profile": PROFILE_ID,
+            "recovery_profile_sha256": PROFILE_SHA256,
             "communication_mapping": KV_RECOVERY_COMMUNICATION_MODE,
+            "communication_mapping_sha256": MAPPING_SHA256,
             "rank": 0,
         }
 
@@ -1480,12 +1466,6 @@ class KVRecoverySchedulerAdapter:
         self, runtime_request_id: str, recovery_epoch: int
     ) -> str | None:
         if self._closed or recovery_epoch < 1:
-            logger.warning(
-                "KV-recovery request_preempted(%s, %s) rejected (closed=%s)",
-                runtime_request_id,
-                recovery_epoch,
-                self._closed,
-            )
             return None
         identity = self._bridge.request_identity(runtime_request_id)
         base_event = self._bridge.preempted_event(runtime_request_id, recovery_epoch)
@@ -1499,13 +1479,6 @@ class KVRecoverySchedulerAdapter:
             except Exception:  # noqa: BLE001 - serving-side evidence is fail-open.
                 base_event = None
         if identity is None or base_event is None:
-            logger.warning(
-                "KV-recovery request_preempted(%s, %s) dropped: identity=%s base_event=%s",
-                runtime_request_id,
-                recovery_epoch,
-                identity is not None,
-                base_event is not None,
-            )
             self._profile.drop("recovery_event", None)
             self._episodes.pop(runtime_request_id, None)
             return None
@@ -1555,20 +1528,9 @@ class KVRecoverySchedulerAdapter:
         coordinates: tuple[Any, ...],
     ) -> Any | None:
         if self._closed or not coordinates:
-            logger.debug(
-                "KV-recovery %s context omitted for %s: %s",
-                operation,
-                runtime_request_id,
-                "closed" if self._closed else "empty coordinates",
-            )
             return None
         base_identity = self._bridge.request_identity(runtime_request_id)
         if base_identity is None:
-            logger.warning(
-                "KV-recovery %s context omitted for %s: no base identity",
-                operation,
-                runtime_request_id,
-            )
             self._profile.drop("block_set_chunk", None)
             return None
         episode = self._episodes.get(runtime_request_id)
@@ -1579,11 +1541,6 @@ class KVRecoverySchedulerAdapter:
                 # still-running request (no episode). Record the latter as an
                 # unassociated transfer: it carries no preempt/admission chain
                 # but is still real H2D migration evidence.
-                logger.warning(
-                    "KV-recovery %s context unassociated for %s (no episode)",
-                    operation,
-                    runtime_request_id,
-                )
                 recovery_epoch = None
                 episode_id = None
                 preempted_event_id = None
@@ -1625,8 +1582,11 @@ class KVRecoverySchedulerAdapter:
                 )
                 for coordinate in coordinates
             )
-            block_set_id = self._abi.canonical_block_set_id(identity, logical_blocks)
+            block_set_id = self._abi.canonical_block_set_id(
+                self._abi.binding, identity, logical_blocks
+            )
             context = self._abi.transfer_context_type(
+                binding=self._abi.binding,
                 identity=identity,
                 operation=operation,
                 block_set_id=block_set_id,
@@ -1692,19 +1652,11 @@ class KVRecoverySchedulerAdapter:
                 episode is None
                 or episode.context is None
                 or episode.receipt is not None
+                or receipt.binding != self._abi.binding
                 or receipt.identity != episode.context.identity
                 or receipt.block_set_id != episode.context.block_set_id
                 or receipt.identity.recovery_epoch != episode.recovery_epoch
             ):
-                logger.debug(
-                    "KV-recovery receipt dropped for %s epoch=%s: episode=%s "
-                    "ctx=%s receipt_epoch=%s",
-                    runtime_request_id,
-                    receipt.identity.recovery_epoch,
-                    episode is not None,
-                    episode.context is not None if episode else None,
-                    receipt.identity.recovery_epoch,
-                )
                 self._profile.drop("recovery_event", receipt.timestamp_ns)
                 continue
             episode.receipt = receipt
@@ -1915,6 +1867,7 @@ class KVRecoverySchedulerAdapter:
             if first_compute_event is None:
                 raise ValueError("base first-compute event was not emitted")
             context = self._abi.compute_context_type(
+                binding=self._abi.binding,
                 identity=episode.receipt.identity,
                 transfer_id=episode.receipt.transfer_id,
                 block_set_id=episode.receipt.block_set_id,
@@ -1923,17 +1876,9 @@ class KVRecoverySchedulerAdapter:
                 compute_kind=compute_kind,
                 base_phase_start_event_id=first_compute_event.event_id,
             )
-        except Exception:
-            logger.debug(
-                "KV-recovery request_admitted compute-context failed for %s epoch=%s",
-                runtime_request_id, recovery_epoch, exc_info=True,
-            )
+        except Exception:  # noqa: BLE001 - serving-side evidence is fail-open.
             self._profile.drop("recovery_event", resumed_event.timestamp_ns)
             return None
-        logger.debug(
-            "KV-recovery request_admitted SUCCESS compute-context for %s epoch=%s",
-            runtime_request_id, recovery_epoch,
-        )
         self._episodes.pop(runtime_request_id, None)
         return context
 
@@ -1999,12 +1944,14 @@ class KVRecoveryObserverFactoryAdapter:
         with self._lock:
             return tuple(self._profiles.values())
 
-    def reinitialize_after_fork(self) -> None:
+    def reinitialize_after_fork(self, binding: Any | None = None) -> None:
+        if binding != self._abi.binding:
+            return
         if not self._hooks.reinitialize_after_fork():
             raise RuntimeError("trace exporter could not reinitialize after fork")
 
-    def create_scheduler_observer(self) -> Any | None:
-        if not self._runtime_config_enabled():
+    def create_scheduler_observer(self, binding: Any | None = None) -> Any | None:
+        if not self._source_conformance_gate_open(binding):
             return None
         profile = self._profile_for_current_process()
         if profile is None:
@@ -2018,8 +1965,8 @@ class KVRecoveryObserverFactoryAdapter:
             clock_ns=self._clock_ns,
         )
 
-    def create_worker_observer(self) -> Any | None:
-        if not self._runtime_config_enabled():
+    def create_worker_observer(self, binding: Any | None = None) -> Any | None:
+        if not self._source_conformance_gate_open(binding):
             return None
         process_uuid = self._hooks.process_uuid
         clock_domain_id = self._hooks.clock_domain_id
@@ -2040,9 +1987,10 @@ class KVRecoveryObserverFactoryAdapter:
             profile.drop("recovery_event", None)
             return None
 
-    def _runtime_config_enabled(self) -> bool:
+    def _source_conformance_gate_open(self, binding: Any | None) -> bool:
         return (
-            self._hooks.enabled
+            binding == self._abi.binding
+            and self._hooks.enabled
             and self._hooks.config.communication_mode == KV_RECOVERY_COMMUNICATION_MODE
             and self._hooks.kv_recovery_profile_enabled
             and self._hooks.config.kv_recovery_profile_config

@@ -1,0 +1,199 @@
+{
+  "schema": "request-lifecycle-profiler/g1-default-off-cpu-implementation-attestation/v1",
+  "status": "POST_MERGE_PORTABILITY_RECONCILIATION_CANDIDATE_READY_FOR_REVIEW",
+  "evidence_status": "PROFILER_PARENT_PUBLICATION_MERGED_RUNTIME_REVIEW_AND_ALL_ACTIVATION_GATES_STILL_OPEN",
+  "recorded_date": "2026-08-05",
+  "supersedes_for_future_reproducibility_review": {
+    "path": "contracts/p1/g1-default-off-cpu-implementation-attestation.r2.json",
+    "sha256": "680eb00f7e71cbc7aa4e74b97ebb13b29062d0501d98f2b877a80f3d728b9b68",
+    "historical_record_remains_immutable": true
+  },
+  "immutable_predecessors": [
+    {
+      "path": "contracts/p1/g1-default-off-cpu-implementation-attestation.r1.json",
+      "sha256": "5d15e1b231c60fd18d5a42c849eed2c2c1fb48ecc4b75c949223cf4224c06048"
+    },
+    {
+      "path": "contracts/p1/g1-default-off-cpu-implementation-attestation.r2.json",
+      "sha256": "680eb00f7e71cbc7aa4e74b97ebb13b29062d0501d98f2b877a80f3d728b9b68"
+    }
+  ],
+  "reconciled_portability_delta": {
+    "source_commit": "5558d213f94f2fb910c1e1e8685f555556867cda",
+    "commit_subject": "test: make G1 attestations independently reproducible",
+    "files_changed": [
+      "tests/test_g1_default_off_cpu_attestation_r1.py",
+      "tests/test_g1_default_off_cpu_attestation_r2.py"
+    ],
+    "behavior": "VLLM_HUST_G1_SRC_overrides_the_historical_author_local_worktree_path_for_exact_runtime_reads",
+    "production_source_changed": false,
+    "runtime_source_changed": false,
+    "contract_or_attestation_bytes_changed": false,
+    "r1_or_r2_bytes_mutated": false,
+    "r2_recorded_test_sha256": "c15bd08580f95f855fa695bf7b579808311510464804983e3f4d07f1bcf88970",
+    "merged_test_sha256": "d6ef9d9768e1b8566857150fba03ea6e0b8b104d4e4776e070d08e56aa286bd3",
+    "reconciliation_reason": "the_immutable_r2_record_names_the_pre_portability_test_digest_so_a_new_downstream_record_is_required_instead_of_editing_r2"
+  },
+  "downstream_completeness_remediation": {
+    "additional_historical_test": "tests/test_g1_default_off_cpu_attestation.py",
+    "bound_historical_commit": "091afd76557a44f9b7e2d795b5f11200ad0f552f",
+    "reason": "the_PR_10_portability_commit_did_not_cover_the_r0_test_and_the_squash_merge_exposed_the_same_non_ancestor_failure",
+    "remediation": "use_the_same_explicit_PR_10_history_checkout_for_commit_and_blob_reads",
+    "production_source_changed": false,
+    "runtime_source_changed": false
+  },
+  "profiler_parent_publication": {
+    "repository": "intellistream/vllm-request-lifecycle-profiler-plugin",
+    "pull_request": 10,
+    "pull_request_url": "https://github.com/intellistream/vllm-request-lifecycle-profiler-plugin/pull/10",
+    "reviewed_head": "5558d213f94f2fb910c1e1e8685f555556867cda",
+    "merge_commit": "7a77703e916eebe41fe1b6c0993aeae7cf999240",
+    "merge_method": "squash",
+    "reviewed_head_is_merge_ancestor": false,
+    "merged_tree_revalidates_r2_profiler_blobs": true,
+    "merged_tree_does_not_replace_r1_historical_blob_identity": true,
+    "merged_at": "2026-08-05T04:08:54Z",
+    "approval": {
+      "review_id": 4860889814,
+      "review_node_id": "PRR_kwDOTUmGYs8AAAABIbtK1g",
+      "state": "APPROVED",
+      "submitted_at": "2026-08-05T04:08:45Z",
+      "scope": "default_off_profiler_parent_publication_merge_only"
+    },
+    "review_statement_summary": "current_tree_contains_immutable_r1_r2_portable_validation_passed_and_default_off_parent_publication_is_approved_for_merge",
+    "explicit_exclusions": [
+      "runtime_activation",
+      "service_launch",
+      "NPU",
+      "performance_conclusions",
+      "runtime_PR_221_merge_decision"
+    ]
+  },
+  "runtime_review_state": {
+    "repository": "vLLM-HUST/vllm-hust",
+    "pull_request": 221,
+    "pull_request_url": "https://github.com/vLLM-HUST/vllm-hust/pull/221",
+    "head_commit": "5f7872976bd56a0861bb0072eaac68260ba7d578",
+    "audited_base_commit": "f229ba7cad21a4dba58681af6738a9fd947388e2",
+    "draft": true,
+    "review_decision": "CHANGES_REQUESTED",
+    "review_thread_id": "PRRT_kwDORq6LNc6WbsqA",
+    "review_thread_resolved": false,
+    "review_thread_outdated_after_remediation": true,
+    "reviewer_re_requested": "ShuhaoZhangTony",
+    "pre_run_check": "blocked_by_missing_ready_or_verified_label_and_author_merge_count_2",
+    "runtime_merge_approved": false
+  },
+  "implementation_boundary": {
+    "runtime_remediation_commit": "5f7872976bd56a0861bb0072eaac68260ba7d578",
+    "profiler_conformance_commit": "f43473e78e3636e079518e19eb3ac3aeea21d8fc",
+    "profiler_r2_publication_commit": "b8dfb85987dbaa0a74ffef000e723ef2a70204b6",
+    "profiler_portability_commit": "5558d213f94f2fb910c1e1e8685f555556867cda",
+    "profiler_parent_merge_commit": "7a77703e916eebe41fe1b6c0993aeae7cf999240",
+    "shared_workloads_commit": "76e24c85bcab76ecfabb831c9444002b6efffd58",
+    "device_plugin_commit": "cafad89a5e103f31ea517c1edb56130578c3cd56",
+    "device_plugin_modified": false
+  },
+  "portable_checkout_contract": {
+    "exact_runtime_checkout_env": "VLLM_HUST_G1_SRC",
+    "profiler_PR_10_history_checkout_env": "RLP_G1_PROFILER_HISTORY_SRC",
+    "profiler_history_requirement": "checkout_must_contain_091afd76_b2a28988_f43473e_b8dfb85_and_5558d213",
+    "merged_main_without_history_behavior": "exactly_six_historical_commit_checks_skip_with_explicit_reason_while_nonhistorical_checks_continue",
+    "network_access_from_tests": false
+  },
+  "active_configuration_boundary": {
+    "communication_mode": "none",
+    "runtime_core": "OffloadingConnector/TieringOffloadingSpec",
+    "recompute_scheduler_enable": false,
+    "runtime_activation_authorized": false,
+    "source_conformance_seam_only": true
+  },
+  "portable_validation_files": [
+    {
+      "path": "tests/test_g1_default_off_cpu_attestation.py",
+      "sha256": "bdfee08ecacd196a247e0bf5d057bb794d5ab4c5186173ee9ff364210dafaf1d"
+    },
+    {
+      "path": "tests/test_g1_default_off_cpu_attestation_r1.py",
+      "sha256": "f78fa655f1ff6b85df999e6f1d32a56189cc64684383341944e700928d3d5411"
+    },
+    {
+      "path": "tests/test_g1_default_off_cpu_attestation_r2.py",
+      "sha256": "e0566aba1faa01893be38f0b1d6003ea4595beb407b70aa28c5fc244246e99d5"
+    },
+    {
+      "path": "tests/test_g1_default_off_cpu_attestation_r3.py",
+      "sha256": "7d0947feaf50ea2ddd9b650147f90ff84506e4b30cad8019930bfee08ed2928b"
+    }
+  ],
+  "upstream_reviewer_validation": {
+    "exact_runtime_and_shared_workloads_pins_used": true,
+    "r1_r2_targeted_result": "11 passed",
+    "profiler_complete_result": "189 passed, 4 skipped",
+    "skips_classification": "explicit_environment_boundary",
+    "ruff": "passed",
+    "diff_check": "passed"
+  },
+  "local_revalidation": {
+    "status": "complete_for_this_candidate",
+    "results": [
+      {
+        "scope": "r0_r1_r2_r3_targeted_with_exact_runtime_and_PR_10_history",
+        "interpreter": "/home/shuhao/miniconda3/envs/vllm-request-lifecycle-profiler-exp/bin/python",
+        "environment": "VLLM_HUST_G1_SRC_and_RLP_G1_PROFILER_HISTORY_SRC_set",
+        "result": "20 passed"
+      },
+      {
+        "scope": "r0_r1_r2_r3_targeted_from_merged_main_without_PR_10_history",
+        "interpreter": "/home/shuhao/miniconda3/envs/vllm-request-lifecycle-profiler-exp/bin/python",
+        "environment": "VLLM_HUST_G1_SRC_set_and_RLP_G1_PROFILER_HISTORY_SRC_unset",
+        "result": "14 passed, 6 skipped",
+        "skip_classification": "exact_historical_commit_and_blob_checks_only"
+      },
+      {
+        "scope": "complete_profiler_suite_with_exact_runtime_and_PR_10_history",
+        "interpreter": "/root/vllm-hust-g1-default-off-f229ba7/.venv/bin/python",
+        "environment": "exact_runtime_exact_PR_10_history_and_pinned_shared_workloads",
+        "result": "198 passed, 1 warning"
+      },
+      {
+        "scope": "complete_profiler_suite_from_merged_main_without_PR_10_history",
+        "interpreter": "/root/vllm-hust-g1-default-off-f229ba7/.venv/bin/python",
+        "environment": "exact_runtime_and_pinned_shared_workloads_with_PR_10_history_unset",
+        "result": "192 passed, 6 skipped, 1 warning",
+        "skip_classification": "exact_historical_commit_and_blob_checks_only"
+      },
+      {
+        "scope": "changed_Python_files_Ruff_and_candidate_integrity",
+        "result": "ruff_check_passed; ruff_format_check_passed; jq_empty_passed; git_diff_check_passed"
+      }
+    ]
+  },
+  "authority_effect": "profiler_parent_publication_merge_only_no_runtime_authority",
+  "runtime_owner_items_6_8_status": "remediated_candidate_not_explicitly_approved",
+  "closed_gates": {
+    "Item4B_runtime_owner_items_6_8_explicitly_approved_for_r2": false,
+    "Item4B_policy_fully_ratified": false,
+    "runtime_PR_221_approved": false,
+    "runtime_PR_221_merged": false,
+    "complete_resolved_configuration_approved": false,
+    "runtime_conformance_complete": false,
+    "joint_admission_present": false,
+    "communication_mode_non_none_authorized": false,
+    "runtime_activation_authorized": false,
+    "device_plugin_modification_authorized": false,
+    "NPU_authorized": false,
+    "service_launch_authorized": false,
+    "performance_experiment_authorized": false,
+    "performance_claim_authorized": false,
+    "M0_proven": false
+  },
+  "next_execution_order": [
+    "validate_this_r3_against_the_merged_profiler_parent_and_exact_runtime_checkout",
+    "publish_r3_as_a_separate_default_off_follow_up_without_mutating_r1_or_r2",
+    "continue_the_existing_runtime_PR_221_re_review_request_for_commit_5f7872976",
+    "record_an_explicit_runtime_decision_without_inferring_it_from_profiler_PR_10_approval",
+    "only_after_runtime_review_continue_configuration_conformance_and_joint_admission"
+  ],
+  "integrity_rule": "This r3 is a downstream portability and publication reconciliation record. It preserves r1 and r2 bytes, does not reinterpret profiler PR 10 approval as runtime authority, and grants no activation authority. Any listed validation-file byte, implementation commit, publication commit, review identity, or stated executable result change requires a new downstream record. It must not be represented as Item 4B runtime-owner approval, runtime PR 221 approval, complete configuration approval, runtime conformance, joint admission, runtime activation, communication authorization, hardware or service evidence, performance evidence, or M0."
+}

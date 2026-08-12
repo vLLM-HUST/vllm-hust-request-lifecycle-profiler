@@ -1,0 +1,154 @@
+name: CPU and contract CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/ci.yml"
+      - ".gitmodules"
+      - "contracts/**"
+      - "docs/**"
+      - "src/**"
+      - "tests/**"
+      - "scripts/**"
+      - ".benchmarks/**"
+      - "paper/request_lifecycle_causal_profiler/experiments/**"
+      - "third_party/llm-serving-workloads"
+      - "Makefile"
+      - "pyproject.toml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  contract-integrity:
+    name: Contract integrity
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+
+      - name: Check changed-file whitespace
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          set -euo pipefail
+          if [[ "$EVENT_NAME" == "pull_request" ]]; then
+            git diff --check "$BASE_SHA...$HEAD_SHA"
+          elif [[ "$EVENT_NAME" == "push" && ! "$BASE_SHA" =~ ^0+$ ]]; then
+            git diff --check "$BASE_SHA" "$HEAD_SHA"
+          else
+            git show --check --format=fuller "$HEAD_SHA" --
+          fi
+
+      - name: Validate frozen P0 contracts
+        run: python tests/test_p0_frozen_contracts.py
+
+      - name: Validate contract JSON and Markdown fences
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          for path in sorted(Path("contracts").rglob("*.json")):
+              json.loads(path.read_text(encoding="utf-8"))
+
+          markdown_paths = [
+              *Path("contracts").rglob("*.md"),
+              *Path("docs").rglob("*.md"),
+          ]
+          for path in sorted(markdown_paths):
+              lines = path.read_text(encoding="utf-8").splitlines()
+              fence_count = sum(
+                  line.lstrip().startswith("```") for line in lines
+              )
+              if fence_count % 2:
+                  raise SystemExit(f"unbalanced fenced code blocks: {path}")
+          PY
+
+  cpu-tests:
+    name: CPU tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10", "3.11"]
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+          cache-dependency-path: pyproject.toml
+
+      - name: Fetch pinned public runtime attestation source
+        env:
+          RUNTIME_SOURCE_DIR: ${{ runner.temp }}/vllm-hust-g1
+          RUNTIME_SOURCE_SHA: 5f7872976bd56a0861bb0072eaac68260ba7d578
+        run: |
+          set -euo pipefail
+          git init "$RUNTIME_SOURCE_DIR"
+          git -C "$RUNTIME_SOURCE_DIR" remote add origin \
+            https://github.com/vLLM-HUST/vllm-hust.git
+          git -C "$RUNTIME_SOURCE_DIR" fetch --depth=2 \
+            origin "$RUNTIME_SOURCE_SHA"
+          git -C "$RUNTIME_SOURCE_DIR" update-ref HEAD "$RUNTIME_SOURCE_SHA"
+          git -C "$RUNTIME_SOURCE_DIR" sparse-checkout init --no-cone
+          git -C "$RUNTIME_SOURCE_DIR" sparse-checkout set --no-cone \
+            /vllm/v1/kv_recovery_profile.py
+          git -C "$RUNTIME_SOURCE_DIR" read-tree -mu HEAD
+          test "$(git -C "$RUNTIME_SOURCE_DIR" rev-parse HEAD)" = \
+            "$RUNTIME_SOURCE_SHA"
+          test -f "$RUNTIME_SOURCE_DIR/vllm/v1/kv_recovery_profile.py"
+          git -C "$RUNTIME_SOURCE_DIR" fsck --full
+          git -C "$RUNTIME_SOURCE_DIR" remote remove origin
+
+      - name: Select fork-safe pinned workload ABI fixture
+        run: |
+          set -euo pipefail
+          fixture="$GITHUB_WORKSPACE/tests/fixtures/llm-serving-workloads-76e24c85/src"
+          test -f "$fixture/llm_serving_workloads/__init__.py"
+          printf 'LLM_SERVING_WORKLOADS_SRC=%s\n' "$fixture" >> "$GITHUB_ENV"
+
+      - name: Install development dependencies
+        run: python -m pip install -e ".[dev]"
+
+      - name: Run critical lint checks
+        run: >-
+          python -m ruff check --select E9,F63,F7,F82
+          src tests .benchmarks scripts
+          paper/request_lifecycle_causal_profiler/experiments
+
+      - name: Run unit tests
+        env:
+          PYTHONPATH: src
+          VLLM_HUST_G1_SRC: ${{ runner.temp }}/vllm-hust-g1
+        run: python -m pytest -q
+
+      - name: Build source and wheel distributions
+        run: python -m build

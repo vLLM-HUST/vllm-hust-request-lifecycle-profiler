@@ -1,0 +1,119 @@
+{
+  "schema": "request-lifecycle-profiler/g0-mapping-remediation-cpu-result/v1",
+  "status": "PASS_CPU_CONTRACT_REMEDIATION_ONLY_AUTHORITY_AND_ACTIVATION_GATES_BLOCKED",
+  "evidence_status": "NOT_M0_PROVEN",
+  "recorded_at": "2026-08-03T12:00:00Z",
+  "trigger": {
+    "repository": "intellistream/vllm-request-lifecycle-profiler-plugin",
+    "issue": 2,
+    "authority_comment_id": 5164544402,
+    "authority_result": "REQUEST_CHANGES",
+    "remediated_items": [
+      "separate_v4_3_and_E3_semantic_dependencies",
+      "exact_H2D_endpoint_ID_handoff_and_three_edge_emitters",
+      "split_mapping_Item_4A_from_runtime_profile_Item_4B",
+      "source_and_owner_ratification_for_capacity_and_serialization_failure",
+      "separate_immutable_semantics_from_audited_source_baselines"
+    ]
+  },
+  "historical_evidence_preserved": {
+    "path": "g0-pinned-pair-cpu-result.json",
+    "sha256": "8fb3a1aa5f912c2b43a68cef6952d4d6ff365d1154008287a21306bc7241ee5c",
+    "classification": "pre_remediation_static_CPU_evidence_only",
+    "modified": false,
+    "still_authorizes_current_mapping_or_overlay": false
+  },
+  "current_candidates": {
+    "E3_addendum_sha256": "779faa2ef3f344c739d2092b7d4d250d0a4e3a4c5e76ec04ffcfa0d59ac8eddb",
+    "Item4B_policy_sha256": "fbee3bc4f74b8c5c20e929c4e37596b06b31c1b9cd02517d8461961a8aedf420",
+    "Item4B_approval_candidate_sha256": "27cb52269fff8f10e376f3128384c4aac37f149ad685b89501f98ba50bc0cf29",
+    "issue2_mapping_sha256": "095944bbbb1a3ad3518aebfdd61c820ade3affdebd6024b47389cdaec24a3fa3",
+    "issue2_mapping_approval_candidate_sha256": "a686243ffd9c650790e6421e5f976a2a5c010a5d2480e7a30ad8722a9218f3f7",
+    "P0_overlay_sha256": "d80771b793a9513cdbd4fc2001e21771c56a59d49340ee88d4381027d70b1d5a",
+    "P0_overlay_approval_candidate_sha256": "de889357af659d8e9c1f7daf0aa32656761e80dcf0fea29ef60809912f513694",
+    "P0_overlay_ratification_candidate_sha256": "ffcdc6ce770906aa98675f630f07caf5c719485ef8f0afbfc4d3e94ae8e87e9a",
+    "incomplete_config_r2_raw_sha256": "7643fc322f3994ffbb8a3880be4401e0bff4eb5d511815a7f5b9271b547012e5",
+    "incomplete_config_r2_canonical_sha256": "16d415d4acdb58938ae6598b24a1f42757ea0eede615e53e455e766e800df1f2"
+  },
+  "source_classification": {
+    "runtime_audited_baseline": "f229ba7cad21a4dba58681af6738a9fd947388e2",
+    "device_plugin_audited_baseline": "cafad89a5e103f31ea517c1edb56130578c3cd56",
+    "runtime_local_default_off_WIP_commit": "0141462f82fb32f78129acccc996212296129eac",
+    "actual_run_binding_rule": "a_complete_resolved_configuration_and_joint_admission_must_bind_the_exact_execution_commits",
+    "semantic_dependency_class": false
+  },
+  "profiler_repository_verification": {
+    "environment": "/home/shuhao/miniconda3/envs/vllm-request-lifecycle-profiler-exp/bin/python 3.11.15",
+    "isolated_shell_paths": true,
+    "pre_result_contract_suite": {
+      "command": "env -u PYTHONPATH -u LD_LIBRARY_PATH PYTHONNOUSERSITE=1 PYTHONPATH=/root/vllm-request-lifecycle-profiler-plugin-kv-integration/src PYTHONDONTWRITEBYTECODE=1 /home/shuhao/miniconda3/envs/vllm-request-lifecycle-profiler-exp/bin/python -B -m pytest -q --ignore=tests/test_g0_mapping_remediation_result.py",
+      "result": "141 passed in 42.41s",
+      "status": "PASS"
+    },
+    "remediation_subset": {
+      "result": "20 passed in 0.28s",
+      "status": "PASS",
+      "test_sources": {
+        "test_issue2_mapping_remediation.py": "4e5d717a1b20f1478564a766b40de964257ff2a4aecdecd13f6d9a1a1d66b308",
+        "test_g0_contract_candidate_integrity.py": "59c7bb908873dfe7551cf2a721e2fec71ebeac8439c321bf449d1f039a960653",
+        "test_owner_authorization_integrity.py": "d8b93ee1671e14f57aaa162be01901e8a93345dbf08d866db8832c25ea53b536",
+        "test_g0_benchmark_134_config_candidate.py": "037cb4e8df020664ba2eeca61317fe58a4fcb2770b0456d0c08d672a64e154af"
+      }
+    },
+    "post_result_dependency_integrity_rule": "tests/test_g0_mapping_remediation_result.py validates this result and its downstream G1 reauthorization candidate only after both files have final digests; it is intentionally excluded from the pre-result suite to avoid a digest cycle and must pass in the final full repository run"
+  },
+  "runtime_default_off_WIP_focused_attestation": {
+    "commit": "0141462f82fb32f78129acccc996212296129eac",
+    "result": "5 passed, 14 warnings in 1.75s",
+    "status": "PASS_NAMED_BEHAVIORS_ONLY",
+    "implementation_file_sha256": "f971272aa076c669c27a2f64a81f024f7593a77c5210c546f862e7e30ee62074",
+    "test_source_sha256": {
+      "tests/v1/test_kv_recovery_profile.py": "971deca636cdec181cf6574f2ccd7b715a64658c7bad09d53ac9b7ce29991033",
+      "tests/v1/kv_connector/unit/offloading_connector/test_kv_recovery_worker.py": "0507227ebad9c567f230866b59a75b2a0ac2937235c3e778c200154090e67c74",
+      "tests/v1/kv_connector/unit/offloading_connector/test_worker_metadata.py": "0cdbf72e54a169dbcfb21a2b3bd48b87d07bceda504e7d7c8a74aef7e64eb5e2"
+    },
+    "proven": [
+      "candidate_4096_pending_h2d_process_bound",
+      "candidate_4096_h2d_receipt_per_worker_step_bound",
+      "4097th_observer_context_keeps_real_transfer_serving_and_records_capacity_loss",
+      "sidecar_submit_completion_and_scheduler_receipt_transport",
+      "bounded_close_idempotence_and_close_begin_race",
+      "bounded_receipt_aggregation_without_serving_metadata_change"
+    ],
+    "not_proven": [
+      "real_base_preempted_event_ID_source",
+      "real_communication_started_event_ID_storage",
+      "all_three_base_edge_emitters",
+      "real_EngineCore_admission_started_event_ID_handoff",
+      "receipt_deduplication",
+      "cross_terminal_and_preemption_invalidation",
+      "normalizer_non_inference_conformance",
+      "complete_profiler_record_seq_and_loss_ledger_integration",
+      "prepared_transfer_capacity_profile_record_seq_and_loss_semantics",
+      "pending_d2h_capacity_profile_record_seq_and_loss_semantics",
+      "receipt_truncation_to_real_profiler_record_seq_and_loss_ledger",
+      "late_receipt_capacity_preserves_immutable_prefix_records_and_forbids_edge_three",
+      "whole_trace_behavior_after_any_capacity_path_disables_evidence",
+      "runtime_activation_or_hardware_behavior"
+    ]
+  },
+  "gate_effects": {
+    "G0_remediation_candidate_integrity_passed": true,
+    "issue2_mapping_frozen": false,
+    "Item4B_policy_profile_P0_owner_ratified": false,
+    "Item4B_policy_runtime_owner_ratified": false,
+    "P0_overlay_frozen": false,
+    "complete_configuration_frozen": false,
+    "joint_admission_present": false,
+    "G0_complete": false,
+    "communication_mode_non_none_authorized": false,
+    "G1_runtime_wiring_reauthorized_for_current_digests": false,
+    "G1_runtime_activation_authorized": false,
+    "NPU_authorized": false,
+    "service_launch_authorized": false,
+    "performance_experiment_authorized": false,
+    "performance_claim_authorized": false,
+    "M0_proven": false
+  },
+  "integrity_rule": "This result is a CPU-only content and named-behavior checkpoint. It grants no authority, does not convert audited source baselines into immutable semantic pins, does not make the incomplete r2 configuration runnable, and cannot authorize current-digest G1 work, activation, NPU use, service launch, experiments, performance claims, or M0."
+}

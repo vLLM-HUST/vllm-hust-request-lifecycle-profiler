@@ -1,9 +1,9 @@
-# G4 Completion Record (2026-08-10)
+# G4 Development Capture Record (2026-08-10)
 
-> Gate: **G4 — fixed-8-GiB matched modes** (experiment_plan.md step 5).
-> Verdict: **COMPLETE** per the plan, with two documented deviations
-> (pressure workload for the mechanism; copy-opt unsupported). Mode semantics
-> follow the repository definition (`scripts/verify_g0_pinned_pair.py`).
+> Candidate gate: **G4 — fixed-8-GiB matched modes** (experiment_plan.md step
+> 5). The rows below are development captures with two documented deviations.
+> They do not complete G4 or override closed authority, activation, provenance,
+> or merge gates in `AGENTS.md`.
 
 ## 1. Requirement checklist and delivery
 
@@ -54,7 +54,7 @@ Metrics (all modes nearly identical under no pressure):
 `tiering_enabled` trace-on vs trace-off: 379.74 vs 378.62 s median (+1.13 s,
 ~0.3%) — negligible at this scale.
 
-## 5. Formal artifacts (#95)
+## 5. Development artifacts (#95 candidate)
 
 - `.benchmarks/results/g4_fixed_8gib_modes_20260810/`
   - `run_leaderboard.json` (per-mode entries, `data_source=real-online`,
@@ -67,7 +67,7 @@ Metrics (all modes nearly identical under no pressure):
 
 ## 6. Verdict
 
-G4 is complete per the plan. Deviations (both documented and justified):
+This development capture is not G4 gate completion. Observed deviations are:
 1. Official 1-RPS workloads at 8 GiB are negative coverage (no recovery
    episode), so the mechanism observation uses a pressure workload; the
    official workloads are reported as negative coverage with their metrics.

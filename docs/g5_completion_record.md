@@ -1,10 +1,9 @@
-# G5 Completion Record (2026-08-10)
+# G5 Development Capture Record (2026-08-10)
 
-> Gate: **G5 — full capacity surface** (experiment_plan.md step 6).
-> Verdict: **COMPLETE** per the plan. The #134 8/16/24/32-GiB ×
-> random/sharegpt/prefix matrix was executed (36 runs, ≥3 independent
-> lifecycles per point). Documented deviations: per-capacity
-> `gpu_memory_utilization` and `--enforce-eager` (see §5).
+> Candidate gate: **G5 — full capacity surface** (experiment_plan.md step 6).
+> This document records a development matrix; it does not complete G5 or
+> override closed authority, activation, provenance, or merge gates. Claimed
+> raw inputs remain external and require independent receipt verification.
 
 ## 1. Requirement checklist and delivery
 
@@ -78,7 +77,7 @@ the env fixed and captured complete episodes.
 
 ## 7. Verdict
 
-G5 complete per the plan. The official workload curve is flat and negative
-coverage across 8–32 GiB; the mechanism boundary is at 8 GiB (episodes) with
-no preemption at ≥16 GiB. Next: G6 counterfactual (rank-one mechanism change),
-per the plan, after causal ranking selects the mechanism.
+This is not G5 gate completion. In the development capture, the official
+workload curve is flat and negative coverage across 8–32 GiB; the proposed
+mechanism boundary is at 8 GiB (episodes) with no observed preemption at
+≥16 GiB.
