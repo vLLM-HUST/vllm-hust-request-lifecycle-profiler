@@ -21,15 +21,7 @@ from vllm_request_lifecycle_profiler.runtime_protocol import (
 )
 
 PROFILE_ID = "rlp.kv-recovery/v1alpha1"
-PROFILE_SHA256 = "b363532884d1cae8049ab080d2b85a629f3b33a75f6621788d1e4c8f30737666"
-MAPPING_SHA256 = "095944bbbb1a3ad3518aebfdd61c820ade3affdebd6024b47389cdaec24a3fa3"
 COMMUNICATION_MODE = "issue2:kv-recovery-v1alpha1"
-BASE_RUNTIME_CONTRACT_SHA256 = (
-    "122963930919073179d4844422d21e85da3a522def3ace723eb992eac43cdade"
-)
-BASE_PHASE_TAXONOMY_SHA256 = (
-    "82aae94c5d124b846f77684e239714d51791115608e786079c4ea4bd4ca05abd"
-)
 
 MAX_PROFILE_DATA_RECORDS = 4096
 MAX_PROFILE_RECORD_BYTES = 4096
@@ -88,9 +80,7 @@ class KVRecoveryProfileConfig:
     run_id: str
     spec_name: str = "TieringOffloadingSpec"
     profile_id: str = PROFILE_ID
-    profile_sha256: str = PROFILE_SHA256
     communication_mode: str = COMMUNICATION_MODE
-    communication_mapping_sha256: str | None = MAPPING_SHA256
     implementation_family: str = "runtime_core_offloading_connector"
     connector_name: str = "OffloadingConnector"
     rank: int = 0
@@ -99,22 +89,15 @@ class KVRecoveryProfileConfig:
     def __post_init__(self) -> None:
         _require_hex(self.run_id, 32, "run_id")
         if self.profile_id != PROFILE_ID:
-            raise ValueError("profile_id is not the frozen KV-recovery profile")
-        _require_hex(self.profile_sha256, 64, "profile_sha256")
+            raise ValueError("profile_id is not supported")
         if self.communication_mode != COMMUNICATION_MODE:
-            raise ValueError("communication_mode is not the frozen specialty mode")
-        if self.communication_mapping_sha256 is not None:
-            _require_hex(
-                self.communication_mapping_sha256,
-                64,
-                "communication_mapping_sha256",
-            )
+            raise ValueError("communication_mode is not supported")
         if self.implementation_family != "runtime_core_offloading_connector":
             raise ValueError("implementation_family is outside profile v1alpha1")
         if self.connector_name != "OffloadingConnector":
             raise ValueError("connector_name is outside profile v1alpha1")
         if self.spec_name != "TieringOffloadingSpec":
-            raise ValueError("spec_name is outside the approved implementation")
+            raise ValueError("spec_name is not supported")
         if self.rank != 0 or self.world_size != 1:
             raise ValueError("profile v1alpha1 requires rank=0 and world_size=1")
 
@@ -257,21 +240,17 @@ def build_profile_start_record(
         "clock_source": "CLOCK_MONOTONIC",
         "clock_domain_id": _require_hex(clock_domain_id, 32, "clock_domain_id"),
         "profile_id": config.profile_id,
-        "profile_sha256": config.profile_sha256,
         "run_id": config.run_id,
         "profiler_parent_commit": provenance.profiler_parent_commit,
         "runtime_core_commit": provenance.runtime_core_commit,
         "device_plugin_commit": provenance.device_plugin_commit,
         "base_trace_schema": SCHEMA_VERSION,
-        "base_runtime_contract_sha256": BASE_RUNTIME_CONTRACT_SHA256,
-        "base_phase_taxonomy_sha256": BASE_PHASE_TAXONOMY_SHA256,
         "rank": config.rank,
         "world_size": config.world_size,
         "implementation_family": config.implementation_family,
         "connector_name": config.connector_name,
         "spec_name": config.spec_name,
         "communication_mode": config.communication_mode,
-        "communication_mapping_sha256": config.communication_mapping_sha256,
         "limits": dict(PROFILE_LIMITS),
     }
     _bounded_line(record)
@@ -417,7 +396,6 @@ def build_profile_data_record(
         "timestamp_ns": timestamp_ns,
         "clock_domain_id": _require_hex(clock_domain_id, 32, "clock_domain_id"),
         "profile_id": config.profile_id,
-        "profile_sha256": config.profile_sha256,
         **fields,
     }
     _bounded_line(record)
@@ -712,7 +690,6 @@ def build_profile_loss_interval_record(
         "record_type": "loss_interval",
         "process_uuid": process_uuid,
         "profile_id": config.profile_id,
-        "profile_sha256": config.profile_sha256,
         "loss_interval_seq": loss_interval_seq,
         "loss_interval_id": f"{process_uuid}:l:{loss_interval_seq}",
         "reason": reason,
@@ -775,7 +752,6 @@ def build_profile_summary_record(
         "record_type": "profile_summary",
         "process_uuid": _require_hex(process_uuid, 32, "process_uuid"),
         "profile_id": config.profile_id,
-        "profile_sha256": config.profile_sha256,
         "ended_timestamp_ns": _require_uint(
             ended_timestamp_ns, _UINT64_MAX, "ended_timestamp_ns"
         ),
@@ -807,13 +783,11 @@ def build_profile_summary_record(
 
 __all__ = [
     "COMMUNICATION_MODE",
-    "MAPPING_SHA256",
     "MAX_BLOCK_ROWS_PER_CHUNK",
     "MAX_PROFILE_DATA_RECORDS",
     "MAX_WAIT_SET_ROWS_PER_CHUNK",
     "PROFILE_ID",
     "PROFILE_LIMITS",
-    "PROFILE_SHA256",
     "KVRecoveryProfileConfig",
     "LossReason",
     "ProfileLossInterval",

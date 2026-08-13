@@ -11,9 +11,7 @@ import pytest
 
 import vllm_request_lifecycle_profiler.runtime_hooks as runtime_hooks_module
 from vllm_request_lifecycle_profiler.kv_recovery_profile_protocol import (
-    MAPPING_SHA256,
     PROFILE_ID,
-    PROFILE_SHA256,
     KVRecoveryProfileConfig,
 )
 from vllm_request_lifecycle_profiler.kv_recovery_runtime import (
@@ -110,8 +108,6 @@ def test_paired_writer_publishes_mode_0600_shards_and_balanced_receipt(
     ]
     start, data, summary = records
     assert start["schema"] == PROFILE_ID
-    assert start["profile_sha256"] == PROFILE_SHA256
-    assert start["communication_mapping_sha256"] == MAPPING_SHA256
     assert start["process_uuid"] == data["process_uuid"] == summary["process_uuid"]
     assert summary["attempted_data_count"] == 1
     assert summary["written_block_set_chunk_count"] == 1
@@ -155,6 +151,64 @@ def test_profile_serialization_failure_persists_exact_loss_ledger(
     assert not sink.kv_recovery_profile_evidence_complete
 
 
+def test_profile_validation_failure_does_not_log_on_producer_path(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    sink = make_sink(tmp_path)
+
+    def fail_if_logged(*args: object, **kwargs: object) -> None:
+        raise AssertionError(f"producer path invoked logging: {args}, {kwargs}")
+
+    monkeypatch.setattr(runtime_hooks_module.logger, "debug", fail_if_logged)
+    invalid = block_fields()
+    invalid["blocks"] = ()
+
+    assert sink.write_kv_recovery_profile("block_set_chunk", 100, **invalid) is None
+    result = sink.close()
+
+    assert result.close_outcome == "drained"
+    assert result.profile_dropped_data_count == 1
+
+
+def test_profile_hook_failure_defers_diagnostic_without_logging(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    sink = make_sink(tmp_path)
+    hooks = RuntimeLifecycleHooks(
+        RuntimeTraceConfig(
+            export_path=tmp_path / "trace",
+            provenance=PROVENANCE,
+            communication_mode=KV_RECOVERY_COMMUNICATION_MODE,
+            kv_recovery_profile_config=KVRecoveryProfileConfig(run_id=RUN_ID),
+        ),
+        sink=sink,
+    )
+
+    def fail_write(*args: object, **kwargs: object) -> None:
+        raise RuntimeError("injected serialization failure")
+
+    producer_thread = threading.get_ident()
+    logging_threads: list[int] = []
+
+    def observe_log(*args: object, **kwargs: object) -> None:
+        del args, kwargs
+        logging_threads.append(threading.get_ident())
+        if logging_threads[-1] == producer_thread:
+            raise AssertionError("producer path invoked logging")
+
+    monkeypatch.setattr(sink, "write_kv_recovery_profile", fail_write)
+    monkeypatch.setattr(runtime_hooks_module.logger, "warning", observe_log)
+
+    assert (
+        hooks.emit_kv_recovery_profile("block_set_chunk", 100, **block_fields()) is None
+    )
+    assert hooks.close() is not None
+    assert logging_threads
+    assert producer_thread not in logging_threads
+
+
 def test_producer_ledger_drains_into_the_paired_writer(tmp_path: Path) -> None:
     profile_config = KVRecoveryProfileConfig(run_id=RUN_ID)
     sink = make_sink(tmp_path)
@@ -163,7 +217,6 @@ def test_producer_ledger_drains_into_the_paired_writer(tmp_path: Path) -> None:
             export_path=tmp_path / "trace",
             provenance=PROVENANCE,
             communication_mode=KV_RECOVERY_COMMUNICATION_MODE,
-            invalid_reason="unsupported_mode",
             kv_recovery_profile_config=profile_config,
         ),
         sink=sink,

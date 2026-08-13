@@ -1,14 +1,56 @@
 # Experiment Plan
 
-> **Current gate (2026-08-03):** treat the checked-in runs below as historical
-> development evidence. `feature/kv-recovery-integration` now composes merged
-> profiler PR #4 at `15717eae2630e80c11b113ccaeb3422871b35b40` with immutable
-> local P0/P1 checkpoint `9f1464b8d017ef48e66b8b4c9bd4a5a37fdc563d`.
-> The combined offline gate passed 67 focused and 94 full tests plus targeted
-> Ruff. Next freeze a versioned KV-recovery adapter, resolve runtime/device
-> compatibility, CPU-test the complete ID/stage chain, and obtain a READY
-> preflight before any controlled runtime or matched performance run. The
-> frozen P0 protocol and runtime/device pins remain in force.
+> **G1 CPU development checkpoint (2026-08-08, revised after audit):** the
+> controlled-trace cases succeeded for the current working trees (profiler
+> `feature/kv-recovery-config-cleanup`, runtime
+> `feature/rlp-kv-recovery-g1-default-off`). Artifacts in
+> `.benchmarks/results/g1_cpu_controlled_trace_20260808/`:
+> `recovery_episode/` (real connector flow, six milestones, requeue=0),
+> `recovery_episode_requeue/` (full eight-milestone chain with two requeues
+> and real monotonic-ns artifact-level decomposition), `no_pressure/` (stores
+> only), all `drained` with zero loss; `g1_verification.md/json`,
+> `run_metadata.json`, and three test-batch logs (plugin 124 passed in the
+> vLLM venv; 122 passed in the prescribed conda env with the 2 cross-repo
+> integration tests requiring torch/vllm; runtime KV suites 82 passed).
+> Left to later gates: multi-process roster receipt (`[api_server,
+> engine_core]`) and the conda-env cross-repo runs (environment dependency).
+
+> **G2 admission (2026-08-08, revised after audit):** read-only
+> version-aware whole-trace preflight passed for the current working trees
+> (device-owner, model, schema/profile vs sealed G1 shards, expected-process
+> receipt via G1 summaries, trace-export, environment). Marker discipline
+> verified including the neither-marker and both-markers (fail-closed
+> archive) cases. Artifacts:
+> `.benchmarks/results/g2_readonly_admission_20260808/` (`READY.txt`,
+> `run_metadata.json`). Deferred to G3: live `/v1/models` endpoint check and
+> the real multi-process roster receipt, because G2 must not start a service.
+
+> **G3 minimum online trace smoke development capture (2026-08-09):** the
+> current working trees produced a successful smoke capture. The Ascend
+> `NPUModelRunner.execute_model` override
+> (`vllm-ascend vllm_ascend/worker/model_runner_v1.py`) did not call
+> `observe_kv_recovery_first_compute`, so the `first_prefill_or_decode` child
+> observation never fired on the live V1 Ascend runner; the call was added
+> immediately before `_model_forward` (mirroring the base V1 runner). A
+> controlled service (Qwen2.5-Coder-14B-Instruct on NPU6,
+> `gpu_memory_utilization=0.6`, `max_model_len=32768`, OffloadingConnector /
+> TieringOffloadingSpec, `kv_recovery_profile_enabled`) induced two real
+> preemption + H2D-restore episodes and produced two complete seven-stage
+> chains (`preempt -> restore_start -> restore_done -> scheduler_wakeup ->
+> admission -> first_prefill_or_decode`) with zero trace loss, live endpoint
+> verified, per-process committed receipts `[api_server, engine_core]` both
+> `drained`. Artifacts:
+> `.benchmarks/results/g3_minimum_online_trace_smoke_20260809/`
+> (`g3_verification.md/json`, `run_metadata.json`, raw shards/logs), labeled
+> `real-online` + `smoke-only` (capture evidence, not a matched performance
+> result and not benchmark #95 accepted evidence).
+
+> **Current status (2026-08-12):** G1-G6 artifacts are retained as development
+> mechanism/capture results. They are not benchmark #95 accepted performance
+> evidence. The immediate work is ordinary integration review and CI for the
+> profiler, runtime, and Ascend PRs. M0 remains `NOT_M0_PROVEN` until fresh
+> opaque cases, custody/reveal blind evaluation, and a flat-summary comparison
+> are complete.
 
 ## 2026-08-03 KV-Recovery Plan Correction
 
@@ -20,32 +62,27 @@ the complete request ID and its stage association. Only after that trace is
 valid should tiering/HBM-only matched runs begin.
 
 This changes the immediate experiment priority, not the M0 research goal or
-the approved P0 bytes. `restore_start`, `restore_done`, and
-`scheduler_wakeup` are not frozen v1alpha1 event names; PR #4 also uses float
+the existing base-schema semantics. `restore_start`, `restore_done`, and
+`scheduler_wakeup` are not existing v1alpha1 event names; PR #4 also uses float
 milliseconds and array-valued block IDs while P0 uses monotonic uint64
 nanoseconds and scalar bounded metadata. The runtime integration therefore
 requires a reviewed, versioned optional adapter/profile. It must define exact
 stage boundaries, request/sequence/block-ID bounds, requeue reasons, clock
 conversion, and fail-closed handling before adding call sites. An actual
-tiering/offload trace also needs an approved communication or specialty
-profile; it cannot be mislabeled as the currently frozen
+tiering/offload trace also needs a supported versioned communication or
+specialty profile; it cannot be mislabeled as
 `communication_mode=none`.
 
 Execute the corrected ladder in order:
 
-1. **G0 — offline composition and compatibility, no hardware.** Preserve P0/P1
-   checkpoint `9f1464b8d017ef48e66b8b4c9bd4a5a37fdc563d` and its recorded hashes.
-   PR #4's additive module, tests, exports, and READY/BLOCKED fix are composed
-   on `feature/kv-recovery-integration`; the combined 67-focused/94-full test
-   and targeted Ruff gates pass, affected hashes are recorded, and frozen P0
-   plus the four limited-GO files remain unchanged. Direct imports and isolated
-   sdist/wheel packaging also pass. Do not repeat or rewrite that
-   reconciliation. The remaining G0 work is profile review and the pinned-pair
-   scheduler API check before choosing a tiering mode:
-   runtime `f229ba7...` passes `throttle_prefills` to `schedule()`, whereas
-   device `cafad89...`'s `RecomputeScheduler.schedule()` accepts no such
-   argument. Prove the selected connector avoids that scheduler or obtain an
-   approved compatibility patch/new pair and test it on CPU.
+1. **G0 — offline composition and compatibility, no hardware.** Keep the
+   optional profile default-off, review the resolved runtime/device call sites,
+   run the profiler and runtime CPU suites, and build the package. Before
+   choosing a tiering mode, check scheduler API compatibility: runtime
+   `f229ba7...` passes `throttle_prefills` to `schedule()`, whereas device
+   `cafad89...`'s `RecomputeScheduler.schedule()` accepts no such argument.
+   The selected `OffloadingConnector` path must avoid that incompatible
+   scheduler, or the interface must be fixed and tested on CPU.
 2. **G1 — CPU controlled trace.** Produce at least one complete synthetic/fake
    runtime recovery episode and one valid trace with no pressure episode.
    Verify an untruncated request-ID association to canonical `trace_id`, engine
@@ -58,12 +95,12 @@ Execute the corrected ladder in order:
    model, device-owner, schema/profile, expected-process, and trace-export check
    passes. If either marker state is ambiguous or any check fails, stop without
    starting a service or collecting performance data.
-4. **G3 — minimum online trace smoke.** Start only an authorized controlled
-   service and induce one recovery episode. Confirm client request ID through
+4. **G3 — minimum online trace smoke.** Start a controlled service and induce
+   one recovery episode. Confirm client request ID through
    engine sequence and every recovery stage, plus complete copy/wait/requeue
    fields. Label it `real-online` with `smoke-only` validity; it proves capture,
    not speedup or representative performance.
-5. **G4 — fixed-8-GiB matched modes.** Freeze nonoverlapping resolved meanings
+5. **G4 — fixed-8-GiB matched modes.** Define nonoverlapping resolved meanings
    for `tiering_disabled`, `tiering_enabled`, and `HBM-only`. Use the same
    request set/seed and all fixed #134 settings below. Run each mode in at least
    three independent service lifecycles in rotating/alternating order and
@@ -72,21 +109,28 @@ Execute the corrected ladder in order:
    disabled/enabled separately to quantify observer overhead.
    Do not run a `RecomputeScheduler`-based row until the G0 signature mismatch
    has been resolved and the exact tested pair is recorded.
-   For the local #134 path, freeze exactly one tiering implementation; do not
+   For the local #134 path, select exactly one tiering implementation; do not
    mix the device plugin's NPU tiering spec with the runtime's separate spec.
    HBM-only removes `--kv-transfer-config` rather than using zero CPU capacity.
    If `tiering_disabled` and HBM-only resolve to the same configuration, stop
    and obtain the intended mode definitions instead of publishing duplicate
    controls under different names. An FS tier must use a run-owned root,
-   `PYTHONHASHSEED=0`, and a frozen cold/warm-cache policy so state cannot leak
+   `PYTHONHASHSEED=0`, and a fixed cold/warm-cache policy so state cannot leak
    across independent service lifecycles.
 6. **G5 — full capacity surface.** Run the #134 8/16/24/32-GiB capacity and
    workload matrix after the fixed-8-GiB mechanism comparison is sound.
+   **Development capture recorded 2026-08-10** — see
+   `docs/g5_completion_record.md` and
+   `.benchmarks/results/g5_capacity_surface_20260810/`.
 7. **G6 — counterfactual.** If causal ranking selects copy, restore/wakeup,
    admission/requeue, or another mechanism, change only the rank-one predicted
    mechanism and rerun a matched pair. The public #134 experiment is mechanism
-   evidence; it counts toward blind M0 scoring only under the separately frozen
-   Team-A custody and reveal protocol.
+   evidence; it counts toward blind M0 scoring only in a genuine opaque-case
+   custody/reveal evaluation.
+   **Development counterfactual recorded 2026-08-11** — see
+   `docs/g6_counterfactual_spec.md` / `docs/g6_completion_record.md` and
+   `.benchmarks/results/g6_counterfactual_20260811/`. Blind M0 scoring remains
+   pending fresh opaque cases and custody/reveal evaluation.
 
 Stop and fail the run closed on stage loss/duplication/inversion, request or
 sequence ID drift, restore block drift, unreasoned requeue, trace loss, missing
@@ -144,7 +188,8 @@ coverage only; it does not support live NPU6 diagnosis or speedup claims.
 
 ## Phase 1: Existing-Server Probe on NPU6
 
-- Follow `docs/npu6_trace_probe_runbook.md` before probing any server.
+- Follow the local NPU6 trace-probe runbook (kept as a local working doc) before
+  probing any server.
 - Instrument baseline serving without changing runtime behavior.
 - Run shared workloads and emit per-request timelines.
 - Compare profiler reports against raw logs and simple stage timers.
@@ -312,7 +357,8 @@ pressure, graph capture or batch transition, and scheduler-output/batch-shape
 counters under the same hook-enabled pattern.
 
 The stricter live-fault matrix gate is documented in
-`docs/live_fault_matrix_plan.md`. It separates current coverage claims from the
+the local live-fault matrix plan (kept as a local working doc). It separates
+current coverage claims from the
 missing ASPLOS-level diagnosis claims: KV-pressure ground truth, timer-only
 baseline comparison, TPOT/HBM overhead beyond the smoke workload, and a larger
 workload matrix.

@@ -1,6 +1,6 @@
 # Idle Evidence Contract (M0)
 
-Status: Draft v4.3 (proposed for M0 approval)
+Status: Draft v4.3 (`NOT_M0_PROVEN`)
 
 Target: cross-layer device idle-gap and synchronization evidence, as defined in
 intellistream/vllm-request-lifecycle-profiler-plugin#2 (M0) and
@@ -83,7 +83,7 @@ conservative cross-layer **localization** evidence only.
   merge, the set of streams that have at least one profiler-visible event
   inside the analysis span. This is an **observed universe**, not the set of
   all runtime streams.
-- `collection status`: completeness attestation of the input capture
+- `collection status`: completeness declaration for the input capture
   (`complete` / `incomplete` / `unknown` / `invalid`), from external or
   collection-side evidence. Not derivable from the trace content alone.
 - `link status`: join resolution of a host/device `connectionId` link
@@ -543,7 +543,7 @@ Behavior when `uncalibrated`:
 ### 7.5 Deliverable set under the current environment constraint
 
 With no marker-capable environment (`uncalibrated`) and no collection
-attestation (`collection_status = unknown`), the M0 deliverable set on real
+completeness declaration (`collection_status = unknown`), the M0 deliverable set on real
 profiler fixtures is:
 
 ```text
@@ -555,7 +555,7 @@ unattributed_visible_idle
 
 `host_sync_api_present`, `queued_visible_task_delay`, and
 `no_observed_device_work` are frozen in this contract but not enabled until
-calibration data and collection attestation exist. On controlled synthetic
+calibration data and a collection completeness declaration exist. On controlled synthetic
 fixtures (`collection_status = complete` by construction, `synthetic_only`
 alignment), `no_observed_device_work` is additionally available. Correlation
 rules are delivered in frozen form and validated only on synthetic fixtures,

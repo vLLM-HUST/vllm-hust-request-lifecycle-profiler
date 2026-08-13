@@ -153,26 +153,24 @@ runtime-owned OffloadingConnector tiering candidate.
 | Family | Scheduler/API result | Communication result | Current decision |
 | --- | --- | --- | --- |
 | HBM-only, no connector, default runtime scheduler | no known selected signature conflict; produces no restore episode | `communication_mode=none` is legal under P0 when all other mode constraints hold | control candidate only; exact config still unfrozen |
-| Runtime `OffloadingConnector + TieringOffloadingSpec`, device recompute scheduler explicitly false | static call path uses runtime scheduler and runtime Ascend offload worker; avoids both known device specialty blockers | D2H/H2D requires approved specialty/issue-2 profile | recommended implementation candidate, but `BLOCKED` pending profile/config approval and startup test |
+| Runtime `OffloadingConnector + TieringOffloadingSpec`, device recompute scheduler explicitly false | static call path uses runtime scheduler and runtime Ascend offload worker; avoids both known device specialty blockers | D2H/H2D requires the versioned recovery profile and event mapping | selected implementation family; require resolved configuration and startup coverage |
 | Device `NPUOffloadingSpec` or `NPUTieringOffloadingSpec` | import, worker lifecycle, and shared-region constructor incompatible | also needs non-`none` profile | `BLOCKED_INCOMPATIBLE` |
 | Device `RecomputeCPUOffloadConnector + RecomputeScheduler` | scheduler signature/body incompatible; `kv_both` does not select expected recovery hook | also needs non-`none` profile | `BLOCKED_INCOMPATIBLE` |
 
-The runtime-owned candidate is a static compatibility finding, not a runtime
-GO. It still needs a frozen resolved config, import/interface CPU coverage, a
-real startup smoke after later admission, and the approved communication
-profile.
+The runtime-owned candidate began as a static compatibility finding. It became
+the selected implementation family after resolved-configuration checks,
+import/interface CPU coverage, and startup smoke coverage were added. The
+versioned communication profile remains the source of event semantics, not an
+approval gate.
 
 ## 7. Recommended G0 resolution
 
 The smallest path that preserves the approved source anchors is:
 
-1. freeze the recovery-profile bytes with Remygred, then produce a separate
-   content-addressed H2D/D2H/wait mapping with a complete subtype/edge roster
-   and obtain issue-2-authority approval for that artifact; neither digest nor
-   approval substitutes for the other;
-2. create a separate content-addressed issue-#134 configuration candidate that
-   explicitly selects runtime-core `TieringOffloadingSpec`, contains no device
-   `spec_module_path`, and fixes
+1. keep the versioned recovery profile and H2D/D2H/wait mapping explicit, with
+   a complete subtype/edge roster covered by conformance tests;
+2. use a resolved issue-#134 configuration that explicitly selects runtime-core
+   `TieringOffloadingSpec`, contains no device `spec_module_path`, and fixes
    `recompute_scheduler_enable=false`;
 3. define tiering-disabled and HBM-only as mutually exclusive resolved
    configurations rather than labels for the same command;
@@ -180,8 +178,8 @@ The smallest path that preserves the approved source anchors is:
    unsupported;
 5. run CPU/import/interface tests before any runtime source edit or NPU
    preflight; and
-6. preserve the current pins until either those tests pass or a replacement
-   pair is explicitly approved.
+6. preserve the current pins until those tests pass; update the pins and rerun
+   compatibility coverage whenever either dependency changes.
 
 This resolution does not use the incompatible device specialty classes. If
 the intended research question specifically requires their recompute behavior,
@@ -189,17 +187,16 @@ choose one of these larger alternatives instead:
 
 - port the device scheduler to the complete runtime scheduler interface and
   behavior, port the device offload implementation to
-  `OffloadingWorker/get_worker`, add failure/lifecycle tests, record new file
-  digests, and approve the compatibility patch; or
+  `OffloadingWorker/get_worker`, and add failure/lifecycle tests; or
 - select a device-plugin commit aligned with runtime 0.23.1, redo the complete
-  pair audit, and approve a new paired SHA.
+  pair compatibility audit and its tests.
 
 Merely adding an optional scheduler argument or suppressing an import is not a
 valid compatibility patch.
 
 ## 8. Required pre-G1 CPU checks
 
-Before source instrumentation, an approved candidate needs tests that:
+The implementation family needs tests that:
 
 - assert the selected scheduler callable accepts the runtime call shape in
   ordinary and batch-queue paths;
@@ -214,6 +211,5 @@ Before source instrumentation, an approved candidate needs tests that:
 - exercise tracing disabled and enabled without producer-path I/O or serving
   exceptions.
 
-Only after those checks and explicit owner decisions may the status move from
-`BLOCKED` to a limited CPU-integration GO. NPU READY remains a later,
-read-only, version-aware preflight gate.
+Those checks are the engineering entry condition for CPU integration. NPU
+readiness remains a separate, read-only, version-aware preflight check.
