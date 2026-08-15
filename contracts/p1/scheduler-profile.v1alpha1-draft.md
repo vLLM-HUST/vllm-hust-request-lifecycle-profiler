@@ -226,9 +226,26 @@ The physical shard is one mode-`0600` append-only file per
 may enter the experiment manifest. A raw path or matching glob is not an
 admission receipt.
 
-The experiment manifest verifies endpoint scope, path, and SHA-256. It owns
-all process/rank/device and profile-source mappings. Unknown databases are not
-admitted, and missing rank values are not inferred.
+The formal verifier reads the emitted canonical JSONL itself and produces a
+`scheduler_validation_receipt`. It verifies record-sequence/loss coverage,
+cycle/batch/step bijection and ordering, zero-token and constraint-summary
+semantics, the content digest, summary counts, and drained writer completeness.
+The receipt binds the exact shard SHA-256, this executable contract SHA-256,
+and the verifier repository commit and file SHA-256.
+
+Generate one only after an immutable successful close:
+
+```bash
+python scripts/verify_scheduler_profile_contract.py \
+  --scheduler-shard run/scheduler.jsonl \
+  --write-receipt run/scheduler-validation.json \
+  --json
+```
+
+The experiment manifest verifies the receipt and endpoint scope rather than
+reimplementing a smaller wire validator. Process/rank/device and profile-source
+mappings come from the experiment repository's launcher/capture receipts.
+Unknown databases are not admitted, and missing rank values are not inferred.
 
 ## 10. Claim boundary
 

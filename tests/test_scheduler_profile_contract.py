@@ -4,6 +4,8 @@ import copy
 import hashlib
 import importlib.util
 import json
+import subprocess
+import sys
 from pathlib import Path
 
 import pytest
@@ -48,6 +50,38 @@ def _write_wire_fixture(tmp_path: Path, records: list[dict[str, object]]) -> Pat
         )
         + "\n",
         encoding="utf-8",
+    )
+    return path
+
+
+def _complete_scheduler_shard(
+    tmp_path: Path, records: list[dict[str, object]] | None = None
+) -> Path:
+    values = copy.deepcopy(records if records is not None else _golden_records())
+    values = [record for record in values if record["record_type"] != "loss_interval"]
+    sequence = 0
+    for record in values:
+        if "record_seq" in record:
+            record["record_seq"] = sequence
+            sequence += 1
+    summary = values[-1]
+    summary.update(
+        {
+            "attempted_data_count": sequence,
+            "written_loss_interval_count": 0,
+            "dropped_data_count": 0,
+            "first_data_record_seq": 0,
+            "last_data_record_seq": sequence - 1,
+            "writer_failure_count": 0,
+            "close_outcome": "drained",
+        }
+    )
+    summary["content_sha256"] = hashlib.sha256(
+        b"".join(CONTRACT.canonicalize(record) + b"\n" for record in values[:-1])
+    ).hexdigest()
+    path = tmp_path / "scheduler.jsonl"
+    path.write_bytes(
+        b"".join(CONTRACT.canonicalize(record) + b"\n" for record in values)
     )
     return path
 
@@ -283,6 +317,93 @@ def test_golden_contains_every_record_and_all_constraint_modes() -> None:
     assert any(
         record.get("logical_batch_kind") == "empty_control" for record in records
     )
+
+
+def test_emitted_scheduler_shard_produces_route_b_validation_receipt(
+    tmp_path: Path,
+) -> None:
+    shard = _complete_scheduler_shard(tmp_path)
+
+    receipt = CONTRACT.build_scheduler_validation_receipt(
+        shard, verifier_commit="a" * 40
+    )
+
+    assert receipt["artifact_kind"] == "scheduler_validation_receipt"
+    assert receipt["scheduler_shard_sha256"] == CONTRACT.sha256_file(shard)
+    assert receipt["scope"]["scheduler_shard_id"] == "SH0"
+    assert receipt["validation"] == {
+        "valid": True,
+        "record_count": 11,
+        "data_record_count": 9,
+        "dropped_data_count": 0,
+        "writer_failure_count": 0,
+        "close_outcome": "drained",
+        "wire_content_sha256": json.loads(
+            shard.read_text(encoding="utf-8").splitlines()[-1]
+        )["content_sha256"],
+    }
+
+
+def test_scheduler_shard_cli_writes_commit_bound_receipt(tmp_path: Path) -> None:
+    shard = _complete_scheduler_shard(tmp_path)
+    receipt_path = tmp_path / "scheduler-validation.json"
+
+    output = subprocess.check_output(
+        [
+            sys.executable,
+            str(ROOT / "scripts" / "verify_scheduler_profile_contract.py"),
+            "--scheduler-shard",
+            str(shard),
+            "--write-receipt",
+            str(receipt_path),
+            "--json",
+        ],
+        text=True,
+    )
+
+    receipt = json.loads(receipt_path.read_text(encoding="utf-8"))
+    assert json.loads(output) == receipt
+    assert receipt["verifier_commit"] == subprocess.check_output(
+        ["git", "-C", str(ROOT), "rev-parse", "HEAD"], text=True
+    ).strip()
+
+
+def test_emitted_scheduler_shard_rejects_constraint_tampering(
+    tmp_path: Path,
+) -> None:
+    records = _golden_records()
+    cycle = next(
+        record for record in records if record["record_type"] == "schedule_cycle"
+    )
+    cycle["token_budget_summary"]["accounted_count"] += 1
+    shard = _complete_scheduler_shard(tmp_path, records)
+    config = CONTRACT.load_json(CONTRACT.CONFIG_PATH)
+
+    with pytest.raises(CONTRACT.ContractError, match="constraint_balance"):
+        CONTRACT.validate_scheduler_shard(shard, config)
+
+
+def test_emitted_scheduler_shard_requires_complete_drained_writer(
+    tmp_path: Path,
+) -> None:
+    shard = _complete_scheduler_shard(tmp_path)
+    records = [
+        json.loads(line) for line in shard.read_text(encoding="utf-8").splitlines()
+    ]
+    records[-1]["writer_failure_count"] = 1
+    records[-1]["close_outcome"] = "writer_failure"
+    records[-1]["content_sha256"] = hashlib.sha256(
+        b"".join(CONTRACT.canonicalize(record) + b"\n" for record in records[:-1])
+    ).hexdigest()
+    shard.write_bytes(
+        b"".join(CONTRACT.canonicalize(record) + b"\n" for record in records)
+    )
+    config = CONTRACT.load_json(CONTRACT.CONFIG_PATH)
+
+    with pytest.raises(
+        CONTRACT.ContractError, match="scheduler_shard_incomplete_for_route_b"
+    ):
+        CONTRACT.validate_scheduler_shard(shard, config)
 
 
 def test_pr_c1_adds_no_runtime_scheduler_profiler_implementation() -> None:

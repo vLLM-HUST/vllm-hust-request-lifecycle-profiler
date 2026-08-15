@@ -8,7 +8,9 @@ import copy
 import hashlib
 import json
 import re
+import subprocess
 import sys
+import tempfile
 from pathlib import Path
 from typing import Any
 
@@ -720,7 +722,12 @@ def _validate_record_sequence_coverage(
     return data, losses
 
 
-def validate_wire_golden(path: Path, config: dict[str, Any]) -> dict[str, Any]:
+def validate_wire_golden(
+    path: Path,
+    config: dict[str, Any],
+    *,
+    require_all_record_types: bool = True,
+) -> dict[str, Any]:
     payload = load_json(path)
     if payload.get("schema_version") != 1 or not isinstance(
         payload.get("records"), list
@@ -772,7 +779,7 @@ def validate_wire_golden(path: Path, config: dict[str, Any]) -> dict[str, Any]:
         if summary[key] != start[key]:
             raise ContractError("wire_scope_mismatch")
     observed_types = {record["record_type"] for record in records}
-    if observed_types != set(FIELDS_BY_RECORD_TYPE):
+    if require_all_record_types and observed_types != set(FIELDS_BY_RECORD_TYPE):
         raise ContractError("incomplete_record_type_golden")
     data, losses = _validate_record_sequence_coverage(records, summary)
     if len(losses) > config["wire_limits"]["max_loss_interval_records_per_shard"]:
@@ -876,6 +883,152 @@ def validate_wire_golden(path: Path, config: dict[str, Any]) -> dict[str, Any]:
         "wire_bytes_sha256": hashlib.sha256(b"".join(lines)).hexdigest(),
         "fixture_sha256": sha256_file(path),
     }
+
+
+def _load_canonical_scheduler_jsonl(
+    path: Path,
+) -> tuple[list[dict[str, Any]], list[bytes]]:
+    raw = path.read_bytes()
+    if not raw or not raw.endswith(b"\n"):
+        raise ContractError("scheduler_shard_unterminated")
+    records: list[dict[str, Any]] = []
+    lines = raw.splitlines(keepends=True)
+    for line_number, line in enumerate(lines, start=1):
+        try:
+            decoded = line[:-1].decode("utf-8")
+            record = json.loads(decoded, object_pairs_hook=_reject_duplicate)
+        except (UnicodeError, json.JSONDecodeError) as exc:
+            raise ContractError(
+                f"scheduler_shard_invalid_json:{line_number}:{exc}"
+            ) from exc
+        if not isinstance(record, dict):
+            raise ContractError(f"scheduler_shard_not_object:{line_number}")
+        if line != canonicalize(record) + b"\n":
+            raise ContractError(f"scheduler_shard_noncanonical:{line_number}")
+        records.append(record)
+    return records, lines
+
+
+def validate_scheduler_shard(path: Path, config: dict[str, Any]) -> dict[str, Any]:
+    """Validate one emitted scheduler JSONL shard against the full PR-C1 wire."""
+
+    records, lines = _load_canonical_scheduler_jsonl(path)
+    with tempfile.TemporaryDirectory(prefix="scheduler-shard-verifier-") as temporary:
+        envelope = Path(temporary) / "wire.json"
+        envelope.write_text(
+            json.dumps(
+                {"schema_version": 1, "records": records},
+                ensure_ascii=False,
+                separators=(",", ":"),
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+        report = validate_wire_golden(envelope, config, require_all_record_types=False)
+    summary = records[-1]
+    if (
+        summary["close_outcome"] != "drained"
+        or summary["writer_failure_count"] != 0
+        or summary["dropped_control_count"] != 0
+        or summary["dropped_data_count"] != 0
+    ):
+        raise ContractError("scheduler_shard_incomplete_for_route_b")
+    start = records[0]
+    report.update(
+        scheduler_shard_sha256=sha256_file(path),
+        scheduler_shard_size_bytes=sum(len(line) for line in lines),
+        scope={
+            field: start[field]
+            for field in (
+                "experiment_run_id",
+                "server_instance_id",
+                "process_instance_id",
+                "scheduler_shard_id",
+                "process_role",
+                "profile_stream",
+                "clock_domain_id",
+            )
+        },
+        dropped_data_count=summary["dropped_data_count"],
+        writer_failure_count=summary["writer_failure_count"],
+        close_outcome=summary["close_outcome"],
+        wire_content_sha256=summary["content_sha256"],
+    )
+    return report
+
+
+def build_scheduler_validation_receipt(
+    path: Path,
+    *,
+    verifier_commit: str,
+) -> dict[str, Any]:
+    if HEX40.fullmatch(verifier_commit) is None:
+        raise ContractError("invalid_verifier_commit")
+    config = load_json(CONFIG_PATH)
+    verify_config(config)
+    report = validate_scheduler_shard(path, config)
+    return {
+        "schema_version": 1,
+        "artifact_kind": "scheduler_validation_receipt",
+        "contract_id": "rlp.scheduler/v1alpha1",
+        "contract_sha256": sha256_file(CONFIG_PATH),
+        "verifier_repository": ("intellistream/vllm-request-lifecycle-profiler-plugin"),
+        "verifier_commit": verifier_commit,
+        "verifier_sha256": sha256_file(Path(__file__).resolve()),
+        "scheduler_shard_sha256": report["scheduler_shard_sha256"],
+        "scope": report["scope"],
+        "validation": {
+            "valid": True,
+            "record_count": report["records"],
+            "data_record_count": report["data_records"],
+            "dropped_data_count": report["dropped_data_count"],
+            "writer_failure_count": report["writer_failure_count"],
+            "close_outcome": report["close_outcome"],
+            "wire_content_sha256": report["wire_content_sha256"],
+        },
+    }
+
+
+def _repository_head() -> str:
+    try:
+        value = subprocess.check_output(
+            ["git", "-C", str(ROOT), "rev-parse", "HEAD"],
+            text=True,
+            stderr=subprocess.DEVNULL,
+        ).strip()
+    except (OSError, subprocess.CalledProcessError) as exc:
+        raise ContractError("verifier_repository_head_unavailable") from exc
+    if HEX40.fullmatch(value) is None:
+        raise ContractError("invalid_verifier_repository_head")
+    source_paths = [
+        str(Path(__file__).resolve().relative_to(ROOT)),
+        str(CONFIG_PATH.relative_to(ROOT)),
+    ]
+    clean = subprocess.run(
+        ["git", "-C", str(ROOT), "diff", "--quiet", "HEAD", "--", *source_paths],
+        check=False,
+    )
+    if clean.returncode != 0:
+        raise ContractError("verifier_source_or_contract_dirty")
+    return value
+
+
+def write_scheduler_validation_receipt(
+    shard_path: Path, receipt_path: Path
+) -> dict[str, Any]:
+    receipt = build_scheduler_validation_receipt(
+        shard_path.resolve(), verifier_commit=_repository_head()
+    )
+    receipt_path = receipt_path.resolve()
+    receipt_path.parent.mkdir(parents=True, exist_ok=True)
+    temporary = receipt_path.with_name(f".{receipt_path.name}.tmp")
+    temporary.write_text(
+        json.dumps(receipt, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+        + "\n",
+        encoding="utf-8",
+    )
+    temporary.replace(receipt_path)
+    return receipt
 
 
 def verify_config(config: dict[str, Any]) -> dict[str, Any]:
@@ -1017,9 +1170,20 @@ def verify() -> dict[str, Any]:
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--json", action="store_true")
+    parser.add_argument("--scheduler-shard", type=Path)
+    parser.add_argument("--write-receipt", type=Path)
     args = parser.parse_args()
     try:
-        report = verify()
+        if (args.scheduler_shard is None) != (args.write_receipt is None):
+            raise ContractError(
+                "--scheduler-shard and --write-receipt must be used together"
+            )
+        if args.scheduler_shard is not None:
+            report = write_scheduler_validation_receipt(
+                args.scheduler_shard, args.write_receipt
+            )
+        else:
+            report = verify()
     except (
         ContractError,
         KeyError,
