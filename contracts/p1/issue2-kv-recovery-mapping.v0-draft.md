@@ -1,5 +1,10 @@
 # KV-Recovery Communication Mapping v0 Draft
 
+> **Historical, non-normative design note.** Approval, freeze, authority,
+> attestation, digest-chain, and activation-gate language below is retained only
+> to explain project history. Current policy is defined by `AGENTS.md`,
+> `CONTRIBUTING.md`, `.github/BRANCH_POLICY.md`, the implementation, and tests.
+
 - Proposed mapping ID: `issue2:kv-recovery-v1alpha1`
 - Review status: `issue2_authority_rereview_required_after_request_changes`
 - Activation status: `BLOCKED_BY_ITEM_4B_BASE_MODE_CONFIG_AND_AUTHORITIES`

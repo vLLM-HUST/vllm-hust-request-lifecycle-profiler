@@ -1,5 +1,10 @@
 # E3 Stream Semantics Addendum — v0 Freeze Candidate
 
+> **Historical, non-normative design note.** Approval, freeze, authority,
+> attestation, digest-chain, and activation-gate language below is retained only
+> to explain project history. Current policy is defined by `AGENTS.md`,
+> `CONTRIBUTING.md`, `.github/BRANCH_POLICY.md`, the implementation, and tests.
+
 - Contract ID: `rlp.idle-evidence/e3-stream-semantics-addendum/v0`
 - Status: `freeze_candidate`; issue-2 authority approval required
 - Evidence status: `NOT_M0_PROVEN`

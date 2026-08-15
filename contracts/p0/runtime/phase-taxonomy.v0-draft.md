@@ -1,5 +1,10 @@
 # Phase Taxonomy and DAG — Freeze Candidate
 
+> **Historical, non-normative design note.** Approval, freeze, authority,
+> attestation, digest-chain, and activation-gate language below is retained only
+> to explain project history. Current policy is defined by `AGENTS.md`,
+> `CONTRIBUTING.md`, `.github/BRANCH_POLICY.md`, the implementation, and tests.
+
 Status: `freeze_candidate`, not approved or scored evidence.
 
 This taxonomy preserves the useful names in the historical nine-event
