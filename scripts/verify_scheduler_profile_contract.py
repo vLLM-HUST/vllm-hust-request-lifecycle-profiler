@@ -7,7 +7,6 @@ import argparse
 import copy
 import hashlib
 import json
-import math
 import re
 import sys
 from pathlib import Path
@@ -18,84 +17,21 @@ P1 = ROOT / "contracts" / "p1"
 FIXTURES = P1 / "fixtures" / "scheduler-profile-v1alpha1"
 CONFIG_PATH = P1 / "scheduler-profile-config.v1alpha1.json"
 CANDIDATE_PATH = P1 / "scheduler-profile-approval-candidate.json"
-PROCESS_BINDING_PATH = FIXTURES / "process-binding-golden.json"
 CONTRACT_PATH = P1 / "scheduler-profile.v1alpha1-draft.md"
 OVERLAY_PATH = P1 / "scheduler-profile-multistream-overlay.v1alpha1-draft.md"
+ARCHITECTURE_PATH = P1 / "scheduler-profiler-infra.v0-draft.md"
+ARCHITECTURE_OVERLAY_PATH = P1 / "scheduler-profile-multistream-overlay.v0-draft.md"
 
 SAFE_INTEGER_MAX = 9_007_199_254_740_991
 HEX32 = re.compile(r"^[0-9a-f]{32}$")
 HEX40 = re.compile(r"^[0-9a-f]{40}$")
 HEX64 = re.compile(r"^[0-9a-f]{64}$")
-UUID = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$")
-CANONICAL_ID = re.compile(
-    r"^(?P<process>[0-9a-f]{32}):scheduler:(?P<kind>cycle|batch|step|loss):"
-    r"(?P<sequence>0|[1-9][0-9]{0,19})$"
-)
-
-PROCESS_BINDING_FIELDS = {
-    "schema_version",
-    "runtime_profiler_process_binding_id",
-    "experiment_run_uuid",
-    "process_uuid",
-    "runtime_pid",
-    "runtime_pid_namespace_inode",
-    "runtime_nspid_vector",
-    "runtime_boot_id_sha256",
-    "runtime_proc_start_ticks",
-    "executor_role",
-    "rank_id",
-    "local_rank_id",
-    "device_id",
-    "profiler_visible_global_pid",
-    "profiler_pid_namespace_inode",
-    "profiler_pid_representation",
-    "profiler_context_ids",
-    "runtime_capture_receipt_sha256",
-    "profiler_source_inventory_sha256",
-    "binding_source",
-    "binding_status",
-    "reason_codes",
-    "captured_before_admitted_work",
-    "receipt_sha256",
-}
-PROCESS_BINDING_IDENTITY_FIELDS = (
-    "experiment_run_uuid",
-    "process_uuid",
-    "runtime_pid",
-    "runtime_pid_namespace_inode",
-    "runtime_nspid_vector",
-    "runtime_boot_id_sha256",
-    "runtime_proc_start_ticks",
-    "executor_role",
-    "rank_id",
-    "local_rank_id",
-    "device_id",
-    "profiler_visible_global_pid",
-    "profiler_pid_namespace_inode",
-    "profiler_pid_representation",
-    "profiler_context_ids",
-)
-RUN_MAPPING_FIELDS = {
-    "schema_version",
-    "experiment_run_uuid",
-    "materialization_uuid",
-    "traceloom_run_id",
-    "legacy_contract_path",
-    "legacy_contract_sha256",
-    "legacy_analyzer_run_id",
-    "source_inventory_sha256",
-    "mapping_sha256",
-}
+SHARD_ID = re.compile(r"^[A-Za-z0-9._-]{1,64}$")
+OPAQUE_ID = re.compile(r"^[!-~]{1,128}$")
 EXPECTED_CANDIDATE_ARTIFACTS = {
     "scheduler_wire_contract": "contracts/p1/scheduler-profile.v1alpha1-draft.md",
     "scheduler_profile_config": "contracts/p1/scheduler-profile-config.v1alpha1.json",
     "multistream_overlay": "contracts/p1/scheduler-profile-multistream-overlay.v1alpha1-draft.md",
-    "run_identity_vectors": (
-        "contracts/p1/fixtures/scheduler-profile-v1alpha1/run-identity-vectors.json"
-    ),
-    "process_binding_golden": (
-        "contracts/p1/fixtures/scheduler-profile-v1alpha1/process-binding-golden.json"
-    ),
     "scheduler_wire_golden": (
         "contracts/p1/fixtures/scheduler-profile-v1alpha1/scheduler-wire-golden.json"
     ),
@@ -121,6 +57,7 @@ EXPECTED_RUNTIME_PROFILE = {
     "multimodal": False,
     "n": 1,
     "pipeline_parallel_size": 1,
+    "process_role": "engine_core",
     "prompt_count": 1,
     "rank_id": 0,
     "speculative_decoding": False,
@@ -130,20 +67,22 @@ EXPECTED_RUNTIME_PROFILE = {
 COMMON = {
     "schema_version",
     "record_type",
-    "process_uuid",
+    "scheduler_shard_id",
+}
+SCOPE = COMMON | {
+    "experiment_run_id",
+    "server_instance_id",
+    "process_instance_id",
+    "process_role",
     "profile_stream",
-    "experiment_run_uuid",
-    "engine_instance_id",
 }
 DATA_COMMON = COMMON | {"record_seq"}
 FIELDS_BY_RECORD_TYPE = {
-    "scheduler_start": COMMON
+    "scheduler_start": SCOPE
     | {
         "started_monotonic_ns",
         "clock_source",
         "clock_domain_id",
-        "scheduler_process_uuid",
-        "executor_target_process_uuid",
         "runtime_core_commit",
         "device_plugin_commit",
         "parent_protocol_commit",
@@ -183,17 +122,13 @@ FIELDS_BY_RECORD_TYPE = {
         "scheduled_engine_request_count",
         "prefill_token_count",
         "decode_token_count",
-        "device_attribution_eligible",
+        "runtime_device_relation_candidate_eligible",
     },
     "execution_step_start": DATA_COMMON
     | {
         "execution_step_seq",
         "execution_step_id",
         "logical_batch_id",
-        "scheduler_process_uuid",
-        "executor_target_process_uuid",
-        "rank_id",
-        "device_id",
         "dispatch_monotonic_ns",
         "dispatch_kind",
     },
@@ -230,7 +165,7 @@ FIELDS_BY_RECORD_TYPE = {
         "first_observed_monotonic_ns",
         "last_observed_monotonic_ns",
     },
-    "scheduler_summary": COMMON
+    "scheduler_summary": SCOPE
     | {
         "ended_monotonic_ns",
         "attempted_data_count",
@@ -354,70 +289,6 @@ def canonicalize(value: Any) -> bytes:
     return json.dumps(value, ensure_ascii=False, separators=(",", ":")).encode()
 
 
-def _escape_string_independent(value: str) -> str:
-    _validate_scalar(value)
-    escapes = {"\b": "\\b", "\t": "\\t", "\n": "\\n", "\f": "\\f", "\r": "\\r"}
-    pieces = ['"']
-    for char in value:
-        if char == '"':
-            pieces.append('\\"')
-        elif char == "\\":
-            pieces.append("\\\\")
-        elif char in escapes:
-            pieces.append(escapes[char])
-        elif ord(char) <= 0x1F:
-            pieces.append(f"\\u{ord(char):04x}")
-        else:
-            pieces.append(char)
-    pieces.append('"')
-    return "".join(pieces)
-
-
-def _utf16_units_independent(value: str) -> tuple[int, ...]:
-    units: list[int] = []
-    for char in value:
-        point = ord(char)
-        if point <= 0xFFFF:
-            units.append(point)
-        else:
-            point -= 0x10000
-            units.extend((0xD800 + (point >> 10), 0xDC00 + (point & 0x3FF)))
-    return tuple(units)
-
-
-def canonicalize_independent(value: Any) -> bytes:
-    """Second implementation: manual escaping and UTF-16-unit sorting."""
-    if isinstance(value, dict):
-        keys = sorted(value, key=_utf16_units_independent)
-        text = (
-            "{"
-            + ",".join(
-                _escape_string_independent(key)
-                + ":"
-                + canonicalize_independent(value[key]).decode("utf-8")
-                for key in keys
-            )
-            + "}"
-        )
-        return text.encode("utf-8")
-    if isinstance(value, list):
-        return (
-            "["
-            + ",".join(canonicalize_independent(item).decode("utf-8") for item in value)
-            + "]"
-        ).encode("utf-8")
-    _validate_scalar(value)
-    if value is None:
-        return b"null"
-    if value is True:
-        return b"true"
-    if value is False:
-        return b"false"
-    if type(value) is int:
-        return f"{value:d}".encode("ascii")
-    return _escape_string_independent(value).encode("utf-8")
-
-
 def _exact_keys(value: Any, expected: set[str], name: str) -> dict[str, Any]:
     if not isinstance(value, dict) or set(value) != expected:
         raise ContractError(f"invalid_members:{name}")
@@ -445,212 +316,15 @@ def _bounded_string(value: Any, name: str, minimum: int = 1, maximum: int = 128)
 
 def _validate_canonical_id(
     value: Any,
-    process_uuid: str,
+    scheduler_shard_id: str,
     kind: str,
     sequence: int,
     name: str,
 ) -> str:
-    if not isinstance(value, str) or len(value.encode("ascii", "ignore")) > 80:
-        raise ContractError(f"invalid_canonical_id:{name}")
-    match = CANONICAL_ID.fullmatch(value)
-    if (
-        match is None
-        or match.group("process") != process_uuid
-        or match.group("kind") != kind
-        or int(match.group("sequence")) != sequence
-    ):
+    expected = f"{scheduler_shard_id}:{kind}:{sequence}"
+    if not isinstance(value, str) or value != expected or len(value) > 96:
         raise ContractError(f"invalid_canonical_id:{name}")
     return value
-
-
-def validate_run_identity(value: Any) -> None:
-    top = _exact_keys(
-        value,
-        {
-            "analyzer",
-            "contract_id",
-            "device_materializations",
-            "experiment_run_uuid",
-            "idle_evidence",
-            "materialization_uuid",
-            "options",
-            "scheduler_profile",
-            "source_label",
-        },
-        "run_identity",
-    )
-    if top["contract_id"] != "rlp.traceloom-run/v1alpha1":
-        raise ContractError("invalid_contract_id")
-    for key in ("experiment_run_uuid", "materialization_uuid"):
-        if not isinstance(top[key], str) or UUID.fullmatch(top[key]) is None:
-            raise ContractError(f"invalid_uuid:{key}")
-    analyzer = _exact_keys(top["analyzer"], {"commit", "repository"}, "analyzer")
-    _hex(analyzer["commit"], HEX40, "analyzer.commit")
-    _bounded_string(analyzer["repository"], "analyzer.repository")
-    idle = _exact_keys(
-        top["idle_evidence"], {"contract_sha256", "contract_version"}, "idle_evidence"
-    )
-    _hex(idle["contract_sha256"], HEX64, "idle_evidence.contract_sha256")
-    _bounded_string(idle["contract_version"], "idle_evidence.contract_version")
-    profile = _exact_keys(
-        top["scheduler_profile"],
-        {"config_sha256", "contract_sha256", "manifest_sha256", "overlay_sha256"},
-        "scheduler_profile",
-    )
-    for key, item in profile.items():
-        _hex(item, HEX64, f"scheduler_profile.{key}")
-    options = _exact_keys(
-        top["options"], {"label", "revision", "strict", "tags"}, "options"
-    )
-    if options["label"] is not None:
-        _bounded_string(options["label"], "options.label")
-    if (
-        type(options["revision"]) is not int
-        or not -SAFE_INTEGER_MAX <= options["revision"] <= SAFE_INTEGER_MAX
-    ):
-        raise ContractError("invalid_revision")
-    if type(options["strict"]) is not bool:
-        raise ContractError("invalid_strict")
-    if not isinstance(options["tags"], list):
-        raise ContractError("invalid_tags")
-    for index, tag in enumerate(options["tags"]):
-        _bounded_string(tag, f"options.tags[{index}]")
-    _bounded_string(top["source_label"], "source_label")
-    devices = top["device_materializations"]
-    if not isinstance(devices, list) or not devices:
-        raise ContractError("invalid_devices")
-    device_keys = []
-    for item in devices:
-        device = _exact_keys(
-            item, {"device_id", "rank_id", "source_inventory_sha256"}, "device"
-        )
-        device_keys.append(
-            (
-                _uint(device["device_id"], 32, "device_id"),
-                _uint(device["rank_id"], 32, "rank_id"),
-                _hex(
-                    device["source_inventory_sha256"], HEX64, "source_inventory_sha256"
-                ),
-            )
-        )
-    if device_keys != sorted(set(device_keys)):
-        raise ContractError("devices_not_sorted_unique")
-    canonicalize(top)
-
-
-def validate_run_mapping(value: Any) -> None:
-    mapping = _exact_keys(value, RUN_MAPPING_FIELDS, "run_mapping")
-    if mapping["schema_version"] != "rlp.traceloom-run-mapping/v1alpha1":
-        raise ContractError("invalid_mapping_schema")
-    for key in ("experiment_run_uuid", "materialization_uuid"):
-        if not isinstance(mapping[key], str) or UUID.fullmatch(mapping[key]) is None:
-            raise ContractError(f"invalid_uuid:{key}")
-    for key in (
-        "traceloom_run_id",
-        "legacy_contract_sha256",
-        "source_inventory_sha256",
-        "mapping_sha256",
-    ):
-        _hex(mapping[key], HEX64, key)
-    if mapping["legacy_analyzer_run_id"] is not None:
-        _hex(mapping["legacy_analyzer_run_id"], HEX64, "legacy_analyzer_run_id")
-    path = _bounded_string(
-        mapping["legacy_contract_path"], "legacy_contract_path", maximum=256
-    )
-    if path.startswith("/") or ".." in Path(path).parts or "\\" in path:
-        raise ContractError("non_portable_legacy_contract_path")
-    digest_input = {
-        key: item for key, item in mapping.items() if key != "mapping_sha256"
-    }
-    if (
-        hashlib.sha256(canonicalize(digest_input)).hexdigest()
-        != mapping["mapping_sha256"]
-    ):
-        raise ContractError("mapping_digest_mismatch")
-
-
-def validate_process_binding(value: Any) -> None:
-    receipt = _exact_keys(value, PROCESS_BINDING_FIELDS, "process_binding")
-    if receipt["schema_version"] != "rlp.runtime-profiler-process-binding/v1alpha1":
-        raise ContractError("invalid_process_binding_schema")
-    if (
-        not isinstance(receipt["experiment_run_uuid"], str)
-        or UUID.fullmatch(receipt["experiment_run_uuid"]) is None
-    ):
-        raise ContractError("invalid_uuid:experiment_run_uuid")
-    _hex(receipt["process_uuid"], HEX32, "process_uuid")
-    for key in (
-        "runtime_pid",
-        "rank_id",
-        "local_rank_id",
-        "device_id",
-        "profiler_visible_global_pid",
-    ):
-        _uint(receipt[key], 32, key)
-    for key in (
-        "runtime_pid_namespace_inode",
-        "runtime_proc_start_ticks",
-        "profiler_pid_namespace_inode",
-    ):
-        _uint(receipt[key], 64, key)
-    for key in ("runtime_nspid_vector", "profiler_context_ids"):
-        items = receipt[key]
-        if not isinstance(items, list) or not 1 <= len(items) <= 8:
-            raise ContractError(f"invalid_bounded_vector:{key}")
-        values = [_uint(item, 64, key) for item in items]
-        if key == "profiler_context_ids" and values != sorted(set(values)):
-            raise ContractError("profiler_context_ids_not_sorted_unique")
-    for key in (
-        "runtime_boot_id_sha256",
-        "runtime_capture_receipt_sha256",
-        "profiler_source_inventory_sha256",
-    ):
-        _hex(receipt[key], HEX64, key)
-    if receipt["executor_role"] != "engine_core_uniproc_worker":
-        raise ContractError("invalid_executor_role")
-    if receipt["profiler_pid_representation"] != "host_global":
-        raise ContractError("invalid_profiler_pid_representation")
-    if (
-        receipt["binding_source"]
-        != "application_owned_msprof_task_global_pid_context_id"
-    ):
-        raise ContractError("invalid_binding_source")
-    status = receipt["binding_status"]
-    if status not in {"exact", "ambiguous", "unmatched", "unsupported"}:
-        raise ContractError("invalid_binding_status")
-    reasons = receipt["reason_codes"]
-    if not isinstance(reasons, list) or not all(
-        isinstance(item, str) and 1 <= len(item) <= 64 for item in reasons
-    ):
-        raise ContractError("invalid_binding_reason_codes")
-    if len(reasons) != len(set(reasons)):
-        raise ContractError("duplicate_binding_reason_code")
-    if type(receipt["captured_before_admitted_work"]) is not bool:
-        raise ContractError("invalid_capture_boundary")
-    if status == "exact" and (
-        reasons or receipt["captured_before_admitted_work"] is not True
-    ):
-        raise ContractError("invalid_exact_binding")
-    identity = {key: receipt[key] for key in PROCESS_BINDING_IDENTITY_FIELDS}
-    binding_id = hashlib.sha256(canonicalize(identity)).hexdigest()
-    if receipt["runtime_profiler_process_binding_id"] != binding_id:
-        raise ContractError("process_binding_id_mismatch")
-    digest_input = {
-        key: item for key, item in receipt.items() if key != "receipt_sha256"
-    }
-    receipt_digest = hashlib.sha256(canonicalize(digest_input)).hexdigest()
-    if receipt["receipt_sha256"] != receipt_digest:
-        raise ContractError("process_binding_receipt_digest_mismatch")
-
-
-def verify_process_binding_fixture(path: Path) -> dict[str, str]:
-    receipt = load_json(path)
-    validate_process_binding(receipt)
-    return {
-        "binding_status": receipt["binding_status"],
-        "binding_id": receipt["runtime_profiler_process_binding_id"],
-        "fixture_sha256": sha256_file(path),
-    }
 
 
 def _validate_witness(
@@ -736,33 +410,34 @@ def validate_record(record: Any, max_bytes: int) -> None:
     if record_type not in FIELDS_BY_RECORD_TYPE:
         raise ContractError("invalid_record_type")
     _exact_keys(record, FIELDS_BY_RECORD_TYPE[record_type], record_type)
-    if (
-        record["schema_version"] != "rlp.scheduler/v1alpha1"
-        or record["profile_stream"] != "scheduler"
-    ):
-        raise ContractError("invalid_schema_or_stream")
-    process_uuid = _hex(record["process_uuid"], HEX32, "process_uuid")
-    _hex(record["engine_instance_id"], HEX32, "engine_instance_id")
-    if (
-        not isinstance(record["experiment_run_uuid"], str)
-        or UUID.fullmatch(record["experiment_run_uuid"]) is None
-    ):
-        raise ContractError("invalid_experiment_run_uuid")
+    if record["schema_version"] != "rlp.scheduler/v1alpha1":
+        raise ContractError("invalid_schema")
+    scheduler_shard_id = record["scheduler_shard_id"]
+    if not isinstance(scheduler_shard_id, str) or SHARD_ID.fullmatch(
+        scheduler_shard_id
+    ) is None:
+        raise ContractError("invalid_scheduler_shard_id")
     if "record_seq" in record:
         _uint(record["record_seq"], 64, "record_seq")
     if len(canonicalize(record)) + 1 > max_bytes:
         raise ContractError("record_too_large")
 
     if record_type == "scheduler_start":
+        for key in (
+            "experiment_run_id",
+            "server_instance_id",
+            "process_instance_id",
+        ):
+            if not isinstance(record[key], str) or OPAQUE_ID.fullmatch(record[key]) is None:
+                raise ContractError(f"invalid_scope_id:{key}")
+        if record["process_role"] != "engine_core":
+            raise ContractError("invalid_process_role")
+        if record["profile_stream"] != "scheduler":
+            raise ContractError("invalid_profile_stream")
         _uint(record["started_monotonic_ns"], 64, "started_monotonic_ns")
         if record["clock_source"] != "CLOCK_MONOTONIC":
             raise ContractError("invalid_clock_source")
         _hex(record["clock_domain_id"], HEX32, "clock_domain_id")
-        if (
-            record["scheduler_process_uuid"] != process_uuid
-            or record["executor_target_process_uuid"] != process_uuid
-        ):
-            raise ContractError("invalid_uniproc_process_route")
         for key in (
             "runtime_core_commit",
             "device_plugin_commit",
@@ -786,7 +461,7 @@ def validate_record(record: Any, max_bytes: int) -> None:
         cycle_seq = _uint(record["cycle_seq"], 64, "cycle_seq")
         _validate_canonical_id(
             record["schedule_cycle_id"],
-            process_uuid,
+            scheduler_shard_id,
             "cycle",
             cycle_seq,
             "schedule_cycle_id",
@@ -819,7 +494,7 @@ def validate_record(record: Any, max_bytes: int) -> None:
         batch_seq = _uint(record["batch_seq"], 64, "batch_seq")
         _validate_canonical_id(
             record["logical_batch_id"],
-            process_uuid,
+            scheduler_shard_id,
             "batch",
             batch_seq,
             "logical_batch_id",
@@ -841,14 +516,14 @@ def validate_record(record: Any, max_bytes: int) -> None:
             if (
                 scheduled == 0
                 or request_count == 0
-                or record["device_attribution_eligible"] is not True
+                or record["runtime_device_relation_candidate_eligible"] is not True
             ):
                 raise ContractError("invalid_work_batch")
         elif record["logical_batch_kind"] == "empty_control":
             if (
                 scheduled != 0
                 or request_count != 0
-                or record["device_attribution_eligible"] is not False
+                or record["runtime_device_relation_candidate_eligible"] is not False
             ):
                 raise ContractError("invalid_empty_control_batch")
         else:
@@ -857,30 +532,21 @@ def validate_record(record: Any, max_bytes: int) -> None:
         step_seq = _uint(record["execution_step_seq"], 64, "execution_step_seq")
         _validate_canonical_id(
             record["execution_step_id"],
-            process_uuid,
+            scheduler_shard_id,
             "step",
             step_seq,
             "execution_step_id",
         )
         if not isinstance(record["logical_batch_id"], str):
             raise ContractError("invalid_relation_id:logical_batch_id")
-        if (
-            record["scheduler_process_uuid"] != process_uuid
-            or record["executor_target_process_uuid"] != process_uuid
-        ):
-            raise ContractError("invalid_uniproc_process_route")
-        if (
-            record["rank_id"] != 0
-            or record["device_id"] != 0
-            or record["dispatch_kind"] != "uniproc_execute_model"
-        ):
+        if record["dispatch_kind"] != "uniproc_execute_model":
             raise ContractError("invalid_execution_start_profile")
         _uint(record["dispatch_monotonic_ns"], 64, "dispatch_monotonic_ns")
     elif record_type == "execution_step_end":
         step_seq = _uint(record["execution_step_seq"], 64, "execution_step_seq")
         _validate_canonical_id(
             record["execution_step_id"],
-            process_uuid,
+            scheduler_shard_id,
             "step",
             step_seq,
             "execution_step_id",
@@ -904,7 +570,7 @@ def validate_record(record: Any, max_bytes: int) -> None:
         loss_seq = _uint(record["loss_interval_seq"], 64, "loss_interval_seq")
         _validate_canonical_id(
             record["loss_interval_id"],
-            process_uuid,
+            scheduler_shard_id,
             "loss",
             loss_seq,
             "loss_interval_id",
@@ -938,6 +604,17 @@ def validate_record(record: Any, max_bytes: int) -> None:
         ):
             raise ContractError("inverted_loss_interval")
     elif record_type == "scheduler_summary":
+        for key in (
+            "experiment_run_id",
+            "server_instance_id",
+            "process_instance_id",
+        ):
+            if not isinstance(record[key], str) or OPAQUE_ID.fullmatch(record[key]) is None:
+                raise ContractError(f"invalid_scope_id:{key}")
+        if record["process_role"] != "engine_core":
+            raise ContractError("invalid_process_role")
+        if record["profile_stream"] != "scheduler":
+            raise ContractError("invalid_profile_stream")
         _uint(record["ended_monotonic_ns"], 64, "ended_monotonic_ns")
         attempted = _uint(record["attempted_data_count"], 64, "attempted_data_count")
         written = sum(
@@ -983,9 +660,7 @@ def _maximal_schedule_cycle(record: dict[str, Any]) -> dict[str, Any]:
         {
             "record_seq": maximum_u64,
             "cycle_seq": maximum_u64,
-            "schedule_cycle_id": (
-                f"{record['process_uuid']}:scheduler:cycle:{maximum_u64}"
-            ),
+            "schedule_cycle_id": f"{record['scheduler_shard_id']}:cycle:{maximum_u64}",
             "cycle_start_monotonic_ns": maximum_u64,
             "cycle_end_monotonic_ns": maximum_u64,
             "waiting_engine_request_count_before": maximum_u32,
@@ -1112,24 +787,25 @@ def validate_wire_golden(path: Path, config: dict[str, Any]) -> dict[str, Any]:
         if record["record_type"] == "clock_bridge_sample"
     ):
         raise ContractError("clock_domain_mismatch")
-    common_scope = {
-        key: start[key]
-        for key in (
-            "process_uuid",
-            "profile_stream",
-            "experiment_run_uuid",
-            "engine_instance_id",
-        )
-    }
     if any(
-        any(record[key] != value for key, value in common_scope.items())
+        record["scheduler_shard_id"] != start["scheduler_shard_id"]
         for record in records
     ):
         raise ContractError("wire_scope_mismatch")
+    summary = records[-1]
+    for key in (
+        "experiment_run_id",
+        "server_instance_id",
+        "process_instance_id",
+        "scheduler_shard_id",
+        "process_role",
+        "profile_stream",
+    ):
+        if summary[key] != start[key]:
+            raise ContractError("wire_scope_mismatch")
     observed_types = {record["record_type"] for record in records}
     if observed_types != set(FIELDS_BY_RECORD_TYPE):
         raise ContractError("incomplete_record_type_golden")
-    summary = records[-1]
     data, losses = _validate_record_sequence_coverage(records, summary)
     if len(losses) > config["wire_limits"]["max_loss_interval_records_per_shard"]:
         raise ContractError("wire_loss_interval_limit")
@@ -1234,50 +910,6 @@ def validate_wire_golden(path: Path, config: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def verify_identity_vectors(path: Path) -> dict[str, Any]:
-    payload = load_json(path)
-    vectors = payload.get("vectors")
-    negatives = payload.get("negative_vectors")
-    mappings = payload.get("mapping_vectors")
-    if (
-        payload.get("schema_version") != 1
-        or not isinstance(vectors, list)
-        or not isinstance(negatives, list)
-        or not isinstance(mappings, list)
-    ):
-        raise ContractError("invalid_vector_roster")
-    for vector in vectors:
-        metadata = vector["metadata_without_run_id"]
-        validate_run_identity(metadata)
-        first = canonicalize(metadata)
-        second = canonicalize_independent(metadata)
-        if first != second or first.decode("utf-8") != vector["canonical_utf8"]:
-            raise ContractError(f"canonical_vector_mismatch:{vector['name']}")
-        digest = hashlib.sha256(first).hexdigest()
-        if digest != vector["traceloom_run_id"]:
-            raise ContractError(f"digest_vector_mismatch:{vector['name']}")
-    observed_errors = []
-    for vector in negatives:
-        try:
-            validate_run_identity(vector["metadata_without_run_id"])
-        except ContractError as exc:
-            observed_errors.append(str(exc))
-            if str(exc) != vector["error_code"]:
-                raise ContractError(
-                    f"negative_vector_mismatch:{vector['name']}:{exc}"
-                ) from exc
-        else:
-            raise ContractError(f"negative_vector_accepted:{vector['name']}")
-    for mapping in mappings:
-        validate_run_mapping(mapping["mapping"])
-    return {
-        "positive": len(vectors),
-        "negative": len(negatives),
-        "mapping": len(mappings),
-        "negative_errors": observed_errors,
-    }
-
-
 def verify_config(config: dict[str, Any]) -> dict[str, Any]:
     _exact_keys(
         config,
@@ -1285,13 +917,10 @@ def verify_config(config: dict[str, Any]) -> dict[str, Any]:
             "artifact_kind",
             "artifact_status",
             "clock_bridge",
-            "coverage",
-            "join",
+            "composition_boundary",
             "profile_stream",
-            "run_identity",
             "runtime_profile",
             "schema_version",
-            "tail_window",
             "wire_limits",
             "wire_schema",
         },
@@ -1369,38 +998,35 @@ def verify_config(config: dict[str, Any]) -> dict[str, Any]:
         > limits["max_batch_records"] * limits["max_record_bytes_including_lf"]
     ):
         raise ContractError("batch_byte_bound")
-    for scope in ("overall", "tail"):
-        coverage = config["coverage"][scope]
-        for key, value in coverage.items():
-            is_minimum_coverage = key.startswith("min_") and key.endswith("coverage")
-            is_maximum_fraction = key.startswith("max_") and key.endswith("fraction")
-            if is_minimum_coverage or is_maximum_fraction:
-                if (
-                    type(value) not in {int, float}
-                    or not math.isfinite(value)
-                    or (is_minimum_coverage and not 0 < value <= 1)
-                    or (is_maximum_fraction and not 0 <= value <= 1)
-                ):
-                    raise ContractError(f"invalid_coverage_threshold:{scope}:{key}")
-            elif type(value) is not int or value <= 0:
-                raise ContractError(f"invalid_coverage_threshold:{scope}:{key}")
-    if config["coverage"]["zero_denominator_status"] != "UNDEFINED_FAIL_CLOSED":
-        raise ContractError("invalid_zero_denominator_behavior")
+    boundary = _exact_keys(
+        config["composition_boundary"],
+        {
+            "authority",
+            "exact_requires_explicit_shared_producer_execution_id",
+            "forbidden_identity_authorities",
+            "profile_source_namespace_required",
+            "relation_statuses",
+            "timestamp_containment_maximum_status",
+        },
+        "composition_boundary",
+    )
     if (
-        type(config["join"]["max_candidates_per_attempted_join"]) is not int
-        or config["join"]["max_candidates_per_attempted_join"] <= 0
+        boundary["authority"] != "experiment_repo_run_manifest/v1"
+        or boundary["exact_requires_explicit_shared_producer_execution_id"] is not True
+        or boundary["profile_source_namespace_required"] is not True
+        or boundary["relation_statuses"]
+        != ["exact", "correlated", "ambiguous", "unmatched", "unsupported"]
+        or boundary["timestamp_containment_maximum_status"] != "correlated"
+        or set(boundary["forbidden_identity_authorities"])
+        != {
+            "analyzer_run_id",
+            "pid_context_across_profile_sources",
+            "rank_device_time_similarity",
+            "scheduler_selected_profile_database",
+            "timestamp_proximity",
+        }
     ):
-        raise ContractError("invalid_join_candidate_bound")
-    for key in ("minimum_nominal_containment_ratio",):
-        value = config["join"][key]
-        if (
-            type(value) not in {int, float}
-            or not math.isfinite(value)
-            or not 0 < value <= 1
-        ):
-            raise ContractError(f"invalid_join_threshold:{key}")
-    if config["tail_window"]["cohort_quantile"] != 0.95:
-        raise ContractError("invalid_tail_quantile")
+        raise ContractError("invalid_composition_boundary")
     return {
         "burst_required_records": burst,
         "artifact_records_max": records,
@@ -1413,10 +1039,11 @@ def verify_candidate(candidate: dict[str, Any]) -> dict[str, str]:
         candidate,
         {
             "acceptance_items",
-            "analyzer_dependency",
+            "analyzer_boundary",
             "artifact_kind",
             "artifact_status",
             "base_contracts",
+            "experiment_composition_dependency",
             "gate_effects_before_owner_approval",
             "owner_approval_requirement",
             "parent_architecture",
@@ -1434,43 +1061,69 @@ def verify_candidate(candidate: dict[str, Any]) -> dict[str, str]:
         raise ContractError("invalid_candidate_status")
     parent = _exact_keys(
         candidate["parent_architecture"],
-        {"commit", "pull_request", "repository", "status", "tree"},
+        {
+            "architecture_path",
+            "architecture_sha256",
+            "overlay_path",
+            "overlay_sha256",
+            "pull_request",
+            "repository",
+            "status",
+        },
         "parent_architecture",
     )
     if (
         parent["repository"] != "intellistream/vllm-request-lifecycle-profiler-plugin"
         or parent["pull_request"] != 14
-        or parent["status"] != "architecture_review_candidate"
+        or parent["status"] != "route_b_architecture_review_candidate"
+        or parent["architecture_path"] != ARCHITECTURE_PATH.relative_to(ROOT).as_posix()
+        or parent["overlay_path"]
+        != ARCHITECTURE_OVERLAY_PATH.relative_to(ROOT).as_posix()
+        or parent["architecture_sha256"] != sha256_file(ARCHITECTURE_PATH)
+        or parent["overlay_sha256"] != sha256_file(ARCHITECTURE_OVERLAY_PATH)
     ):
         raise ContractError("invalid_parent_architecture_authority")
-    _hex(parent["commit"], HEX40, "parent.commit")
-    _hex(parent["tree"], HEX40, "parent.tree")
     i0 = _exact_keys(
         candidate["pr_i0_authority"],
-        {"ci_status", "commit", "pull_request", "repository", "tree"},
+        {"pull_request", "repository", "status"},
         "pr_i0_authority",
     )
     if (
         i0["repository"] != "intellistream/ascend-llm-realworkload-prof"
         or i0["pull_request"] != 30
-        or i0["ci_status"] != "all_effective_checks_pass"
+        or i0["status"] != "route_b_revision_required_before_owner_approval"
     ):
         raise ContractError("invalid_pr_i0_authority")
-    _hex(i0["commit"], HEX40, "pr_i0.commit")
-    _hex(i0["tree"], HEX40, "pr_i0.tree")
     analyzer = _exact_keys(
-        candidate["analyzer_dependency"],
-        {"commit", "pull_request", "repository", "status", "tree"},
-        "analyzer_dependency",
+        candidate["analyzer_boundary"],
+        {
+            "cross_db_identity_authority",
+            "default_source_boundary",
+            "pid_context_scope",
+            "repository",
+            "scheduler_ingestion_required",
+        },
+        "analyzer_boundary",
     )
     if (
         analyzer["repository"] != "vLLM-HUST/vllm-hust-perf-analyzer"
-        or analyzer["pull_request"] != 31
-        or analyzer["status"] != "draft_dependency"
+        or analyzer["default_source_boundary"] != "one_profile_source"
+        or analyzer["cross_db_identity_authority"] is not False
+        or analyzer["pid_context_scope"] != "single_source_diagnostic_only"
+        or analyzer["scheduler_ingestion_required"] is not False
     ):
-        raise ContractError("invalid_analyzer_dependency")
-    _hex(analyzer["commit"], HEX40, "analyzer.commit")
-    _hex(analyzer["tree"], HEX40, "analyzer.tree")
+        raise ContractError("invalid_analyzer_boundary")
+    composition = _exact_keys(
+        candidate["experiment_composition_dependency"],
+        {"pull_request", "repository", "status"},
+        "experiment_composition_dependency",
+    )
+    if (
+        composition["repository"] != "intellistream/ascend-llm-realworkload-prof"
+        or composition["pull_request"] != 30
+        or composition["status"] != "route_b_manifest_and_composer_required"
+    ):
+        raise ContractError("invalid_experiment_composition_dependency")
     base_contracts = candidate["base_contracts"]
     if not isinstance(base_contracts, list) or len(base_contracts) != 4:
         raise ContractError("invalid_base_contract_roster")
@@ -1490,7 +1143,7 @@ def verify_candidate(candidate: dict[str, Any]) -> dict[str, str]:
             raise ContractError("unfrozen_base_contract")
         if sha256_file(ROOT / item["path"]) != item["sha256"]:
             raise ContractError(f"base_contract_digest_mismatch:{item['path']}")
-    if candidate["acceptance_items"] != list(range(1, 9)):
+    if candidate["acceptance_items"] != list(range(1, 8)):
         raise ContractError("invalid_acceptance_items")
     if (
         not isinstance(candidate["owner_approval_requirement"], str)
@@ -1539,10 +1192,6 @@ def verify() -> dict[str, Any]:
     report = {
         "config": verify_config(config),
         "candidate_artifacts": verify_candidate(candidate),
-        "identity_vectors": verify_identity_vectors(
-            FIXTURES / "run-identity-vectors.json"
-        ),
-        "process_binding": verify_process_binding_fixture(PROCESS_BINDING_PATH),
         "wire_golden": validate_wire_golden(
             FIXTURES / "scheduler-wire-golden.json", config
         ),

@@ -4,64 +4,30 @@
   "clock_bridge": {
     "bracket_midpoint_rule": "floor((monotonic_before_ns + monotonic_after_ns) / 2)",
     "cadence_ns": 1000000000,
-    "endpoint_uncertainty_composition": "sum",
-    "fit_rule": "piecewise_linear_between_adjacent_sample_midpoints",
-    "holdout_rule": "each interior sample is predicted by linear interpolation of its immediate neighbors",
     "max_bracket_width_ns": 100000,
-    "max_drift_ppm": 100,
-    "max_endpoint_uncertainty_ns": 500000,
-    "max_holdout_residual_ns": 200000,
-    "max_sample_gap_ns": 2000000000,
-    "min_samples_per_segment": 8,
-    "realtime_jump_split_threshold_ns": 5000000,
-    "segment_rule": "split before the later sample when abs(delta_realtime_ns - delta_monotonic_midpoint_ns) exceeds realtime_jump_split_threshold_ns",
-    "supported_extrapolation_ns": 0
+    "realtime_jump_split_threshold_ns": 5000000
   },
-  "coverage": {
-    "admitted_join_statuses": [
-      "calibrated_correlated",
-      "exact_identity"
+  "composition_boundary": {
+    "authority": "experiment_repo_run_manifest/v1",
+    "exact_requires_explicit_shared_producer_execution_id": true,
+    "forbidden_identity_authorities": [
+      "analyzer_run_id",
+      "pid_context_across_profile_sources",
+      "rank_device_time_similarity",
+      "scheduler_selected_profile_database",
+      "timestamp_proximity"
     ],
-    "overall": {
-      "max_ambiguous_step_fraction": 0.005,
-      "max_unmatched_step_fraction": 0.01,
-      "max_unsupported_step_fraction": 0.0,
-      "min_eligible_execution_union_ns": 1000000000,
-      "min_eligible_step_count": 100,
-      "min_execution_duration_join_coverage": 0.995,
-      "min_step_join_coverage": 0.99
-    },
-    "tail": {
-      "max_ambiguous_step_fraction": 0.01,
-      "max_unmatched_step_fraction": 0.05,
-      "max_unsupported_step_fraction": 0.0,
-      "min_eligible_execution_union_ns": 100000000,
-      "min_eligible_step_count": 20,
-      "min_execution_duration_join_coverage": 0.98,
-      "min_step_join_coverage": 0.95
-    },
-    "zero_denominator_status": "UNDEFINED_FAIL_CLOSED"
-  },
-  "join": {
-    "candidate_overflow_behavior": "retain no candidate rows, report the exact observed count, set candidate_overflow=true and join_status=unsupported, and fail formal evidence closed",
-    "correlated_relation": "robust_step_containment_in_profiler_execution_anchor",
-    "exact_identity_requires_profiler_visible_step_id": true,
-    "max_candidates_per_attempted_join": 8,
-    "max_clock_uncertainty_ns": 500000,
-    "minimum_nominal_containment_ratio": 0.95,
-    "nearest_timestamp_selection_forbidden": true,
-    "process_binding_required": "exact",
-    "robust_containment_rule": "anchor_start_ns + anchor_start_uncertainty_ns <= step_start_ns - step_start_uncertainty_ns AND step_end_ns + step_end_uncertainty_ns <= anchor_end_ns - anchor_end_uncertainty_ns"
+    "profile_source_namespace_required": true,
+    "relation_statuses": [
+      "exact",
+      "correlated",
+      "ambiguous",
+      "unmatched",
+      "unsupported"
+    ],
+    "timestamp_containment_maximum_status": "correlated"
   },
   "profile_stream": "scheduler",
-  "run_identity": {
-    "canonicalization": "RFC8785_IJSON_INTEGER_SUBSET",
-    "digest": "SHA-256",
-    "digest_encoding": "lowercase_hex",
-    "identity_schema": "rlp.traceloom-run/v1alpha1",
-    "legacy_mapping_schema": "rlp.traceloom-run-mapping/v1alpha1",
-    "run_id_member_excluded": true
-  },
   "runtime_profile": {
     "async_scheduling": false,
     "communication_mode": "none",
@@ -73,32 +39,20 @@
     "ec_transfer_connector_enabled": false,
     "eager_execution": true,
     "host_count": 1,
+    "kv_transfer_connector_enabled": false,
     "max_concurrent_batches": 1,
     "max_in_flight_execution_steps": 1,
     "model_mode": "decoder_only_generation",
     "multimodal": false,
     "n": 1,
     "pipeline_parallel_size": 1,
+    "process_role": "engine_core",
     "prompt_count": 1,
     "rank_id": 0,
     "speculative_decoding": false,
-    "tensor_parallel_size": 1,
-    "kv_transfer_connector_enabled": false
+    "tensor_parallel_size": 1
   },
   "schema_version": 1,
-  "tail_window": {
-    "cohort_quantile": 0.95,
-    "eligibility": "complete normal lifecycle request with one engine sample, n=1, no lifecycle loss, initial queued and first_token in one approved clock domain",
-    "empty_or_unmappable_window_status": "UNDEFINED_FAIL_CLOSED",
-    "interval_end": "engine_sample.first_token.timestamp_ns",
-    "interval_start": "engine_sample.initial_queued.timestamp_ns",
-    "population": "all eligible requests whose half-open pre-first-token interval intersects the manifest-declared main analysis window",
-    "quantile_rule": "nearest_rank_ceil",
-    "scope": "same experiment_run_uuid and engine_instance_id as scheduler evidence",
-    "tie_rule": "include every request whose TTFT is greater than or equal to the nearest-rank threshold",
-    "ttft_metric": "first_token.timestamp_ns - initial_queued.timestamp_ns",
-    "window_rule": "half-open union of selected request intervals intersected only with the manifest-declared main analysis window"
-  },
   "wire_limits": {
     "artifact_bytes_max": 2374590464,
     "clock_bridge_max_records": 1801,
@@ -120,8 +74,8 @@
     "producer_safety_factor": 2,
     "reserved_capacity_records": 64,
     "shard_mode_octal": "0600",
-    "shard_path_template": "<base>.rlp-scheduler.<process_uuid>.jsonl",
-    "shard_scope": "one_append_only_shard_per_process_uuid_and_profile_stream",
+    "shard_path_template": "<base>.rlp-scheduler.<scheduler_shard_id>.jsonl",
+    "shard_scope": "one_append_only_shard_per_scheduler_shard_id",
     "write_interval_ms": 100
   },
   "wire_schema": "rlp.scheduler/v1alpha1"

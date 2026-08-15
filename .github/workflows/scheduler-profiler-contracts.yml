@@ -8,7 +8,9 @@ on:
       - "contracts/p1/scheduler-profile-approval-candidate.json"
       - "contracts/p1/scheduler-profile-config.v1alpha1.json"
       - "contracts/p1/scheduler-profile-multistream-overlay.v1alpha1-draft.md"
+      - "contracts/p1/scheduler-profile-multistream-overlay.v0-draft.md"
       - "contracts/p1/scheduler-profile.v1alpha1-draft.md"
+      - "contracts/p1/scheduler-profiler-infra.v0-draft.md"
       - "scripts/verify_scheduler_profile_contract.py"
       - "tests/test_scheduler_profile_contract.py"
   workflow_dispatch:

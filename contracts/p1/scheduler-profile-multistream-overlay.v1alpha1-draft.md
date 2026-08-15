@@ -1,146 +1,99 @@
-# Multi-Profile Shard Overlay — Owner Review Candidate
+# Scheduler Shard Scope — Route B Owner Review Candidate
 
 - Status: `owner_review_candidate`
-- Evidence status: `NOT_IMPLEMENTED`
-- Overlay ID: `rlp.trace-sharding/multi-profile-v1alpha1`
-- Supersedes candidate: `scheduler-profile-multistream-overlay.v0-draft.md`
+- Evidence status: `NOT_SCIENTIFIC_EVIDENCE`
 - Scheduler wire: `rlp.scheduler/v1alpha1`
 
-This candidate amends exactly one owner-frozen P0 invariant after explicit
-digest approval:
+This candidate specializes the Route B architecture without changing the
+owner-frozen lifecycle protocol or the separately versioned KV-recovery
+stream.
 
-> Each `(process_uuid, profile_stream)` pair owns one append-only shard and one
-> monotonically increasing data-record sequence. No two processes or streams
-> append to the same shard.
+## 1. Closed stream roster
 
-It does not edit the approved `rlp.trace/v1alpha1` bytes or the already frozen
-`rlp.kv-recovery/v1alpha1` bytes. Until the owner approves this file together
-with the scheduler contract and configuration, the original P0 invariant
-remains authoritative.
+`profile_stream` is `lifecycle`, `kv_recovery`, or `scheduler`. The scheduler
+candidate owns only the last value. Each active stream has an independent
+writer, queue, sequence, loss ledger, summary, close result, and committed
+shard receipt.
 
-## 1. Stream roster and representation
+## 2. Launcher-injected scope
 
-The closed initial roster is:
-
-| `profile_stream` | Wire authority | Physical path |
-| --- | --- | --- |
-| `lifecycle` | `rlp.trace/v1alpha1` | unchanged `<base>.rlp.<process_uuid>.jsonl` |
-| `scheduler` | `rlp.scheduler/v1alpha1` | `<base>.rlp-scheduler.<process_uuid>.jsonl` |
-| `kv_recovery` | `rlp.kv-recovery/v1alpha1` | unchanged `<base>.rlp-kv-recovery.<process_uuid>.jsonl` |
-
-Every scheduler record carries exact field `profile_stream="scheduler"`.
-Lifecycle and KV-recovery records remain byte-for-byte compatible and do not
-gain a new field. Their stream scope is bound by the manifest entry and their
-existing start/profile record. A filename alone is never the authority.
-
-An unknown stream, a stream/path disagreement, or treating one stream as
-another is unsupported. Stream slugs are exactly `lifecycle`, `scheduler`, and
-`kv-recovery` in paths; the logical KV stream value remains `kv_recovery`.
-
-## 2. Shared process identity
-
-`process_uuid` retains the P0 representation of 32 lowercase hexadecimal
-characters. It is generated once per process invocation and shared by every
-enabled stream in that process. A restart always receives a new UUID even when
-PID, rank, device, or role is unchanged.
-
-The complete scheduler record key is:
+The experiment launcher supplies the scheduler plugin with exactly these
+opaque, printable ASCII identifiers before any scheduler record can be
+emitted:
 
 ```text
-(process_uuid, profile_stream="scheduler", record_seq)
+experiment_run_id     1..128 bytes
+server_instance_id    1..128 bytes
+process_instance_id   1..128 bytes
+scheduler_shard_id    1..64 bytes, filesystem-safe `[A-Za-z0-9._-]+`
+process_role           `engine_core` in the v1 runtime profile
+profile_stream         `scheduler`
 ```
 
-The same numeric `record_seq` may exist in another stream because the stream is
-part of the key. Cross-stream ID resolution that omits the stream is invalid.
+The full scope is required in `scheduler_start` and `scheduler_summary`.
+Every data/loss record carries the exact `scheduler_shard_id`. The complete
+scope of those interior records is inherited from the unique validated start
+record.
 
-## 3. Independent writer state
+The shard does not carry a raw-profile path, analysis database path,
+`profile_source_id`, rank, device, profiler PID/context, analyzer run ID, or a
+claim that any database matches the shard.
 
-One process-local exporter owner may manage multiple streams, but each enabled
-stream has independent:
+## 3. Writer ownership
 
-- bounded data and reserved-control capacity;
-- record and control sequence allocation;
-- loss intervals and failure state;
-- start and summary records;
-- content digest and close result;
-- committed-shard receipt and create-exclusive mode-`0600` descriptor.
+One scheduler shard is written to:
 
-Queues, byte budgets, summaries, and loss ledgers cannot be borrowed or merged
-across streams. A full scheduler queue never delays or drops lifecycle/KV data,
-and vice versa. Every stream failure stays serving fail-open and makes only the
-affected evidence stream fail closed; joint admission then fails because its
-required pair is incomplete.
+```text
+<base>.rlp-scheduler.<scheduler_shard_id>.jsonl
+```
 
-## 4. Exact scheduler limits
+with mode `0600`, exclusive creation, one persistent writer owner, and an
+independent data-record sequence. Rotation is outside v1. The launcher rejects
+a shard ID that is unsafe for the path template.
 
-The scheduler stream uses the exact limits in
-`scheduler-profile-config.v1alpha1.json`: 1024 data records, 64 reserved
-loss-interval records, dedicated start/summary paths, 8192 encoded bytes per
-record, 8,912,896 total queued bytes,
-128 records/524,288 bytes per writer batch, 100-ms target write interval,
-2-second maximum admitted service gap, and one 5-second close deadline.
+## 4. Local identifiers
 
-Lifecycle and KV-recovery limits and wire paths do not change. The scheduler
-single-shard artifact is admitted only when the configured 2,441,699,328-byte
-disk preflight passes. Rotation, segmentation, and more than one shard for one
-`(process_uuid, profile_stream)` are outside this overlay.
+Cycle, batch, step, and loss counters start at zero and are never reused in a
+shard. Their canonical values are:
+
+```text
+<scheduler_shard_id>:cycle:<cycle_seq>
+<scheduler_shard_id>:batch:<batch_seq>
+<scheduler_shard_id>:step:<execution_step_seq>
+<scheduler_shard_id>:loss:<loss_interval_seq>
+```
+
+They have no cross-database meaning.
 
 ## 5. Disabled behavior
 
-Each stream is independently default-off. With scheduler profiling disabled:
+With scheduler profiling disabled, the plugin opens no scheduler shard,
+allocates no scheduler ID, invokes no clock bridge, and does not alter
+scheduling, execution, or outputs. The experiment manifest records the stream
+as inactive. Absence is not converted into a complete empty shard.
 
-- no scheduler shard, queue, descriptor, writer state, or receipt exists;
-- no scheduler record or fixed constraint summary is constructed;
-- no scheduler-specific clock syscall or bridge sample occurs;
-- lifecycle and KV-recovery behavior is unchanged.
+## 6. Receipt and completeness
 
-Enabling the scheduler stream does not implicitly enable either other stream.
-Formal scheduler-profiler collection predeclares and admits its required paired
-roster separately.
+The run manifest uses only the immutable committed path returned by a drained,
+summary-written close. It never discovers the expected roster with a glob.
 
-## 6. Manifest, receipt, and completeness
+A scheduler shard is formally complete only if all wire checks pass and the
+whole shard has zero data loss, zero control loss, zero loss intervals, zero
+writer failures, and `close_outcome=drained`. The golden loss fixture is a
+diagnostic ledger test and therefore intentionally not formal evidence.
 
-Before launch the experiment manifest declares every logical tuple of
-`(engine role, rank, device, profile_stream)`. After launch, an independently
-captured binding maps each tuple to exactly one `process_uuid`, strict shard
-path, schema/config digests, and immutable successful close receipt. Globbing
-observed files cannot define or shrink the expected roster.
+## 7. Experiment composition
 
-Shard completeness is per tuple. Joint scheduler-profiler evidence requires:
-
-```text
-all predeclared lifecycle shards and receipts complete
-AND all predeclared scheduler shards and receipts complete
-AND every lifecycle/scheduler pair shares the receipted process invocation
-AND every join-bearing executor process has one approved exact
-    runtime-to-profiler process/context binding
-AND every additional enabled profile stream is complete under its own contract
-```
-
-A duplicate shard, missing shard, stream mismatch, cross-stream append,
-uncommitted path, invalid summary/digest, or missing pair fails joint evidence
-closed without deleting a valid diagnostic artifact.
-
-## 7. Compatibility proof obligations
-
-PR-I1 tests must prove, with scheduler disabled and enabled:
-
-1. lifecycle golden bytes, path, capacity, and close behavior are unchanged;
-2. KV-recovery golden bytes, path, capacity, and close behavior are unchanged;
-3. all enabled streams share one process UUID but have independent sequences,
-   queues, ledgers, summaries, digests, descriptors, and receipts;
-4. scheduler failure cannot consume another stream's reserve or mutate serving;
-5. duplicate/cross-stream paths and manifests fail closed;
-6. fork/restart creates a new process identity and never reuses inherited
-   stream writer state.
-
-The PR-C1 verifier checks contract bytes and fixtures only. It is not the PR-I1
-exporter compatibility proof.
+The experiment repository separately and explicitly maps the scheduler shard
+and every profile source. The scheduler shard cannot decide which
+`analysis.db` belongs to it. Cross-source identity cannot be inferred from
+PID/context, rank/device equality, filenames, database enumeration, or time
+proximity.
 
 ## 8. Approval effect
 
-Approval must cite this overlay, the scheduler wire contract, configuration,
-run-identity vectors, and approval-candidate digests. It authorizes only
-default-off implementation work in later PRs. It does not authorize runtime
-activation, NPU collection, mechanism evidence, performance claims, merge, or
-M0.
+Owner approval must cite the exact digests of this overlay, the wire contract,
+configuration, fixture, verifier, tests, and CI. Approval authorizes only the
+reviewed local scheduler schema and later separately gated implementation. It
+does not approve the experiment composer, runtime activation, profile
+collection, scientific evidence, or merge.

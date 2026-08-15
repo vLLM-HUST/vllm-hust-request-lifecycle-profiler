@@ -5,23 +5,28 @@
   "parent_architecture": {
     "repository": "intellistream/vllm-request-lifecycle-profiler-plugin",
     "pull_request": 14,
-    "commit": "8c3214933e7438f55da0ace98002a69d22570f5d",
-    "tree": "eb6ee5be148e0d710cec81e98dd191cde18f4aa2",
-    "status": "architecture_review_candidate"
+    "status": "route_b_architecture_review_candidate",
+    "architecture_path": "contracts/p1/scheduler-profiler-infra.v0-draft.md",
+    "architecture_sha256": "8b21a0f7cebf8cbe81eb35814cf8d8b017b60e6f694ef072d7d9905dc2dd73c6",
+    "overlay_path": "contracts/p1/scheduler-profile-multistream-overlay.v0-draft.md",
+    "overlay_sha256": "cc0b995ac0d37607b5c5160baef2307ac8c2c50913bcdbf7bf8d39cf97311813"
   },
   "pr_i0_authority": {
     "repository": "intellistream/ascend-llm-realworkload-prof",
     "pull_request": 30,
-    "commit": "1f098581de46c9ece108e036a3468cf740eb1a87",
-    "tree": "b9fe35ed07df6a52c8ee93e46b6ed835d4c8b88f",
-    "ci_status": "all_effective_checks_pass"
+    "status": "route_b_revision_required_before_owner_approval"
   },
-  "analyzer_dependency": {
+  "analyzer_boundary": {
     "repository": "vLLM-HUST/vllm-hust-perf-analyzer",
-    "pull_request": 31,
-    "commit": "cb11928184d9cc8a86bd1f706349e943113b777c",
-    "tree": "f69cddc605b53f4edb7477b14e0757a86fe28797",
-    "status": "draft_dependency"
+    "default_source_boundary": "one_profile_source",
+    "cross_db_identity_authority": false,
+    "pid_context_scope": "single_source_diagnostic_only",
+    "scheduler_ingestion_required": false
+  },
+  "experiment_composition_dependency": {
+    "repository": "intellistream/ascend-llm-realworkload-prof",
+    "pull_request": 30,
+    "status": "route_b_manifest_and_composer_required"
   },
   "base_contracts": [
     {
@@ -49,50 +54,40 @@
     {
       "role": "scheduler_wire_contract",
       "path": "contracts/p1/scheduler-profile.v1alpha1-draft.md",
-      "sha256": "f8ec53772fc2ef3a8d8bd5e9406000acb7a5b3a679cae80a79860bdf0168a28d"
+      "sha256": "92d53a3ded89716ca20ed20a0e560b8e3064168ed9f9526362e66cf3e6b0464a"
     },
     {
       "role": "scheduler_profile_config",
       "path": "contracts/p1/scheduler-profile-config.v1alpha1.json",
-      "sha256": "4686b54cbaa7d9312199cd552f3d3b8ec0354ce6bf4a30682b7e4a7926efe08b"
+      "sha256": "a71650c657ca1653a5ffa4932985106a099f9148ef300f2491ef79da158a6eab"
     },
     {
       "role": "multistream_overlay",
       "path": "contracts/p1/scheduler-profile-multistream-overlay.v1alpha1-draft.md",
-      "sha256": "e905874bb196917a35fa3587d7da9754240e9f71e265234df3a1f416170a10ca"
-    },
-    {
-      "role": "run_identity_vectors",
-      "path": "contracts/p1/fixtures/scheduler-profile-v1alpha1/run-identity-vectors.json",
-      "sha256": "3a6663c888f6835d47c5097fdf6ee5c344de25e198dafb9073df6271ee7d64c6"
-    },
-    {
-      "role": "process_binding_golden",
-      "path": "contracts/p1/fixtures/scheduler-profile-v1alpha1/process-binding-golden.json",
-      "sha256": "965026f7fdb8fdff1bb070412bc2082d6d45bb5707bcfe806201a352af48242d"
+      "sha256": "b1992b3cea5392b8325582f8f5cda212d4010cad8c5fed4b9469af2b3b8889fd"
     },
     {
       "role": "scheduler_wire_golden",
       "path": "contracts/p1/fixtures/scheduler-profile-v1alpha1/scheduler-wire-golden.json",
-      "sha256": "ae1e83ec2cf15b1520c92262940c1a05aa89d9ca4597dc04a26f85d0f0e3557d"
+      "sha256": "64383087ef8a1832f74eac71ce3a3a4d9f029ac3fea716426894895082726e24"
     },
     {
       "role": "contract_verifier",
       "path": "scripts/verify_scheduler_profile_contract.py",
-      "sha256": "648e7e8260cbb4f694ece34229024eb19bbf7d7d60cca5dcc121e639ecadcb4c"
+      "sha256": "f6482ca9051e5249ac17db0546a1289818ca8cf0bf8b8cb6862c9ee9eb3bc238"
     },
     {
       "role": "contract_tests",
       "path": "tests/test_scheduler_profile_contract.py",
-      "sha256": "c1af9fb92abc2b5f7f5ffb32d9e681fc486a56c84855efbd3c17c2dc8cea4f76"
+      "sha256": "f1728ff5880141103adf848535cf59955ac6eb1ae438241a970ae4d5c4d2ab70"
     },
     {
       "role": "contract_ci",
       "path": ".github/workflows/scheduler-profiler-contracts.yml",
-      "sha256": "fe79698b3f459d709e35f4c3e0292f96e9c01b2174e40139221ed31d0f53b53c"
+      "sha256": "e45ea90cc3f35c3e7edd42c0c80d74ebc6486b18f73d592f52b6bb9ac1455881"
     }
   ],
-  "acceptance_items": [1, 2, 3, 4, 5, 6, 7, 8],
+  "acceptance_items": [1, 2, 3, 4, 5, 6, 7],
   "owner_approval_requirement": "An owner must explicitly accept the exact SHA-256 digests in proposed_artifacts before PR-I1 or PR-I2 begins; any changed byte requires a new candidate.",
   "gate_effects_before_owner_approval": {
     "scheduler_wire_approved": false,

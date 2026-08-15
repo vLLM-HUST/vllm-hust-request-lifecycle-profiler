@@ -55,9 +55,6 @@ def _write_wire_fixture(tmp_path: Path, records: list[dict[str, object]]) -> Pat
 def test_complete_candidate_verifies() -> None:
     report = CONTRACT.verify()
     assert report["valid"] is True
-    assert report["identity_vectors"]["positive"] == 3
-    assert report["identity_vectors"]["mapping"] == 1
-    assert report["process_binding"]["binding_status"] == "exact"
     assert report["wire_golden"]["records"] == 12
     assert report["wire_golden"]["data_records"] == 9
     written_sequences = [
@@ -68,40 +65,6 @@ def test_complete_candidate_verifies() -> None:
         report["wire_golden"]["generated_maximal_cycle_bytes"]
         <= report["wire_golden"]["record_limit_bytes"]
     )
-
-
-def test_run_identity_has_two_independent_canonicalizers_and_one_byte_mutation() -> (
-    None
-):
-    vectors = CONTRACT.load_json(CONTRACT.FIXTURES / "run-identity-vectors.json")[
-        "vectors"
-    ]
-    baseline = CONTRACT.canonicalize(vectors[0]["metadata_without_run_id"])
-    mutation = CONTRACT.canonicalize(vectors[2]["metadata_without_run_id"])
-    assert baseline == CONTRACT.canonicalize_independent(
-        vectors[0]["metadata_without_run_id"]
-    )
-    assert mutation == CONTRACT.canonicalize_independent(
-        vectors[2]["metadata_without_run_id"]
-    )
-    assert len(baseline) == len(mutation)
-    assert (
-        sum(left != right for left, right in zip(baseline, mutation, strict=True)) == 1
-    )
-    assert hashlib.sha256(baseline).hexdigest() != hashlib.sha256(mutation).hexdigest()
-
-
-def test_identity_negative_vectors_fail_with_frozen_errors() -> None:
-    report = CONTRACT.verify_identity_vectors(
-        CONTRACT.FIXTURES / "run-identity-vectors.json"
-    )
-    assert report["negative_errors"] == [
-        "invalid_members:options",
-        "invalid_members:run_identity",
-        "devices_not_sorted_unique",
-        "invalid_revision",
-        "invalid_members:run_identity",
-    ]
 
 
 def test_wire_rejects_unknown_member_and_boolean_integer() -> None:
@@ -116,7 +79,7 @@ def test_wire_rejects_unknown_member_and_boolean_integer() -> None:
         CONTRACT.validate_record(cycle, 8192)
 
 
-def test_zero_token_batch_is_retained_but_never_device_eligible() -> None:
+def test_zero_token_batch_is_retained_but_never_relation_candidate_eligible() -> None:
     batch = _record("logical_batch")
     batch.update(
         {
@@ -124,7 +87,7 @@ def test_zero_token_batch_is_retained_but_never_device_eligible() -> None:
             "scheduled_token_count": 0,
             "prefill_token_count": 0,
             "decode_token_count": 0,
-            "device_attribution_eligible": True,
+            "runtime_device_relation_candidate_eligible": True,
         }
     )
     with pytest.raises(CONTRACT.ContractError, match="invalid_empty_control_batch"):
@@ -160,24 +123,7 @@ def test_constraint_bucket_balance_and_order_are_closed() -> None:
         CONTRACT.validate_record(cycle, 8192)
 
 
-def test_process_binding_is_content_addressed_and_exact_requires_prework_capture() -> (
-    None
-):
-    receipt = CONTRACT.load_json(CONTRACT.PROCESS_BINDING_PATH)
-    CONTRACT.validate_process_binding(receipt)
-
-    mutated = copy.deepcopy(receipt)
-    mutated["runtime_pid"] += 1
-    with pytest.raises(CONTRACT.ContractError, match="process_binding_id_mismatch"):
-        CONTRACT.validate_process_binding(mutated)
-
-    mutated = copy.deepcopy(receipt)
-    mutated["captured_before_admitted_work"] = False
-    with pytest.raises(CONTRACT.ContractError, match="invalid_exact_binding"):
-        CONTRACT.validate_process_binding(mutated)
-
-
-def test_config_rejects_boolean_capacity_and_fraction_outside_domain() -> None:
+def test_config_rejects_boolean_capacity_and_weakened_composition_boundary() -> None:
     config = CONTRACT.load_json(CONTRACT.CONFIG_PATH)
     mutated = copy.deepcopy(config)
     mutated["wire_limits"]["data_capacity_records"] = True
@@ -185,8 +131,8 @@ def test_config_rejects_boolean_capacity_and_fraction_outside_domain() -> None:
         CONTRACT.verify_config(mutated)
 
     mutated = copy.deepcopy(config)
-    mutated["coverage"]["tail"]["max_unmatched_step_fraction"] = 1.01
-    with pytest.raises(CONTRACT.ContractError, match="invalid_coverage_threshold"):
+    mutated["composition_boundary"]["timestamp_containment_maximum_status"] = "exact"
+    with pytest.raises(CONTRACT.ContractError, match="invalid_composition_boundary"):
         CONTRACT.verify_config(mutated)
 
 
@@ -275,14 +221,43 @@ def test_wire_rejects_duplicate_control_records(
         CONTRACT.validate_wire_golden(path, config)
 
 
-def test_candidate_overflow_is_never_silent_truncation() -> None:
+def test_composition_authority_is_external_and_status_domain_is_closed() -> None:
     config = CONTRACT.load_json(CONTRACT.CONFIG_PATH)
-    assert config["join"]["max_candidates_per_attempted_join"] == 8
-    behavior = config["join"]["candidate_overflow_behavior"]
-    assert "retain no candidate rows" in behavior
-    assert "candidate_overflow=true" in behavior
-    assert "join_status=unsupported" in behavior
-    assert "fail formal evidence closed" in behavior
+    boundary = config["composition_boundary"]
+    assert boundary["authority"] == "experiment_repo_run_manifest/v1"
+    assert boundary["relation_statuses"] == [
+        "exact",
+        "correlated",
+        "ambiguous",
+        "unmatched",
+        "unsupported",
+    ]
+    assert "scheduler_selected_profile_database" in boundary[
+        "forbidden_identity_authorities"
+    ]
+
+
+def test_data_records_cannot_claim_pid_rank_device_or_database() -> None:
+    forbidden = {
+        "pid",
+        "context_id",
+        "rank_id",
+        "device_id",
+        "analysis_db_path",
+        "traceloom_run_id",
+    }
+    for record in _golden_records():
+        if record["record_type"] not in {"scheduler_start", "scheduler_summary"}:
+            assert forbidden.isdisjoint(record)
+
+
+def test_start_and_summary_scope_must_match(tmp_path: Path) -> None:
+    records = _golden_records()
+    records[-1]["process_instance_id"] = "P1"
+    path = _write_wire_fixture(tmp_path, records)
+    config = CONTRACT.load_json(CONTRACT.CONFIG_PATH)
+    with pytest.raises(CONTRACT.ContractError, match="wire_scope_mismatch"):
+        CONTRACT.validate_wire_golden(path, config)
 
 
 def test_golden_contains_every_record_and_all_constraint_modes() -> None:
