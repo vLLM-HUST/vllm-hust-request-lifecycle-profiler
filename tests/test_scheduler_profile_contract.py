@@ -52,7 +52,7 @@ def _write_wire_fixture(tmp_path: Path, records: list[dict[str, object]]) -> Pat
     return path
 
 
-def test_complete_candidate_verifies() -> None:
+def test_complete_contract_verifies() -> None:
     report = CONTRACT.verify()
     assert report["valid"] is True
     assert report["wire_golden"]["records"] == 12

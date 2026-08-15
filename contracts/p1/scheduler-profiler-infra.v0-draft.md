@@ -1,6 +1,6 @@
-# Scheduler Profiler Infrastructure — Route B Architecture Review Candidate
+# Scheduler Profiler Infrastructure — Route B Draft
 
-- Status: `architecture_review_candidate`
+- Status: `draft`
 - Evidence status: `NOT_SCIENTIFIC_EVIDENCE`
 - Route: `B — experiment-owned cross-source composition`
 - Initial wire: `rlp.scheduler/v1alpha1`
@@ -60,8 +60,7 @@ The profiler plugin owns only scheduler-local evidence:
 - process-local loss and completeness accounting;
 - one bounded writer/exporter per scheduler shard;
 - disabled-by-default and serving-fail-open behavior; and
-- source commit, configuration, and contract digests needed to interpret the
-  shard.
+- source commits and configuration needed to interpret the shard.
 
 The plugin receives the following opaque identity values from the experiment
 launcher and records them without deriving or rewriting them:
@@ -251,7 +250,7 @@ is also `unsupported`, never silent truncation.
 Each attempted data record consumes one monotonic `record_seq` before
 validation, serialization, or enqueue. Every missing sequence in a shard that
 reaches a summary is covered by one maximal loss interval. Loss is useful
-diagnostic evidence, but the frozen P0 completeness rule remains stricter:
+diagnostic evidence, but the zero-loss completeness rule remains stricter:
 any data loss, control loss, writer failure, timeout, digest mismatch, or
 unexplained gap makes the whole scheduler shard ineligible for formal claims.
 
@@ -302,15 +301,15 @@ and merge authorization remain separate gates.
 Audits the scheduler-local semantics and proves the launcher/manifest mapping
 seams. It does not require an analyzer PID/context PR.
 
-### PR-C1 — wire and shard-scope candidate
+### PR-C1 — wire and shard scope
 
-Freezes the local scheduler record schema, launcher-injected shard scope,
+Defines the local scheduler record schema, launcher-injected shard scope,
 bounded writer limits, fixtures, and standalone verifier. It has no analyzer
 run-identity or cross-database process-binding authority.
 
 ### PR-I1 / PR-I2 — exporter and runtime hooks
 
-Implement the approved bytes and audited call sites while preserving disabled
+Implement the reviewed contract and audited call sites while preserving disabled
 behavior and serving fail-open semantics.
 
 ### Experiment Route-B manifest and composer
@@ -322,9 +321,9 @@ local TraceLoom relations while preserving all relation states and locators.
 TraceLoom requires no scheduler ingestion or global-topology change for Route
 B.
 
-## 12. Architecture review checklist
+## 12. Architecture checklist
 
-Approval must confirm all of the following:
+Review and CI must confirm all of the following:
 
 - TraceLoom's default isolation boundary is one profile source;
 - runtime/device IDs are local to one analysis database;
@@ -340,6 +339,5 @@ Approval must confirm all of the following:
 - formal completeness fails closed on missing or unknown sources; and
 - device-idle causal/root-cause claims are outside this route.
 
-Architecture approval authorizes only the Route B design and PR-I0/PR-C1
-review work. It does not approve wire bytes, runtime implementation,
-collection, a scientific result, or a performance claim.
+Passing this checklist does not make runtime collection scientific evidence
+and does not establish a performance claim.

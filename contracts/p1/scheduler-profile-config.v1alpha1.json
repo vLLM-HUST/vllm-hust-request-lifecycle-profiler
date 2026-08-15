@@ -1,6 +1,6 @@
 {
   "artifact_kind": "scheduler_profile_config",
-  "artifact_status": "owner_review_candidate",
+  "artifact_status": "draft",
   "clock_bridge": {
     "bracket_midpoint_rule": "floor((monotonic_before_ns + monotonic_after_ns) / 2)",
     "cadence_ns": 1000000000,

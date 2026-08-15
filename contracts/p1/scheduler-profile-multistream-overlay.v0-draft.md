@@ -1,21 +1,19 @@
-# Scheduler Profile Shard Scope — Route B Architecture Review Candidate
+# Scheduler Profile Shard Scope — Route B Draft
 
-- Status: `architecture_review_candidate`
+- Status: `draft`
 - Evidence status: `NOT_SCIENTIFIC_EVIDENCE`
 - Route: `B — launcher-injected identity, experiment-owned composition`
 
 This overlay changes only scheduler-stream shard ownership and scope. It does
-not edit the owner-frozen `rlp.trace/v1alpha1` bytes and does not supersede the
-separately approved KV-recovery stream.
+not alter the separately versioned lifecycle or KV-recovery streams.
 
 ## 1. Stream roster
 
 The closed profile-stream roster is:
 
 - `lifecycle`: existing base lifecycle stream;
-- `kv_recovery`: separately versioned KV-recovery stream when its independent
-  gates admit it; and
-- `scheduler`: the aggregate scheduler stream defined by this candidate.
+- `kv_recovery`: separately versioned KV-recovery stream when enabled; and
+- `scheduler`: the aggregate scheduler stream defined here.
 
 Each stream has an independent writer, sequence, limits, loss ledger, summary,
 and committed-shard receipt. One stream's spare capacity cannot be borrowed by
@@ -82,7 +80,7 @@ an absent shard is not silently treated as a complete empty shard.
 
 ## 5. Completeness and paired admission
 
-The frozen P0 zero-loss rule is preserved for every stream. A scheduler shard
+The zero-loss rule is preserved for every stream. A scheduler shard
 is complete only when it has:
 
 - exactly one valid first `scheduler_start` and one valid final
@@ -117,7 +115,7 @@ after explicit mapping and clock validation.
 
 ## 7. Compatibility
 
-Existing lifecycle and KV-recovery shards retain their approved identities,
+Existing lifecycle and KV-recovery shards retain their identities,
 record schemas, writers, and receipts. Implementations may share bounded
 writer machinery, but must not share mutable sequence, queue, close, or loss
 state across streams.
@@ -126,8 +124,8 @@ This overlay replaces the earlier proposal's cross-database use of
 `process_uuid`, analyzer-derived run identity, and PID/context binding. Those
 concepts are not aliases for the Route B launcher identifiers.
 
-## 8. Approval effect
+## 8. Validation effect
 
-Approval of this architecture authorizes drafting a content-addressed
-scheduler wire candidate. It does not authorize runtime hooks, activation,
-profile collection, experiment composition, scientific evidence, or merge.
+This architecture is validated through ordinary review and CI. Passing those
+checks does not make profile collection scientific evidence and does not
+establish a performance claim.

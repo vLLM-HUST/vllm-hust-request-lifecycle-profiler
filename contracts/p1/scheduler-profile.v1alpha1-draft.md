@@ -1,6 +1,6 @@
-# Scheduler Profile Wire Contract — Route B Owner Review Candidate
+# Scheduler Profile Wire Contract — Route B Draft
 
-- Status: `owner_review_candidate`
+- Status: `draft`
 - Evidence status: `NOT_SCIENTIFIC_EVIDENCE`
 - Schema: `rlp.scheduler/v1alpha1`
 - Encoding: deterministic UTF-8 JSONL
@@ -15,7 +15,7 @@ belong to the experiment run manifest and composer.
 The first profile is one host, synchronous scheduling, one in-flight
 execution step, uniprocess execution, decoder-only generation, `n=1`, no
 speculative decoding, and no KV/EC transfer connector. The exact runtime
-profile is content-addressed in `scheduler-profile-config.v1alpha1.json`.
+profile is defined in `scheduler-profile-config.v1alpha1.json`.
 
 Unsupported modes preserve serving behavior and fail formal scheduler evidence
 closed. They do not emit a plausible partially supported shard.
@@ -94,7 +94,6 @@ Exactly one first record with:
 - `started_monotonic_ns`, `clock_source=CLOCK_MONOTONIC`, and
   `clock_domain_id`;
 - runtime, device-plugin, and parent-protocol commits;
-- wire/config/overlay SHA-256 values;
 - `runtime_profile_id`; and
 - the complete configured `limits` object.
 
@@ -186,7 +185,7 @@ An attempted data record consumes `record_seq` before validation,
 serialization, or enqueue. Written sequences plus loss ranges cover exactly
 `[0, attempted_data_count)`, without overlap or gaps.
 
-The ledger can describe loss, but formal completeness preserves the frozen P0
+The ledger can describe loss, but formal completeness preserves the zero-loss
 rule: a shard with any loss interval, data/control drop, writer failure,
 timeout, invalid digest, or unexplained sequence gap is ineligible. A valid
 diagnostic summary is not automatically formal evidence.
@@ -239,9 +238,9 @@ It does not support device-idle cause, idle causal attribution, exact stall
 cause, or a provider exact-submission edge without an explicit shared producer
 identity.
 
-## 11. Approval record
+## 11. Validation and lifecycle
 
-Owner approval must cite the exact content digests and accept or replace:
+Ordinary review and CI validate:
 
 1. schema, record roster, primitive domains, and all fields;
 2. launcher-injected run/process/shard scope;
@@ -252,5 +251,5 @@ Owner approval must cite the exact content digests and accept or replace:
 7. exact/correlated/ambiguous/unmatched/unsupported status meanings; and
 8. the restricted claim boundary and remaining implementation gates.
 
-Until that exact approval exists, runtime hooks, activation, formal
-collection, scientific evidence, mechanism claims, and merge remain false.
+Passing these checks does not activate runtime hooks, admit formal collection,
+or turn the contract into scientific evidence or a mechanism claim.

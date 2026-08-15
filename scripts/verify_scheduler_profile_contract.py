@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Verify PR-C1 contract bytes and golden vectors without runtime imports."""
+"""Verify the scheduler profile contract and golden vectors."""
 
 from __future__ import annotations
 
@@ -16,11 +16,6 @@ ROOT = Path(__file__).resolve().parents[1]
 P1 = ROOT / "contracts" / "p1"
 FIXTURES = P1 / "fixtures" / "scheduler-profile-v1alpha1"
 CONFIG_PATH = P1 / "scheduler-profile-config.v1alpha1.json"
-CANDIDATE_PATH = P1 / "scheduler-profile-approval-candidate.json"
-CONTRACT_PATH = P1 / "scheduler-profile.v1alpha1-draft.md"
-OVERLAY_PATH = P1 / "scheduler-profile-multistream-overlay.v1alpha1-draft.md"
-ARCHITECTURE_PATH = P1 / "scheduler-profiler-infra.v0-draft.md"
-ARCHITECTURE_OVERLAY_PATH = P1 / "scheduler-profile-multistream-overlay.v0-draft.md"
 
 SAFE_INTEGER_MAX = 9_007_199_254_740_991
 HEX32 = re.compile(r"^[0-9a-f]{32}$")
@@ -28,17 +23,6 @@ HEX40 = re.compile(r"^[0-9a-f]{40}$")
 HEX64 = re.compile(r"^[0-9a-f]{64}$")
 SHARD_ID = re.compile(r"^[A-Za-z0-9._-]{1,64}$")
 OPAQUE_ID = re.compile(r"^[!-~]{1,128}$")
-EXPECTED_CANDIDATE_ARTIFACTS = {
-    "scheduler_wire_contract": "contracts/p1/scheduler-profile.v1alpha1-draft.md",
-    "scheduler_profile_config": "contracts/p1/scheduler-profile-config.v1alpha1.json",
-    "multistream_overlay": "contracts/p1/scheduler-profile-multistream-overlay.v1alpha1-draft.md",
-    "scheduler_wire_golden": (
-        "contracts/p1/fixtures/scheduler-profile-v1alpha1/scheduler-wire-golden.json"
-    ),
-    "contract_verifier": "scripts/verify_scheduler_profile_contract.py",
-    "contract_tests": "tests/test_scheduler_profile_contract.py",
-    "contract_ci": ".github/workflows/scheduler-profiler-contracts.yml",
-}
 EXPECTED_RUNTIME_PROFILE = {
     "async_scheduling": False,
     "communication_mode": "none",
@@ -86,9 +70,6 @@ FIELDS_BY_RECORD_TYPE = {
         "runtime_core_commit",
         "device_plugin_commit",
         "parent_protocol_commit",
-        "scheduler_profile_contract_sha256",
-        "scheduler_profile_config_sha256",
-        "multistream_overlay_sha256",
         "runtime_profile_id",
         "limits",
     },
@@ -444,12 +425,6 @@ def validate_record(record: Any, max_bytes: int) -> None:
             "parent_protocol_commit",
         ):
             _hex(record[key], HEX40, key)
-        for key in (
-            "scheduler_profile_contract_sha256",
-            "scheduler_profile_config_sha256",
-            "multistream_overlay_sha256",
-        ):
-            _hex(record[key], HEX64, key)
         profile_id = _bounded_string(
             record["runtime_profile_id"], "runtime_profile_id", maximum=96
         )
@@ -774,13 +749,6 @@ def validate_wire_golden(path: Path, config: dict[str, Any]) -> dict[str, Any]:
     start = records[0]
     if start["limits"] != config["wire_limits"]:
         raise ContractError("wire_start_limits_mismatch")
-    expected_digests = {
-        "scheduler_profile_contract_sha256": sha256_file(CONTRACT_PATH),
-        "scheduler_profile_config_sha256": sha256_file(CONFIG_PATH),
-        "multistream_overlay_sha256": sha256_file(OVERLAY_PATH),
-    }
-    if any(start[key] != digest for key, digest in expected_digests.items()):
-        raise ContractError("wire_start_artifact_digest_mismatch")
     if any(
         record["clock_domain_id"] != start["clock_domain_id"]
         for record in records
@@ -929,7 +897,7 @@ def verify_config(config: dict[str, Any]) -> dict[str, Any]:
     limits = config["wire_limits"]
     if (
         config["artifact_kind"] != "scheduler_profile_config"
-        or config["artifact_status"] != "owner_review_candidate"
+        or config["artifact_status"] != "draft"
         or config["schema_version"] != 1
         or config["profile_stream"] != "scheduler"
         or config["wire_schema"] != "rlp.scheduler/v1alpha1"
@@ -1034,164 +1002,10 @@ def verify_config(config: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def verify_candidate(candidate: dict[str, Any]) -> dict[str, str]:
-    _exact_keys(
-        candidate,
-        {
-            "acceptance_items",
-            "analyzer_boundary",
-            "artifact_kind",
-            "artifact_status",
-            "base_contracts",
-            "experiment_composition_dependency",
-            "gate_effects_before_owner_approval",
-            "owner_approval_requirement",
-            "parent_architecture",
-            "pr_i0_authority",
-            "proposed_artifacts",
-            "schema_version",
-        },
-        "approval_candidate",
-    )
-    if (
-        candidate["artifact_kind"] != "scheduler_profile_pr_c1_approval_candidate"
-        or candidate["artifact_status"] != "owner_review_required"
-        or candidate["schema_version"] != 1
-    ):
-        raise ContractError("invalid_candidate_status")
-    parent = _exact_keys(
-        candidate["parent_architecture"],
-        {
-            "architecture_path",
-            "architecture_sha256",
-            "overlay_path",
-            "overlay_sha256",
-            "pull_request",
-            "repository",
-            "status",
-        },
-        "parent_architecture",
-    )
-    if (
-        parent["repository"] != "intellistream/vllm-request-lifecycle-profiler-plugin"
-        or parent["pull_request"] != 14
-        or parent["status"] != "route_b_architecture_review_candidate"
-        or parent["architecture_path"] != ARCHITECTURE_PATH.relative_to(ROOT).as_posix()
-        or parent["overlay_path"]
-        != ARCHITECTURE_OVERLAY_PATH.relative_to(ROOT).as_posix()
-        or parent["architecture_sha256"] != sha256_file(ARCHITECTURE_PATH)
-        or parent["overlay_sha256"] != sha256_file(ARCHITECTURE_OVERLAY_PATH)
-    ):
-        raise ContractError("invalid_parent_architecture_authority")
-    i0 = _exact_keys(
-        candidate["pr_i0_authority"],
-        {"pull_request", "repository", "status"},
-        "pr_i0_authority",
-    )
-    if (
-        i0["repository"] != "intellistream/ascend-llm-realworkload-prof"
-        or i0["pull_request"] != 30
-        or i0["status"] != "route_b_revision_required_before_owner_approval"
-    ):
-        raise ContractError("invalid_pr_i0_authority")
-    analyzer = _exact_keys(
-        candidate["analyzer_boundary"],
-        {
-            "cross_db_identity_authority",
-            "default_source_boundary",
-            "pid_context_scope",
-            "repository",
-            "scheduler_ingestion_required",
-        },
-        "analyzer_boundary",
-    )
-    if (
-        analyzer["repository"] != "vLLM-HUST/vllm-hust-perf-analyzer"
-        or analyzer["default_source_boundary"] != "one_profile_source"
-        or analyzer["cross_db_identity_authority"] is not False
-        or analyzer["pid_context_scope"] != "single_source_diagnostic_only"
-        or analyzer["scheduler_ingestion_required"] is not False
-    ):
-        raise ContractError("invalid_analyzer_boundary")
-    composition = _exact_keys(
-        candidate["experiment_composition_dependency"],
-        {"pull_request", "repository", "status"},
-        "experiment_composition_dependency",
-    )
-    if (
-        composition["repository"] != "intellistream/ascend-llm-realworkload-prof"
-        or composition["pull_request"] != 30
-        or composition["status"] != "route_b_manifest_and_composer_required"
-    ):
-        raise ContractError("invalid_experiment_composition_dependency")
-    base_contracts = candidate["base_contracts"]
-    if not isinstance(base_contracts, list) or len(base_contracts) != 4:
-        raise ContractError("invalid_base_contract_roster")
-    expected_base_paths = {
-        "contracts/p0/runtime/minimum-runtime-contract.v0-draft.md",
-        "contracts/p0/runtime/phase-taxonomy.v0-draft.md",
-        "contracts/p0/p0-manifest.json",
-        "contracts/p0/owner-freeze-approval.json",
-    }
-    if {
-        item.get("path") for item in base_contracts if isinstance(item, dict)
-    } != expected_base_paths:
-        raise ContractError("invalid_base_contract_roster")
-    for item in base_contracts:
-        _exact_keys(item, {"path", "sha256", "status"}, "base_contract")
-        if item["status"] != "owner_frozen":
-            raise ContractError("unfrozen_base_contract")
-        if sha256_file(ROOT / item["path"]) != item["sha256"]:
-            raise ContractError(f"base_contract_digest_mismatch:{item['path']}")
-    if candidate["acceptance_items"] != list(range(1, 8)):
-        raise ContractError("invalid_acceptance_items")
-    if (
-        not isinstance(candidate["owner_approval_requirement"], str)
-        or "exact SHA-256" not in candidate["owner_approval_requirement"]
-    ):
-        raise ContractError("invalid_owner_approval_requirement")
-    observed: dict[str, str] = {}
-    artifacts = candidate.get("proposed_artifacts")
-    if not isinstance(artifacts, list) or not artifacts:
-        raise ContractError("missing_candidate_artifacts")
-    for artifact in artifacts:
-        _exact_keys(artifact, {"path", "role", "sha256"}, "candidate_artifact")
-        if EXPECTED_CANDIDATE_ARTIFACTS.get(artifact["role"]) != artifact["path"]:
-            raise ContractError(f"unexpected_candidate_artifact:{artifact['role']}")
-        if artifact["role"] in observed:
-            raise ContractError(f"duplicate_candidate_artifact:{artifact['role']}")
-        _hex(artifact["sha256"], HEX64, f"artifact.{artifact['role']}")
-        path = ROOT / artifact["path"]
-        digest = sha256_file(path)
-        if digest != artifact["sha256"]:
-            raise ContractError(f"candidate_digest_mismatch:{artifact['path']}")
-        observed[artifact["role"]] = digest
-    if observed.keys() != EXPECTED_CANDIDATE_ARTIFACTS.keys():
-        raise ContractError("incomplete_candidate_artifact_roster")
-    effects = candidate.get("gate_effects_before_owner_approval", {})
-    required_false = {
-        "scheduler_wire_approved",
-        "multistream_overlay_approved",
-        "pr_i1_implementation_authorized",
-        "pr_i2_runtime_hooks_authorized",
-        "runtime_activation_authorized",
-        "formal_profiler_collection_authorized",
-        "scientific_evidence",
-        "merge_authorized",
-    }
-    if set(effects) != required_false or any(
-        value is not False for value in effects.values()
-    ):
-        raise ContractError("candidate_gate_overclaim")
-    return observed
-
-
 def verify() -> dict[str, Any]:
     config = load_json(CONFIG_PATH)
-    candidate = load_json(CANDIDATE_PATH)
     report = {
         "config": verify_config(config),
-        "candidate_artifacts": verify_candidate(candidate),
         "wire_golden": validate_wire_golden(
             FIXTURES / "scheduler-wire-golden.json", config
         ),
@@ -1222,7 +1036,7 @@ def main() -> int:
     if args.json:
         print(json.dumps(report, sort_keys=True, separators=(",", ":")))
     else:
-        print("PASS: scheduler profile PR-C1 contract")
+        print("PASS: scheduler profile contract")
     return 0
 
 

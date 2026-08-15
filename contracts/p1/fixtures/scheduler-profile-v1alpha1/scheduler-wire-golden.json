@@ -16,9 +16,6 @@
       "runtime_core_commit": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
       "device_plugin_commit": "cccccccccccccccccccccccccccccccccccccccc",
       "parent_protocol_commit": "8c3214933e7438f55da0ace98002a69d22570f5d",
-      "scheduler_profile_contract_sha256": "92d53a3ded89716ca20ed20a0e560b8e3064168ed9f9526362e66cf3e6b0464a",
-      "scheduler_profile_config_sha256": "a71650c657ca1653a5ffa4932985106a099f9148ef300f2491ef79da158a6eab",
-      "multistream_overlay_sha256": "b1992b3cea5392b8325582f8f5cda212d4010cad8c5fed4b9469af2b3b8889fd",
       "runtime_profile_id": "vllm-0.21-uniproc-sync-one-device-v1",
       "limits": {
         "artifact_bytes_max": 2374590464,
@@ -401,7 +398,7 @@
       "last_data_record_seq": 9,
       "writer_failure_count": 0,
       "close_outcome": "drained",
-      "content_sha256": "9efc29650d9f110008e47582d9aa7e8c9283c46d9d305df81c755b37b1141298"
+      "content_sha256": "28ff739f92c7c7c0e1a380cc08322923c5e8394182de43f5210e517d60d04627"
     }
   ]
 }

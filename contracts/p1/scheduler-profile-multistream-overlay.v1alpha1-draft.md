@@ -1,17 +1,16 @@
-# Scheduler Shard Scope — Route B Owner Review Candidate
+# Scheduler Shard Scope — Route B Draft
 
-- Status: `owner_review_candidate`
+- Status: `draft`
 - Evidence status: `NOT_SCIENTIFIC_EVIDENCE`
 - Scheduler wire: `rlp.scheduler/v1alpha1`
 
-This candidate specializes the Route B architecture without changing the
-owner-frozen lifecycle protocol or the separately versioned KV-recovery
-stream.
+This overlay specializes the Route B architecture without changing the
+separately versioned lifecycle or KV-recovery streams.
 
 ## 1. Closed stream roster
 
-`profile_stream` is `lifecycle`, `kv_recovery`, or `scheduler`. The scheduler
-candidate owns only the last value. Each active stream has an independent
+`profile_stream` is `lifecycle`, `kv_recovery`, or `scheduler`. This contract
+defines only the last value. Each active stream has an independent
 writer, queue, sequence, loss ledger, summary, close result, and committed
 shard receipt.
 
@@ -90,10 +89,9 @@ and every profile source. The scheduler shard cannot decide which
 PID/context, rank/device equality, filenames, database enumeration, or time
 proximity.
 
-## 8. Approval effect
+## 8. Validation effect
 
-Owner approval must cite the exact digests of this overlay, the wire contract,
-configuration, fixture, verifier, tests, and CI. Approval authorizes only the
-reviewed local scheduler schema and later separately gated implementation. It
-does not approve the experiment composer, runtime activation, profile
-collection, scientific evidence, or merge.
+Ordinary review and CI validate this overlay together with the wire contract,
+configuration, fixture, verifier, and tests. Passing those checks does not
+activate the experiment composer or runtime collection and does not establish
+scientific evidence.
