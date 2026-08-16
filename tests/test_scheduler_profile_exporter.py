@@ -8,6 +8,8 @@ from collections import deque
 from pathlib import Path
 from typing import Any
 
+import pytest
+
 from vllm_request_lifecycle_profiler.runtime_hooks import JsonlTraceSink
 from vllm_request_lifecycle_profiler.runtime_protocol import (
     EventDraft,
@@ -176,6 +178,236 @@ def test_i1_limits_are_exactly_the_c1_contract() -> None:
     assert SCHEDULER_WIRE_LIMITS == config["wire_limits"]
 
 
+def test_disk_free_admission_fails_open_before_creating_a_shard(
+    tmp_path: Path,
+) -> None:
+    required = int(SCHEDULER_WIRE_LIMITS["disk_free_required_bytes"])
+
+    exporter = create_scheduler_profile_exporter(
+        _config(tmp_path),
+        _identity(),
+        disk_free_reader=lambda _path: required - 1,
+    )
+
+    assert isinstance(exporter, NullSchedulerProfileExporter)
+    assert list(tmp_path.iterdir()) == []
+
+
+def test_cycle_count_limit_permanently_invalidates_formal_evidence(
+    tmp_path: Path,
+    monkeypatch: Any,
+) -> None:
+    exporter = SchedulerProfileExporter(
+        _config(tmp_path), _identity(), clock_ns=_Clock(0, 3_200)
+    )
+    monkeypatch.setitem(SCHEDULER_WIRE_LIMITS, "max_cycles_in_formal_run", 1)
+    cycle = next(
+        record
+        for record in _golden_records()
+        if record["record_type"] == "schedule_cycle"
+    )
+    fields = _body(
+        cycle,
+        "cycle_seq",
+        "schedule_cycle_id",
+        "logical_batch_id",
+    )
+
+    assert exporter.begin_cycle(fields) is not None
+    assert exporter.begin_cycle(fields) is None
+    result = exporter.close()
+
+    assert result is not None
+    assert result.writer_complete is False
+    assert result.formal_invalid_reasons == ("max_cycles_in_formal_run",)
+    assert result.dropped_control_count == 1
+    assert exporter.committed_shard_path is None
+    rows = [json.loads(line) for line in exporter.shard_path.read_text().splitlines()]
+    assert sum(row["record_type"] == "schedule_cycle" for row in rows) == 1
+
+
+def test_rolling_cycle_rate_limit_is_enforced_by_wire_timestamp(
+    tmp_path: Path,
+    monkeypatch: Any,
+) -> None:
+    exporter = SchedulerProfileExporter(
+        _config(tmp_path), _identity(), clock_ns=_Clock(0, 3_200)
+    )
+    monkeypatch.setitem(
+        SCHEDULER_WIRE_LIMITS, "max_cycle_rate_per_rolling_second", 1
+    )
+    cycle = next(
+        record
+        for record in _golden_records()
+        if record["record_type"] == "schedule_cycle"
+    )
+    first = _body(
+        cycle,
+        "cycle_seq",
+        "schedule_cycle_id",
+        "logical_batch_id",
+    )
+    second = dict(first)
+    second["cycle_start_monotonic_ns"] = first["cycle_start_monotonic_ns"] + 1
+    second["cycle_end_monotonic_ns"] = first["cycle_end_monotonic_ns"] + 1
+
+    assert exporter.begin_cycle(first) is not None
+    assert exporter.begin_cycle(second) is None
+    result = exporter.close()
+
+    assert result is not None
+    assert result.formal_invalid_reasons == (
+        "max_cycle_rate_per_rolling_second",
+    )
+    assert result.writer_complete is False
+
+
+def test_rolling_cycle_rate_window_excludes_exactly_one_second_old_cycle(
+    tmp_path: Path,
+    monkeypatch: Any,
+) -> None:
+    exporter = SchedulerProfileExporter(
+        _config(tmp_path), _identity(), clock_ns=_Clock(0, 0, 1_000_000_000, 3_200)
+    )
+    monkeypatch.setitem(
+        SCHEDULER_WIRE_LIMITS, "max_cycle_rate_per_rolling_second", 1
+    )
+    cycle = next(
+        record
+        for record in _golden_records()
+        if record["record_type"] == "schedule_cycle"
+    )
+    first = _body(
+        cycle,
+        "cycle_seq",
+        "schedule_cycle_id",
+        "logical_batch_id",
+    )
+    second = dict(first)
+    second["cycle_start_monotonic_ns"] = (
+        first["cycle_start_monotonic_ns"] + 1_000_000_000
+    )
+    second["cycle_end_monotonic_ns"] = (
+        first["cycle_end_monotonic_ns"] + 1_000_000_000
+    )
+
+    assert exporter.begin_cycle(first) is not None
+    assert exporter.begin_cycle(second) is not None
+    result = exporter.close()
+
+    assert result is not None
+    assert result.formal_invalid_reasons == ()
+    assert result.writer_complete is True
+
+
+def test_formal_duration_limit_stops_materialization(
+    tmp_path: Path,
+    monkeypatch: Any,
+) -> None:
+    exporter = SchedulerProfileExporter(
+        _config(tmp_path), _identity(), clock_ns=_Clock(0, 3_200)
+    )
+    monkeypatch.setitem(SCHEDULER_WIRE_LIMITS, "max_formal_run_duration_s", 1)
+    cycle = next(
+        record
+        for record in _golden_records()
+        if record["record_type"] == "schedule_cycle"
+    )
+    fields = _body(
+        cycle,
+        "cycle_seq",
+        "schedule_cycle_id",
+        "logical_batch_id",
+    )
+    fields["cycle_start_monotonic_ns"] = 1_000_000_001
+    fields["cycle_end_monotonic_ns"] = 1_000_000_001
+
+    assert exporter.begin_cycle(fields) is None
+    result = exporter.close()
+
+    assert result is not None
+    assert result.formal_invalid_reasons == ("max_formal_run_duration_s",)
+    assert result.writer_complete is False
+    rows = [json.loads(line) for line in exporter.shard_path.read_text().splitlines()]
+    assert not any(row["record_type"] == "schedule_cycle" for row in rows)
+
+
+def test_formal_duration_limit_is_enforced_by_exporter_clock_at_close(
+    tmp_path: Path,
+    monkeypatch: Any,
+) -> None:
+    exporter = SchedulerProfileExporter(
+        _config(tmp_path),
+        _identity(),
+        clock_ns=_Clock(0, 1_000_000_001),
+    )
+    monkeypatch.setitem(SCHEDULER_WIRE_LIMITS, "max_formal_run_duration_s", 1)
+
+    result = exporter.close()
+
+    assert result is not None
+    assert result.close_outcome == "drained"
+    assert result.formal_invalid_reasons == ("max_formal_run_duration_s",)
+    assert result.writer_complete is False
+    assert exporter.committed_shard_path is None
+
+
+def test_clock_bridge_sample_limit_stops_materialization(
+    tmp_path: Path,
+    monkeypatch: Any,
+) -> None:
+    exporter = SchedulerProfileExporter(
+        _config(tmp_path), _identity(), clock_ns=_Clock(0, 3_200)
+    )
+    monkeypatch.setitem(SCHEDULER_WIRE_LIMITS, "clock_bridge_max_records", 1)
+    sample = next(
+        record
+        for record in _golden_records()
+        if record["record_type"] == "clock_bridge_sample"
+    )
+    fields = _body(sample, "sample_sequence", "clock_domain_id")
+
+    assert exporter.write_clock_bridge_sample(fields) is True
+    assert exporter.write_clock_bridge_sample(fields) is False
+    result = exporter.close()
+
+    assert result is not None
+    assert result.formal_invalid_reasons == ("clock_bridge_max_records",)
+    assert result.writer_complete is False
+    rows = [json.loads(line) for line in exporter.shard_path.read_text().splitlines()]
+    assert sum(row["record_type"] == "clock_bridge_sample" for row in rows) == 1
+
+
+def test_artifact_byte_limit_stops_planning_and_caps_written_bytes(
+    tmp_path: Path,
+    monkeypatch: Any,
+) -> None:
+    exporter = SchedulerProfileExporter(
+        _config(tmp_path), _identity(), clock_ns=_Clock(0, 3_200)
+    )
+    artifact_limit = exporter._artifact_bytes_planned + int(
+        SCHEDULER_WIRE_LIMITS["max_record_bytes_including_lf"]
+    )
+    monkeypatch.setitem(
+        SCHEDULER_WIRE_LIMITS, "artifact_bytes_max", artifact_limit
+    )
+    sample = next(
+        record
+        for record in _golden_records()
+        if record["record_type"] == "clock_bridge_sample"
+    )
+    fields = _body(sample, "sample_sequence", "clock_domain_id")
+
+    assert exporter.write_clock_bridge_sample(fields) is False
+    result = exporter.close()
+
+    assert result is not None
+    assert result.formal_invalid_reasons == ("artifact_bytes_max",)
+    assert result.writer_complete is False
+    assert result.artifact_bytes_written == exporter.shard_path.stat().st_size
+    assert result.artifact_bytes_written <= artifact_limit
+
+
 def test_disabled_scheduler_stream_allocates_nothing(tmp_path: Path) -> None:
     exporter = create_scheduler_profile_exporter(
         SchedulerExporterConfig(base_path=None)
@@ -199,7 +431,7 @@ def test_i1_exporter_emits_a_c1_valid_route_b_shard(tmp_path: Path) -> None:
     result = exporter.close()
 
     assert result is not None
-    assert result.evidence_complete is True
+    assert result.writer_complete is True
     assert exporter.committed_shard_path == exporter.shard_path
     assert exporter.shard_path.stat().st_mode & 0o777 == 0o600
     report = CONTRACT.validate_scheduler_shard(
@@ -233,7 +465,7 @@ def test_lifecycle_and_scheduler_share_identity_but_not_writer_state(
 
     assert lifecycle_ref is not None and lifecycle_ref.record_seq == 0
     assert lifecycle_result.close_outcome == "drained"
-    assert scheduler_result is not None and scheduler_result.evidence_complete
+    assert scheduler_result is not None and scheduler_result.writer_complete
     lifecycle_rows = [
         json.loads(line) for line in lifecycle.shard_path.read_text().splitlines()
     ]
@@ -298,6 +530,108 @@ def test_queue_overflow_is_loss_accounted_and_never_committed(
         clock_ns=_Clock(0, 3_200),
         writer_start_gate=writer_gate,
     )
+    sample = next(
+        record
+        for record in _golden_records()
+        if record["record_type"] == "clock_bridge_sample"
+    )
+    fields = _body(sample, "sample_sequence", "clock_domain_id")
+
+    for _ in range(int(SCHEDULER_WIRE_LIMITS["data_capacity_records"])):
+        assert exporter.write_clock_bridge_sample(fields) is True
+    assert exporter.write_clock_bridge_sample(fields) is False
+    writer_gate.set()
+    result = exporter.close()
+
+    assert result is not None
+    assert result.close_outcome == "drained"
+    assert result.dropped_data_count == 1
+    assert result.writer_complete is False
+    assert exporter.committed_shard_path is None
+    rows = [json.loads(line) for line in exporter.shard_path.read_text().splitlines()]
+    loss = next(row for row in rows if row["record_type"] == "loss_interval")
+    assert loss["reason"] == "queue_overflow"
+    assert loss["first_dropped_record_seq"] == 1_024
+    assert loss["last_dropped_record_seq"] == 1_024
+    assert loss["clock_bridge_sample_count"] == 1
+
+
+def test_serialization_failure_is_loss_accounted_and_not_committed(
+    tmp_path: Path,
+) -> None:
+    exporter = SchedulerProfileExporter(
+        _config(tmp_path), _identity(), clock_ns=_Clock(0, 3_200)
+    )
+    cycle = next(
+        record
+        for record in _golden_records()
+        if record["record_type"] == "schedule_cycle"
+    )
+    fields = _body(
+        cycle,
+        "cycle_seq",
+        "schedule_cycle_id",
+        "logical_batch_id",
+    )
+    fields["unsupported_value"] = object()
+
+    reference = exporter.begin_cycle(fields)
+    result = exporter.close()
+
+    assert reference is not None
+    assert result is not None
+    assert result.dropped_data_count == 1
+    assert result.writer_complete is False
+    assert exporter.committed_shard_path is None
+    rows = [json.loads(line) for line in exporter.shard_path.read_text().splitlines()]
+    loss = next(row for row in rows if row["record_type"] == "loss_interval")
+    assert loss["reason"] == "serialization_failure"
+    assert loss["first_dropped_record_seq"] == 0
+    assert loss["last_dropped_record_seq"] == 0
+
+
+def test_loss_interval_total_is_capped_and_permanently_invalidates(
+    tmp_path: Path,
+) -> None:
+    exporter = SchedulerProfileExporter(
+        _config(tmp_path), _identity(), clock_ns=_Clock(0, 3_200)
+    )
+    sample = next(
+        record
+        for record in _golden_records()
+        if record["record_type"] == "clock_bridge_sample"
+    )
+    valid_fields = _body(sample, "sample_sequence", "clock_domain_id")
+    invalid_fields = dict(valid_fields)
+    invalid_fields["unsupported_value"] = object()
+    limit = int(SCHEDULER_WIRE_LIMITS["max_loss_interval_records_per_shard"])
+
+    for _ in range(limit):
+        assert exporter.write_clock_bridge_sample(invalid_fields) is False
+        assert exporter.write_clock_bridge_sample(valid_fields) is True
+    assert exporter.write_clock_bridge_sample(invalid_fields) is False
+    assert exporter.write_clock_bridge_sample(valid_fields) is False
+    assert exporter.write_clock_bridge_sample(valid_fields) is False
+    result = exporter.close()
+
+    assert result is not None
+    assert result.close_outcome == "drained"
+    assert result.written_loss_interval_count == limit
+    assert result.formal_invalid_reasons == (
+        "max_loss_interval_records_per_shard",
+    )
+    assert result.writer_complete is False
+    assert exporter.committed_shard_path is None
+    rows = [json.loads(line) for line in exporter.shard_path.read_text().splitlines()]
+    losses = [row for row in rows if row["record_type"] == "loss_interval"]
+    assert len(losses) == limit
+    assert [row["loss_interval_seq"] for row in losses] == list(range(limit))
+
+
+def test_writer_complete_is_not_route_b_semantic_admission(tmp_path: Path) -> None:
+    exporter = SchedulerProfileExporter(
+        _config(tmp_path), _identity(), clock_ns=_Clock(0, 3_200)
+    )
     cycle = next(
         record
         for record in _golden_records()
@@ -310,42 +644,16 @@ def test_queue_overflow_is_loss_accounted_and_never_committed(
         "logical_batch_id",
     )
 
-    for _ in range(int(SCHEDULER_WIRE_LIMITS["data_capacity_records"]) + 1):
-        assert exporter.begin_cycle(fields) is not None
-    writer_gate.set()
+    assert exporter.begin_cycle(fields) is not None
     result = exporter.close()
 
-    assert result is not None
-    assert result.close_outcome == "drained"
-    assert result.dropped_data_count == 1
-    assert result.evidence_complete is False
-    assert exporter.committed_shard_path is None
-    rows = [json.loads(line) for line in exporter.shard_path.read_text().splitlines()]
-    loss = next(row for row in rows if row["record_type"] == "loss_interval")
-    assert loss["reason"] == "queue_overflow"
-    assert loss["first_dropped_record_seq"] == 1_024
-    assert loss["last_dropped_record_seq"] == 1_024
-    assert loss["schedule_cycle_count"] == 1
-
-
-def test_serialization_failure_is_loss_accounted_and_not_committed(
-    tmp_path: Path,
-) -> None:
-    exporter = SchedulerProfileExporter(_config(tmp_path), _identity())
-
-    reference = exporter.begin_cycle({"unsupported_value": object()})
-    result = exporter.close()
-
-    assert reference is not None
-    assert result is not None
-    assert result.dropped_data_count == 1
-    assert result.evidence_complete is False
-    assert exporter.committed_shard_path is None
-    rows = [json.loads(line) for line in exporter.shard_path.read_text().splitlines()]
-    loss = next(row for row in rows if row["record_type"] == "loss_interval")
-    assert loss["reason"] == "serialization_failure"
-    assert loss["first_dropped_record_seq"] == 0
-    assert loss["last_dropped_record_seq"] == 0
+    assert result is not None and result.writer_complete is True
+    assert exporter.committed_shard_path == exporter.shard_path
+    with pytest.raises(CONTRACT.ContractError):
+        CONTRACT.validate_scheduler_shard(
+            exporter.shard_path,
+            CONTRACT.load_json(CONTRACT.CONFIG_PATH),
+        )
 
 
 def test_close_timeout_is_bounded_and_not_committed(
@@ -365,7 +673,7 @@ def test_close_timeout_is_bounded_and_not_committed(
     assert result is not None
     assert result.close_outcome == "timeout"
     assert result.summary_written is False
-    assert result.evidence_complete is False
+    assert result.writer_complete is False
     assert exporter.committed_shard_path is None
     writer_gate.set()
     assert exporter._writer_done.wait(1)

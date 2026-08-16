@@ -13,6 +13,7 @@ import hashlib
 import json
 import os
 import re
+import shutil
 import threading
 import time
 from collections import deque
@@ -68,6 +69,11 @@ _LOSS_REASONS = {
 
 ClockFunction = Callable[[], int]
 WriteFunction = Callable[[int, bytes | memoryview], int]
+DiskFreeReader = Callable[[Path], int]
+
+
+def _disk_free_bytes(path: Path) -> int:
+    return shutil.disk_usage(path).free
 
 
 def _opaque(value: object, name: str, *, shard: bool = False) -> str:
@@ -178,19 +184,30 @@ class SchedulerCloseResult:
     close_outcome: str
     summary_written: bool
     attempted_data_count: int
+    written_loss_interval_count: int
     dropped_data_count: int
     dropped_control_count: int
     writer_failure_count: int
+    artifact_bytes_written: int
+    formal_invalid_reasons: tuple[str, ...]
     shard_path: Path | None
 
     @property
-    def evidence_complete(self) -> bool:
+    def writer_complete(self) -> bool:
+        """Whether the local writer transported every attempted record.
+
+        This is necessary but not sufficient for Route-B admission. The
+        independently generated C1 scheduler-validation receipt must also be
+        valid before an experiment manifest may admit the shard.
+        """
+
         return (
             self.close_outcome == "drained"
             and self.summary_written
             and self.dropped_data_count == 0
             and self.dropped_control_count == 0
             and self.writer_failure_count == 0
+            and not self.formal_invalid_reasons
             and self.shard_path is not None
         )
 
@@ -257,6 +274,7 @@ class SchedulerProfileExporter:
         *,
         clock_ns: ClockFunction = time.monotonic_ns,
         write_function: WriteFunction = os.write,
+        disk_free_reader: DiskFreeReader = _disk_free_bytes,
         writer_start_gate: threading.Event | None = None,
     ) -> None:
         config.validate_enabled()
@@ -271,6 +289,7 @@ class SchedulerProfileExporter:
         self.provenance = config.provenance
         self._clock_ns = clock_ns
         self._write_function = write_function
+        self._disk_free_reader = disk_free_reader
         self._writer_start_gate = writer_start_gate
         self._owner_pid = identity.owner_pid
         self.shard_path = Path(
@@ -295,6 +314,7 @@ class SchedulerProfileExporter:
         self._next_execution_end_seq = 0
         self._next_clock_sample_seq = 0
         self._next_loss_interval_seq = 0
+        self._cycle_timestamps_ns: deque[int] = deque()
         self._open_loss: _OpenLoss | None = None
         self._attempted_data_count = 0
         self._written_counts = {record_type: 0 for record_type in _DATA_RECORD_TYPES}
@@ -306,6 +326,7 @@ class SchedulerProfileExporter:
         self._closed = False
         self._close_timed_out = False
         self._summary_written = False
+        self._formal_invalid_reasons: list[str] = []
         self._init_error: Exception | None = None
         self._close_result: SchedulerCloseResult | None = None
         # CPython executes one dict.setdefault call while holding the GIL. It
@@ -313,6 +334,8 @@ class SchedulerProfileExporter:
         # its deadline and cannot safely wait for the writer's condition.
         self._completion_claim: dict[str, SchedulerCloseResult] = {}
         self._content_hash = hashlib.sha256()
+        self._artifact_bytes_planned = 0
+        self._artifact_bytes_written = 0
         self._fd = -1
 
         self._writer = threading.Thread(
@@ -337,7 +360,12 @@ class SchedulerProfileExporter:
         if not self._usable():
             return None
         with self._condition:
-            if self._closing or self._closed:
+            if (
+                self._closing
+                or self._closed
+                or self._formal_invalid_reasons
+                or not self._admit_cycle_locked(fields)
+            ):
                 return None
             cycle_seq = self._next_cycle_seq
             self._next_cycle_seq += 1
@@ -363,7 +391,7 @@ class SchedulerProfileExporter:
                 "logical_batch_id": reference.logical_batch_id,
             }
             self._emit_data_locked("schedule_cycle", record)
-            return reference
+            return None if self._formal_invalid_reasons else reference
 
     def write_logical_batch(
         self, reference: SchedulerCycleRef, fields: Mapping[str, object]
@@ -371,7 +399,12 @@ class SchedulerProfileExporter:
         if not self._usable():
             return False
         with self._condition:
-            if self._closing or self._closed:
+            if (
+                self._closing
+                or self._closed
+                or self._formal_invalid_reasons
+                or not self._admit_runtime_clock_locked()
+            ):
                 return False
             batch_seq = self._next_batch_seq
             self._next_batch_seq += 1
@@ -393,7 +426,14 @@ class SchedulerProfileExporter:
         if not self._usable():
             return False
         with self._condition:
-            if self._closing or self._closed:
+            if (
+                self._closing
+                or self._closed
+                or self._formal_invalid_reasons
+                or not self._admit_wire_times_locked(
+                    fields, ("dispatch_monotonic_ns",)
+                )
+            ):
                 return False
             step_seq = self._next_execution_start_seq
             self._next_execution_start_seq += 1
@@ -414,7 +454,14 @@ class SchedulerProfileExporter:
         if not self._usable():
             return False
         with self._condition:
-            if self._closing or self._closed:
+            if (
+                self._closing
+                or self._closed
+                or self._formal_invalid_reasons
+                or not self._admit_wire_times_locked(
+                    fields, ("final_result_monotonic_ns",)
+                )
+            ):
                 return False
             step_seq = self._next_execution_end_seq
             self._next_execution_end_seq += 1
@@ -433,7 +480,17 @@ class SchedulerProfileExporter:
         if not self._usable():
             return False
         with self._condition:
-            if self._closing or self._closed:
+            if self._closing or self._closed or self._formal_invalid_reasons:
+                return False
+            if self._next_clock_sample_seq >= int(
+                SCHEDULER_WIRE_LIMITS["clock_bridge_max_records"]
+            ):
+                self._mark_formal_invalid_locked("clock_bridge_max_records")
+                return False
+            if not self._admit_wire_times_locked(
+                fields,
+                ("monotonic_before_ns", "monotonic_after_ns"),
+            ):
                 return False
             sample_sequence = self._next_clock_sample_seq
             self._next_clock_sample_seq += 1
@@ -493,7 +550,7 @@ class SchedulerProfileExporter:
         """Return the formal shard only after one immutable complete close."""
 
         result = self._claimed_close_result()
-        if result is not None and result.evidence_complete:
+        if result is not None and result.writer_complete:
             return self.shard_path
         return None
 
@@ -505,6 +562,78 @@ class SchedulerProfileExporter:
 
     def _usable(self) -> bool:
         return os.getpid() == self._owner_pid
+
+    def _admit_cycle_locked(self, fields: Mapping[str, object]) -> bool:
+        if self._next_cycle_seq >= int(
+            SCHEDULER_WIRE_LIMITS["max_cycles_in_formal_run"]
+        ):
+            self._mark_formal_invalid_locked("max_cycles_in_formal_run")
+            return False
+        if not self._admit_runtime_clock_locked():
+            return False
+        if not self._admit_wire_times_locked(
+            fields,
+            ("cycle_start_monotonic_ns", "cycle_end_monotonic_ns"),
+        ):
+            return False
+        timestamp = fields["cycle_start_monotonic_ns"]
+        assert type(timestamp) is int
+        if self._cycle_timestamps_ns and timestamp < self._cycle_timestamps_ns[-1]:
+            self._mark_formal_invalid_locked("cycle_timestamp_regression")
+            return False
+        while (
+            self._cycle_timestamps_ns
+            and timestamp - self._cycle_timestamps_ns[0] >= 10**9
+        ):
+            self._cycle_timestamps_ns.popleft()
+        if len(self._cycle_timestamps_ns) >= int(
+            SCHEDULER_WIRE_LIMITS["max_cycle_rate_per_rolling_second"]
+        ):
+            self._mark_formal_invalid_locked(
+                "max_cycle_rate_per_rolling_second"
+            )
+            return False
+        self._cycle_timestamps_ns.append(timestamp)
+        return True
+
+    def _admit_wire_times_locked(
+        self,
+        fields: Mapping[str, object],
+        names: tuple[str, ...],
+    ) -> bool:
+        for name in names:
+            value = fields.get(name)
+            if type(value) is not int or not 0 <= value <= 2**64 - 1:
+                self._mark_formal_invalid_locked(f"invalid_time_field:{name}")
+                return False
+            if not self._admit_timestamp_locked(value):
+                return False
+        return True
+
+    def _admit_runtime_clock_locked(self) -> bool:
+        try:
+            timestamp = _uint64(self._clock_ns(), "admission_monotonic_ns")
+        except Exception:  # noqa: BLE001 - serving remains fail-open.
+            self._mark_formal_invalid_locked("clock_read_failure")
+            return False
+        return self._admit_timestamp_locked(timestamp)
+
+    def _admit_timestamp_locked(self, timestamp_ns: int) -> bool:
+        max_duration_ns = (
+            int(SCHEDULER_WIRE_LIMITS["max_formal_run_duration_s"]) * 10**9
+        )
+        if (
+            timestamp_ns < self._started_monotonic_ns
+            or timestamp_ns - self._started_monotonic_ns > max_duration_ns
+        ):
+            self._mark_formal_invalid_locked("max_formal_run_duration_s")
+            return False
+        return True
+
+    def _mark_formal_invalid_locked(self, reason: str) -> None:
+        if reason not in self._formal_invalid_reasons:
+            self._formal_invalid_reasons.append(reason)
+            self._dropped_control_count += 1
 
     def _emit_data_locked(
         self, record_type: str, record: dict[str, object]
@@ -523,12 +652,23 @@ class SchedulerProfileExporter:
                 record_seq, record_type, "serialization_failure", observed_ns
             )
             return False
+        if not self._can_plan_record_locked(raw):
+            self._dropped_data_count += 1
+            self._mark_formal_invalid_locked("artifact_bytes_max")
+            return False
         if not self._can_enqueue_locked(raw, reserved=False):
             self._note_drop_locked(
                 record_seq, record_type, "queue_overflow", observed_ns
             )
             return False
         self._seal_loss_locked()
+        if self._formal_invalid_reasons:
+            self._dropped_data_count += 1
+            return False
+        if not self._can_plan_record_locked(raw):
+            self._dropped_data_count += 1
+            self._mark_formal_invalid_locked("artifact_bytes_max")
+            return False
         if self._enqueue_locked(_QueuedRecord(raw, record_type, record_seq, False)):
             return True
         self._note_drop_locked(
@@ -566,6 +706,15 @@ class SchedulerProfileExporter:
             SCHEDULER_WIRE_LIMITS["data_capacity_records"]
         )
 
+    def _can_plan_record_locked(self, raw: bytes) -> bool:
+        summary_reserve = int(
+            SCHEDULER_WIRE_LIMITS["max_record_bytes_including_lf"]
+        )
+        return (
+            self._artifact_bytes_planned + len(raw) + summary_reserve
+            <= int(SCHEDULER_WIRE_LIMITS["artifact_bytes_max"])
+        )
+
     def _enqueue_locked(self, queued: _QueuedRecord) -> bool:
         if not self._can_enqueue_locked(queued.raw, reserved=queued.reserved):
             return False
@@ -575,6 +724,7 @@ class SchedulerProfileExporter:
             self._reserved_queued += 1
         else:
             self._ordinary_queued += 1
+        self._artifact_bytes_planned += len(queued.raw)
         self._condition.notify()
         return True
 
@@ -601,6 +751,8 @@ class SchedulerProfileExporter:
             current.last_timestamp_ns = observed_ns
             return
         self._seal_loss_locked()
+        if self._formal_invalid_reasons:
+            return
         self._open_loss = _OpenLoss(
             reason,
             record_seq,
@@ -615,8 +767,16 @@ class SchedulerProfileExporter:
         if loss is None:
             return
         self._open_loss = None
+        if self._formal_invalid_reasons:
+            return
+        if self._next_loss_interval_seq >= int(
+            SCHEDULER_WIRE_LIMITS["max_loss_interval_records_per_shard"]
+        ):
+            self._mark_formal_invalid_locked(
+                "max_loss_interval_records_per_shard"
+            )
+            return
         loss_seq = self._next_loss_interval_seq
-        self._next_loss_interval_seq += 1
         record = {
             "schema_version": SCHEDULER_SCHEMA,
             "record_type": "loss_interval",
@@ -640,10 +800,15 @@ class SchedulerProfileExporter:
         try:
             raw = _canonical_line(record)
         except Exception:  # noqa: BLE001 - control loss invalidates evidence.
-            self._dropped_control_count += 1
+            self._mark_formal_invalid_locked("loss_interval_serialization_failure")
             return
-        if not self._enqueue_locked(_QueuedRecord(raw, "loss_interval", None, True)):
-            self._dropped_control_count += 1
+        if not self._can_plan_record_locked(raw):
+            self._mark_formal_invalid_locked("artifact_bytes_max")
+            return
+        if self._enqueue_locked(_QueuedRecord(raw, "loss_interval", None, True)):
+            self._next_loss_interval_seq += 1
+            return
+        self._mark_formal_invalid_locked("loss_interval_control_drop")
 
     def _start_record(self) -> dict[str, object]:
         return {
@@ -706,6 +871,7 @@ class SchedulerProfileExporter:
             start_raw = _canonical_line(self._start_record())
             self._write_all(start_raw)
             self._content_hash.update(start_raw)
+            self._artifact_bytes_planned = len(start_raw)
             initialized = True
             self._writer_ready.set()
             if self._writer_start_gate is not None:
@@ -750,6 +916,8 @@ class SchedulerProfileExporter:
 
             if self._claimed_close_result() is None and not self._close_timed_out:
                 ended_ns = _uint64(self._clock_ns(), "ended_monotonic_ns")
+                with self._condition:
+                    self._admit_timestamp_locked(ended_ns)
                 summary_raw = _canonical_line(self._summary_record(ended_ns))
                 if self._claimed_close_result() is None and not self._close_timed_out:
                     self._write_all(summary_raw)
@@ -787,6 +955,11 @@ class SchedulerProfileExporter:
 
     def _initialize_writer(self) -> None:
         self.shard_path.parent.mkdir(parents=True, exist_ok=True)
+        free_bytes = self._disk_free_reader(self.shard_path.parent)
+        if type(free_bytes) is not int or free_bytes < int(
+            SCHEDULER_WIRE_LIMITS["disk_free_required_bytes"]
+        ):
+            raise OSError("insufficient disk space for scheduler shard admission")
         cloexec = getattr(os, "O_CLOEXEC", 0)
         reservation_fd = os.open(
             self.shard_path,
@@ -888,9 +1061,13 @@ class SchedulerProfileExporter:
 
         fd = -1
         try:
-            flags = os.O_APPEND | os.O_WRONLY | getattr(os, "O_CLOEXEC", 0)
+            flags = os.O_WRONLY | getattr(os, "O_CLOEXEC", 0)
             fd = os.open(self.shard_path, flags)
-            os.write(fd, b"\n")
+            if hasattr(os, "pwrite"):
+                os.pwrite(fd, b"!", 0)
+            else:
+                os.lseek(fd, 0, os.SEEK_SET)
+                os.write(fd, b"!")
             os.fsync(fd)
         except OSError:
             pass
@@ -919,11 +1096,16 @@ class SchedulerProfileExporter:
             pass
 
     def _write_all(self, raw: bytes) -> None:
+        if self._artifact_bytes_written + len(raw) > int(
+            SCHEDULER_WIRE_LIMITS["artifact_bytes_max"]
+        ):
+            raise OSError("scheduler artifact exceeds the frozen byte limit")
         view = memoryview(raw)
         while view:
             written = self._write_function(self._fd, view)
             if type(written) is not int or written <= 0 or written > len(view):
                 raise OSError("scheduler writer made no valid progress")
+            self._artifact_bytes_written += written
             view = view[written:]
 
     def _publish_timeout(self) -> SchedulerCloseResult:
@@ -961,9 +1143,12 @@ class SchedulerProfileExporter:
             close_outcome=outcome,
             summary_written=summary_written,
             attempted_data_count=self._attempted_data_count,
+            written_loss_interval_count=self._written_loss_interval_count,
             dropped_data_count=self._dropped_data_count,
             dropped_control_count=self._dropped_control_count,
             writer_failure_count=self._writer_failure_count,
+            artifact_bytes_written=self._artifact_bytes_written,
+            formal_invalid_reasons=tuple(self._formal_invalid_reasons),
             shard_path=self.shard_path,
         )
 
