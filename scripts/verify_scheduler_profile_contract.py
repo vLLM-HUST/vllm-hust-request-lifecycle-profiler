@@ -722,6 +722,87 @@ def _validate_record_sequence_coverage(
     return data, losses
 
 
+def _validate_contiguous_sequence(
+    records: list[dict[str, Any]],
+    record_type: str,
+    sequence_field: str,
+    error: str,
+) -> None:
+    observed = [
+        record[sequence_field]
+        for record in records
+        if record["record_type"] == record_type
+    ]
+    if observed != list(range(len(observed))):
+        raise ContractError(error)
+
+
+def _validate_wire_time_envelope(
+    records: list[dict[str, Any]], config: dict[str, Any]
+) -> None:
+    start = records[0]["started_monotonic_ns"]
+    end = records[-1]["ended_monotonic_ns"]
+    if end < start:
+        raise ContractError("wire_time_envelope")
+    if end - start > config["wire_limits"]["max_formal_run_duration_s"] * 10**9:
+        raise ContractError("wire_formal_duration_limit")
+
+    monotonic_fields = {
+        "schedule_cycle": (
+            "cycle_start_monotonic_ns",
+            "cycle_end_monotonic_ns",
+        ),
+        "execution_step_start": ("dispatch_monotonic_ns",),
+        "execution_step_end": ("final_result_monotonic_ns",),
+        "clock_bridge_sample": (
+            "monotonic_before_ns",
+            "monotonic_after_ns",
+        ),
+        "loss_interval": (
+            "first_observed_monotonic_ns",
+            "last_observed_monotonic_ns",
+        ),
+    }
+    for record in records[1:-1]:
+        for field in monotonic_fields.get(record["record_type"], ()):
+            if not start <= record[field] <= end:
+                raise ContractError("wire_time_envelope")
+
+
+def _validate_observable_wire_limits(
+    records: list[dict[str, Any]], lines: list[bytes], config: dict[str, Any]
+) -> None:
+    limits = config["wire_limits"]
+    cycles = [
+        record for record in records if record["record_type"] == "schedule_cycle"
+    ]
+    samples = [
+        record
+        for record in records
+        if record["record_type"] == "clock_bridge_sample"
+    ]
+    if len(cycles) > limits["max_cycles_in_formal_run"]:
+        raise ContractError("wire_cycle_count_limit")
+    if len(samples) > limits["clock_bridge_max_records"]:
+        raise ContractError("wire_clock_bridge_count_limit")
+    if sum(len(line) for line in lines) > limits["artifact_bytes_max"]:
+        raise ContractError("wire_artifact_bytes_limit")
+    if any(
+        sample["monotonic_after_ns"] - sample["monotonic_before_ns"]
+        > config["clock_bridge"]["max_bracket_width_ns"]
+        for sample in samples
+    ):
+        raise ContractError("clock_bracket_width_limit")
+
+    cycle_times = sorted(record["cycle_start_monotonic_ns"] for record in cycles)
+    first_in_window = 0
+    for index, timestamp in enumerate(cycle_times):
+        while timestamp - cycle_times[first_in_window] >= 10**9:
+            first_in_window += 1
+        if index - first_in_window + 1 > limits["max_cycle_rate_per_rolling_second"]:
+            raise ContractError("wire_cycle_rate_limit")
+
+
 def validate_wire_golden(
     path: Path,
     config: dict[str, Any],
@@ -784,26 +865,56 @@ def validate_wire_golden(
     data, losses = _validate_record_sequence_coverage(records, summary)
     if len(losses) > config["wire_limits"]["max_loss_interval_records_per_shard"]:
         raise ContractError("wire_loss_interval_limit")
+    _validate_contiguous_sequence(
+        records, "schedule_cycle", "cycle_seq", "wire_cycle_sequence"
+    )
+    _validate_contiguous_sequence(
+        records, "logical_batch", "batch_seq", "wire_batch_sequence"
+    )
+    _validate_contiguous_sequence(
+        records,
+        "execution_step_start",
+        "execution_step_seq",
+        "wire_execution_start_sequence",
+    )
+    _validate_contiguous_sequence(
+        records,
+        "execution_step_end",
+        "execution_step_seq",
+        "wire_execution_end_sequence",
+    )
+    _validate_contiguous_sequence(
+        records,
+        "clock_bridge_sample",
+        "sample_sequence",
+        "wire_clock_sample_sequence",
+    )
+    _validate_wire_time_envelope(records, config)
+    _validate_observable_wire_limits(records, lines, config)
+
+    indexed_records = list(enumerate(records))
     cycles = {
-        record["schedule_cycle_id"]: record
-        for record in records
+        record["schedule_cycle_id"]: (record, index)
+        for index, record in indexed_records
         if record["record_type"] == "schedule_cycle"
     }
     batches = {
-        record["logical_batch_id"]: record
-        for record in records
+        record["logical_batch_id"]: (record, index)
+        for index, record in indexed_records
         if record["record_type"] == "logical_batch"
     }
     starts = {
-        record["execution_step_id"]: record
-        for record in records
+        record["execution_step_id"]: (record, index)
+        for index, record in indexed_records
         if record["record_type"] == "execution_step_start"
     }
     ends = {
-        record["execution_step_id"]: record
-        for record in records
+        record["execution_step_id"]: (record, index)
+        for index, record in indexed_records
         if record["record_type"] == "execution_step_end"
     }
+    if not cycles:
+        raise ContractError("wire_missing_schedule_cycle")
     if (
         len(cycles)
         != sum(record["record_type"] == "schedule_cycle" for record in records)
@@ -815,19 +926,30 @@ def validate_wire_golden(
         != sum(record["record_type"] == "execution_step_end" for record in records)
     ):
         raise ContractError("duplicate_entity_id")
-    for cycle in cycles.values():
-        batch = batches.get(cycle["logical_batch_id"])
-        if batch is None or batch["schedule_cycle_id"] != cycle["schedule_cycle_id"]:
-            raise ContractError("cycle_batch_relation")
-        step_id = batch["execution_step_id"]
+    for cycle, cycle_index in cycles.values():
+        batch_entry = batches.get(cycle["logical_batch_id"])
         if (
-            starts.get(step_id, {}).get("logical_batch_id") != batch["logical_batch_id"]
-            or ends.get(step_id, {}).get("logical_batch_id")
-            != batch["logical_batch_id"]
+            batch_entry is None
+            or batch_entry[0]["schedule_cycle_id"] != cycle["schedule_cycle_id"]
+        ):
+            raise ContractError("cycle_batch_relation")
+        batch, batch_index = batch_entry
+        step_id = batch["execution_step_id"]
+        start_entry = starts.get(step_id)
+        end_entry = ends.get(step_id)
+        if (
+            start_entry is None
+            or end_entry is None
+            or start_entry[0]["logical_batch_id"] != batch["logical_batch_id"]
+            or end_entry[0]["logical_batch_id"] != batch["logical_batch_id"]
         ):
             raise ContractError("batch_execution_relation")
-        dispatch = starts[step_id]["dispatch_monotonic_ns"]
-        final_result = ends[step_id]["final_result_monotonic_ns"]
+        start_record, start_index = start_entry
+        end_record, end_index = end_entry
+        if not cycle_index < batch_index < start_index < end_index:
+            raise ContractError("invalid_cycle_execution_record_order")
+        dispatch = start_record["dispatch_monotonic_ns"]
+        final_result = end_record["final_result_monotonic_ns"]
         if cycle["cycle_end_monotonic_ns"] > dispatch or dispatch > final_result:
             raise ContractError("invalid_cycle_execution_order")
     if not (len(cycles) == len(batches) == len(starts) == len(ends)):
@@ -869,7 +991,7 @@ def validate_wire_golden(
     content = b"".join(lines[:-1])
     if summary["content_sha256"] != hashlib.sha256(content).hexdigest():
         raise ContractError("wire_content_digest")
-    maximal_cycle = _maximal_schedule_cycle(next(iter(cycles.values())))
+    maximal_cycle = _maximal_schedule_cycle(next(iter(cycles.values()))[0])
     validate_record(
         maximal_cycle, config["wire_limits"]["max_record_bytes_including_lf"]
     )

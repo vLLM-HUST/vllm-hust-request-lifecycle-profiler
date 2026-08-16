@@ -200,6 +200,117 @@ def test_clock_bridge_sample_must_share_start_clock_domain(tmp_path: Path) -> No
         CONTRACT.validate_wire_golden(path, config)
 
 
+def test_clock_bridge_sample_must_fit_frozen_bracket_width(tmp_path: Path) -> None:
+    records = _golden_records()
+    config = CONTRACT.load_json(CONTRACT.CONFIG_PATH)
+    sample = next(
+        record for record in records if record["record_type"] == "clock_bridge_sample"
+    )
+    sample["monotonic_after_ns"] = (
+        sample["monotonic_before_ns"]
+        + config["clock_bridge"]["max_bracket_width_ns"]
+        + 1
+    )
+    records[-1]["ended_monotonic_ns"] = sample["monotonic_after_ns"] + 1
+    path = _write_wire_fixture(tmp_path, records)
+    with pytest.raises(CONTRACT.ContractError, match="clock_bracket_width_limit"):
+        CONTRACT.validate_wire_golden(path, config)
+
+
+@pytest.mark.parametrize(
+    ("entity", "error"),
+    [
+        ("cycle", "wire_cycle_sequence"),
+        ("batch", "wire_batch_sequence"),
+        ("step", "wire_execution_start_sequence"),
+        ("clock", "wire_clock_sample_sequence"),
+    ],
+)
+def test_local_sequences_start_at_zero_without_gaps(
+    tmp_path: Path, entity: str, error: str
+) -> None:
+    records = _golden_records()
+    if entity == "cycle":
+        cycle = next(
+            record for record in records if record["record_type"] == "schedule_cycle"
+        )
+        old_id = cycle["schedule_cycle_id"]
+        cycle["cycle_seq"] = 7
+        cycle["schedule_cycle_id"] = f"{cycle['scheduler_shard_id']}:cycle:7"
+        next(
+            record
+            for record in records
+            if record.get("schedule_cycle_id") == old_id
+        )["schedule_cycle_id"] = cycle["schedule_cycle_id"]
+    elif entity == "batch":
+        batch = next(
+            record for record in records if record["record_type"] == "logical_batch"
+        )
+        old_id = batch["logical_batch_id"]
+        batch["batch_seq"] = 7
+        batch["logical_batch_id"] = f"{batch['scheduler_shard_id']}:batch:7"
+        for record in records:
+            if record.get("logical_batch_id") == old_id:
+                record["logical_batch_id"] = batch["logical_batch_id"]
+    elif entity == "step":
+        start = next(
+            record
+            for record in records
+            if record["record_type"] == "execution_step_start"
+        )
+        old_id = start["execution_step_id"]
+        new_id = f"{start['scheduler_shard_id']}:step:7"
+        for record in records:
+            if record.get("execution_step_id") == old_id:
+                record["execution_step_id"] = new_id
+                if "execution_step_seq" in record:
+                    record["execution_step_seq"] = 7
+    else:
+        sample = next(
+            record
+            for record in records
+            if record["record_type"] == "clock_bridge_sample"
+        )
+        sample["sample_sequence"] = 7
+
+    path = _write_wire_fixture(tmp_path, records)
+    config = CONTRACT.load_json(CONTRACT.CONFIG_PATH)
+    with pytest.raises(CONTRACT.ContractError, match=error):
+        CONTRACT.validate_wire_golden(path, config)
+
+
+def test_wire_records_stay_inside_start_summary_envelope(tmp_path: Path) -> None:
+    records = _golden_records()
+    records[0]["started_monotonic_ns"] = 10_000
+    records[-1]["ended_monotonic_ns"] = 20_000
+    path = _write_wire_fixture(tmp_path, records)
+    config = CONTRACT.load_json(CONTRACT.CONFIG_PATH)
+    with pytest.raises(CONTRACT.ContractError, match="wire_time_envelope"):
+        CONTRACT.validate_wire_golden(path, config)
+
+
+def test_wire_summary_cannot_precede_start(tmp_path: Path) -> None:
+    records = _golden_records()
+    records[0]["started_monotonic_ns"] = 10_000
+    records[-1]["ended_monotonic_ns"] = 9_999
+    path = _write_wire_fixture(tmp_path, records)
+    config = CONTRACT.load_json(CONTRACT.CONFIG_PATH)
+    with pytest.raises(CONTRACT.ContractError, match="wire_time_envelope"):
+        CONTRACT.validate_wire_golden(path, config)
+
+
+def test_wire_rejects_formal_duration_overrun(tmp_path: Path) -> None:
+    records = _golden_records()
+    config = CONTRACT.load_json(CONTRACT.CONFIG_PATH)
+    records[-1]["ended_monotonic_ns"] = (
+        records[0]["started_monotonic_ns"]
+        + (config["wire_limits"]["max_formal_run_duration_s"] + 1) * 10**9
+    )
+    path = _write_wire_fixture(tmp_path, records)
+    with pytest.raises(CONTRACT.ContractError, match="wire_formal_duration_limit"):
+        CONTRACT.validate_wire_golden(path, config)
+
+
 def test_loss_interval_exactly_covers_an_interior_record_gap(tmp_path: Path) -> None:
     records = _golden_records()
     config = CONTRACT.load_json(CONTRACT.CONFIG_PATH)
@@ -237,6 +348,61 @@ def test_cycle_must_finish_before_linked_execution_dispatch(tmp_path: Path) -> N
     path = _write_wire_fixture(tmp_path, records)
     config = CONTRACT.load_json(CONTRACT.CONFIG_PATH)
     with pytest.raises(CONTRACT.ContractError, match="invalid_cycle_execution_order"):
+        CONTRACT.validate_wire_golden(path, config)
+
+
+def test_route_b_receipt_requires_at_least_one_schedule_cycle(tmp_path: Path) -> None:
+    records = [
+        record
+        for record in _golden_records()
+        if record["record_type"] in {"scheduler_start", "scheduler_summary"}
+    ]
+    records[-1].update(
+        {
+            "attempted_data_count": 0,
+            "written_schedule_cycle_count": 0,
+            "written_logical_batch_count": 0,
+            "written_execution_step_start_count": 0,
+            "written_execution_step_end_count": 0,
+            "written_clock_bridge_sample_count": 0,
+            "written_loss_interval_count": 0,
+            "dropped_data_count": 0,
+            "first_data_record_seq": None,
+            "last_data_record_seq": None,
+        }
+    )
+    path = _write_wire_fixture(tmp_path, records)
+    config = CONTRACT.load_json(CONTRACT.CONFIG_PATH)
+    with pytest.raises(CONTRACT.ContractError, match="wire_missing_schedule_cycle"):
+        CONTRACT.validate_wire_golden(
+            path, config, require_all_record_types=False
+        )
+
+
+def test_cycle_batch_step_records_are_physically_ordered(tmp_path: Path) -> None:
+    records = _golden_records()
+    cycle_index = next(
+        index
+        for index, record in enumerate(records)
+        if record["record_type"] == "schedule_cycle"
+    )
+    batch_index = next(
+        index
+        for index, record in enumerate(records)
+        if record["record_type"] == "logical_batch"
+        and record["logical_batch_id"] == records[cycle_index]["logical_batch_id"]
+    )
+    batch = records.pop(batch_index)
+    records.insert(cycle_index, batch)
+    written_sequences = iter([0, 1, 2, 3, 5, 6, 7, 8, 9])
+    for record in records:
+        if "record_seq" in record:
+            record["record_seq"] = next(written_sequences)
+    path = _write_wire_fixture(tmp_path, records)
+    config = CONTRACT.load_json(CONTRACT.CONFIG_PATH)
+    with pytest.raises(
+        CONTRACT.ContractError, match="invalid_cycle_execution_record_order"
+    ):
         CONTRACT.validate_wire_golden(path, config)
 
 
