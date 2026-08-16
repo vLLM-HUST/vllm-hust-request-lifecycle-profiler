@@ -572,10 +572,13 @@ def test_emitted_scheduler_shard_requires_complete_drained_writer(
         CONTRACT.validate_scheduler_shard(shard, config)
 
 
-def test_pr_c1_adds_no_runtime_scheduler_profiler_implementation() -> None:
+def test_pr_i1_adds_only_parent_exporter_not_destination_hooks() -> None:
     production_hits = []
     for path in (ROOT / "src").rglob("*.py"):
         text = path.read_text(encoding="utf-8")
         if "rlp.scheduler/v1alpha1" in text or "scheduler_profile" in text:
             production_hits.append(path.relative_to(ROOT).as_posix())
-    assert production_hits == []
+    assert production_hits == [
+        "src/vllm_request_lifecycle_profiler/__init__.py",
+        "src/vllm_request_lifecycle_profiler/scheduler_profile.py",
+    ]

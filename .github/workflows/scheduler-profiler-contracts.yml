@@ -10,8 +10,11 @@ on:
       - "contracts/p1/scheduler-profile-multistream-overlay.v0-draft.md"
       - "contracts/p1/scheduler-profile.v1alpha1-draft.md"
       - "contracts/p1/scheduler-profiler-infra.v0-draft.md"
+      - "docs/scheduler_profiler_pr_i1.md"
       - "scripts/verify_scheduler_profile_contract.py"
+      - "src/vllm_request_lifecycle_profiler/scheduler_profile.py"
       - "tests/test_scheduler_profile_contract.py"
+      - "tests/test_scheduler_profile_exporter.py"
   workflow_dispatch:
 
 permissions:
@@ -31,9 +34,17 @@ jobs:
       - name: Verify scheduler profile contract
         run: python -B scripts/verify_scheduler_profile_contract.py --json
       - name: Run contract unit tests
-        run: PYTHONPATH=src python -B -m pytest -q tests/test_scheduler_profile_contract.py
+        run: |
+          PYTHONPATH=src python -B -m pytest -q \
+            tests/test_scheduler_profile_contract.py \
+            tests/test_scheduler_profile_exporter.py
       - name: Lint contract verifier and tests
-        run: python -m ruff check scripts/verify_scheduler_profile_contract.py tests/test_scheduler_profile_contract.py
+        run: |
+          python -m ruff check \
+            scripts/verify_scheduler_profile_contract.py \
+            src/vllm_request_lifecycle_profiler/scheduler_profile.py \
+            tests/test_scheduler_profile_contract.py \
+            tests/test_scheduler_profile_exporter.py
 
   self-contained-cpu-suite:
     name: self-contained-cpu-suite
