@@ -25,6 +25,12 @@ It is created exclusively with mode `0600`. Only a drained, summary-written,
 zero-loss close exposes `committed_shard_path`; Route B still requires the
 separate exact-C1 validation receipt before manifest admission.
 
+The writer reserves the formal path and writes through a private incomplete
+path. A single immutable close claim publishes the completed shard atomically.
+If a close timeout wins while a summary write is still in flight, the late
+bytes remain incomplete and cannot replace the timeout result or become a
+committed shard.
+
 ## API boundary
 
 The parent exporter owns cycle/batch/step/sample sequences and canonical local

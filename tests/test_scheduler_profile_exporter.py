@@ -371,6 +371,44 @@ def test_close_timeout_is_bounded_and_not_committed(
     assert exporter._writer_done.wait(1)
 
 
+def test_timeout_wins_immutably_over_late_summary_publication(
+    tmp_path: Path,
+    monkeypatch: Any,
+) -> None:
+    summary_write_started = threading.Event()
+    release_summary_write = threading.Event()
+
+    def block_summary_write(fd: int, raw: bytes | memoryview) -> int:
+        if b'"record_type":"scheduler_summary"' in bytes(raw):
+            summary_write_started.set()
+            release_summary_write.wait()
+        return os.write(fd, raw)
+
+    exporter = SchedulerProfileExporter(
+        _config(tmp_path),
+        _identity(),
+        clock_ns=_Clock(0, 3_200),
+        write_function=block_summary_write,
+    )
+    monkeypatch.setitem(SCHEDULER_WIRE_LIMITS, "close_timeout_ms", 20)
+
+    first_result = exporter.close()
+
+    assert first_result is not None
+    assert summary_write_started.is_set()
+    assert first_result.close_outcome == "timeout"
+    release_summary_write.set()
+    assert exporter._writer_done.wait(1)
+    second_result = exporter.close()
+    assert second_result is first_result
+    assert second_result.close_outcome == "timeout"
+    assert second_result.summary_written is False
+    assert exporter.committed_shard_path is None
+    assert exporter.shard_path.read_bytes() == b""
+    assert exporter.incomplete_shard_path is not None
+    assert exporter.incomplete_shard_path.exists()
+
+
 def test_factory_keeps_initialization_failure_serving_fail_open(
     tmp_path: Path,
 ) -> None:
@@ -390,3 +428,30 @@ def test_factory_keeps_initialization_failure_serving_fail_open(
 
     assert isinstance(exporter, NullSchedulerProfileExporter)
     assert exporter.shard_path is None
+
+
+def test_start_write_failure_removes_reservation_and_incomplete_shard(
+    tmp_path: Path,
+) -> None:
+    def fail_start_write(_fd: int, _raw: bytes | memoryview) -> int:
+        raise OSError("injected scheduler start failure")
+
+    exporter = create_scheduler_profile_exporter(
+        _config(tmp_path),
+        _identity(),
+        write_function=fail_start_write,
+    )
+
+    assert isinstance(exporter, NullSchedulerProfileExporter)
+    assert list(tmp_path.iterdir()) == []
+
+
+def test_existing_formal_shard_is_never_overwritten(tmp_path: Path) -> None:
+    formal = tmp_path / "profile.rlp-scheduler.SH0.jsonl"
+    formal.write_bytes(b"existing\n")
+
+    exporter = create_scheduler_profile_exporter(_config(tmp_path), _identity())
+
+    assert isinstance(exporter, NullSchedulerProfileExporter)
+    assert formal.read_bytes() == b"existing\n"
+    assert list(tmp_path.iterdir()) == [formal]

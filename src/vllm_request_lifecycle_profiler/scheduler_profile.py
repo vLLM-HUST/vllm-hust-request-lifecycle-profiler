@@ -276,7 +276,8 @@ class SchedulerProfileExporter:
         self.shard_path = Path(
             f"{config.base_path}.rlp-scheduler.{self.scope.scheduler_shard_id}.jsonl"
         )
-        self.committed_shard_path: Path | None = None
+        self.incomplete_shard_path: Path | None = None
+        self._reservation_identity: tuple[int, int] | None = None
         self._started_monotonic_ns = _uint64(clock_ns(), "started_monotonic_ns")
 
         self._condition = threading.Condition()
@@ -307,6 +308,10 @@ class SchedulerProfileExporter:
         self._summary_written = False
         self._init_error: Exception | None = None
         self._close_result: SchedulerCloseResult | None = None
+        # CPython executes one dict.setdefault call while holding the GIL. It
+        # provides one immutable completion winner even when close() has hit
+        # its deadline and cannot safely wait for the writer's condition.
+        self._completion_claim: dict[str, SchedulerCloseResult] = {}
         self._content_hash = hashlib.sha256()
         self._fd = -1
 
@@ -447,23 +452,50 @@ class SchedulerProfileExporter:
             return None
         timeout = int(SCHEDULER_WIRE_LIMITS["close_timeout_ms"]) / 1_000
         deadline = time.monotonic() + timeout
+        claimed = self._claimed_close_result()
+        if claimed is not None:
+            self._unregister_atexit()
+            return claimed
         if not self._close_lock.acquire(timeout=max(0.0, deadline - time.monotonic())):
             result = self._publish_timeout()
             self._unregister_atexit()
             return result
         try:
-            with self._condition:
-                if self._close_result is not None:
-                    return self._close_result
+            if not self._condition.acquire(
+                timeout=max(0.0, deadline - time.monotonic())
+            ):
+                return self._publish_timeout()
+            try:
+                claimed = self._claimed_close_result()
+                if claimed is not None:
+                    return claimed
+                if self._closed:
+                    result, _ = self._claim_close_result("writer_failure", False)
+                    return result
                 self._seal_loss_locked()
                 self._closing = True
                 self._condition.notify_all()
+            finally:
+                self._condition.release()
             if not self._writer_done.wait(max(0.0, deadline - time.monotonic())):
                 return self._publish_timeout()
-            return self._close_result
+            claimed = self._claimed_close_result()
+            if claimed is not None:
+                return claimed
+            result, _ = self._claim_close_result("writer_failure", False)
+            return result
         finally:
             self._unregister_atexit()
             self._close_lock.release()
+
+    @property
+    def committed_shard_path(self) -> Path | None:
+        """Return the formal shard only after one immutable complete close."""
+
+        result = self._claimed_close_result()
+        if result is not None and result.evidence_complete:
+            return self.shard_path
+        return None
 
     def __enter__(self) -> SchedulerProfileExporter:  # noqa: PYI034
         return self
@@ -668,15 +700,13 @@ class SchedulerProfileExporter:
         }
 
     def _writer_main(self) -> None:
+        initialized = False
         try:
-            self.shard_path.parent.mkdir(parents=True, exist_ok=True)
-            flags = os.O_CREAT | os.O_EXCL | os.O_APPEND | os.O_WRONLY
-            flags |= getattr(os, "O_CLOEXEC", 0)
-            self._fd = os.open(self.shard_path, flags, 0o600)
-            os.fchmod(self._fd, 0o600)
+            self._initialize_writer()
             start_raw = _canonical_line(self._start_record())
             self._write_all(start_raw)
             self._content_hash.update(start_raw)
+            initialized = True
             self._writer_ready.set()
             if self._writer_start_gate is not None:
                 self._writer_start_gate.wait()
@@ -718,36 +748,175 @@ class SchedulerProfileExporter:
                 if should_finish:
                     break
 
-            with self._condition:
-                timed_out = self._close_timed_out
-            if not timed_out:
+            if self._claimed_close_result() is None and not self._close_timed_out:
                 ended_ns = _uint64(self._clock_ns(), "ended_monotonic_ns")
                 summary_raw = _canonical_line(self._summary_record(ended_ns))
-                self._write_all(summary_raw)
-                os.fsync(self._fd)
-                self._summary_written = True
-                result = self._result("drained")
-                if result.evidence_complete:
-                    self.committed_shard_path = self.shard_path
-                self._close_result = result
+                if self._claimed_close_result() is None and not self._close_timed_out:
+                    self._write_all(summary_raw)
+                    os.fsync(self._fd)
+                    self._close_writer_fd()
+                    self._summary_written = True
+                    published = self._publish_completed_shard()
+                    if not published and self._claimed_close_result() is None:
+                        raise OSError("scheduler shard publication failed")
         except Exception as exc:  # noqa: BLE001 - writer is evidence-only.
             with self._condition:
                 self._writer_failure_count += 1
+                self._summary_written = False
                 if not self._writer_ready.is_set():
                     self._init_error = exc
-                self._close_result = self._result("writer_failure")
+                self._claim_close_result("writer_failure", False)
         finally:
             if self._fd >= 0:
                 try:
-                    os.close(self._fd)
+                    self._close_writer_fd()
                 except OSError:
-                    pass
-                self._fd = -1
+                    with self._condition:
+                        self._writer_failure_count += 1
+                        self._summary_written = False
+                        self._claim_close_result("writer_failure", False)
+            if not initialized:
+                self._remove_failed_initialization_artifacts()
             with self._condition:
                 self._closed = True
+                if self._closing and self._claimed_close_result() is None:
+                    self._claim_close_result("writer_failure", False)
                 self._condition.notify_all()
             self._writer_ready.set()
             self._writer_done.set()
+
+    def _initialize_writer(self) -> None:
+        self.shard_path.parent.mkdir(parents=True, exist_ok=True)
+        cloexec = getattr(os, "O_CLOEXEC", 0)
+        reservation_fd = os.open(
+            self.shard_path,
+            os.O_CREAT | os.O_EXCL | os.O_WRONLY | cloexec,
+            0o600,
+        )
+        try:
+            os.fchmod(reservation_fd, 0o600)
+            reservation_stat = os.fstat(reservation_fd)
+            self._reservation_identity = (
+                reservation_stat.st_dev,
+                reservation_stat.st_ino,
+            )
+        finally:
+            os.close(reservation_fd)
+
+        incomplete = Path(
+            f"{self.shard_path}.incomplete.{self._owner_pid}."
+            f"{self._started_monotonic_ns}"
+        )
+        self.incomplete_shard_path = incomplete
+        self._fd = os.open(
+            incomplete,
+            os.O_CREAT | os.O_EXCL | os.O_APPEND | os.O_WRONLY | cloexec,
+            0o600,
+        )
+        os.fchmod(self._fd, 0o600)
+
+    def _close_writer_fd(self) -> None:
+        fd = self._fd
+        self._fd = -1
+        if fd >= 0:
+            os.close(fd)
+
+    def _publish_completed_shard(self) -> bool:
+        if self._claimed_close_result() is not None or self._close_timed_out:
+            return False
+        source = self.incomplete_shard_path
+        identity = self._reservation_identity
+        if source is None or identity is None or not source.exists():
+            return False
+        try:
+            formal_stat = os.stat(self.shard_path, follow_symlinks=False)
+        except OSError:
+            return False
+        if (formal_stat.st_dev, formal_stat.st_ino) != identity:
+            return False
+
+        os.replace(source, self.shard_path)
+        result, won = self._claim_close_result("drained", True)
+        if won:
+            self.incomplete_shard_path = None
+            self._reservation_identity = None
+            self._close_result = result
+            return True
+
+        self._retract_late_publication(source)
+        self._summary_written = False
+        return False
+
+    def _retract_late_publication(self, incomplete: Path) -> None:
+        """Replace a late formal shard with an empty reservation atomically."""
+
+        reservation = Path(
+            f"{self.shard_path}.reservation.{self._owner_pid}."
+            f"{time.monotonic_ns()}"
+        )
+        reservation_fd = -1
+        try:
+            flags = os.O_CREAT | os.O_EXCL | os.O_WRONLY
+            flags |= getattr(os, "O_CLOEXEC", 0)
+            reservation_fd = os.open(reservation, flags, 0o600)
+            os.fchmod(reservation_fd, 0o600)
+            reservation_stat = os.fstat(reservation_fd)
+            os.close(reservation_fd)
+            reservation_fd = -1
+            os.link(self.shard_path, incomplete)
+            os.replace(reservation, self.shard_path)
+            self._reservation_identity = (
+                reservation_stat.st_dev,
+                reservation_stat.st_ino,
+            )
+            self.incomplete_shard_path = incomplete
+        except OSError:
+            self._invalidate_unretracted_formal_shard()
+        finally:
+            if reservation_fd >= 0:
+                try:
+                    os.close(reservation_fd)
+                except OSError:
+                    pass
+            try:
+                reservation.unlink(missing_ok=True)
+            except OSError:
+                pass
+
+    def _invalidate_unretracted_formal_shard(self) -> None:
+        """Make a late-published shard structurally invalid as a last resort."""
+
+        fd = -1
+        try:
+            flags = os.O_APPEND | os.O_WRONLY | getattr(os, "O_CLOEXEC", 0)
+            fd = os.open(self.shard_path, flags)
+            os.write(fd, b"\n")
+            os.fsync(fd)
+        except OSError:
+            pass
+        finally:
+            if fd >= 0:
+                try:
+                    os.close(fd)
+                except OSError:
+                    pass
+
+    def _remove_failed_initialization_artifacts(self) -> None:
+        incomplete = self.incomplete_shard_path
+        if incomplete is not None:
+            try:
+                incomplete.unlink(missing_ok=True)
+            except OSError:
+                pass
+        identity = self._reservation_identity
+        if identity is None:
+            return
+        try:
+            current = os.stat(self.shard_path, follow_symlinks=False)
+            if (current.st_dev, current.st_ino) == identity:
+                self.shard_path.unlink(missing_ok=True)
+        except OSError:
+            pass
 
     def _write_all(self, raw: bytes) -> None:
         view = memoryview(raw)
@@ -758,23 +927,39 @@ class SchedulerProfileExporter:
             view = view[written:]
 
     def _publish_timeout(self) -> SchedulerCloseResult:
-        with self._condition:
+        result, won = self._claim_close_result("timeout", False)
+        if won:
             self._close_timed_out = True
             self._closing = True
-            if self._close_result is None:
-                self._close_result = self._result("timeout")
-            self._condition.notify_all()
-            return self._close_result
+            if self._condition.acquire(blocking=False):
+                try:
+                    self._condition.notify_all()
+                finally:
+                    self._condition.release()
+        return result
+
+    def _claimed_close_result(self) -> SchedulerCloseResult | None:
+        return self._completion_claim.get("result")
+
+    def _claim_close_result(
+        self, outcome: str, summary_written: bool
+    ) -> tuple[SchedulerCloseResult, bool]:
+        candidate = self._result(outcome, summary_written)
+        winner = self._completion_claim.setdefault("result", candidate)
+        self._close_result = winner
+        return winner, winner is candidate
 
     def _unregister_atexit(self) -> None:
         if self._atexit_registered:
             atexit.unregister(self.close)
             self._atexit_registered = False
 
-    def _result(self, outcome: str) -> SchedulerCloseResult:
+    def _result(
+        self, outcome: str, summary_written: bool
+    ) -> SchedulerCloseResult:
         return SchedulerCloseResult(
             close_outcome=outcome,
-            summary_written=self._summary_written,
+            summary_written=summary_written,
             attempted_data_count=self._attempted_data_count,
             dropped_data_count=self._dropped_data_count,
             dropped_control_count=self._dropped_control_count,
