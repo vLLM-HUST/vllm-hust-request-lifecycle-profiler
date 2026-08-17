@@ -432,6 +432,52 @@ def test_audited_hook_carrier_invalidates_aborted_and_unsupported_requests(
     ]
 
 
+def test_request_level_n_gt_one_permanently_rejects_formal_evidence(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    carrier = _load_module("scheduler_profile_i2_hooks_n_gt_one", HOOK_CARRIER)
+    runtime = create_scheduler_profile_runtime(
+        _profile(), env=_env(tmp_path), start_clock_sampler=False
+    )
+    assert isinstance(runtime, SchedulerProfileRuntime)
+    monkeypatch.setattr(carrier, "get_scheduler_profile_runtime", lambda: runtime)
+
+    # AsyncLLM carries the original parent n before vLLM fans it out into
+    # child requests whose local SamplingParams all have n=1.
+    carrier.observe_request_profile(
+        SimpleNamespace(
+            trace_headers={"x-vllm-rlp-sampling-n": "2"},
+            sampling_params=SimpleNamespace(n=1),
+        )
+    )
+    cycle = runtime.begin_cycle(
+        configured_active_sequence_cap=1,
+        effective_active_sequence_cap=1,
+        configured_batched_token_budget=4096,
+        effective_batched_token_budget=4096,
+        running_before=0,
+        waiting_before=1,
+    )
+    assert cycle is not None
+    assert runtime.finish_cycle(
+        cycle,
+        output_key=99,
+        running_after=1,
+        waiting_after=0,
+        scheduled_engine_request_count=1,
+        scheduled_token_count=16,
+        prefill_token_count=16,
+        decode_token_count=0,
+    ) is None
+
+    result = runtime.close()
+
+    assert result is not None
+    assert result.writer_complete is False
+    assert result.formal_invalid_reasons == ("unsupported_runtime_profile:n",)
+    assert runtime.exporter.committed_shard_path is None
+
+
 def test_i2_patch_carrier_matches_and_compiles_the_audited_runtime() -> None:
     runtime_source = os.environ.get("VLLM_SCHEDULER_I2_SRC", "").strip()
     if not runtime_source:
