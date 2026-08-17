@@ -16,10 +16,12 @@ import pytest
 import vllm_request_lifecycle_profiler.runtime_hooks as runtime_hooks_module
 from vllm_request_lifecycle_profiler.legacy_trace import load_legacy_jsonl
 from vllm_request_lifecycle_profiler.runtime_hooks import (
+    TRACE_CLOCK_DOMAIN_ID_ENV,
     TRACE_COMMUNICATION_MODE_ENV,
     TRACE_DEVICE_COMMIT_ENV,
     TRACE_EXPORT_ENV,
     TRACE_PARENT_COMMIT_ENV,
+    TRACE_PROCESS_INSTANCE_ID_ENV,
     TRACE_RUNTIME_COMMIT_ENV,
     JsonlTraceSink,
     RuntimeLifecycleHooks,
@@ -128,6 +130,40 @@ def test_runtime_trace_config_requires_provenance_and_none_communication(
     assert unsupported.invalid_reason == "unsupported_mode"
     assert enabled.enabled is True
     assert enabled.provenance == _provenance()
+
+
+def test_runtime_trace_config_validates_injected_lifecycle_identity(
+    tmp_path: Path,
+) -> None:
+    base_env = {
+        TRACE_EXPORT_ENV: str(tmp_path / "trace"),
+        TRACE_PARENT_COMMIT_ENV: PARENT_COMMIT,
+        TRACE_RUNTIME_COMMIT_ENV: RUNTIME_COMMIT,
+        TRACE_DEVICE_COMMIT_ENV: DEVICE_COMMIT,
+    }
+    partial = RuntimeTraceConfig.from_env(
+        base_env | {TRACE_PROCESS_INSTANCE_ID_ENV: PROCESS_UUID}
+    )
+    malformed = RuntimeTraceConfig.from_env(
+        base_env
+        | {
+            TRACE_PROCESS_INSTANCE_ID_ENV: "P0",
+            TRACE_CLOCK_DOMAIN_ID_ENV: CLOCK_DOMAIN_ID,
+        }
+    )
+    valid = RuntimeTraceConfig.from_env(
+        base_env
+        | {
+            TRACE_PROCESS_INSTANCE_ID_ENV: PROCESS_UUID,
+            TRACE_CLOCK_DOMAIN_ID_ENV: CLOCK_DOMAIN_ID,
+        }
+    )
+
+    assert partial.invalid_reason == "schema_incompatible"
+    assert malformed.invalid_reason == "schema_incompatible"
+    assert valid.enabled is True
+    assert valid.process_instance_id == PROCESS_UUID
+    assert valid.clock_domain_id == CLOCK_DOMAIN_ID
 
 
 def test_disabled_hooks_do_not_create_identity_clock_or_files(tmp_path: Path) -> None:

@@ -11,10 +11,19 @@ on:
       - "contracts/p1/scheduler-profile.v1alpha1-draft.md"
       - "contracts/p1/scheduler-profiler-infra.v0-draft.md"
       - "docs/scheduler_profiler_pr_i1.md"
+      - "docs/scheduler_profiler_pr_i2.md"
+      - "runtime/vllm_021/**"
+      - "scripts/apply_scheduler_profile_i2_runtime.py"
       - "scripts/verify_scheduler_profile_contract.py"
+      - "src/vllm_request_lifecycle_profiler/plugin.py"
+      - "src/vllm_request_lifecycle_profiler/runtime_hooks.py"
       - "src/vllm_request_lifecycle_profiler/scheduler_profile.py"
+      - "src/vllm_request_lifecycle_profiler/scheduler_profile_runtime.py"
+      - "tests/test_plugin.py"
+      - "tests/test_runtime_hooks.py"
       - "tests/test_scheduler_profile_contract.py"
       - "tests/test_scheduler_profile_exporter.py"
+      - "tests/test_scheduler_profile_runtime.py"
   workflow_dispatch:
 
 permissions:
@@ -31,20 +40,46 @@ jobs:
           python-version: "3.11"
       - name: Install CPU-only verification dependencies
         run: python -m pip install pytest==9.1.1 ruff==0.16.2
+      - name: Fetch exact PR-I0 runtime source
+        env:
+          RUNTIME_SOURCE_DIR: ${{ runner.temp }}/vllm-0.21-audited
+          RUNTIME_SOURCE_SHA: ad7125a431e176d4161099480a66f0169609a690
+        run: |
+          set -euo pipefail
+          git init "$RUNTIME_SOURCE_DIR"
+          git -C "$RUNTIME_SOURCE_DIR" remote add origin \
+            https://github.com/vllm-project/vllm.git
+          git -C "$RUNTIME_SOURCE_DIR" fetch --depth=1 origin "$RUNTIME_SOURCE_SHA"
+          git -C "$RUNTIME_SOURCE_DIR" checkout --detach FETCH_HEAD
+          test "$(git -C "$RUNTIME_SOURCE_DIR" rev-parse HEAD)" = \
+            "$RUNTIME_SOURCE_SHA"
       - name: Verify scheduler profile contract
         run: python -B scripts/verify_scheduler_profile_contract.py --json
       - name: Run contract unit tests
+        env:
+          VLLM_SCHEDULER_I2_SRC: ${{ runner.temp }}/vllm-0.21-audited
         run: |
           PYTHONPATH=src python -B -m pytest -q \
             tests/test_scheduler_profile_contract.py \
-            tests/test_scheduler_profile_exporter.py
+            tests/test_scheduler_profile_exporter.py \
+            tests/test_scheduler_profile_runtime.py \
+            tests/test_runtime_hooks.py \
+            tests/test_plugin.py
       - name: Lint contract verifier and tests
         run: |
           python -m ruff check \
+            runtime/vllm_021/vllm/v1/engine/scheduler_profile_hooks.py \
+            scripts/apply_scheduler_profile_i2_runtime.py \
             scripts/verify_scheduler_profile_contract.py \
+            src/vllm_request_lifecycle_profiler/plugin.py \
+            src/vllm_request_lifecycle_profiler/runtime_hooks.py \
             src/vllm_request_lifecycle_profiler/scheduler_profile.py \
+            src/vllm_request_lifecycle_profiler/scheduler_profile_runtime.py \
+            tests/test_plugin.py \
+            tests/test_runtime_hooks.py \
             tests/test_scheduler_profile_contract.py \
-            tests/test_scheduler_profile_exporter.py
+            tests/test_scheduler_profile_exporter.py \
+            tests/test_scheduler_profile_runtime.py
 
   self-contained-cpu-suite:
     name: self-contained-cpu-suite

@@ -258,6 +258,9 @@ class NullSchedulerProfileExporter:
     def write_clock_bridge_sample(self, _fields: Mapping[str, object]) -> bool:
         return False
 
+    def invalidate_formal_evidence(self, _reason: str) -> None:
+        return None
+
     def close(self) -> None:
         return None
 
@@ -553,6 +556,17 @@ class SchedulerProfileExporter:
         if result is not None and result.writer_complete:
             return self.shard_path
         return None
+
+    def invalidate_formal_evidence(self, reason: str) -> None:
+        """Permanently reject a shard after an audited producer-hook failure."""
+
+        if not reason or not reason.isascii() or not reason.isprintable():
+            reason = "runtime_observation_failure"
+        if not self._usable():
+            return
+        with self._condition:
+            if not self._closing and not self._closed:
+                self._mark_formal_invalid_locked(reason)
 
     def __enter__(self) -> SchedulerProfileExporter:  # noqa: PYI034
         return self

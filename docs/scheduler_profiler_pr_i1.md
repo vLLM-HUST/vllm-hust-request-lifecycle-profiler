@@ -3,9 +3,10 @@
 Status: implementation candidate
 
 PR-I1 implements the parent-repository writer for the frozen
-`rlp.scheduler/v1alpha1` Route-B wire. It deliberately does not patch or import
-vLLM scheduler, EngineCore, worker, or model-runner call sites; those adapters
-remain PR-I2 work.
+`rlp.scheduler/v1alpha1` Route-B wire. Its boundary deliberately does not patch
+or import vLLM scheduler, EngineCore, worker, or model-runner call sites. The
+separate audited adapter is now implemented by PR-I2; see
+`docs/scheduler_profiler_pr_i2.md`.
 
 ## Process-local ownership
 

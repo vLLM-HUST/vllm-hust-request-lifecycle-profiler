@@ -62,6 +62,8 @@ TRACE_RUNTIME_COMMIT_ENV = "VLLM_RLP_RUNTIME_CORE_COMMIT"
 TRACE_DEVICE_COMMIT_ENV = "VLLM_RLP_DEVICE_PLUGIN_COMMIT"
 TRACE_COMMUNICATION_MODE_ENV = "VLLM_RLP_COMMUNICATION_MODE"
 TRACE_KV_RECOVERY_RUN_ID_ENV = "VLLM_RLP_KV_RECOVERY_RUN_ID"
+TRACE_PROCESS_INSTANCE_ID_ENV = "VLLM_RLP_PROCESS_INSTANCE_ID"
+TRACE_CLOCK_DOMAIN_ID_ENV = "VLLM_RLP_CLOCK_DOMAIN_ID"
 
 _DIAGNOSTIC_REASON_ORDER = (
     "init_failure",
@@ -85,6 +87,8 @@ class RuntimeTraceConfig:
     communication_mode: str = "none"
     invalid_reason: str | None = None
     kv_recovery_profile_config: KVRecoveryProfileConfig | None = None
+    process_instance_id: str | None = None
+    clock_domain_id: str | None = None
 
     @classmethod
     def from_env(cls, env: Mapping[str, str] | None = None) -> RuntimeTraceConfig:
@@ -112,6 +116,27 @@ class RuntimeTraceConfig:
                 communication_mode=communication_mode,
                 invalid_reason="schema_incompatible",
             )
+        process_instance_id = source.get(TRACE_PROCESS_INSTANCE_ID_ENV, "").strip()
+        clock_domain_id = source.get(TRACE_CLOCK_DOMAIN_ID_ENV, "").strip()
+        if bool(process_instance_id) != bool(clock_domain_id):
+            return cls(
+                export_path=Path(raw_path),
+                provenance=provenance,
+                communication_mode=communication_mode,
+                invalid_reason="schema_incompatible",
+            )
+        if process_instance_id and (
+            len(process_instance_id) != 32
+            or any(char not in "0123456789abcdef" for char in process_instance_id)
+            or len(clock_domain_id) != 32
+            or any(char not in "0123456789abcdef" for char in clock_domain_id)
+        ):
+            return cls(
+                export_path=Path(raw_path),
+                provenance=provenance,
+                communication_mode=communication_mode,
+                invalid_reason="schema_incompatible",
+            )
         profile_config = None
         if communication_mode == KV_RECOVERY_COMMUNICATION_MODE:
             try:
@@ -130,6 +155,8 @@ class RuntimeTraceConfig:
             provenance=provenance,
             communication_mode=communication_mode,
             kv_recovery_profile_config=profile_config,
+            process_instance_id=process_instance_id or None,
+            clock_domain_id=clock_domain_id or None,
         )
 
     @property
@@ -2522,6 +2549,16 @@ class RuntimeLifecycleHooks:
                     config.provenance,
                     communication_mode=config.communication_mode,
                     kv_recovery_profile_config=config.kv_recovery_profile_config,
+                    process_uuid_factory=(
+                        (lambda: config.process_instance_id)
+                        if config.process_instance_id is not None
+                        else new_process_uuid
+                    ),
+                    clock_domain_reader=(
+                        (lambda: config.clock_domain_id)
+                        if config.clock_domain_id is not None
+                        else read_clock_domain_id
+                    ),
                 )
             except Exception:  # noqa: BLE001 - initialization is fail-open.
                 self._log_disabled_once("init_failure")

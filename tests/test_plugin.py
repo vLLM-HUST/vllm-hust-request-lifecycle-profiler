@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import sys
 from types import ModuleType, SimpleNamespace
 
@@ -35,6 +36,7 @@ def reset_plugin(monkeypatch):
     monkeypatch.setattr(plugin, "_RUNTIME_HOOKS", None)
     monkeypatch.setattr(plugin, "_RUNTIME_BRIDGE", None)
     monkeypatch.setattr(plugin, "_OBSERVER_FACTORY", None)
+    monkeypatch.setattr(plugin, "_SCHEDULER_RUNTIME", None)
 
 
 def test_register_plugin_keeps_default_configuration_inactive(monkeypatch) -> None:
@@ -87,3 +89,32 @@ def test_register_plugin_uses_explicit_recovery_configuration(monkeypatch) -> No
     assert registered == [plugin._OBSERVER_FACTORY]
     assert plugin._RUNTIME_BRIDGE is not None
     assert plugin._RUNTIME_HOOKS is hooks
+
+
+def test_scheduler_runtime_is_process_local_singleton_and_closes(
+    monkeypatch,
+) -> None:
+    reset_plugin(monkeypatch)
+    profile = object()
+    hooks = object()
+    closed = object()
+    runtime = SimpleNamespace(close=lambda: closed)
+    created = []
+    monkeypatch.setattr(plugin, "_REGISTERED_PID", os.getpid())
+    monkeypatch.setattr(plugin, "_RUNTIME_HOOKS", hooks)
+    monkeypatch.setattr(
+        plugin,
+        "create_scheduler_profile_runtime",
+        lambda observed_profile, observed_hooks: (
+            created.append((observed_profile, observed_hooks)) or runtime
+        ),
+    )
+
+    first = plugin.initialize_scheduler_profile_runtime(profile)  # type: ignore[arg-type]
+    second = plugin.initialize_scheduler_profile_runtime(profile)  # type: ignore[arg-type]
+
+    assert first is runtime
+    assert second is runtime
+    assert created == [(profile, hooks)]
+    assert plugin.get_scheduler_profile_runtime() is runtime
+    assert plugin.close_scheduler_profile_runtime() is closed

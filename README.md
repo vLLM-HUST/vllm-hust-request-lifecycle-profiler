@@ -33,15 +33,18 @@ stage instead of correlated symptoms?
   they are not approval or activation gates.
 - `.benchmarks/`: trace probes and controlled fault-injection entrypoints.
 - `third_party/llm-serving-workloads/`: pinned shared workload suite.
-- `third_party/vllm-hust/`: pinned historical vLLM-HUST hook carrier used only
-  as a reviewed patch/evidence reference; new integration starts from current
-  runtime main.
+- `third_party/vllm-hust/`: pinned historical vLLM-HUST lifecycle-hook carrier
+  used only as a reviewed patch/evidence reference.
+- `runtime/vllm_021/`: thin Route-B scheduler-hook carrier for the separate,
+  exact PR-I0 upstream runtime; it does not modify the historical gitlink.
 - `tests/`: no-NPU trace and repository tests.
 - `docs/research_logic.md`: seven-step research framing.
 - `docs/experiment_plan.md`: evaluation plan and evidence labels.
 - `docs/claim_ledger.md`: current claims and forbidden wording.
 - `docs/runtime_fault_attribution_roadmap.md`: path from complete runtime
   hooks to controlled-fault attribution evidence.
+- `docs/scheduler_profiler_pr_i2.md`: audited vLLM 0.21 Route-B scheduler
+  runtime hooks, activation contract, and CPU validation.
 - `paper/request_lifecycle_causal_profiler/`: systems-paper scaffold.
 
 ## Current Mechanism
@@ -93,6 +96,15 @@ The connector must resolve to `OffloadingConnector` with
 `TieringOffloadingSpec`. Omitting the profiler mode, run ID, runtime switch, or
 supported spec keeps the observer disabled. Initialization and observation
 failures disable profiling without failing serving.
+
+### Route-B scheduler profiler
+
+The optional scheduler stream now has a PR-I2 runtime adapter and deterministic
+thin-hook carrier for the exact PR-I0 vLLM 0.21 source. It is default-off,
+admits only the frozen synchronous UniProc one-device profile, and requires an
+exact-C1 validation receipt after close. See
+[`docs/scheduler_profiler_pr_i2.md`](docs/scheduler_profiler_pr_i2.md) for the
+commit pins, environment variables, carrier command, and validation boundary.
 
 ## NPU and Environment
 
