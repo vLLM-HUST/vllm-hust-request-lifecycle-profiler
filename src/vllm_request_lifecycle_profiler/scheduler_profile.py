@@ -306,6 +306,7 @@ class SchedulerProfileExporter:
         self._close_lock = threading.Lock()
         self._writer_ready = threading.Event()
         self._writer_done = threading.Event()
+        self._initialization_cancelled = threading.Event()
         self._queue: deque[_QueuedRecord] = deque()
         self._queued_bytes = 0
         self._ordinary_queued = 0
@@ -349,10 +350,15 @@ class SchedulerProfileExporter:
         self._writer.start()
         timeout = int(SCHEDULER_WIRE_LIMITS["close_timeout_ms"]) / 1_000
         if not self._writer_ready.wait(timeout):
+            self._initialization_cancelled.set()
             with self._condition:
                 self._close_timed_out = True
                 self._closing = True
                 self._condition.notify_all()
+            # A Python thread cannot be force-cancelled safely.  Waiting here
+            # is required so a delayed initializer cannot create an O_EXCL
+            # reservation after the fail-open factory has returned.
+            self._writer_done.wait()
             raise TimeoutError("scheduler writer initialization timed out")
         if self._init_error is not None:
             raise self._init_error
@@ -882,6 +888,8 @@ class SchedulerProfileExporter:
         initialized = False
         try:
             self._initialize_writer()
+            if self._initialization_cancelled.is_set():
+                return
             start_raw = _canonical_line(self._start_record())
             self._write_all(start_raw)
             self._content_hash.update(start_raw)
@@ -957,7 +965,7 @@ class SchedulerProfileExporter:
                         self._writer_failure_count += 1
                         self._summary_written = False
                         self._claim_close_result("writer_failure", False)
-            if not initialized:
+            if not initialized or self._initialization_cancelled.is_set():
                 self._remove_failed_initialization_artifacts()
             with self._condition:
                 self._closed = True
@@ -968,12 +976,16 @@ class SchedulerProfileExporter:
             self._writer_done.set()
 
     def _initialize_writer(self) -> None:
+        if self._initialization_cancelled.is_set():
+            return
         self.shard_path.parent.mkdir(parents=True, exist_ok=True)
         free_bytes = self._disk_free_reader(self.shard_path.parent)
         if type(free_bytes) is not int or free_bytes < int(
             SCHEDULER_WIRE_LIMITS["disk_free_required_bytes"]
         ):
             raise OSError("insufficient disk space for scheduler shard admission")
+        if self._initialization_cancelled.is_set():
+            return
         cloexec = getattr(os, "O_CLOEXEC", 0)
         reservation_fd = os.open(
             self.shard_path,

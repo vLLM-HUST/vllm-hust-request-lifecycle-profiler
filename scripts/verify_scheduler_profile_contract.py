@@ -10,7 +10,9 @@ import json
 import re
 import subprocess
 import sys
-import tempfile
+from collections import deque
+from collections.abc import Iterator
+from itertools import pairwise
 from pathlib import Path
 from typing import Any
 
@@ -794,7 +796,9 @@ def _validate_observable_wire_limits(
     ):
         raise ContractError("clock_bracket_width_limit")
 
-    cycle_times = sorted(record["cycle_start_monotonic_ns"] for record in cycles)
+    cycle_times = [record["cycle_start_monotonic_ns"] for record in cycles]
+    if any(current < previous for previous, current in pairwise(cycle_times)):
+        raise ContractError("wire_cycle_timestamp_regression")
     first_in_window = 0
     for index, timestamp in enumerate(cycle_times):
         while timestamp - cycle_times[first_in_window] >= 10**9:
@@ -1007,47 +1011,308 @@ def validate_wire_golden(
     }
 
 
-def _load_canonical_scheduler_jsonl(
-    path: Path,
-) -> tuple[list[dict[str, Any]], list[bytes]]:
-    raw = path.read_bytes()
-    if not raw or not raw.endswith(b"\n"):
-        raise ContractError("scheduler_shard_unterminated")
-    records: list[dict[str, Any]] = []
-    lines = raw.splitlines(keepends=True)
-    for line_number, line in enumerate(lines, start=1):
-        try:
-            decoded = line[:-1].decode("utf-8")
-            record = json.loads(decoded, object_pairs_hook=_reject_duplicate)
-        except (UnicodeError, json.JSONDecodeError) as exc:
-            raise ContractError(
-                f"scheduler_shard_invalid_json:{line_number}:{exc}"
-            ) from exc
-        if not isinstance(record, dict):
-            raise ContractError(f"scheduler_shard_not_object:{line_number}")
-        if line != canonicalize(record) + b"\n":
-            raise ContractError(f"scheduler_shard_noncanonical:{line_number}")
-        records.append(record)
-    return records, lines
+def _iter_canonical_scheduler_jsonl(
+    path: Path, max_line_bytes: int
+) -> Iterator[tuple[dict[str, Any], bytes]]:
+    with path.open("rb") as stream:
+        line_number = 0
+        while True:
+            line = stream.readline(max_line_bytes + 1)
+            if not line:
+                break
+            line_number += 1
+            if len(line) > max_line_bytes:
+                raise ContractError(f"record_too_large:{line_number}")
+            if not line.endswith(b"\n"):
+                raise ContractError("scheduler_shard_unterminated")
+            try:
+                decoded = line[:-1].decode("utf-8")
+                record = json.loads(decoded, object_pairs_hook=_reject_duplicate)
+            except (UnicodeError, json.JSONDecodeError) as exc:
+                raise ContractError(
+                    f"scheduler_shard_invalid_json:{line_number}:{exc}"
+                ) from exc
+            if not isinstance(record, dict):
+                raise ContractError(f"scheduler_shard_not_object:{line_number}")
+            if line != canonicalize(record) + b"\n":
+                raise ContractError(f"scheduler_shard_noncanonical:{line_number}")
+            yield record, line
+        if line_number == 0:
+            raise ContractError("scheduler_shard_unterminated")
+
+
+def _validate_stream_sequence_coverage(
+    written_sequences: list[int],
+    loss_ranges: list[tuple[int, int]],
+    summary: dict[str, Any],
+) -> None:
+    segments: list[tuple[int, int]] = [
+        (sequence, sequence) for sequence in written_sequences
+    ]
+    segments.extend(loss_ranges)
+    cursor = 0
+    for first, last in sorted(segments):
+        if first != cursor:
+            raise ContractError("wire_record_sequence_coverage")
+        cursor = last + 1
+    if cursor != summary["attempted_data_count"]:
+        raise ContractError("wire_record_sequence_coverage")
 
 
 def validate_scheduler_shard(path: Path, config: dict[str, Any]) -> dict[str, Any]:
     """Validate one emitted scheduler JSONL shard against the full PR-C1 wire."""
 
-    records, lines = _load_canonical_scheduler_jsonl(path)
-    with tempfile.TemporaryDirectory(prefix="scheduler-shard-verifier-") as temporary:
-        envelope = Path(temporary) / "wire.json"
-        envelope.write_text(
-            json.dumps(
-                {"schema_version": 1, "records": records},
-                ensure_ascii=False,
-                separators=(",", ":"),
+    limits = config["wire_limits"]
+    artifact_size = path.stat().st_size
+    if artifact_size > limits["artifact_bytes_max"]:
+        raise ContractError("wire_artifact_bytes_limit")
+
+    sequence_fields = {
+        "schedule_cycle": ("cycle_seq", "wire_cycle_sequence"),
+        "logical_batch": ("batch_seq", "wire_batch_sequence"),
+        "execution_step_start": (
+            "execution_step_seq",
+            "wire_execution_start_sequence",
+        ),
+        "execution_step_end": (
+            "execution_step_seq",
+            "wire_execution_end_sequence",
+        ),
+        "clock_bridge_sample": (
+            "sample_sequence",
+            "wire_clock_sample_sequence",
+        ),
+    }
+    next_sequence = {record_type: 0 for record_type in sequence_fields}
+    actual_written = {
+        "written_schedule_cycle_count": 0,
+        "written_logical_batch_count": 0,
+        "written_execution_step_start_count": 0,
+        "written_execution_step_end_count": 0,
+        "written_clock_bridge_sample_count": 0,
+        "written_loss_interval_count": 0,
+    }
+    summary_key_by_type = {
+        "schedule_cycle": "written_schedule_cycle_count",
+        "logical_batch": "written_logical_batch_count",
+        "execution_step_start": "written_execution_step_start_count",
+        "execution_step_end": "written_execution_step_end_count",
+        "clock_bridge_sample": "written_clock_bridge_sample_count",
+    }
+    monotonic_fields = {
+        "schedule_cycle": (
+            "cycle_start_monotonic_ns",
+            "cycle_end_monotonic_ns",
+        ),
+        "execution_step_start": ("dispatch_monotonic_ns",),
+        "execution_step_end": ("final_result_monotonic_ns",),
+        "clock_bridge_sample": (
+            "monotonic_before_ns",
+            "monotonic_after_ns",
+        ),
+        "loss_interval": (
+            "first_observed_monotonic_ns",
+            "last_observed_monotonic_ns",
+        ),
+    }
+
+    start: dict[str, Any] | None = None
+    summary: dict[str, Any] | None = None
+    first_cycle: dict[str, Any] | None = None
+    pending_cycles: dict[str, tuple[str, int]] = {}
+    pending_starts: dict[str, tuple[str, int]] = {}
+    open_steps: dict[str, tuple[str, int]] = {}
+    written_sequences: list[int] = []
+    loss_ranges: list[tuple[int, int]] = []
+    dropped_in_losses = 0
+    cycle_window: deque[int] = deque()
+    previous_cycle_time: int | None = None
+    record_count = 0
+    data_record_count = 0
+    max_encoded_record_bytes = 0
+    bytes_read = 0
+    maximum_observed_monotonic_ns = 0
+    wire_hash = hashlib.sha256()
+    content_hash = hashlib.sha256()
+
+    for record, line in _iter_canonical_scheduler_jsonl(
+        path, limits["max_record_bytes_including_lf"]
+    ):
+        index = record_count
+        record_count += 1
+        bytes_read += len(line)
+        max_encoded_record_bytes = max(max_encoded_record_bytes, len(line))
+        wire_hash.update(line)
+        validate_record(record, limits["max_record_bytes_including_lf"])
+        record_type = record["record_type"]
+
+        if summary is not None:
+            raise ContractError("wire_control_order")
+        if index == 0 and record_type != "scheduler_start":
+            raise ContractError("wire_control_order")
+        if record_type == "scheduler_start":
+            if start is not None or index != 0:
+                raise ContractError("wire_control_cardinality")
+            if record["limits"] != limits:
+                raise ContractError("wire_start_limits_mismatch")
+            start = record
+            maximum_observed_monotonic_ns = record["started_monotonic_ns"]
+            content_hash.update(line)
+            continue
+        if start is None:
+            raise ContractError("wire_control_order")
+        if record["scheduler_shard_id"] != start["scheduler_shard_id"]:
+            raise ContractError("wire_scope_mismatch")
+        if record_type == "scheduler_summary":
+            summary = record
+            continue
+
+        content_hash.update(line)
+        for field in monotonic_fields.get(record_type, ()):
+            timestamp = record[field]
+            if timestamp < start["started_monotonic_ns"]:
+                raise ContractError("wire_time_envelope")
+            maximum_observed_monotonic_ns = max(
+                maximum_observed_monotonic_ns, timestamp
             )
-            + "\n",
-            encoding="utf-8",
-        )
-        report = validate_wire_golden(envelope, config, require_all_record_types=False)
-    summary = records[-1]
+
+        if "record_seq" in record:
+            record_sequence = record["record_seq"]
+            if written_sequences and record_sequence <= written_sequences[-1]:
+                raise ContractError("wire_record_sequence_order")
+            written_sequences.append(record_sequence)
+            data_record_count += 1
+            actual_written[summary_key_by_type[record_type]] += 1
+
+        if record_type in sequence_fields:
+            sequence_field, error = sequence_fields[record_type]
+            if record[sequence_field] != next_sequence[record_type]:
+                raise ContractError(error)
+            next_sequence[record_type] += 1
+
+        if record_type == "schedule_cycle":
+            if first_cycle is None:
+                first_cycle = record
+            timestamp = record["cycle_start_monotonic_ns"]
+            if previous_cycle_time is not None and timestamp < previous_cycle_time:
+                raise ContractError("wire_cycle_timestamp_regression")
+            previous_cycle_time = timestamp
+            while cycle_window and timestamp - cycle_window[0] >= 10**9:
+                cycle_window.popleft()
+            cycle_window.append(timestamp)
+            if len(cycle_window) > limits["max_cycle_rate_per_rolling_second"]:
+                raise ContractError("wire_cycle_rate_limit")
+            if next_sequence[record_type] > limits["max_cycles_in_formal_run"]:
+                raise ContractError("wire_cycle_count_limit")
+            batch_id = record["logical_batch_id"]
+            if batch_id in pending_cycles:
+                raise ContractError("duplicate_entity_id")
+            pending_cycles[batch_id] = (
+                record["schedule_cycle_id"],
+                record["cycle_end_monotonic_ns"],
+            )
+        elif record_type == "logical_batch":
+            batch_id = record["logical_batch_id"]
+            cycle = pending_cycles.pop(batch_id, None)
+            if cycle is None or cycle[0] != record["schedule_cycle_id"]:
+                raise ContractError("cycle_batch_relation")
+            step_id = record["execution_step_id"]
+            if step_id in pending_starts or step_id in open_steps:
+                raise ContractError("duplicate_entity_id")
+            pending_starts[step_id] = (batch_id, cycle[1])
+        elif record_type == "execution_step_start":
+            step_id = record["execution_step_id"]
+            relation = pending_starts.pop(step_id, None)
+            if relation is None or relation[0] != record["logical_batch_id"]:
+                raise ContractError("batch_execution_relation")
+            if relation[1] > record["dispatch_monotonic_ns"]:
+                raise ContractError("invalid_cycle_execution_order")
+            if open_steps:
+                raise ContractError("multiple_in_flight_steps")
+            open_steps[step_id] = (
+                record["logical_batch_id"],
+                record["dispatch_monotonic_ns"],
+            )
+        elif record_type == "execution_step_end":
+            step_id = record["execution_step_id"]
+            relation = open_steps.pop(step_id, None)
+            if relation is None:
+                raise ContractError("step_end_without_open_start")
+            if relation[0] != record["logical_batch_id"]:
+                raise ContractError("batch_execution_relation")
+            if relation[1] > record["final_result_monotonic_ns"]:
+                raise ContractError("invalid_cycle_execution_order")
+        elif record_type == "clock_bridge_sample":
+            if record["clock_domain_id"] != start["clock_domain_id"]:
+                raise ContractError("clock_domain_mismatch")
+            if (
+                record["monotonic_after_ns"] - record["monotonic_before_ns"]
+                > config["clock_bridge"]["max_bracket_width_ns"]
+            ):
+                raise ContractError("clock_bracket_width_limit")
+            if next_sequence[record_type] > limits["clock_bridge_max_records"]:
+                raise ContractError("wire_clock_bridge_count_limit")
+        elif record_type == "loss_interval":
+            if record["loss_interval_seq"] != actual_written[
+                "written_loss_interval_count"
+            ]:
+                raise ContractError("wire_loss_interval_sequence")
+            actual_written["written_loss_interval_count"] += 1
+            if (
+                actual_written["written_loss_interval_count"]
+                > limits["max_loss_interval_records_per_shard"]
+            ):
+                raise ContractError("wire_loss_interval_limit")
+            loss_ranges.append(
+                (
+                    record["first_dropped_record_seq"],
+                    record["last_dropped_record_seq"],
+                )
+            )
+            dropped_in_losses += record["dropped_count"]
+
+    if bytes_read != artifact_size:
+        raise ContractError("scheduler_shard_changed_during_validation")
+    if start is None or summary is None:
+        raise ContractError("wire_control_cardinality")
+    if summary["ended_monotonic_ns"] < start["started_monotonic_ns"]:
+        raise ContractError("wire_time_envelope")
+    if maximum_observed_monotonic_ns > summary["ended_monotonic_ns"]:
+        raise ContractError("wire_time_envelope")
+    if (
+        summary["ended_monotonic_ns"] - start["started_monotonic_ns"]
+        > limits["max_formal_run_duration_s"] * 10**9
+    ):
+        raise ContractError("wire_formal_duration_limit")
+    for key in (
+        "experiment_run_id",
+        "server_instance_id",
+        "process_instance_id",
+        "scheduler_shard_id",
+        "process_role",
+        "profile_stream",
+    ):
+        if summary[key] != start[key]:
+            raise ContractError("wire_scope_mismatch")
+    if first_cycle is None:
+        raise ContractError("wire_missing_schedule_cycle")
+    if pending_cycles or pending_starts or open_steps:
+        raise ContractError("non_bijective_cycle_batch_step_relation")
+    if not (
+        next_sequence["schedule_cycle"]
+        == next_sequence["logical_batch"]
+        == next_sequence["execution_step_start"]
+        == next_sequence["execution_step_end"]
+    ):
+        raise ContractError("non_bijective_cycle_batch_step_relation")
+    if dropped_in_losses != summary["dropped_data_count"]:
+        raise ContractError("wire_loss_summary_mismatch")
+    _validate_stream_sequence_coverage(written_sequences, loss_ranges, summary)
+    if any(summary[key] != value for key, value in actual_written.items()):
+        raise ContractError("wire_summary_count_mismatch")
+    if summary["content_sha256"] != content_hash.hexdigest():
+        raise ContractError("wire_content_digest")
+
     if (
         summary["close_outcome"] != "drained"
         or summary["writer_failure_count"] != 0
@@ -1055,11 +1320,21 @@ def validate_scheduler_shard(path: Path, config: dict[str, Any]) -> dict[str, An
         or summary["dropped_data_count"] != 0
     ):
         raise ContractError("scheduler_shard_incomplete_for_route_b")
-    start = records[0]
-    report.update(
-        scheduler_shard_sha256=sha256_file(path),
-        scheduler_shard_size_bytes=sum(len(line) for line in lines),
-        scope={
+
+    maximal_cycle = _maximal_schedule_cycle(first_cycle)
+    validate_record(maximal_cycle, limits["max_record_bytes_including_lf"])
+    shard_sha256 = wire_hash.hexdigest()
+    return {
+        "records": record_count,
+        "data_records": data_record_count,
+        "max_encoded_record_bytes": max_encoded_record_bytes,
+        "generated_maximal_cycle_bytes": len(canonicalize(maximal_cycle)) + 1,
+        "record_limit_bytes": limits["max_record_bytes_including_lf"],
+        "wire_bytes_sha256": shard_sha256,
+        "fixture_sha256": shard_sha256,
+        "scheduler_shard_sha256": shard_sha256,
+        "scheduler_shard_size_bytes": artifact_size,
+        "scope": {
             field: start[field]
             for field in (
                 "experiment_run_id",
@@ -1071,12 +1346,11 @@ def validate_scheduler_shard(path: Path, config: dict[str, Any]) -> dict[str, An
                 "clock_domain_id",
             )
         },
-        dropped_data_count=summary["dropped_data_count"],
-        writer_failure_count=summary["writer_failure_count"],
-        close_outcome=summary["close_outcome"],
-        wire_content_sha256=summary["content_sha256"],
-    )
-    return report
+        "dropped_data_count": summary["dropped_data_count"],
+        "writer_failure_count": summary["writer_failure_count"],
+        "close_outcome": summary["close_outcome"],
+        "wire_content_sha256": summary["content_sha256"],
+    }
 
 
 def build_scheduler_validation_receipt(

@@ -10,12 +10,14 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 SCHEDULER_PATH = Path("vllm/v1/core/sched/scheduler.py")
 CORE_PATH = Path("vllm/v1/engine/core.py")
+ASYNC_LLM_PATH = Path("vllm/v1/engine/async_llm.py")
 HOOK_PATH = Path("vllm/v1/engine/scheduler_profile_hooks.py")
 HOOK_SOURCE = ROOT / "runtime" / "vllm_021" / HOOK_PATH
 
 EXPECTED_SHA256 = {
     SCHEDULER_PATH: "4145257a7ecaf921026cf76d61d615c366d2cabcff9cb826a4c1ce32001edfa4",
     CORE_PATH: "53ff4df24745e3ac4ac09028ddeb310f6627b90f6374dbfa82548e97c9bc65bc",
+    ASYNC_LLM_PATH: "e629481e82e99967a2aaf7a7384bd2df6b3d758d218a5589ebfe00ce2cb696d2",
 }
 
 
@@ -25,15 +27,41 @@ def _replace_once(source: str, old: str, new: str, label: str) -> str:
     return source.replace(old, new, 1)
 
 
+def _guard_schedule_exceptions(source: str) -> str:
+    header = "    def schedule(self) -> SchedulerOutput:\n"
+    boundary = "    def _build_kv_connector_meta(\n"
+    if source.count(header) != 1 or source.count(boundary) != 1:
+        raise ValueError("I2 runtime schedule exception boundary is ambiguous")
+    body_start = source.index(header) + len(header)
+    body_end = source.index(boundary, body_start)
+    body = source[body_start:body_end]
+    guarded_body = "".join(
+        f"    {line}" if line.strip() else line
+        for line in body.splitlines(keepends=True)
+    )
+    return (
+        source[:body_start]
+        + "        _rlp_cycle = begin_schedule_cycle(self)\n"
+        + "        try:\n"
+        + guarded_body
+        + "        except BaseException:\n"
+        + "            abort_schedule_cycle(_rlp_cycle)\n"
+        + "            raise\n\n"
+        + source[body_end:]
+    )
+
+
 def patch_scheduler(source: str) -> str:
     source = _replace_once(
         source,
         "from vllm.v1.engine import EngineCoreEventType, EngineCoreOutput, EngineCoreOutputs\n",
         "from vllm.v1.engine import EngineCoreEventType, EngineCoreOutput, EngineCoreOutputs\n"
         "from vllm.v1.engine.scheduler_profile_hooks import (\n"
+        "    abort_schedule_cycle,\n"
         "    begin_schedule_cycle,\n"
         "    finish_schedule_cycle,\n"
         "    observe_active_sequence_cap,\n"
+        "    observe_request_profile,\n"
         "    observe_token_budget,\n"
         "    record_token_split,\n"
         ")\n",
@@ -42,7 +70,6 @@ def patch_scheduler(source: str) -> str:
     source = _replace_once(
         source,
         "        scheduled_new_reqs: list[Request] = []\n",
-        "        _rlp_cycle = begin_schedule_cycle(self)\n"
         "        _rlp_token_splits: dict[str, tuple[int, int]] | None = (\n"
         "            {} if _rlp_cycle is not None else None\n"
         "        )\n\n"
@@ -76,7 +103,10 @@ def patch_scheduler(source: str) -> str:
         "                            token_budget += num_scheduled_tokens.pop(preempted_req_id)\n"
         "                            req_to_new_blocks.pop(preempted_req_id)\n",
         "                            token_budget += num_scheduled_tokens.pop(preempted_req_id)\n"
-        "                            _rlp_token_splits.pop(preempted_req_id, None)\n"
+        "                            if _rlp_token_splits is not None:\n"
+        "                                _rlp_token_splits.pop(\n"
+        "                                    preempted_req_id, None\n"
+        "                                )\n"
         "                            req_to_new_blocks.pop(preempted_req_id)\n",
         "preempted_split",
     )
@@ -175,7 +205,7 @@ def patch_scheduler(source: str) -> str:
         "                request.status = RequestStatus.RUNNING\n",
         "waiting_token_split",
     )
-    return _replace_once(
+    source = _replace_once(
         source,
         "        with record_function_or_nullcontext(\"schedule: update_after_schedule\"):\n"
         "            self._update_after_schedule(scheduler_output)\n"
@@ -187,6 +217,37 @@ def patch_scheduler(source: str) -> str:
         "        )\n"
         "        return scheduler_output\n",
         "cycle_finish",
+    )
+    source = _replace_once(
+        source,
+        "        else:\n"
+        "            if request.resumable:\n",
+        "        else:\n"
+        "            observe_request_profile(request)\n"
+        "            if request.resumable:\n",
+        "request_profile",
+    )
+    return _guard_schedule_exceptions(source)
+
+
+def patch_async_llm(source: str) -> str:
+    return _replace_once(
+        source,
+        "        # Use cloned params that may have been updated in process_inputs()\n"
+        "        params = request.params\n\n"
+        "        if is_pooling or params.n == 1:\n",
+        "        # Use cloned params that may have been updated in process_inputs()\n"
+        "        params = request.params\n"
+        "        if os.environ.get(\n"
+        "            \"VLLM_RLP_SCHEDULER_PROFILE_PATH\", \"\"\n"
+        "        ).strip():\n"
+        "            profile_headers = dict(request.trace_headers or ())\n"
+        "            profile_headers[\"x-vllm-rlp-sampling-n\"] = str(\n"
+        "                1 if is_pooling else params.n\n"
+        "            )\n"
+        "            request.trace_headers = profile_headers\n\n"
+        "        if is_pooling or params.n == 1:\n",
+        "request_sampling_n",
     )
 
 
@@ -282,6 +343,9 @@ def build_patched_files(runtime_source: Path) -> dict[Path, bytes]:
     ).encode()
     outputs[CORE_PATH] = patch_core(
         (runtime_source / CORE_PATH).read_text(encoding="utf-8")
+    ).encode()
+    outputs[ASYNC_LLM_PATH] = patch_async_llm(
+        (runtime_source / ASYNC_LLM_PATH).read_text(encoding="utf-8")
     ).encode()
     outputs[HOOK_PATH] = HOOK_SOURCE.read_bytes()
     return outputs

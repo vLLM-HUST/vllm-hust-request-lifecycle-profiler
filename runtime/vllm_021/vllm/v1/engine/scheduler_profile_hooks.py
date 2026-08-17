@@ -87,6 +87,31 @@ def begin_schedule_cycle(scheduler: Any) -> Any | None:
         return None
 
 
+def abort_schedule_cycle(observation: Any | None) -> None:
+    runtime = get_scheduler_profile_runtime()
+    if runtime is None or observation is None:
+        return
+    try:
+        runtime.invalidate("schedule_cycle_aborted")
+    except Exception:  # noqa: BLE001 - optional overlay must fail open.
+        return
+
+
+def observe_request_profile(request: Any) -> None:
+    runtime = get_scheduler_profile_runtime()
+    if runtime is None:
+        return
+    try:
+        headers = request.trace_headers or {}
+        sampling_n = headers.get("x-vllm-rlp-sampling-n")
+        request_n = getattr(request.sampling_params, "n", None)
+        if sampling_n != "1" or request_n != 1:
+            runtime.invalidate("unsupported_runtime_profile:n")
+    except Exception:  # noqa: BLE001 - optional overlay must fail open.
+        runtime.invalidate("runtime_hook_failure")
+        return
+
+
 def waiting_queue_name(scheduler: Any, request_queue: Any) -> str:
     return (
         "skipped_waiting"

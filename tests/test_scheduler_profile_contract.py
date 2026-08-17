@@ -217,6 +217,23 @@ def test_clock_bridge_sample_must_fit_frozen_bracket_width(tmp_path: Path) -> No
         CONTRACT.validate_wire_golden(path, config)
 
 
+def test_wire_rejects_cycle_timestamp_regression(tmp_path: Path) -> None:
+    records = _golden_records()
+    cycles = [
+        record for record in records if record["record_type"] == "schedule_cycle"
+    ]
+    cycles[1]["cycle_start_monotonic_ns"] = (
+        cycles[0]["cycle_start_monotonic_ns"] - 1
+    )
+    path = _write_wire_fixture(tmp_path, records)
+    config = CONTRACT.load_json(CONTRACT.CONFIG_PATH)
+
+    with pytest.raises(
+        CONTRACT.ContractError, match="wire_cycle_timestamp_regression"
+    ):
+        CONTRACT.validate_wire_golden(path, config)
+
+
 @pytest.mark.parametrize(
     ("entity", "error"),
     [
@@ -508,6 +525,22 @@ def test_emitted_scheduler_shard_produces_route_b_validation_receipt(
             shard.read_text(encoding="utf-8").splitlines()[-1]
         )["content_sha256"],
     }
+
+
+def test_scheduler_shard_validation_does_not_materialize_the_file(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    shard = _complete_scheduler_shard(tmp_path)
+
+    def reject_read_bytes(_path: Path) -> bytes:
+        raise AssertionError("streaming shard validation must not call read_bytes")
+
+    monkeypatch.setattr(Path, "read_bytes", reject_read_bytes)
+    report = CONTRACT.validate_scheduler_shard(
+        shard, CONTRACT.load_json(CONTRACT.CONFIG_PATH)
+    )
+
+    assert report["scheduler_shard_size_bytes"] == shard.stat().st_size
 
 
 def test_scheduler_shard_cli_writes_commit_bound_receipt(tmp_path: Path) -> None:

@@ -397,9 +397,39 @@ def test_audited_hook_carrier_is_inert_when_default_off(
 
     assert carrier.get_scheduler_profile_runtime() is None
     assert carrier.begin_schedule_cycle(object()) is None
+    carrier.abort_schedule_cycle(None)
+    carrier.observe_request_profile(object())
     carrier.record_token_split(None, "req-0", 16, 12, 0)
     carrier.finish_schedule_cycle(object(), None, object(), None)
     assert carrier.begin_execution_step(object()) is None
+
+
+def test_audited_hook_carrier_invalidates_aborted_and_unsupported_requests(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    carrier = _load_module("scheduler_profile_i2_hooks_invalid", HOOK_CARRIER)
+    invalid_reasons: list[str] = []
+    runtime = SimpleNamespace(invalidate=invalid_reasons.append)
+    monkeypatch.setattr(carrier, "get_scheduler_profile_runtime", lambda: runtime)
+
+    carrier.abort_schedule_cycle(object())
+    carrier.observe_request_profile(
+        SimpleNamespace(
+            trace_headers={"x-vllm-rlp-sampling-n": "1"},
+            sampling_params=SimpleNamespace(n=1),
+        )
+    )
+    carrier.observe_request_profile(
+        SimpleNamespace(
+            trace_headers={"x-vllm-rlp-sampling-n": "2"},
+            sampling_params=SimpleNamespace(n=1),
+        )
+    )
+
+    assert invalid_reasons == [
+        "schedule_cycle_aborted",
+        "unsupported_runtime_profile:n",
+    ]
 
 
 def test_i2_patch_carrier_matches_and_compiles_the_audited_runtime() -> None:
@@ -410,13 +440,23 @@ def test_i2_patch_carrier_matches_and_compiles_the_audited_runtime() -> None:
 
     outputs = module.build_patched_files(Path(runtime_source))
 
-    assert set(outputs) == {module.SCHEDULER_PATH, module.CORE_PATH, module.HOOK_PATH}
+    assert set(outputs) == {
+        module.SCHEDULER_PATH,
+        module.CORE_PATH,
+        module.ASYNC_LLM_PATH,
+        module.HOOK_PATH,
+    }
     for relative, payload in outputs.items():
         compile(payload, str(relative), "exec")
     scheduler = outputs[module.SCHEDULER_PATH].decode()
     core = outputs[module.CORE_PATH].decode()
+    async_llm = outputs[module.ASYNC_LLM_PATH].decode()
     assert "finish_schedule_cycle(" in scheduler
     assert "observe_active_sequence_cap(" in scheduler
     assert "begin_execution_step(scheduler_output)" in core
     assert "close_scheduler_profile_runtime()" in core
     assert "{} if _rlp_cycle is not None else None" in scheduler
+    assert "if _rlp_token_splits is not None:" in scheduler
+    assert "abort_schedule_cycle(_rlp_cycle)" in scheduler
+    assert "observe_request_profile(request)" in scheduler
+    assert 'profile_headers["x-vllm-rlp-sampling-n"]' in async_llm

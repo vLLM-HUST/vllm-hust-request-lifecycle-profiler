@@ -24,6 +24,8 @@ the audited call-site observations:
   skipped-waiting gates;
 - active-sequence-cap observations at the waiting-queue gate;
 - aggregate prefill/decode token splits for the retained `SchedulerOutput`;
+- original request-level sampling cardinality capture before AsyncLLM expands
+  parallel samples, with EngineCore admission restricted to `n=1`;
 - dispatch immediately before synchronous `execute_model` and final result
   after `Future.result` plus any synchronous `sample_tokens`; and
 - exporter close at `EngineCore.shutdown`.
@@ -41,6 +43,12 @@ the complete `vllm-0.21-uniproc-sync-one-device-v1` profile: synchronous
 scheduling, one in-flight batch, UniProc, eager decoder-only generation,
 world-size one, no speculative decoding, no multimodal mode, no KV/EC transfer
 connector, and lifecycle communication mode `none`.
+
+The request-level `n=1` condition is dynamic rather than an engine setting.
+When profiling is enabled, the audited AsyncLLM path carries the original
+sampling cardinality across child-request expansion; scheduler admission
+permanently invalidates formal evidence if the marker is absent, malformed, or
+not one. Serving remains unaffected.
 
 Unsupported or malformed profiles create no scheduler shard. With a valid
 profile, hook and pairing failures remain serving-fail-open but permanently
@@ -75,7 +83,7 @@ identity while retaining independent files, sequences, writers, and summaries.
 
 The repository does not modify the newer historical runtime gitlink. Instead,
 the deterministic carrier validates the exact PR-I0 source hashes before
-producing the two small call-site edits and the hook shim:
+producing the three small call-site edits and the hook shim:
 
 ```bash
 python scripts/apply_scheduler_profile_i2_runtime.py \

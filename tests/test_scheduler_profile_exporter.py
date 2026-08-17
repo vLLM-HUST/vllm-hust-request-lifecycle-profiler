@@ -4,6 +4,7 @@ import importlib.util
 import json
 import os
 import threading
+import time
 from collections import deque
 from pathlib import Path
 from typing import Any
@@ -736,6 +737,35 @@ def test_factory_keeps_initialization_failure_serving_fail_open(
 
     assert isinstance(exporter, NullSchedulerProfileExporter)
     assert exporter.shard_path is None
+
+
+def test_initialization_timeout_cleans_up_before_factory_returns(
+    tmp_path: Path,
+    monkeypatch: Any,
+) -> None:
+    original_timeout = SCHEDULER_WIRE_LIMITS["close_timeout_ms"]
+    monkeypatch.setitem(SCHEDULER_WIRE_LIMITS, "close_timeout_ms", 10)
+
+    def delayed_disk_check(_path: Path) -> int:
+        time.sleep(0.05)
+        return 10**15
+
+    first = create_scheduler_profile_exporter(
+        _config(tmp_path),
+        _identity(),
+        disk_free_reader=delayed_disk_check,
+    )
+
+    assert isinstance(first, NullSchedulerProfileExporter)
+    assert list(tmp_path.iterdir()) == []
+
+    monkeypatch.setitem(
+        SCHEDULER_WIRE_LIMITS, "close_timeout_ms", original_timeout
+    )
+    second = create_scheduler_profile_exporter(_config(tmp_path), _identity())
+    assert isinstance(second, SchedulerProfileExporter)
+    result = second.close()
+    assert result is not None and result.writer_complete is True
 
 
 def test_start_write_failure_removes_reservation_and_incomplete_shard(
