@@ -574,7 +574,7 @@ def test_emitted_scheduler_shard_requires_complete_drained_writer(
 
 def test_pr_i2_keeps_runtime_hooks_in_the_audited_carrier_overlay() -> None:
     production_hits = []
-    for path in (ROOT / "src").rglob("*.py"):
+    for path in sorted((ROOT / "src").rglob("*.py")):
         text = path.read_text(encoding="utf-8")
         if "rlp.scheduler/v1alpha1" in text or "scheduler_profile" in text:
             production_hits.append(path.relative_to(ROOT).as_posix())
