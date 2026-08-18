@@ -88,6 +88,13 @@ queued bytes, and queued records. It exists for PR-I6 overhead qualification;
 omitting the variable creates no sidecar, and publication failures remain
 serving-fail-open while I6 evidence fails closed.
 
+Evidence launchers must terminate the API server process gracefully and wait
+for its EngineCore child to exit. Send `SIGTERM` to the API PID only; do not
+send an interactive signal to the whole process group. A group-wide interrupt
+can stop EngineCore while its evidence-only writer is atomically publishing,
+leaving the empty reservation and `.incomplete` recovery shard. That outcome
+is intentionally rejected even when the recovery shard's wire bytes validate.
+
 ## Audited runtime carrier
 
 The repository does not modify the newer historical runtime gitlink. Instead,

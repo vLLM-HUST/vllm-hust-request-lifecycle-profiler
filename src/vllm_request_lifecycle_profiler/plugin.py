@@ -121,6 +121,14 @@ def close_scheduler_profile_runtime() -> SchedulerCloseResult | None:
     except Exception:
         logger.exception("Failed to close the optional scheduler profiler.")
         return None
+    if isinstance(result, SchedulerCloseResult) and not result.writer_complete:
+        logger.warning(
+            "Scheduler profiler closed without a formal shard: outcome=%s, "
+            "writer_failures=%d, invalid_reasons=%s",
+            result.close_outcome,
+            result.writer_failure_count,
+            result.formal_invalid_reasons,
+        )
     if isinstance(result, SchedulerCloseResult) and result.writer_complete:
         try:
             _write_scheduler_runtime_diagnostics(result)

@@ -5,6 +5,8 @@ import json
 import os
 import subprocess
 import sys
+import threading
+import time
 from pathlib import Path
 from types import ModuleType, SimpleNamespace
 
@@ -130,6 +132,55 @@ def _load_module(name: str, path: Path) -> ModuleType:
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
+
+
+def test_scheduler_runtime_close_is_serialized_and_idempotent(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    runtime = create_scheduler_profile_runtime(
+        _profile(), env=_env(tmp_path), start_clock_sampler=False
+    )
+    assert isinstance(runtime, SchedulerProfileRuntime)
+    assert not runtime.exporter._atexit_registered
+    assert runtime._atexit_registered
+    original_close = runtime.exporter.close
+    state_lock = threading.Lock()
+    active = 0
+    max_active = 0
+
+    def delayed_close():
+        nonlocal active, max_active
+        with state_lock:
+            active += 1
+            max_active = max(max_active, active)
+        time.sleep(0.05)
+        try:
+            return original_close()
+        finally:
+            with state_lock:
+                active -= 1
+
+    monkeypatch.setattr(runtime.exporter, "close", delayed_close)
+    results: list[object] = []
+    start = threading.Barrier(3)
+
+    def close_runtime() -> None:
+        start.wait()
+        results.append(runtime.close())
+
+    threads = [threading.Thread(target=close_runtime) for _ in range(2)]
+    for thread in threads:
+        thread.start()
+    start.wait()
+    for thread in threads:
+        thread.join()
+
+    assert max_active == 1
+    assert len(results) == 2
+    assert results[0] is results[1]
+    assert results[0] is not None
+    assert results[0].writer_complete
+    assert not runtime._atexit_registered
 
 
 def test_scheduler_runtime_is_default_off_without_allocations(tmp_path: Path) -> None:

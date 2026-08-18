@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import atexit
 import logging
 import os
 import threading
@@ -274,7 +275,15 @@ class SchedulerProfileRuntime:
         self._realtime_ns = realtime_ns
         self._pending: dict[int, SchedulerCycleRef] = {}
         self._pending_lock = threading.Lock()
+        self._close_lock = threading.Lock()
+        self._close_result: SchedulerCloseResult | None = None
         self._closed = False
+        # The exporter is also useful standalone, so it protects itself with
+        # an atexit close. Once composed into the runtime, transfer that
+        # ownership here so every production close passes through one lock.
+        self.exporter._unregister_atexit()
+        self._atexit_registered = True
+        atexit.register(self.close)
         self._sampler_stop = threading.Event()
         self._sampler: threading.Thread | None = None
         if start_clock_sampler:
@@ -457,13 +466,24 @@ class SchedulerProfileRuntime:
             logger.debug("Scheduler evidence invalidation failed.", exc_info=True)
 
     def close(self) -> SchedulerCloseResult | None:
-        if self._closed:
-            return self.exporter.close()
-        self._closed = True
-        self._sampler_stop.set()
-        if self._sampler is not None:
-            self._sampler.join(timeout=1.0)
-        return self.exporter.close()
+        # EngineCore shutdown and interpreter atexit may race in separate
+        # threads. Serialize the whole runtime close so a second caller cannot
+        # consume the exporter's bounded close deadline and win its immutable
+        # completion claim while the first caller is publishing the shard.
+        with self._close_lock:
+            if self._closed:
+                return self._close_result
+            self._closed = True
+            self._sampler_stop.set()
+            if self._sampler is not None:
+                self._sampler.join(timeout=1.0)
+            try:
+                self._close_result = self.exporter.close()
+                return self._close_result
+            finally:
+                if self._atexit_registered:
+                    atexit.unregister(self.close)
+                    self._atexit_registered = False
 
     def _clock_sampler_main(self) -> None:
         while not self._sampler_stop.is_set():

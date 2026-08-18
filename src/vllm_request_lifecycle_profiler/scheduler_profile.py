@@ -11,6 +11,7 @@ from __future__ import annotations
 import atexit
 import hashlib
 import json
+import logging
 import os
 import re
 import shutil
@@ -20,6 +21,8 @@ from collections import deque
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 from pathlib import Path
+
+logger = logging.getLogger(__name__)
 
 SCHEDULER_SCHEMA = "rlp.scheduler/v1alpha1"
 SCHEDULER_RUNTIME_PROFILE_ID = "vllm-0.21-uniproc-sync-one-device-v1"
@@ -1002,7 +1005,8 @@ class SchedulerProfileExporter:
                     published = self._publish_completed_shard()
                     if not published and self._claimed_close_result() is None:
                         raise OSError("scheduler shard publication failed")
-        except Exception as exc:  # noqa: BLE001 - writer is evidence-only.
+        except Exception as exc:
+            logger.warning("Scheduler profile writer failed.", exc_info=True)
             with self._condition:
                 self._writer_failure_count += 1
                 self._summary_written = False
