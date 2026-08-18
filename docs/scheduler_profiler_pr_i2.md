@@ -71,6 +71,8 @@ export VLLM_RLP_PROFILER_PARENT_COMMIT=<40-lowercase-hex-commit>
 export VLLM_RLP_RUNTIME_CORE_COMMIT=ad7125a431e176d4161099480a66f0169609a690
 export VLLM_RLP_DEVICE_PLUGIN_COMMIT=80610e4438dba05011b05f89fc45d91e96992671
 export VLLM_RLP_COMMUNICATION_MODE=none
+# PR-I6 only: optional non-wire writer diagnostics, absolute and fresh.
+export VLLM_RLP_SCHEDULER_DIAGNOSTICS_PATH=/run/profile/scheduler-runtime-diagnostics.json
 ```
 
 `process_instance_id` is opaque in the scheduler contract. The current
@@ -78,6 +80,13 @@ lifecycle wire also uses it as `process_uuid`, so simultaneous lifecycle and
 scheduler collection uses the lifecycle wire's narrower 32-lowercase-hex
 representation. Both streams then record the same process and clock-domain
 identity while retaining independent files, sequences, writers, and summaries.
+
+The optional diagnostics path is separate from both frozen streams. After an
+immutable successful scheduler close it publishes a mode-`0600` JSON sidecar
+binding the completed shard SHA-256 and reporting maximum writer service gap,
+queued bytes, and queued records. It exists for PR-I6 overhead qualification;
+omitting the variable creates no sidecar, and publication failures remain
+serving-fail-open while I6 evidence fails closed.
 
 ## Audited runtime carrier
 

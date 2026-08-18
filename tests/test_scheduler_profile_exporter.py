@@ -557,6 +557,37 @@ def test_queue_overflow_is_loss_accounted_and_never_committed(
     assert loss["clock_bridge_sample_count"] == 1
 
 
+def test_close_result_reports_non_wire_writer_runtime_diagnostics(
+    tmp_path: Path,
+) -> None:
+    writer_gate = threading.Event()
+    diagnostic_clock = _Clock(100, 250)
+    exporter = SchedulerProfileExporter(
+        _config(tmp_path),
+        _identity(),
+        clock_ns=_Clock(0, 3_200),
+        writer_start_gate=writer_gate,
+        diagnostic_clock_ns=diagnostic_clock,
+    )
+    sample = next(
+        record
+        for record in _golden_records()
+        if record["record_type"] == "clock_bridge_sample"
+    )
+    assert exporter.write_clock_bridge_sample(
+        _body(sample, "sample_sequence", "clock_domain_id")
+    )
+    writer_gate.set()
+    result = exporter.close()
+
+    assert result is not None
+    assert result.writer_complete
+    assert result.max_writer_service_gap_ns == 150
+    assert result.max_queued_records_observed == 1
+    assert result.max_queued_bytes_observed > 0
+    assert result.diagnostic_clock_failure_count == 0
+
+
 def test_serialization_failure_is_loss_accounted_and_not_committed(
     tmp_path: Path,
 ) -> None:

@@ -189,6 +189,10 @@ class SchedulerCloseResult:
     dropped_control_count: int
     writer_failure_count: int
     artifact_bytes_written: int
+    max_writer_service_gap_ns: int
+    max_queued_bytes_observed: int
+    max_queued_records_observed: int
+    diagnostic_clock_failure_count: int
     formal_invalid_reasons: tuple[str, ...]
     shard_path: Path | None
 
@@ -218,6 +222,7 @@ class _QueuedRecord:
     record_type: str
     record_seq: int | None
     reserved: bool
+    enqueued_monotonic_ns: int | None
 
 
 @dataclass(slots=True)
@@ -279,6 +284,7 @@ class SchedulerProfileExporter:
         write_function: WriteFunction = os.write,
         disk_free_reader: DiskFreeReader = _disk_free_bytes,
         writer_start_gate: threading.Event | None = None,
+        diagnostic_clock_ns: ClockFunction = time.monotonic_ns,
     ) -> None:
         config.validate_enabled()
         if identity.owner_pid != os.getpid():
@@ -294,6 +300,7 @@ class SchedulerProfileExporter:
         self._write_function = write_function
         self._disk_free_reader = disk_free_reader
         self._writer_start_gate = writer_start_gate
+        self._diagnostic_clock_ns = diagnostic_clock_ns
         self._owner_pid = identity.owner_pid
         self.shard_path = Path(
             f"{config.base_path}.rlp-scheduler.{self.scope.scheduler_shard_id}.jsonl"
@@ -309,6 +316,10 @@ class SchedulerProfileExporter:
         self._initialization_cancelled = threading.Event()
         self._queue: deque[_QueuedRecord] = deque()
         self._queued_bytes = 0
+        self._max_queued_bytes_observed = 0
+        self._max_queued_records_observed = 0
+        self._max_writer_service_gap_ns = 0
+        self._diagnostic_clock_failure_count = 0
         self._ordinary_queued = 0
         self._reserved_queued = 0
         self._next_record_seq = 0
@@ -689,7 +700,15 @@ class SchedulerProfileExporter:
             self._dropped_data_count += 1
             self._mark_formal_invalid_locked("artifact_bytes_max")
             return False
-        if self._enqueue_locked(_QueuedRecord(raw, record_type, record_seq, False)):
+        if self._enqueue_locked(
+            _QueuedRecord(
+                raw,
+                record_type,
+                record_seq,
+                False,
+                self._read_diagnostic_clock(),
+            )
+        ):
             return True
         self._note_drop_locked(
             record_seq, record_type, "queue_overflow", observed_ns
@@ -740,6 +759,12 @@ class SchedulerProfileExporter:
             return False
         self._queue.append(queued)
         self._queued_bytes += len(queued.raw)
+        self._max_queued_bytes_observed = max(
+            self._max_queued_bytes_observed, self._queued_bytes
+        )
+        self._max_queued_records_observed = max(
+            self._max_queued_records_observed, len(self._queue)
+        )
         if queued.reserved:
             self._reserved_queued += 1
         else:
@@ -747,6 +772,17 @@ class SchedulerProfileExporter:
         self._artifact_bytes_planned += len(queued.raw)
         self._condition.notify()
         return True
+
+    def _read_diagnostic_clock(self) -> int | None:
+        try:
+            value = self._diagnostic_clock_ns()
+        except Exception:  # noqa: BLE001 - diagnostics never affect serving.
+            self._diagnostic_clock_failure_count += 1
+            return None
+        if type(value) is not int or value < 0:
+            self._diagnostic_clock_failure_count += 1
+            return None
+        return value
 
     def _note_drop_locked(
         self,
@@ -825,7 +861,15 @@ class SchedulerProfileExporter:
         if not self._can_plan_record_locked(raw):
             self._mark_formal_invalid_locked("artifact_bytes_max")
             return
-        if self._enqueue_locked(_QueuedRecord(raw, "loss_interval", None, True)):
+        if self._enqueue_locked(
+            _QueuedRecord(
+                raw,
+                "loss_interval",
+                None,
+                True,
+                self._read_diagnostic_clock(),
+            )
+        ):
             self._next_loss_interval_seq += 1
             return
         self._mark_formal_invalid_locked("loss_interval_control_drop")
@@ -923,6 +967,15 @@ class SchedulerProfileExporter:
                             self._reserved_queued -= 1
                         else:
                             self._ordinary_queued -= 1
+                    serviced_ns = self._read_diagnostic_clock() if batch else None
+                    if serviced_ns is not None:
+                        for queued in batch:
+                            enqueued_ns = queued.enqueued_monotonic_ns
+                            if enqueued_ns is not None and serviced_ns >= enqueued_ns:
+                                self._max_writer_service_gap_ns = max(
+                                    self._max_writer_service_gap_ns,
+                                    serviced_ns - enqueued_ns,
+                                )
                     should_finish = self._closing and not self._queue and not batch
 
                 for queued in batch:
@@ -1174,6 +1227,10 @@ class SchedulerProfileExporter:
             dropped_control_count=self._dropped_control_count,
             writer_failure_count=self._writer_failure_count,
             artifact_bytes_written=self._artifact_bytes_written,
+            max_writer_service_gap_ns=self._max_writer_service_gap_ns,
+            max_queued_bytes_observed=self._max_queued_bytes_observed,
+            max_queued_records_observed=self._max_queued_records_observed,
+            diagnostic_clock_failure_count=self._diagnostic_clock_failure_count,
             formal_invalid_reasons=tuple(self._formal_invalid_reasons),
             shard_path=self.shard_path,
         )

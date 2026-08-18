@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+import json
 import os
 import sys
+from pathlib import Path
 from types import ModuleType, SimpleNamespace
 
 from vllm_request_lifecycle_profiler import plugin
@@ -11,6 +13,7 @@ from vllm_request_lifecycle_profiler.kv_recovery_profile_protocol import (
 from vllm_request_lifecycle_profiler.runtime_protocol import (
     KV_RECOVERY_COMMUNICATION_MODE,
 )
+from vllm_request_lifecycle_profiler.scheduler_profile import SchedulerCloseResult
 
 RUN_ID = "4" * 32
 
@@ -118,3 +121,39 @@ def test_scheduler_runtime_is_process_local_singleton_and_closes(
     assert created == [(profile, hooks)]
     assert plugin.get_scheduler_profile_runtime() is runtime
     assert plugin.close_scheduler_profile_runtime() is closed
+
+
+def test_scheduler_close_publishes_optional_i6_diagnostics(
+    monkeypatch, tmp_path: Path
+) -> None:
+    reset_plugin(monkeypatch)
+    shard = tmp_path / "scheduler.jsonl"
+    shard.write_text("{}\n", encoding="utf-8")
+    result = SchedulerCloseResult(
+        close_outcome="drained",
+        summary_written=True,
+        attempted_data_count=1,
+        written_loss_interval_count=0,
+        dropped_data_count=0,
+        dropped_control_count=0,
+        writer_failure_count=0,
+        artifact_bytes_written=3,
+        max_writer_service_gap_ns=2_500_000,
+        max_queued_bytes_observed=512,
+        max_queued_records_observed=2,
+        diagnostic_clock_failure_count=0,
+        formal_invalid_reasons=(),
+        shard_path=shard,
+    )
+    diagnostics = tmp_path / "diagnostics" / "runtime.json"
+    monkeypatch.setenv(plugin.SCHEDULER_DIAGNOSTICS_PATH_ENV, str(diagnostics))
+    monkeypatch.setattr(plugin, "_REGISTERED_PID", os.getpid())
+    monkeypatch.setattr(plugin, "_SCHEDULER_RUNTIME", SimpleNamespace(close=lambda: result))
+
+    assert plugin.close_scheduler_profile_runtime() is result
+    payload = json.loads(diagnostics.read_text(encoding="utf-8"))
+    assert payload["max_writer_service_gap_ms"] == 2.5
+    assert payload["max_queued_bytes_observed"] == 512
+    assert payload["max_queued_records_observed"] == 2
+    assert payload["diagnostic_clock_failure_count"] == 0
+    assert diagnostics.stat().st_mode & 0o777 == 0o600
