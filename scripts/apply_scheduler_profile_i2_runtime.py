@@ -60,6 +60,9 @@ def patch_scheduler(source: str) -> str:
         "    abort_schedule_cycle,\n"
         "    begin_schedule_cycle,\n"
         "    finish_schedule_cycle,\n"
+        "    lifecycle_request_admitted,\n"
+        "    lifecycle_request_finished,\n"
+        "    lifecycle_request_scheduled,\n"
         "    observe_active_sequence_cap,\n"
         "    observe_request_profile,\n"
         "    observe_token_budget,\n"
@@ -202,7 +205,8 @@ def patch_scheduler(source: str) -> str:
         "                    request.num_prompt_tokens, num_computed_tokens,\n"
         "                )\n"
         "                token_budget -= num_new_tokens\n"
-        "                request.status = RequestStatus.RUNNING\n",
+        "                request.status = RequestStatus.RUNNING\n"
+        "                lifecycle_request_scheduled(request, num_computed_tokens)\n",
         "waiting_token_split",
     )
     source = _replace_once(
@@ -224,13 +228,32 @@ def patch_scheduler(source: str) -> str:
         "            if request.resumable:\n",
         "        else:\n"
         "            observe_request_profile(request)\n"
+        "            lifecycle_request_admitted(request)\n"
         "            if request.resumable:\n",
         "request_profile",
+    )
+    source = _replace_once(
+        source,
+        "        assert request.is_finished()\n\n"
+        "        connector_delay_free_blocks, kv_xfer_params = self._connector_finished(request)\n",
+        "        assert request.is_finished()\n"
+        "        lifecycle_request_finished(request)\n\n"
+        "        connector_delay_free_blocks, kv_xfer_params = self._connector_finished(request)\n",
+        "lifecycle_finish",
     )
     return _guard_schedule_exceptions(source)
 
 
 def patch_async_llm(source: str) -> str:
+    source = _replace_once(
+        source,
+        "from vllm.v1.engine.output_processor import OutputProcessor, RequestOutputCollector\n",
+        "from vllm.v1.engine.output_processor import OutputProcessor, RequestOutputCollector\n"
+        "from vllm.v1.engine.scheduler_profile_hooks import (\n"
+        "    prepare_request_profile_headers,\n"
+        ")\n",
+        "request_profile_import",
+    )
     return _replace_once(
         source,
         "        # Use cloned params that may have been updated in process_inputs()\n"
@@ -238,14 +261,18 @@ def patch_async_llm(source: str) -> str:
         "        if is_pooling or params.n == 1:\n",
         "        # Use cloned params that may have been updated in process_inputs()\n"
         "        params = request.params\n"
-        "        if os.environ.get(\n"
-        "            \"VLLM_RLP_SCHEDULER_PROFILE_PATH\", \"\"\n"
-        "        ).strip():\n"
-        "            profile_headers = dict(request.trace_headers or ())\n"
-        "            profile_headers[\"x-vllm-rlp-sampling-n\"] = str(\n"
-        "                1 if is_pooling else params.n\n"
+        "        if (\n"
+        "            os.environ.get(\"VLLM_RLP_TRACE_EXPORT_PATH\", \"\").strip()\n"
+        "            or os.environ.get(\n"
+        "                \"VLLM_RLP_SCHEDULER_PROFILE_PATH\", \"\"\n"
+        "            ).strip()\n"
+        "        ):\n"
+        "            request.trace_headers = prepare_request_profile_headers(\n"
+        "                request.request_id,\n"
+        "                request.trace_headers,\n"
+        "                1 if is_pooling else params.n,\n"
         "            )\n"
-        "            request.trace_headers = profile_headers\n\n"
+        "\n"
         "        if is_pooling or params.n == 1:\n",
         "request_sampling_n",
     )

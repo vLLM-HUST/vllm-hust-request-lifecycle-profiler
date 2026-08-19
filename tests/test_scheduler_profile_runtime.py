@@ -556,4 +556,8 @@ def test_i2_patch_carrier_matches_and_compiles_the_audited_runtime() -> None:
     assert "if _rlp_token_splits is not None:" in scheduler
     assert "abort_schedule_cycle(_rlp_cycle)" in scheduler
     assert "observe_request_profile(request)" in scheduler
-    assert 'profile_headers["x-vllm-rlp-sampling-n"]' in async_llm
+    assert "lifecycle_request_admitted(request)" in scheduler
+    assert "lifecycle_request_scheduled(request, num_computed_tokens)" in scheduler
+    assert "lifecycle_request_finished(request)" in scheduler
+    assert "prepare_request_profile_headers(" in async_llm
+    assert '"VLLM_RLP_TRACE_EXPORT_PATH"' in async_llm

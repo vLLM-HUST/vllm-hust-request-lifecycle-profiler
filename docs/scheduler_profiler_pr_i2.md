@@ -26,6 +26,11 @@ the audited call-site observations:
 - aggregate prefill/decode token splits for the retained `SchedulerOutput`;
 - original request-level sampling cardinality capture before AsyncLLM expands
   parallel samples, with EngineCore admission restricted to `n=1`;
+- bounded trace-identity propagation from AsyncLLM to EngineCore without prompt
+  or output payloads;
+- EngineCore/rank-0 lifecycle emission for queue admission, first scheduling,
+  generation terminal, and cleanup, using the unchanged
+  `rlp.trace/v1alpha1` wire and an independent process-local sequence;
 - dispatch immediately before synchronous `execute_model` and final result
   after `Future.result` plus any synchronous `sample_tokens`; and
 - exporter close at `EngineCore.shutdown`.
@@ -61,6 +66,8 @@ receipt.
 The experiment launcher supplies all values before EngineCore starts:
 
 ```bash
+export VLLM_PLUGINS=ascend
+export VLLM_RLP_TRACE_EXPORT_PATH=/run/profile/lifecycle
 export VLLM_RLP_SCHEDULER_PROFILE_PATH=/run/profile/scheduler
 export VLLM_RLP_EXPERIMENT_RUN_ID=<opaque-run-id>
 export VLLM_RLP_SERVER_INSTANCE_ID=<opaque-server-id>
@@ -87,6 +94,13 @@ binding the completed shard SHA-256 and reporting maximum writer service gap,
 queued bytes, and queued records. It exists for PR-I6 overhead qualification;
 omitting the variable creates no sidecar, and publication failures remain
 serving-fail-open while I6 evidence fails closed.
+
+The audited EngineCore carrier imports the profiler package directly. I6
+launchers therefore load only the Ascend platform plugin through `VLLM_PLUGINS`;
+loading the profiler as a general API-process plugin would make the frontend,
+rather than EngineCore/rank-0, reserve the lifecycle shard. The lifecycle-only
+and joint conditions both initialize and explicitly close the exporter from
+EngineCore; the scheduler exporter remains independently optional.
 
 Evidence launchers must terminate the API server process gracefully and wait
 for its EngineCore child to exit. Send `SIGTERM` to the API PID only; do not

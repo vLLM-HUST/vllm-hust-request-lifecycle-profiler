@@ -123,6 +123,21 @@ def test_scheduler_runtime_is_process_local_singleton_and_closes(
     assert plugin.close_scheduler_profile_runtime() is closed
 
 
+def test_lifecycle_runtime_is_process_local_and_closes(monkeypatch) -> None:
+    reset_plugin(monkeypatch)
+    closed = object()
+    hooks = SimpleNamespace(close=lambda: closed)
+    monkeypatch.setattr(plugin, "_REGISTERED_PID", os.getpid())
+    monkeypatch.setattr(plugin, "_RUNTIME_HOOKS", hooks)
+
+    assert plugin.initialize_lifecycle_profile_runtime() is hooks
+    assert plugin.get_lifecycle_profile_runtime() is hooks
+    assert plugin.close_lifecycle_profile_runtime() is closed
+
+    monkeypatch.setattr(plugin, "_REGISTERED_PID", os.getpid() + 1)
+    assert plugin.get_lifecycle_profile_runtime() is None
+
+
 def test_scheduler_close_publishes_optional_i6_diagnostics(
     monkeypatch, tmp_path: Path
 ) -> None:

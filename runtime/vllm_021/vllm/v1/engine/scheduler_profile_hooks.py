@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import logging
 import os
 from typing import Any
@@ -10,14 +11,61 @@ from typing import Any
 logger = logging.getLogger(__name__)
 
 SCHEDULER_EXPORT_ENV = "VLLM_RLP_SCHEDULER_PROFILE_PATH"
+LIFECYCLE_EXPORT_ENV = "VLLM_RLP_TRACE_EXPORT_PATH"
+TRACE_ID_HEADER = "x-vllm-rlp-trace-id"
+SAMPLING_N_HEADER = "x-vllm-rlp-sampling-n"
+
+
+class _LifecycleState:
+    __slots__ = ("queue_span_id", "scheduled", "trace_id")
+
+    def __init__(self, trace_id: str, queue_span_id: str) -> None:
+        self.trace_id = trace_id
+        self.queue_span_id = queue_span_id
+        self.scheduled = False
+
+
+_LIFECYCLE_STATES: dict[str, _LifecycleState] = {}
+
+
+def prepare_request_profile_headers(
+    request_id: str,
+    trace_headers: Any,
+    sampling_n: int,
+) -> dict[str, str]:
+    """Carry bounded lifecycle identity and scheduler cardinality to EngineCore."""
+
+    headers = dict(trace_headers or ())
+    if os.environ.get(LIFECYCLE_EXPORT_ENV, "").strip():
+        digest = hashlib.sha256(
+            b"rlp.trace/v1alpha1\x00" + request_id.encode("utf-8")
+        ).digest()
+        headers[TRACE_ID_HEADER] = digest[:16].hex()
+    if os.environ.get(SCHEDULER_EXPORT_ENV, "").strip():
+        headers[SAMPLING_N_HEADER] = str(sampling_n)
+    return headers
 
 
 def initialize_scheduler_profile_runtime(
     vllm_config: Any, max_concurrent_batches: int
 ) -> Any | None:
-    if not os.environ.get(SCHEDULER_EXPORT_ENV, "").strip():
+    lifecycle_enabled = bool(
+        os.environ.get(LIFECYCLE_EXPORT_ENV, "").strip()
+    )
+    scheduler_enabled = bool(
+        os.environ.get(SCHEDULER_EXPORT_ENV, "").strip()
+    )
+    if not lifecycle_enabled and not scheduler_enabled:
         return None
     try:
+        if lifecycle_enabled:
+            from vllm_request_lifecycle_profiler.plugin import (
+                initialize_lifecycle_profile_runtime,
+            )
+
+            initialize_lifecycle_profile_runtime()
+        if not scheduler_enabled:
+            return None
         from vllm_request_lifecycle_profiler.plugin import (
             initialize_scheduler_profile_runtime as initialize,
         )
@@ -52,6 +100,153 @@ def initialize_scheduler_profile_runtime(
     except Exception as exc:  # noqa: BLE001  # pragma: no cover
         logger.warning("Scheduler profiler initialization failed: %s", exc)
         return None
+
+
+def get_lifecycle_profile_runtime() -> Any | None:
+    if not os.environ.get(LIFECYCLE_EXPORT_ENV, "").strip():
+        return None
+    try:
+        from vllm_request_lifecycle_profiler.plugin import (
+            get_lifecycle_profile_runtime as get_runtime,
+        )
+
+        runtime = get_runtime()
+        return runtime if runtime is not None and runtime.enabled else None
+    except Exception:  # noqa: BLE001 - optional overlay must fail open.
+        return None
+
+
+def lifecycle_request_admitted(request: Any) -> None:
+    runtime = get_lifecycle_profile_runtime()
+    if runtime is None or request.request_id in _LIFECYCLE_STATES:
+        return
+    try:
+        trace_id = dict(request.trace_headers or ()).get(TRACE_ID_HEADER)
+        if (
+            not isinstance(trace_id, str)
+            or len(trace_id) != 32
+            or any(char not in "0123456789abcdef" for char in trace_id)
+        ):
+            return
+        span_id = runtime.new_span_id()
+        if span_id is None:
+            return
+        from vllm_request_lifecycle_profiler.runtime_protocol import EventDraft
+
+        emitted = runtime.emit_event(
+            EventDraft(
+                trace_id=trace_id,
+                lifecycle_id=f"{trace_id}:e:0",
+                parent_lifecycle_id=f"{trace_id}:r",
+                scope="engine_sample",
+                component="engine_client",
+                event_name="queued",
+                preemption_epoch=0,
+                sample_index=0,
+                start_span_id=span_id,
+            )
+        )
+        if emitted is not None:
+            _LIFECYCLE_STATES[request.request_id] = _LifecycleState(
+                trace_id=trace_id,
+                queue_span_id=span_id,
+            )
+    except Exception:  # noqa: BLE001 - optional overlay must fail open.
+        return
+
+
+def lifecycle_request_scheduled(request: Any, computed_tokens_before: int) -> None:
+    runtime = get_lifecycle_profile_runtime()
+    state = _LIFECYCLE_STATES.get(request.request_id)
+    if runtime is None or state is None or state.scheduled:
+        return
+    try:
+        from vllm_request_lifecycle_profiler.runtime_protocol import EventDraft
+
+        prompt_tokens = int(request.num_prompt_tokens)
+        cached_tokens = int(computed_tokens_before)
+        emitted = runtime.emit_event(
+            EventDraft(
+                trace_id=state.trace_id,
+                lifecycle_id=f"{state.trace_id}:e:0",
+                parent_lifecycle_id=f"{state.trace_id}:r",
+                scope="engine_sample",
+                component="engine_core",
+                event_name="scheduled",
+                preemption_epoch=int(request.num_preemptions),
+                sample_index=0,
+                end_span_id=state.queue_span_id,
+                metadata={
+                    "prompt_tokens_total": prompt_tokens,
+                    "prompt_tokens_cached": cached_tokens,
+                    "prompt_tokens_to_compute": prompt_tokens - cached_tokens,
+                },
+            )
+        )
+        if emitted is not None:
+            state.scheduled = True
+    except Exception:  # noqa: BLE001 - optional overlay must fail open.
+        return
+
+
+def lifecycle_request_finished(request: Any) -> None:
+    runtime = get_lifecycle_profile_runtime()
+    state = _LIFECYCLE_STATES.pop(request.request_id, None)
+    if runtime is None or state is None:
+        return
+    try:
+        from vllm_request_lifecycle_profiler.runtime_protocol import EventDraft
+
+        common = {
+            "trace_id": state.trace_id,
+            "lifecycle_id": f"{state.trace_id}:e:0",
+            "parent_lifecycle_id": f"{state.trace_id}:r",
+            "scope": "engine_sample",
+            "component": "engine_core",
+            "preemption_epoch": int(request.num_preemptions),
+            "sample_index": 0,
+        }
+        generated_tokens = int(request.num_output_tokens)
+        if state.scheduled and generated_tokens > 0:
+            runtime.emit_event(
+                EventDraft(
+                    **common,
+                    event_name="generation_done",
+                    metadata={"generated_tokens_total": generated_tokens},
+                )
+            )
+        else:
+            runtime.emit_event(
+                EventDraft(
+                    **common,
+                    event_name="aborted",
+                    closing_span_ids=(
+                        () if state.scheduled else (state.queue_span_id,)
+                    ),
+                )
+            )
+        cleanup_span_id = runtime.new_span_id()
+        if cleanup_span_id is None:
+            return
+        cleanup_metadata = {"cleanup_component": "engine_request"}
+        runtime.emit_event(
+            EventDraft(
+                **common,
+                event_name="cleanup_started",
+                start_span_id=cleanup_span_id,
+                metadata=cleanup_metadata,
+            )
+        )
+        runtime.emit_event(
+            EventDraft(
+                **common,
+                event_name="cleanup_done",
+                end_span_id=cleanup_span_id,
+                metadata=cleanup_metadata,
+            )
+        )
+    except Exception:  # noqa: BLE001 - optional overlay must fail open.
+        return
 
 
 def get_scheduler_profile_runtime() -> Any | None:
@@ -103,7 +298,7 @@ def observe_request_profile(request: Any) -> None:
         return
     try:
         headers = request.trace_headers or {}
-        sampling_n = headers.get("x-vllm-rlp-sampling-n")
+        sampling_n = headers.get(SAMPLING_N_HEADER)
         request_n = getattr(request.sampling_params, "n", None)
         if sampling_n != "1" or request_n != 1:
             runtime.invalidate("unsupported_runtime_profile:n")
@@ -260,11 +455,20 @@ def finish_execution_step(observation: Any | None, outcome: str) -> None:
 
 
 def close_scheduler_profile_runtime() -> None:
+    _LIFECYCLE_STATES.clear()
     try:
         from vllm_request_lifecycle_profiler.plugin import (
             close_scheduler_profile_runtime as close_runtime,
         )
 
         close_runtime()
+    except Exception:
+        logger.debug("Scheduler profiler close failed.", exc_info=True)
+    try:
+        from vllm_request_lifecycle_profiler.plugin import (
+            close_lifecycle_profile_runtime,
+        )
+
+        close_lifecycle_profile_runtime()
     except Exception:  # noqa: BLE001 - optional overlay must fail open.
         return

@@ -101,6 +101,22 @@ def initialize_scheduler_profile_runtime(
     return _SCHEDULER_RUNTIME
 
 
+def initialize_lifecycle_profile_runtime() -> RuntimeLifecycleHooks | None:
+    """Initialize the lifecycle exporter in the calling runtime process."""
+
+    if _REGISTERED_PID != os.getpid():
+        register_plugin()
+    return _RUNTIME_HOOKS
+
+
+def get_lifecycle_profile_runtime() -> RuntimeLifecycleHooks | None:
+    """Return this process's lifecycle exporter, if initialized."""
+
+    if _REGISTERED_PID != os.getpid():
+        return None
+    return _RUNTIME_HOOKS
+
+
 def get_scheduler_profile_runtime(
 ) -> SchedulerProfileRuntime | NullSchedulerProfileRuntime | None:
     """Return this process's initialized scheduler stream, if any."""
@@ -135,6 +151,19 @@ def close_scheduler_profile_runtime() -> SchedulerCloseResult | None:
         except Exception:
             logger.exception("Failed to publish scheduler runtime diagnostics.")
     return result
+
+
+def close_lifecycle_profile_runtime() -> object | None:
+    """Close the lifecycle stream without allowing shutdown failures."""
+
+    runtime = get_lifecycle_profile_runtime()
+    if runtime is None:
+        return None
+    try:
+        return runtime.close()
+    except Exception:
+        logger.exception("Failed to close the optional lifecycle profiler.")
+        return None
 
 
 def _write_scheduler_runtime_diagnostics(result: SchedulerCloseResult) -> None:
