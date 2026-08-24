@@ -469,14 +469,13 @@ def test_actual_runtime_wait_precedes_explicit_discard_invalidation(
         "block_set_chunk",
         "transfer_event",
         "wait_set_chunk",
+        "transfer_event",
     ]
-    # The discard handoff produces one loss and the late completion of the
-    # invalidated context produces a second observable loss; both fail the
-    # profile closed while leaving the observer usable.
-    assert len(losses) == 1
-    assert losses[0].reason == "serialization_failure"
-    assert losses[0].counts["transfer_event"] == 2
-    assert not ledger.evidence_complete
+    assert profile_records[-1].fields["transfer_phase"] == "done"
+    assert profile_records[-1].fields["success"] is False
+    assert profile_records[-1].fields["failure_code"] == "cancelled"
+    assert losses == ()
+    assert ledger.evidence_complete
 
     worker.close()
     scheduler.close()

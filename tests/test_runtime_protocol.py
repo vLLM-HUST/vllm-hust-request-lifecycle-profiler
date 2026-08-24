@@ -165,6 +165,51 @@ def test_event_identity_component_and_span_rules_are_strict() -> None:
         )
 
 
+def test_resource_events_require_exact_ownership_metadata() -> None:
+    metadata = {
+        "runtime_request_id": "request-0",
+        "resource_type": "kv_capacity_lease",
+        "resource_id": "kv-lease:one:0",
+        "resource_transition": "acquire",
+        "resource_units": 7,
+        "worker_generation": "EngineCore:10",
+    }
+    draft = EventDraft(
+        trace_id=TRACE_ID,
+        lifecycle_id=f"{TRACE_ID}:e:0",
+        parent_lifecycle_id=f"{TRACE_ID}:r",
+        scope="engine_sample",
+        component="engine_core",
+        event_name="resource_acquired",
+        preemption_epoch=0,
+        sample_index=0,
+        metadata=metadata,
+    )
+
+    record, _ = build_event_record(
+        draft,
+        process_uuid=PROCESS_UUID,
+        clock_domain_id=CLOCK_DOMAIN_ID,
+        record_seq=0,
+        default_timestamp_ns=1,
+    )
+    assert record["metadata"] == metadata
+
+    with pytest.raises(ProtocolValidationError, match="transition/event"):
+        build_event_record(
+            EventDraft(
+                **{
+                    **draft.__dict__,
+                    "metadata": {**metadata, "resource_transition": "release"},
+                }
+            ),
+            process_uuid=PROCESS_UUID,
+            clock_domain_id=CLOCK_DOMAIN_ID,
+            record_seq=1,
+            default_timestamp_ns=2,
+        )
+
+
 def test_end_and_closing_span_id_sequences_are_bounded_uint64() -> None:
     max_span_id = f"{'4' * 32}:s:{UINT64_MAX}"
     overflow_span_id = f"{'4' * 32}:s:{UINT64_MAX + 1}"

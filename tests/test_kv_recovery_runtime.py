@@ -255,6 +255,238 @@ def test_runtime_bridge_rejects_invalid_request_id_without_emitting(
     assert not any(row.get("record_type") == "event" for row in records)
 
 
+@pytest.mark.parametrize(
+    ("terminal_cause", "event_name"),
+    [
+        ("complete", "generation_done"),
+        ("explicit_cancel", "aborted"),
+        ("client_disconnect", "cancelled"),
+        ("client_timeout", "cancelled"),
+        ("engine_failure", "error"),
+    ],
+)
+def test_runtime_bridge_emits_exactly_one_terminal(
+    tmp_path: Path,
+    terminal_cause: str,
+    event_name: str,
+) -> None:
+    hooks = make_hooks(tmp_path)
+    bridge = RuntimeBaseLifecycleBridge(hooks)
+    assert bridge.register_runtime_request(RUN_ID, RUNTIME_REQUEST_ID, timestamp_ns=1)
+    if terminal_cause == "complete":
+        assert bridge.emit_runtime_scheduled(
+            RUNTIME_REQUEST_ID,
+            timestamp_ns=2,
+            compute_kind="decode",
+            scheduled_tokens=1,
+            prompt_tokens_total=2,
+            prompt_tokens_cached=1,
+        )
+
+    terminal = bridge.emit_runtime_terminal(
+        RUNTIME_REQUEST_ID,
+        terminal_cause,
+        timestamp_ns=3,
+        generated_tokens_total=3,
+    )
+    duplicate = bridge.emit_runtime_terminal(
+        RUNTIME_REQUEST_ID,
+        terminal_cause,
+        timestamp_ns=4,
+        generated_tokens_total=3,
+    )
+    records = read_committed_records(hooks)
+
+    assert terminal is not None
+    assert duplicate is None
+    terminals = [
+        row
+        for row in records
+        if row.get("record_type") == "event" and row.get("event_name") == event_name
+    ]
+    assert len(terminals) == 1
+    assert terminals[0]["metadata"]["terminal_cause"] == terminal_cause
+    if terminal_cause == "complete":
+        assert any(
+            row.get("record_type") == "event" and row.get("event_name") == "decode_done"
+            for row in records
+        )
+
+
+def test_runtime_bridge_closes_prefill_before_decode_and_completion(
+    tmp_path: Path,
+) -> None:
+    hooks = make_hooks(tmp_path)
+    bridge = RuntimeBaseLifecycleBridge(hooks)
+    assert bridge.register_runtime_request(RUN_ID, RUNTIME_REQUEST_ID, timestamp_ns=1)
+    assert bridge.emit_runtime_scheduled(
+        RUNTIME_REQUEST_ID,
+        timestamp_ns=2,
+        compute_kind="prefill",
+        scheduled_tokens=2,
+        prompt_tokens_total=4,
+        prompt_tokens_cached=1,
+    )
+    assert bridge.emit_runtime_scheduled(
+        RUNTIME_REQUEST_ID,
+        timestamp_ns=3,
+        compute_kind="decode",
+        scheduled_tokens=1,
+        prompt_tokens_total=4,
+        prompt_tokens_cached=1,
+    )
+    assert bridge.emit_runtime_terminal(
+        RUNTIME_REQUEST_ID,
+        "complete",
+        timestamp_ns=4,
+        generated_tokens_total=1,
+    )
+
+    records = read_committed_records(hooks)
+    event_names = [
+        row["event_name"] for row in records if row.get("record_type") == "event"
+    ]
+    assert event_names == [
+        "queued",
+        "scheduled",
+        "prefill_started",
+        "prefill_done",
+        "decode_started",
+        "decode_done",
+        "generation_done",
+    ]
+
+
+def test_scheduler_adapter_emits_terminal_in_engine_process_trace(
+    tmp_path: Path,
+) -> None:
+    hooks = make_hooks(tmp_path)
+    profile = BoundedKVRecoveryProfileLedger(ENGINE_UUID)
+    scheduler = KVRecoverySchedulerAdapter(
+        RUN_ID,
+        hooks,
+        profile,
+        RuntimeBaseLifecycleBridge(hooks),
+        FAKE_ABI,
+        clock_ns=iter((1, 2, 3)).__next__,
+    )
+
+    scheduler.request_started(RUNTIME_REQUEST_ID)
+    scheduler.request_scheduled(RUNTIME_REQUEST_ID, "decode", 1, 2, 1)
+    scheduler.request_terminal(RUNTIME_REQUEST_ID, "complete", 1)
+
+    records = read_committed_records(hooks)
+    event_names = [
+        row["event_name"] for row in records if row.get("record_type") == "event"
+    ]
+    assert event_names == [
+        "queued",
+        "scheduled",
+        "decode_started",
+        "decode_done",
+        "generation_done",
+    ]
+    assert profile.evidence_complete
+
+
+def test_distinct_recovery_epochs_do_not_invalidate_each_other(tmp_path: Path) -> None:
+    class MultiEpochBridge(FakeBridge):
+        def preempted_event(
+            self, runtime_request_id: str, recovery_epoch: int
+        ) -> BaseEventRef | None:
+            if runtime_request_id != RUNTIME_REQUEST_ID:
+                return None
+            return BaseEventRef(f"{ENGINE_UUID}:e:{recovery_epoch + 10}", 90)
+
+    hooks = make_hooks(tmp_path)
+    profile = BoundedKVRecoveryProfileLedger(ENGINE_UUID)
+    scheduler = KVRecoverySchedulerAdapter(
+        RUN_ID,
+        hooks,
+        profile,
+        MultiEpochBridge(),
+        FAKE_ABI,
+        clock_ns=lambda: 100,
+    )
+
+    assert scheduler.request_preempted(RUNTIME_REQUEST_ID, 1) is not None
+    assert scheduler.request_preempted(RUNTIME_REQUEST_ID, 2) is not None
+
+    records, losses = profile.snapshot()
+    assert records == ()
+    assert losses == ()
+
+
+def test_runtime_bridge_continues_compute_and_terminal_after_recovery(
+    tmp_path: Path,
+) -> None:
+    hooks = make_hooks(tmp_path)
+    bridge = RuntimeBaseLifecycleBridge(hooks)
+
+    assert bridge.register_runtime_request(RUN_ID, RUNTIME_REQUEST_ID, timestamp_ns=1)
+    assert bridge.emit_runtime_scheduled(
+        RUNTIME_REQUEST_ID,
+        timestamp_ns=2,
+        compute_kind="prefill",
+        scheduled_tokens=2,
+        prompt_tokens_total=4,
+        prompt_tokens_cached=0,
+    )
+    assert bridge.emit_runtime_preempted(RUNTIME_REQUEST_ID, 1, timestamp_ns=3)
+    assert bridge.emit_runtime_admission_started(RUNTIME_REQUEST_ID, 1, timestamp_ns=4)
+    assert bridge.emit_runtime_resumed(
+        RUNTIME_REQUEST_ID,
+        1,
+        timestamp_ns=5,
+        prompt_tokens_total=4,
+        prompt_tokens_cached=3,
+    )
+    assert bridge.emit_first_compute(
+        RUNTIME_REQUEST_ID, 1, timestamp_ns=6, compute_kind="prefill"
+    )
+    assert bridge.emit_runtime_scheduled(
+        RUNTIME_REQUEST_ID,
+        timestamp_ns=7,
+        compute_kind="decode",
+        scheduled_tokens=1,
+        prompt_tokens_total=4,
+        prompt_tokens_cached=4,
+    )
+    assert bridge.emit_runtime_terminal(
+        RUNTIME_REQUEST_ID,
+        "complete",
+        timestamp_ns=8,
+        generated_tokens_total=1,
+    )
+
+    records = read_committed_records(hooks)
+    event_names = [
+        row["event_name"] for row in records if row.get("record_type") == "event"
+    ]
+    assert event_names[-4:] == [
+        "prefill_done",
+        "decode_started",
+        "decode_done",
+        "generation_done",
+    ]
+    recovered_events = [
+        row
+        for row in records
+        if row.get("event_name")
+        in {
+            "resumed",
+            "prefill_done",
+            "decode_started",
+            "decode_done",
+            "generation_done",
+        }
+    ]
+    assert {row["preemption_epoch"] for row in recovered_events} == {1}
+    summary = records[-1]
+    assert summary["dropped_data_count"] == 0
+    assert summary["writer_failure_count"] == 0
+
+
 def base_endpoint_records() -> list[dict[str, object]]:
     return [
         {
@@ -370,6 +602,38 @@ def test_complete_cpu_adapter_chain_emits_exact_h2d_pair_and_three_edges(
         "requeue",
         "admission",
     ]
+
+
+def test_prepared_transfer_rejected_before_submit_is_not_profile_loss(
+    tmp_path: Path,
+) -> None:
+    hooks = make_hooks(tmp_path)
+    profile = BoundedKVRecoveryProfileLedger(WORKER_UUID)
+    worker = KVRecoveryWorkerEvidenceAdapter(hooks, profile, FAKE_ABI, RUN_ID)
+    context = FakeContext(
+        identity=FakeIdentity(
+            run_id=RUN_ID,
+            trace_id=TRACE_ID,
+            engine_lifecycle_id=f"{TRACE_ID}:e:0",
+            runtime_request_id=RUNTIME_REQUEST_ID,
+            recovery_epoch=None,
+            episode_id=None,
+            base_preempted_event_id=None,
+            preempt_profile_record_id=None,
+        ),
+        operation="d2h_preserve",
+        block_set_id="6" * 64,
+        logical_blocks=(),
+    )
+    attempt = FakeAttempt(7, f"{WORKER_UUID}:t:0", context)
+
+    worker.transfer_not_submitted(attempt)
+
+    records, losses = profile.snapshot()
+    assert records == ()
+    assert losses == ()
+    assert profile.attempted_data_count == 0
+    assert profile.evidence_complete
 
 
 def test_late_receipt_capacity_keeps_prefix_and_forbids_return_edge(
@@ -547,6 +811,34 @@ def test_factory_is_none_for_none_mode_and_enabled_for_recovery_mode(
     )
     assert len(specialty_factory.profile_ledgers) == 1
     specialty_hooks.close()
+
+
+def test_factory_closes_scheduler_and_process_shards_before_engine_failure(
+    tmp_path: Path,
+) -> None:
+    hooks = make_hooks(tmp_path)
+    factory = KVRecoveryObserverFactoryAdapter(
+        RUN_ID,
+        hooks,
+        FakeBridge(),
+        FAKE_ABI,
+        clock_ns=lambda: 125,
+    )
+    scheduler = factory.create_scheduler_observer()
+    assert isinstance(scheduler, KVRecoverySchedulerAdapter)
+
+    factory.close_for_engine_failure()
+
+    assert scheduler._closed
+    records = [
+        json.loads(line)
+        for path in tmp_path.glob("trace*.jsonl")
+        for line in path.read_text().splitlines()
+    ]
+    assert {record["record_type"] for record in records} >= {
+        "process_summary",
+        "profile_summary",
+    }
 
 
 def test_none_mode_still_rejects_communication_event(tmp_path: Path) -> None:

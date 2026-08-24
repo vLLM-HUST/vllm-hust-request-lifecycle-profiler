@@ -173,6 +173,15 @@ class BaseLifecycleBridge(Protocol):
         compute_kind: str,
     ) -> BaseEventRef | None: ...
 
+    def emit_runtime_terminal(
+        self,
+        runtime_request_id: str,
+        terminal_cause: str,
+        *,
+        timestamp_ns: int,
+        generated_tokens_total: int = 0,
+    ) -> BaseEventRef | None: ...
+
 
 @dataclass
 class _EmittedBaseEpisode:
@@ -192,6 +201,8 @@ class _RuntimeRequestState:
     queue_span_id: str
     active_started: BaseEventRef | None = None
     active_span_id: str | None = None
+    active_compute_kind: str | None = None
+    preemption_epoch: int = 0
     prompt_tokens_computed: int = 0
     prefill_chunk_count: int = 0
 
@@ -301,6 +312,78 @@ class RuntimeBaseLifecycleBridge:
                 max(0, prompt_tokens_cached), prompt_tokens_total - 1
             )
             if state.active_started is not None:
+                if state.active_compute_kind != compute_kind:
+                    if (
+                        state.active_compute_kind != "prefill"
+                        or compute_kind != "decode"
+                        or state.active_span_id is None
+                    ):
+                        return False
+                    completed = self._hooks.emit_event(
+                        EventDraft(
+                            trace_id=state.identity.trace_id,
+                            lifecycle_id=state.identity.engine_lifecycle_id,
+                            parent_lifecycle_id=f"{state.identity.trace_id}:r",
+                            scope="engine_sample",
+                            component="engine_core",
+                            event_name="prefill_done",
+                            timestamp_ns=timestamp_ns,
+                            preemption_epoch=state.preemption_epoch,
+                            end_span_id=state.active_span_id,
+                            sample_index=0,
+                            metadata={
+                                "prompt_tokens_computed": state.prompt_tokens_computed,
+                                "prefill_chunk_count": max(
+                                    1, state.prefill_chunk_count
+                                ),
+                            },
+                        )
+                    )
+                    decode_span_id = self._hooks.new_span_id()
+                    if completed is None or decode_span_id is None:
+                        return False
+                    started = self._hooks.emit_event(
+                        EventDraft(
+                            trace_id=state.identity.trace_id,
+                            lifecycle_id=state.identity.engine_lifecycle_id,
+                            parent_lifecycle_id=f"{state.identity.trace_id}:r",
+                            scope="engine_sample",
+                            component="engine_core",
+                            event_name="decode_started",
+                            timestamp_ns=timestamp_ns,
+                            preemption_epoch=state.preemption_epoch,
+                            start_span_id=decode_span_id,
+                            sample_index=0,
+                        )
+                    )
+                    if started is None:
+                        return False
+                    if (
+                        self._hooks.emit_edge(
+                            EdgeDraft(
+                                trace_id=state.identity.trace_id,
+                                from_event_id=state.active_started.event_id,
+                                to_event_id=completed.record_id,
+                                edge_kind="program_order",
+                                evidence_source="instrumented_execution_context",
+                            )
+                        )
+                        is None
+                        or self._hooks.emit_edge(
+                            EdgeDraft(
+                                trace_id=state.identity.trace_id,
+                                from_event_id=completed.record_id,
+                                to_event_id=started.record_id,
+                                edge_kind="program_order",
+                                evidence_source="instrumented_execution_context",
+                            )
+                        )
+                        is None
+                    ):
+                        return False
+                    state.active_started = BaseEventRef(started.record_id, timestamp_ns)
+                    state.active_span_id = decode_span_id
+                    state.active_compute_kind = "decode"
                 state.prompt_tokens_computed = min(
                     prompt_tokens_total,
                     state.prompt_tokens_computed + scheduled_tokens,
@@ -317,7 +400,7 @@ class RuntimeBaseLifecycleBridge:
                     component="engine_core",
                     event_name="scheduled",
                     timestamp_ns=timestamp_ns,
-                    preemption_epoch=0,
+                    preemption_epoch=state.preemption_epoch,
                     end_span_id=state.queue_span_id,
                     sample_index=0,
                     metadata={
@@ -341,7 +424,7 @@ class RuntimeBaseLifecycleBridge:
                     component="engine_core",
                     event_name=f"{compute_kind}_started",
                     timestamp_ns=timestamp_ns,
-                    preemption_epoch=0,
+                    preemption_epoch=state.preemption_epoch,
                     start_span_id=active_span_id,
                     sample_index=0,
                 )
@@ -373,6 +456,7 @@ class RuntimeBaseLifecycleBridge:
                 return False
             state.active_started = BaseEventRef(started.record_id, timestamp_ns)
             state.active_span_id = active_span_id
+            state.active_compute_kind = compute_kind
             state.prompt_tokens_computed = min(
                 prompt_tokens_total, prompt_tokens_cached + scheduled_tokens
             )
@@ -425,6 +509,8 @@ class RuntimeBaseLifecycleBridge:
                     state.queue_span_id = episode.queue_span_id
                     state.active_started = None
                     state.active_span_id = None
+                    state.active_compute_kind = None
+                    state.preemption_epoch = recovery_epoch
                     state.prompt_tokens_computed = 0
                     state.prefill_chunk_count = 0
         return result
@@ -764,6 +850,7 @@ class RuntimeBaseLifecycleBridge:
             if state is not None:
                 state.active_started = result
                 state.active_span_id = span_id
+                state.active_compute_kind = compute_kind
                 if compute_kind == "prefill":
                     state.prefill_chunk_count += 1
             return result
@@ -803,6 +890,140 @@ class RuntimeBaseLifecycleBridge:
             for key in tuple(self._episodes):
                 if key[0] == runtime_request_id:
                     self._episodes.pop(key, None)
+
+    def emit_runtime_terminal(
+        self,
+        runtime_request_id: str,
+        terminal_cause: str,
+        *,
+        timestamp_ns: int,
+        generated_tokens_total: int = 0,
+    ) -> BaseEventRef | None:
+        """Emit one request terminal and retire its bounded bridge state."""
+
+        terminal_events = {
+            "complete": "generation_done",
+            "explicit_cancel": "aborted",
+            "client_disconnect": "cancelled",
+            "client_timeout": "cancelled",
+            "engine_failure": "error",
+            "error": "error",
+        }
+        event_name = terminal_events.get(terminal_cause)
+        if event_name is None or not _is_uint64(timestamp_ns):
+            return None
+        with self._lock:
+            state = self._runtime_states.get(runtime_request_id)
+            if state is None:
+                return None
+            active_ref = state.active_started or state.queue_started
+            open_span_id = state.active_span_id or state.queue_span_id
+            metadata: dict[str, object] = {"terminal_cause": terminal_cause}
+            result: BaseEventRef | None = None
+            if event_name == "generation_done":
+                completed = None
+                if (
+                    generated_tokens_total >= 1
+                    and state.active_started is not None
+                    and state.active_span_id is not None
+                    and state.active_compute_kind in {"prefill", "decode"}
+                ):
+                    phase_metadata: dict[str, object] = {}
+                    if state.active_compute_kind == "prefill":
+                        phase_metadata = {
+                            "prompt_tokens_computed": state.prompt_tokens_computed,
+                            "prefill_chunk_count": max(1, state.prefill_chunk_count),
+                        }
+                    completed = self._hooks.emit_event(
+                        EventDraft(
+                            trace_id=state.identity.trace_id,
+                            lifecycle_id=state.identity.engine_lifecycle_id,
+                            parent_lifecycle_id=f"{state.identity.trace_id}:r",
+                            scope="engine_sample",
+                            component="engine_core",
+                            event_name=f"{state.active_compute_kind}_done",
+                            timestamp_ns=timestamp_ns,
+                            preemption_epoch=state.preemption_epoch,
+                            end_span_id=state.active_span_id,
+                            sample_index=state.identity.sample_index,
+                            metadata=phase_metadata,
+                        )
+                    )
+                emitted = None
+                if completed is not None:
+                    emitted = self._hooks.emit_event(
+                        EventDraft(
+                            trace_id=state.identity.trace_id,
+                            lifecycle_id=state.identity.engine_lifecycle_id,
+                            parent_lifecycle_id=f"{state.identity.trace_id}:r",
+                            scope="engine_sample",
+                            component="engine_core",
+                            event_name="generation_done",
+                            timestamp_ns=timestamp_ns,
+                            preemption_epoch=state.preemption_epoch,
+                            sample_index=state.identity.sample_index,
+                            metadata={
+                                **metadata,
+                                "generated_tokens_total": generated_tokens_total,
+                            },
+                        )
+                    )
+                if emitted is not None and completed is not None:
+                    first_edge = self._hooks.emit_edge(
+                        EdgeDraft(
+                            trace_id=state.identity.trace_id,
+                            from_event_id=state.active_started.event_id,
+                            to_event_id=completed.record_id,
+                            edge_kind="program_order",
+                            evidence_source="instrumented_execution_context",
+                        )
+                    )
+                    second_edge = self._hooks.emit_edge(
+                        EdgeDraft(
+                            trace_id=state.identity.trace_id,
+                            from_event_id=completed.record_id,
+                            to_event_id=emitted.record_id,
+                            edge_kind="program_order",
+                            evidence_source="instrumented_execution_context",
+                        )
+                    )
+                    if first_edge is not None and second_edge is not None:
+                        result = BaseEventRef(emitted.record_id, timestamp_ns)
+            else:
+                emitted = self._hooks.emit_event(
+                    EventDraft(
+                        trace_id=state.identity.trace_id,
+                        lifecycle_id=state.identity.engine_lifecycle_id,
+                        parent_lifecycle_id=f"{state.identity.trace_id}:r",
+                        scope="engine_sample",
+                        component="engine_core",
+                        event_name=event_name,
+                        timestamp_ns=timestamp_ns,
+                        preemption_epoch=state.preemption_epoch,
+                        closing_span_ids=(open_span_id,),
+                        sample_index=state.identity.sample_index,
+                        metadata=metadata,
+                    )
+                )
+            if event_name != "generation_done" and emitted is not None:
+                edge = self._hooks.emit_edge(
+                    EdgeDraft(
+                        trace_id=state.identity.trace_id,
+                        from_event_id=active_ref.event_id,
+                        to_event_id=emitted.record_id,
+                        edge_kind="program_order",
+                        evidence_source="instrumented_execution_context",
+                    )
+                )
+                if edge is not None:
+                    result = BaseEventRef(emitted.record_id, timestamp_ns)
+
+            self._identities.pop(runtime_request_id, None)
+            self._runtime_states.pop(runtime_request_id, None)
+            for key in tuple(self._episodes):
+                if key[0] == runtime_request_id:
+                    self._episodes.pop(key, None)
+            return result
 
 
 @dataclass(frozen=True)
@@ -1123,8 +1344,12 @@ class KVRecoveryWorkerEvidenceAdapter:
         )
 
     def transfer_not_submitted(self, attempt: Any) -> None:
-        if not self._closed:
-            self._profile.drop("transfer_event", None)
+        # The runtime allocates an attempt before asking the backend to accept
+        # the transfer.  A rejected attempt never crosses the submission
+        # boundary, so it has no transfer event to close and is not evidence
+        # loss.  The bounded runtime observer has already retired the prepared
+        # slot before calling this method.
+        del attempt
 
     def transfer_completed(
         self,
@@ -1287,6 +1512,37 @@ class KVRecoveryWorkerEvidenceAdapter:
         del reason, connector_job_ids, transfer_ids
         self._profile.drop("transfer_event", timestamp_ns)
 
+    def transfer_invalidated(self, attempt: Any, timestamp_ns: int) -> None:
+        """Close an explicitly discarded transfer without claiming data loss."""
+
+        if self._closed:
+            return
+        context = attempt.context
+        self._pending.pop(attempt.transfer_id, None)
+        self._profile.write(
+            "transfer_event",
+            timestamp_ns,
+            **self._request_fields(context.identity),
+            transfer_id=attempt.transfer_id,
+            connector_job_id=attempt.connector_job_id,
+            rank=0,
+            world_size=1,
+            operation=context.operation,
+            direction="h2d" if context.operation == "h2d_restore" else "d2h",
+            src_medium=(
+                "host_cpu" if context.operation == "h2d_restore" else "device_hbm"
+            ),
+            dst_medium=(
+                "device_hbm" if context.operation == "h2d_restore" else "host_cpu"
+            ),
+            block_set_id=context.block_set_id,
+            transfer_phase="done",
+            bytes_moved=None,
+            device_duration_ns=None,
+            success=False,
+            failure_code="cancelled",
+        )
+
     def wait_completed(self, attempt: Any) -> None:
         if self._closed:
             return
@@ -1377,6 +1633,12 @@ class KVRecoveryWorkerEvidenceAdapter:
             self._profile.drop("recovery_event", None)
         self._pending.clear()
 
+    def close_for_worker_failure(self, evidence_disabled: bool) -> None:
+        """Commit the worker shard before the injected non-zero process exit."""
+
+        self.close((), evidence_disabled)
+        self._hooks.close()
+
     @staticmethod
     def _communication_metadata(attempt: Any) -> dict[str, object]:
         context = attempt.context
@@ -1408,7 +1670,7 @@ class _SchedulerEpisode:
     identity: RequestLifecycleIdentity
     recovery_epoch: int
     preempted_event: BaseEventRef
-    preempt_profile_record_id: str
+    preempt_profile_record_id: str | None = None
     context: Any | None = None
     receipt: Any | None = None
     admission_started_event: BaseEventRef | None = None
@@ -1437,7 +1699,7 @@ class KVRecoverySchedulerAdapter:
         self._bridge = bridge
         self._abi = abi
         self._clock_ns = clock_ns
-        self._episodes: dict[str, _SchedulerEpisode] = {}
+        self._episodes: dict[tuple[str, int], _SchedulerEpisode] = {}
         self._logical_ids: dict[tuple[str, int, int], str] = {}
         self._closed = False
 
@@ -1514,46 +1776,30 @@ class KVRecoverySchedulerAdapter:
                 base_event is not None,
             )
             self._profile.drop("recovery_event", None)
-            self._episodes.pop(runtime_request_id, None)
+            self._episodes.pop((runtime_request_id, recovery_epoch), None)
             return None
-        if runtime_request_id in self._episodes:
+        episode_key = (runtime_request_id, recovery_epoch)
+        if episode_key in self._episodes:
             self._profile.drop("recovery_event", None)
-        profile_id = self._profile.write(
-            "recovery_event",
-            base_event.timestamp_ns,
-            trace_id=identity.trace_id,
-            engine_lifecycle_id=identity.engine_lifecycle_id,
-            runtime_request_id=identity.runtime_request_id,
-            request_id_kind="engine_internal",
-            sample_index=0,
-            recovery_epoch=recovery_epoch,
-            episode_id=f"{identity.engine_lifecycle_id}:k:{recovery_epoch}",
-            stage="preempt",
-            occurrence=0,
-            base_event_id=base_event.event_id,
-            base_admission_started_event_id=None,
-            from_profile_event_id=None,
-            transfer_id=None,
-            block_set_id=None,
-            bytes_moved=None,
-            requeue_reason=None,
-            compute_kind=None,
-            child_observation_kind=None,
-            base_association_kind=None,
-            base_association_evidence=None,
-            request_status_before="RUNNING",
-            request_status_after="PREEMPTED",
-        )
-        if profile_id is None:
-            self._episodes.pop(runtime_request_id, None)
+            self._episodes.pop(episode_key, None)
             return None
-        self._episodes[runtime_request_id] = _SchedulerEpisode(
+        # A base preemption is not yet a KV-recovery profile episode. Defer the
+        # profile ``preempt`` row until a real H2D restore context exists; a
+        # request may be preempted again or terminate before any transfer is
+        # started, which remains complete base-trace evidence rather than a
+        # truncated recovery profile.
+        for key, candidate in tuple(self._episodes.items()):
+            if (
+                key[0] == runtime_request_id
+                and candidate.preempt_profile_record_id is None
+            ):
+                self._episodes.pop(key, None)
+        self._episodes[episode_key] = _SchedulerEpisode(
             identity=identity,
             recovery_epoch=recovery_epoch,
             preempted_event=base_event,
-            preempt_profile_record_id=profile_id,
         )
-        return profile_id
+        return base_event.event_id
 
     def prepare_transfer_context(
         self,
@@ -1578,7 +1824,16 @@ class KVRecoverySchedulerAdapter:
             )
             self._profile.drop("block_set_chunk", None)
             return None
-        episode = self._episodes.get(runtime_request_id)
+        request_episodes = [
+            episode
+            for (request_id, _epoch), episode in self._episodes.items()
+            if request_id == runtime_request_id
+        ]
+        episode = (
+            max(request_episodes, key=lambda candidate: candidate.recovery_epoch)
+            if request_episodes
+            else None
+        )
         if operation == "h2d_restore":
             if episode is None:
                 # The runtime performs H2D both for preemption recovery (an
@@ -1595,9 +1850,42 @@ class KVRecoverySchedulerAdapter:
                 episode_id = None
                 preempted_event_id = None
             else:
+                if episode.context is not None:
+                    self._profile.drop("recovery_event", None)
+                    return None
                 recovery_epoch = episode.recovery_epoch
                 episode_id = f"{base_identity.engine_lifecycle_id}:k:{recovery_epoch}"
                 preempted_event_id = episode.preempted_event.event_id
+                profile_id = self._profile.write(
+                    "recovery_event",
+                    episode.preempted_event.timestamp_ns,
+                    trace_id=episode.identity.trace_id,
+                    engine_lifecycle_id=episode.identity.engine_lifecycle_id,
+                    runtime_request_id=episode.identity.runtime_request_id,
+                    request_id_kind="engine_internal",
+                    sample_index=0,
+                    recovery_epoch=recovery_epoch,
+                    episode_id=episode_id,
+                    stage="preempt",
+                    occurrence=0,
+                    base_event_id=episode.preempted_event.event_id,
+                    base_admission_started_event_id=None,
+                    from_profile_event_id=None,
+                    transfer_id=None,
+                    block_set_id=None,
+                    bytes_moved=None,
+                    requeue_reason=None,
+                    compute_kind=None,
+                    child_observation_kind=None,
+                    base_association_kind=None,
+                    base_association_evidence=None,
+                    request_status_before="RUNNING",
+                    request_status_after="PREEMPTED",
+                )
+                if profile_id is None:
+                    self._episodes.pop((runtime_request_id, recovery_epoch), None)
+                    return None
+                episode.preempt_profile_record_id = profile_id
         elif operation == "d2h_preserve":
             recovery_epoch = None
             episode_id = None
@@ -1694,7 +1982,9 @@ class KVRecoverySchedulerAdapter:
                 # Unassociated H2D (block-level tiering migration) produces no
                 # recovery episode; ignore its receipt without failing closed.
                 continue
-            episode = self._episodes.get(runtime_request_id)
+            episode = self._episodes.get(
+                (runtime_request_id, receipt.identity.recovery_epoch)
+            )
             if (
                 episode is None
                 or episode.context is None
@@ -1719,7 +2009,7 @@ class KVRecoverySchedulerAdapter:
     def request_admission_started(
         self, runtime_request_id: str, recovery_epoch: int
     ) -> None:
-        episode = self._episodes.get(runtime_request_id)
+        episode = self._episodes.get((runtime_request_id, recovery_epoch))
         if (
             self._closed
             or episode is None
@@ -1782,7 +2072,7 @@ class KVRecoverySchedulerAdapter:
         recovery_epoch: int,
         reason: str,
     ) -> None:
-        episode = self._episodes.get(runtime_request_id)
+        episode = self._episodes.get((runtime_request_id, recovery_epoch))
         if (
             self._closed
             or episode is None
@@ -1836,7 +2126,7 @@ class KVRecoverySchedulerAdapter:
         prompt_tokens_total: int = 1,
         prompt_tokens_cached: int = 0,
     ) -> Any | None:
-        episode = self._episodes.get(runtime_request_id)
+        episode = self._episodes.get((runtime_request_id, recovery_epoch))
         if (
             self._closed
             or episode is None
@@ -1944,27 +2234,56 @@ class KVRecoverySchedulerAdapter:
             runtime_request_id,
             recovery_epoch,
         )
-        self._episodes.pop(runtime_request_id, None)
+        self._episodes.pop((runtime_request_id, recovery_epoch), None)
         return context
 
-    def request_terminal(self, runtime_request_id: str) -> None:
-        episode = self._episodes.pop(runtime_request_id, None)
-        if episode is not None:
+    def request_terminal(
+        self,
+        runtime_request_id: str,
+        terminal_cause: str,
+        generated_tokens_total: int,
+    ) -> None:
+        for key in tuple(self._episodes):
+            if key[0] == runtime_request_id:
+                episode = self._episodes.pop(key)
+                # A profile episode that reached ``preempt`` but no terminal
+                # recovery stage is incomplete evidence.  Retiring it must be
+                # explicit rather than silently making the shard look clean.
+                if episode.preempt_profile_record_id is not None:
+                    self._profile.drop("recovery_event", None)
+        try:
+            emitted = self._bridge.emit_runtime_terminal(
+                runtime_request_id,
+                terminal_cause,
+                timestamp_ns=self._clock_ns(),
+                generated_tokens_total=generated_tokens_total,
+            )
+        except Exception:  # noqa: BLE001 - serving observation must fail open.
+            emitted = None
+        if emitted is None:
             self._profile.drop("recovery_event", None)
-        self._bridge.request_terminal(runtime_request_id)
 
     def reset(self, stale_job_threshold: int) -> None:
         del stale_job_threshold
-        for _episode in self._episodes.values():
-            self._profile.drop("recovery_event", None)
+        for episode in self._episodes.values():
+            if episode.preempt_profile_record_id is not None:
+                self._profile.drop("recovery_event", None)
         self._episodes.clear()
 
     def close(self) -> None:
         if self._closed:
             return
-        self.reset(0)
-        self._closed = True
-        self._logical_ids.clear()
+        try:
+            self.reset(0)
+            self._closed = True
+            self._logical_ids.clear()
+        finally:
+            # The scheduler observer is the last profiler-owned object closed
+            # by EngineCore.shutdown().  Do not rely on Python's atexit path:
+            # serving processes may leave through vLLM's signal-driven
+            # shutdown loop, and formal trace evidence needs the immutable
+            # process/profile summaries before the process exits.
+            self._hooks.close()
 
     def _logical_block_id(
         self,
@@ -2003,6 +2322,7 @@ class KVRecoveryObserverFactoryAdapter:
         self._clock_ns = clock_ns
         self._lock = threading.Lock()
         self._profiles: dict[str, BoundedKVRecoveryProfileLedger] = {}
+        self._scheduler_observers: list[KVRecoverySchedulerAdapter] = []
 
     @property
     def profile_ledgers(self) -> tuple[BoundedKVRecoveryProfileLedger, ...]:
@@ -2019,7 +2339,7 @@ class KVRecoveryObserverFactoryAdapter:
         profile = self._profile_for_current_process()
         if profile is None:
             return None
-        return KVRecoverySchedulerAdapter(
+        observer = KVRecoverySchedulerAdapter(
             self._run_id,
             self._hooks,
             profile,
@@ -2027,6 +2347,21 @@ class KVRecoveryObserverFactoryAdapter:
             self._abi,
             clock_ns=self._clock_ns,
         )
+        with self._lock:
+            self._scheduler_observers.append(observer)
+        return observer
+
+    def close_for_engine_failure(self) -> None:
+        """Synchronously commit EngineCore shards before publishing death."""
+
+        with self._lock:
+            observers = tuple(self._scheduler_observers)
+        for observer in observers:
+            try:
+                observer.close()
+            except Exception:
+                logger.exception("Failed to close scheduler observer before core death")
+        self._hooks.close()
 
     def create_worker_observer(self) -> Any | None:
         if not self._runtime_config_enabled():

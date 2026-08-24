@@ -1,0 +1,3115 @@
+{
+  "active_at_quiescence": [],
+  "client_correct": true,
+  "correctness": true,
+  "distribution": {
+    "completed_request_count": 60,
+    "latency_seconds": {
+      "p50": 53.228708063,
+      "p95": 91.361447502,
+      "p99": 95.358434383
+    },
+    "tpot_seconds": {
+      "p50": 0.09195271090052357,
+      "p95": 0.09974479271727749,
+      "p99": 0.12071790756020942
+    },
+    "ttft_seconds": {
+      "p50": 32.774959835,
+      "p95": 75.581085825,
+      "p99": 78.213394263
+    },
+    "unaffected_survivor_count": 58,
+    "unaffected_survivor_p99_seconds": 95.358434383
+  },
+  "duplicate_abort_attempts": 2,
+  "engine_pid_alive_after_shutdown": false,
+  "evidence_class": "real-online",
+  "evidence_valid": true,
+  "exact_terminal": true,
+  "externally_closed_worker_shards": [
+    {
+      "process_uuid": "a19c8b7a50e6413fa8036a41a85feb5c",
+      "source": "trace.rlp.a19c8b7a50e6413fa8036a41a85feb5c.jsonl",
+      "stream": "trace"
+    },
+    {
+      "process_uuid": "a19c8b7a50e6413fa8036a41a85feb5c",
+      "source": "trace.rlp-kv-recovery.a19c8b7a50e6413fa8036a41a85feb5c.jsonl",
+      "stream": "profile"
+    }
+  ],
+  "incomplete_trace_files": [],
+  "latency_pathology_evaluable": false,
+  "latency_pathology_observed": null,
+  "latency_pathology_reason": "no preregistered paired normal boundary",
+  "leaked_offload_mmaps": [],
+  "lifecycle_boundary_p99_seconds": {
+    "preempt_to_resume": {
+      "count": 3,
+      "p99": 4.441037846
+    },
+    "prefill_to_decode_done": {
+      "count": 58,
+      "p99": 23.42849066
+    },
+    "queue_to_schedule": {
+      "count": 58,
+      "p99": 77.990865858
+    },
+    "schedule_to_prefill_done": {
+      "count": 58,
+      "p99": 6.426733522
+    },
+    "terminal_to_last_release": {
+      "count": 58,
+      "p99": 0.001301623
+    }
+  },
+  "loss_record_count": 0,
+  "metadata": {
+    "data_source": "real-online-oasst1-fixed-projection"
+  },
+  "observer_complete": true,
+  "orphan_lease_count": 0,
+  "orphan_resource_units": 0,
+  "pathology_observed": false,
+  "quiescence_seconds": 5.022563253995031,
+  "quiescent_before_worker_exit": true,
+  "recovery_complete": true,
+  "recovery_complete_request_ids": [
+    "chatcmpl-issue19-oasst1-r06-031-223e2190-3afa-4e50-8988-3f1d19f8b9f6",
+    "chatcmpl-issue19-oasst1-r06-033-122000e5-5b07-4db3-ba5f-801eee72f90b",
+    "chatcmpl-issue19-oasst1-r06-059-db68b32e-981d-4404-8399-c277d3aa232e"
+  ],
+  "repetition": 6,
+  "request_count": 64,
+  "resource_ledger": {
+    "complete": true,
+    "errors": [],
+    "externally_invalidated_resources": [
+      {
+        "externally_invalidated": true,
+        "max_resource_units": 1,
+        "resource_id": "a19c8b7a50e6413fa8036a41a85feb5c:t:68",
+        "resource_type": "offload_transfer",
+        "resource_units": [
+          1,
+          1
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-005-dcc3d723-c1e6-4b34-8205-769248934bce"
+        ],
+        "transitions": [
+          "acquire",
+          "transfer_pending"
+        ],
+        "worker_generation": "VllmWorker-0:PID_042"
+      }
+    ],
+    "orphan_resource_units": 0,
+    "orphan_resources": [],
+    "resource_count": 137,
+    "resource_event_count": 342,
+    "resources": [
+      {
+        "externally_invalidated": false,
+        "max_resource_units": 8,
+        "resource_id": "kv-lease:0c390b8d0cddce388c60999c:41",
+        "resource_type": "kv_capacity_lease",
+        "resource_units": [
+          7,
+          8
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-039-fead3081-e696-4d76-89c3-6145d3d4f339"
+        ],
+        "transitions": [
+          "acquire",
+          "release"
+        ],
+        "worker_generation": "EngineCore:PID_041"
+      },
+      {
+        "externally_invalidated": false,
+        "max_resource_units": 9,
+        "resource_id": "kv-lease:0e2577cf48c5b4a10e22ab45:30",
+        "resource_type": "kv_capacity_lease",
+        "resource_units": [
+          8,
+          9
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-030-8d8e93ca-4a02-4fe7-984a-c5a2cfb98fc1"
+        ],
+        "transitions": [
+          "acquire",
+          "release"
+        ],
+        "worker_generation": "EngineCore:PID_041"
+      },
+      {
+        "externally_invalidated": false,
+        "max_resource_units": 10,
+        "resource_id": "kv-lease:19204c5c8ebe0601b1b9905d:7",
+        "resource_type": "kv_capacity_lease",
+        "resource_units": [
+          8,
+          10
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-006-574280f9-d4d2-4b44-a927-f28c644535a0"
+        ],
+        "transitions": [
+          "acquire",
+          "release"
+        ],
+        "worker_generation": "EngineCore:PID_041"
+      },
+      {
+        "externally_invalidated": false,
+        "max_resource_units": 5,
+        "resource_id": "kv-lease:1a3a1ac995bdf6b16eafd275:63",
+        "resource_type": "kv_capacity_lease",
+        "resource_units": [
+          5,
+          5
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-060-2f0f9369-319f-4a70-a0c4-1e155e185f4b"
+        ],
+        "transitions": [
+          "acquire",
+          "release"
+        ],
+        "worker_generation": "EngineCore:PID_041"
+      },
+      {
+        "externally_invalidated": false,
+        "max_resource_units": 8,
+        "resource_id": "kv-lease:247bc847e04d17dd7c0bcc7f:4",
+        "resource_type": "kv_capacity_lease",
+        "resource_units": [
+          7,
+          8
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-009-ecf1a17d-9125-45a6-b869-9eb00ececf75"
+        ],
+        "transitions": [
+          "acquire",
+          "release"
+        ],
+        "worker_generation": "EngineCore:PID_041"
+      },
+      {
+        "externally_invalidated": false,
+        "max_resource_units": 8,
+        "resource_id": "kv-lease:2de0c6a9ad250bf197f79a25:44",
+        "resource_type": "kv_capacity_lease",
+        "resource_units": [
+          6,
+          8
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-042-7b6be116-55ff-4418-968e-6bb059922697"
+        ],
+        "transitions": [
+          "acquire",
+          "release"
+        ],
+        "worker_generation": "EngineCore:PID_041"
+      },
+      {
+        "externally_invalidated": false,
+        "max_resource_units": 9,
+        "resource_id": "kv-lease:2f0f5b4a0d18add7d4521ab2:37",
+        "resource_type": "kv_capacity_lease",
+        "resource_units": [
+          7,
+          9
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-034-0068a6ee-05eb-4342-ba13-88c7dc3a014a"
+        ],
+        "transitions": [
+          "acquire",
+          "release"
+        ],
+        "worker_generation": "EngineCore:PID_041"
+      },
+      {
+        "externally_invalidated": false,
+        "max_resource_units": 8,
+        "resource_id": "kv-lease:2fb8cb7f1636dbe23fa6df4f:23",
+        "resource_type": "kv_capacity_lease",
+        "resource_units": [
+          2,
+          8
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-023-7f022cc3-43db-4122-8de9-e319bf2cabb9"
+        ],
+        "transitions": [
+          "acquire",
+          "release"
+        ],
+        "worker_generation": "EngineCore:PID_041"
+      },
+      {
+        "externally_invalidated": false,
+        "max_resource_units": 7,
+        "resource_id": "kv-lease:32dc991e9f45b933e84b823f:16",
+        "resource_type": "kv_capacity_lease",
+        "resource_units": [
+          6,
+          7
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-016-723d6feb-ecbb-4950-b455-c119813b271e"
+        ],
+        "transitions": [
+          "acquire",
+          "release"
+        ],
+        "worker_generation": "EngineCore:PID_041"
+      },
+      {
+        "externally_invalidated": false,
+        "max_resource_units": 5,
+        "resource_id": "kv-lease:370bc49f6370c5d567547452:20",
+        "resource_type": "kv_capacity_lease",
+        "resource_units": [
+          5,
+          5
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-020-15e718b9-6a76-40a5-b70c-da9c97c69eae"
+        ],
+        "transitions": [
+          "acquire",
+          "release"
+        ],
+        "worker_generation": "EngineCore:PID_041"
+      },
+      {
+        "externally_invalidated": false,
+        "max_resource_units": 5,
+        "resource_id": "kv-lease:386cf0036f380b7bdc569b66:49",
+        "resource_type": "kv_capacity_lease",
+        "resource_units": [
+          5,
+          5
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-047-8f0c885c-8725-4405-82b0-0e7f9a479fdf"
+        ],
+        "transitions": [
+          "acquire",
+          "release"
+        ],
+        "worker_generation": "EngineCore:PID_041"
+      },
+      {
+        "externally_invalidated": false,
+        "max_resource_units": 6,
+        "resource_id": "kv-lease:3c9fea785622c30c6ecbe29d:28",
+        "resource_type": "kv_capacity_lease",
+        "resource_units": [
+          5,
+          6
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-028-3400698a-6b31-489e-82de-4c3a42160b7f"
+        ],
+        "transitions": [
+          "acquire",
+          "release"
+        ],
+        "worker_generation": "EngineCore:PID_041"
+      },
+      {
+        "externally_invalidated": false,
+        "max_resource_units": 8,
+        "resource_id": "kv-lease:413bb2f0c7e9e94188cb0e4e:27",
+        "resource_type": "kv_capacity_lease",
+        "resource_units": [
+          7,
+          8
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-027-549dee53-b6a9-43cf-a324-024c0fa47ca4"
+        ],
+        "transitions": [
+          "acquire",
+          "release"
+        ],
+        "worker_generation": "EngineCore:PID_041"
+      },
+      {
+        "externally_invalidated": false,
+        "max_resource_units": 7,
+        "resource_id": "kv-lease:418d8c94179b5ee676350179:56",
+        "resource_type": "kv_capacity_lease",
+        "resource_units": [
+          6,
+          7
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-054-4fb9865f-f0a2-4bf8-9cb2-0bf2b0c2252f"
+        ],
+        "transitions": [
+          "acquire",
+          "release"
+        ],
+        "worker_generation": "EngineCore:PID_041"
+      },
+      {
+        "externally_invalidated": false,
+        "max_resource_units": 8,
+        "resource_id": "kv-lease:457db78b9afe5505a8330714:61",
+        "resource_type": "kv_capacity_lease",
+        "resource_units": [
+          8,
+          8
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-059-db68b32e-981d-4404-8399-c277d3aa232e"
+        ],
+        "transitions": [
+          "acquire",
+          "release"
+        ],
+        "worker_generation": "EngineCore:PID_041"
+      },
+      {
+        "externally_invalidated": false,
+        "max_resource_units": 9,
+        "resource_id": "kv-lease:457db78b9afe5505a8330714:62",
+        "resource_type": "kv_capacity_lease",
+        "resource_units": [
+          7,
+          9
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-059-db68b32e-981d-4404-8399-c277d3aa232e"
+        ],
+        "transitions": [
+          "acquire",
+          "release"
+        ],
+        "worker_generation": "EngineCore:PID_041"
+      },
+      {
+        "externally_invalidated": false,
+        "max_resource_units": 5,
+        "resource_id": "kv-lease:45f9fd8ee8ae9311c2227d9f:34",
+        "resource_type": "kv_capacity_lease",
+        "resource_units": [
+          5,
+          5
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-033-122000e5-5b07-4db3-ba5f-801eee72f90b"
+        ],
+        "transitions": [
+          "acquire",
+          "release"
+        ],
+        "worker_generation": "EngineCore:PID_041"
+      },
+      {
+        "externally_invalidated": false,
+        "max_resource_units": 6,
+        "resource_id": "kv-lease:45f9fd8ee8ae9311c2227d9f:36",
+        "resource_type": "kv_capacity_lease",
+        "resource_units": [
+          4,
+          6
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-033-122000e5-5b07-4db3-ba5f-801eee72f90b"
+        ],
+        "transitions": [
+          "acquire",
+          "release"
+        ],
+        "worker_generation": "EngineCore:PID_041"
+      },
+      {
+        "externally_invalidated": false,
+        "max_resource_units": 9,
+        "resource_id": "kv-lease:479018150c73a2aaf61bb436:14",
+        "resource_type": "kv_capacity_lease",
+        "resource_units": [
+          7,
+          9
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-014-6c8dec47-383f-4728-9e7c-3f08c9f06ba3"
+        ],
+        "transitions": [
+          "acquire",
+          "release"
+        ],
+        "worker_generation": "EngineCore:PID_041"
+      },
+      {
+        "externally_invalidated": false,
+        "max_resource_units": 11,
+        "resource_id": "kv-lease:49b733f0359d20f0eb7f8069:25",
+        "resource_type": "kv_capacity_lease",
+        "resource_units": [
+          9,
+          11
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-025-6b3e8901-4a18-4f61-a556-51b13b3da848"
+        ],
+        "transitions": [
+          "acquire",
+          "release"
+        ],
+        "worker_generation": "EngineCore:PID_041"
+      },
+      {
+        "externally_invalidated": false,
+        "max_resource_units": 10,
+        "resource_id": "kv-lease:49ea936e1f2a3b1b6627e05f:39",
+        "resource_type": "kv_capacity_lease",
+        "resource_units": [
+          8,
+          10
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-037-6a078642-6d54-417d-a8e3-7c5211360caa"
+        ],
+        "transitions": [
+          "acquire",
+          "release"
+        ],
+        "worker_generation": "EngineCore:PID_041"
+      },
+      {
+        "externally_invalidated": false,
+        "max_resource_units": 7,
+        "resource_id": "kv-lease:4a6d86a03df7387b701f7606:1",
+        "resource_type": "kv_capacity_lease",
+        "resource_units": [
+          7,
+          7
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-001-3cea8e47-8031-4173-a7ae-16bbad0a4ba3"
+        ],
+        "transitions": [
+          "acquire",
+          "release"
+        ],
+        "worker_generation": "EngineCore:PID_041"
+      },
+      {
+        "externally_invalidated": false,
+        "max_resource_units": 7,
+        "resource_id": "kv-lease:4aed3a404181966ceab6e9a2:18",
+        "resource_type": "kv_capacity_lease",
+        "resource_units": [
+          6,
+          7
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-018-93a5c8a0-0331-46c4-b632-b250b82edd7b"
+        ],
+        "transitions": [
+          "acquire",
+          "release"
+        ],
+        "worker_generation": "EngineCore:PID_041"
+      },
+      {
+        "externally_invalidated": false,
+        "max_resource_units": 6,
+        "resource_id": "kv-lease:4c8409d40294c6ccdcbb43e4:31",
+        "resource_type": "kv_capacity_lease",
+        "resource_units": [
+          6,
+          6
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-031-223e2190-3afa-4e50-8988-3f1d19f8b9f6"
+        ],
+        "transitions": [
+          "acquire",
+          "release"
+        ],
+        "worker_generation": "EngineCore:PID_041"
+      },
+      {
+        "externally_invalidated": false,
+        "max_resource_units": 7,
+        "resource_id": "kv-lease:4c8409d40294c6ccdcbb43e4:32",
+        "resource_type": "kv_capacity_lease",
+        "resource_units": [
+          5,
+          7
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-031-223e2190-3afa-4e50-8988-3f1d19f8b9f6"
+        ],
+        "transitions": [
+          "acquire",
+          "release"
+        ],
+        "worker_generation": "EngineCore:PID_041"
+      },
+      {
+        "externally_invalidated": false,
+        "max_resource_units": 7,
+        "resource_id": "kv-lease:4c8409d40294c6ccdcbb43e4:35",
+        "resource_type": "kv_capacity_lease",
+        "resource_units": [
+          7,
+          7
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-031-223e2190-3afa-4e50-8988-3f1d19f8b9f6"
+        ],
+        "transitions": [
+          "acquire",
+          "release"
+        ],
+        "worker_generation": "EngineCore:PID_041"
+      },
+      {
+        "externally_invalidated": false,
+        "max_resource_units": 10,
+        "resource_id": "kv-lease:4f4e83cd0baa8db2a32f8c12:5",
+        "resource_type": "kv_capacity_lease",
+        "resource_units": [
+          8,
+          10
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-004-5f751679-64cc-4c2f-ad3f-8f3494e2ef8b"
+        ],
+        "transitions": [
+          "acquire",
+          "release"
+        ],
+        "worker_generation": "EngineCore:PID_041"
+      },
+      {
+        "externally_invalidated": false,
+        "max_resource_units": 21,
+        "resource_id": "kv-lease:5cfdeee1cc770abf97ec2dc1:12",
+        "resource_type": "kv_capacity_lease",
+        "resource_units": [
+          16,
+          21
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-012-c142a120-bf01-42c7-8c7b-125f949a04f1"
+        ],
+        "transitions": [
+          "acquire",
+          "release"
+        ],
+        "worker_generation": "EngineCore:PID_041"
+      },
+      {
+        "externally_invalidated": false,
+        "max_resource_units": 8,
+        "resource_id": "kv-lease:5d0f350a08ffa5c8f4bfbdcf:22",
+        "resource_type": "kv_capacity_lease",
+        "resource_units": [
+          6,
+          8
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-022-cdef553a-2a03-4e2d-ad52-ec29cb0a3c6a"
+        ],
+        "transitions": [
+          "acquire",
+          "release"
+        ],
+        "worker_generation": "EngineCore:PID_041"
+      },
+      {
+        "externally_invalidated": false,
+        "max_resource_units": 10,
+        "resource_id": "kv-lease:6024fa4c8ff3c0b93372c2ad:21",
+        "resource_type": "kv_capacity_lease",
+        "resource_units": [
+          9,
+          10
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-021-418b0c55-bf28-431b-bace-2299c72e15e3"
+        ],
+        "transitions": [
+          "acquire",
+          "release"
+        ],
+        "worker_generation": "EngineCore:PID_041"
+      },
+      {
+        "externally_invalidated": false,
+        "max_resource_units": 7,
+        "resource_id": "kv-lease:6dec9a4db2a9caaa5fc8abc1:19",
+        "resource_type": "kv_capacity_lease",
+        "resource_units": [
+          5,
+          7
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-019-0174b786-5eed-4e07-82ad-026f8ea830ff"
+        ],
+        "transitions": [
+          "acquire",
+          "release"
+        ],
+        "worker_generation": "EngineCore:PID_041"
+      },
+      {
+        "externally_invalidated": false,
+        "max_resource_units": 8,
+        "resource_id": "kv-lease:6f1a8436bd1577940f14a19c:66",
+        "resource_type": "kv_capacity_lease",
+        "resource_units": [
+          7,
+          8
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-063-28e5ccec-aa65-4969-a288-f0abdfd5407a"
+        ],
+        "transitions": [
+          "acquire",
+          "release"
+        ],
+        "worker_generation": "EngineCore:PID_041"
+      },
+      {
+        "externally_invalidated": false,
+        "max_resource_units": 8,
+        "resource_id": "kv-lease:71ffbe17fa89b6ee48e223a1:17",
+        "resource_type": "kv_capacity_lease",
+        "resource_units": [
+          7,
+          8
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-017-ccf8bd02-1546-4e4d-900a-221d582f961c"
+        ],
+        "transitions": [
+          "acquire",
+          "release"
+        ],
+        "worker_generation": "EngineCore:PID_041"
+      },
+      {
+        "externally_invalidated": false,
+        "max_resource_units": 7,
+        "resource_id": "kv-lease:72c51ddff9b9554da193aeee:0",
+        "resource_type": "kv_capacity_lease",
+        "resource_units": [
+          5,
+          7
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-044-25d86e7b-ee90-459f-8ab1-140bff613874"
+        ],
+        "transitions": [
+          "acquire",
+          "release"
+        ],
+        "worker_generation": "EngineCore:PID_041"
+      },
+      {
+        "externally_invalidated": false,
+        "max_resource_units": 14,
+        "resource_id": "kv-lease:7a1a22a1151b54c6db485fd5:29",
+        "resource_type": "kv_capacity_lease",
+        "resource_units": [
+          12,
+          14
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-029-1807538f-8a06-4863-956c-8a1cf86044da"
+        ],
+        "transitions": [
+          "acquire",
+          "release"
+        ],
+        "worker_generation": "EngineCore:PID_041"
+      },
+      {
+        "externally_invalidated": false,
+        "max_resource_units": 7,
+        "resource_id": "kv-lease:7dc86dcf15a781a9bef00351:2",
+        "resource_type": "kv_capacity_lease",
+        "resource_units": [
+          5,
+          7
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-035-91001805-007c-4163-b919-3a4de91c9f53"
+        ],
+        "transitions": [
+          "acquire",
+          "release"
+        ],
+        "worker_generation": "EngineCore:PID_041"
+      },
+      {
+        "externally_invalidated": false,
+        "max_resource_units": 6,
+        "resource_id": "kv-lease:8382471f3a7d1133589fb3b2:54",
+        "resource_type": "kv_capacity_lease",
+        "resource_units": [
+          5,
+          6
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-052-55a9295c-e40b-46c4-9e74-7c001b70d325"
+        ],
+        "transitions": [
+          "acquire",
+          "release"
+        ],
+        "worker_generation": "EngineCore:PID_041"
+      },
+      {
+        "externally_invalidated": false,
+        "max_resource_units": 7,
+        "resource_id": "kv-lease:881d10557a76946d9468b2bb:64",
+        "resource_type": "kv_capacity_lease",
+        "resource_units": [
+          6,
+          7
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-061-0da8b374-7e8e-4756-9eac-80c1202a3ff9"
+        ],
+        "transitions": [
+          "acquire",
+          "release"
+        ],
+        "worker_generation": "EngineCore:PID_041"
+      },
+      {
+        "externally_invalidated": false,
+        "max_resource_units": 8,
+        "resource_id": "kv-lease:8ad526316c4d364b2b964cf4:43",
+        "resource_type": "kv_capacity_lease",
+        "resource_units": [
+          6,
+          8
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-041-4584b1ee-9de0-4e03-9200-23499760faed"
+        ],
+        "transitions": [
+          "acquire",
+          "release"
+        ],
+        "worker_generation": "EngineCore:PID_041"
+      },
+      {
+        "externally_invalidated": false,
+        "max_resource_units": 7,
+        "resource_id": "kv-lease:904a76243faa73ff19be236a:51",
+        "resource_type": "kv_capacity_lease",
+        "resource_units": [
+          6,
+          7
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-049-371cf2e1-919e-43c9-b602-c16f777b23a3"
+        ],
+        "transitions": [
+          "acquire",
+          "release"
+        ],
+        "worker_generation": "EngineCore:PID_041"
+      },
+      {
+        "externally_invalidated": false,
+        "max_resource_units": 5,
+        "resource_id": "kv-lease:9e30358861a6726c6c8dc027:46",
+        "resource_type": "kv_capacity_lease",
+        "resource_units": [
+          5,
+          5
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-045-a4745014-ae80-4f94-9526-7a40760887de"
+        ],
+        "transitions": [
+          "acquire",
+          "release"
+        ],
+        "worker_generation": "EngineCore:PID_041"
+      },
+      {
+        "externally_invalidated": false,
+        "max_resource_units": 6,
+        "resource_id": "kv-lease:9e30358861a6726c6c8dc027:47",
+        "resource_type": "kv_capacity_lease",
+        "resource_units": [
+          5,
+          6
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-045-a4745014-ae80-4f94-9526-7a40760887de"
+        ],
+        "transitions": [
+          "acquire",
+          "release"
+        ],
+        "worker_generation": "EngineCore:PID_041"
+      },
+      {
+        "externally_invalidated": false,
+        "max_resource_units": 6,
+        "resource_id": "kv-lease:a27adad77877809f0ead1619:60",
+        "resource_type": "kv_capacity_lease",
+        "resource_units": [
+          5,
+          6
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-058-4deb1bd9-3fae-47a2-8e64-9fedc9d5bb7e"
+        ],
+        "transitions": [
+          "acquire",
+          "release"
+        ],
+        "worker_generation": "EngineCore:PID_041"
+      },
+      {
+        "externally_invalidated": false,
+        "max_resource_units": 6,
+        "resource_id": "kv-lease:acbfb94e61be9c14a9fe678f:10",
+        "resource_type": "kv_capacity_lease",
+        "resource_units": [
+          5,
+          6
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-010-318f32a9-6550-4af5-afaa-218e7eb7e1c1"
+        ],
+        "transitions": [
+          "acquire",
+          "release"
+        ],
+        "worker_generation": "EngineCore:PID_041"
+      },
+      {
+        "externally_invalidated": false,
+        "max_resource_units": 6,
+        "resource_id": "kv-lease:ad07e5c1ba25eb0f18ee1f26:33",
+        "resource_type": "kv_capacity_lease",
+        "resource_units": [
+          5,
+          6
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-032-d1adaaf4-6bbc-40da-84a8-7d219cc73f2c"
+        ],
+        "transitions": [
+          "acquire",
+          "release"
+        ],
+        "worker_generation": "EngineCore:PID_041"
+      },
+      {
+        "externally_invalidated": false,
+        "max_resource_units": 9,
+        "resource_id": "kv-lease:b4e8c7c942d9d4d5bfe94b51:59",
+        "resource_type": "kv_capacity_lease",
+        "resource_units": [
+          8,
+          9
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-057-2d9e2b9f-6ad5-4bba-a036-486f43b1c0f5"
+        ],
+        "transitions": [
+          "acquire",
+          "release"
+        ],
+        "worker_generation": "EngineCore:PID_041"
+      },
+      {
+        "externally_invalidated": false,
+        "max_resource_units": 7,
+        "resource_id": "kv-lease:b532e1203a8594705b0665de:9",
+        "resource_type": "kv_capacity_lease",
+        "resource_units": [
+          5,
+          7
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-008-162497f0-ed0c-47b1-b2c4-dd56390ab8ee"
+        ],
+        "transitions": [
+          "acquire",
+          "release"
+        ],
+        "worker_generation": "EngineCore:PID_041"
+      },
+      {
+        "externally_invalidated": false,
+        "max_resource_units": 7,
+        "resource_id": "kv-lease:be5207a3d7758f04d13c419b:38",
+        "resource_type": "kv_capacity_lease",
+        "resource_units": [
+          6,
+          7
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-036-76a4ef1e-b6d6-47b0-b668-ff5b8fac767e"
+        ],
+        "transitions": [
+          "acquire",
+          "release"
+        ],
+        "worker_generation": "EngineCore:PID_041"
+      },
+      {
+        "externally_invalidated": false,
+        "max_resource_units": 9,
+        "resource_id": "kv-lease:bf5bfa050759997ed0c2e67c:11",
+        "resource_type": "kv_capacity_lease",
+        "resource_units": [
+          8,
+          9
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-011-0c532c20-94aa-4f91-a9f1-18ac594cf96f"
+        ],
+        "transitions": [
+          "acquire",
+          "release"
+        ],
+        "worker_generation": "EngineCore:PID_041"
+      },
+      {
+        "externally_invalidated": false,
+        "max_resource_units": 6,
+        "resource_id": "kv-lease:c23bafecf47a4bb5f44264f3:26",
+        "resource_type": "kv_capacity_lease",
+        "resource_units": [
+          5,
+          6
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-026-ae77bc36-0927-424f-8ec9-9fb0c2436258"
+        ],
+        "transitions": [
+          "acquire",
+          "release"
+        ],
+        "worker_generation": "EngineCore:PID_041"
+      },
+      {
+        "externally_invalidated": false,
+        "max_resource_units": 8,
+        "resource_id": "kv-lease:c50ca9059cd04bfa162154f0:48",
+        "resource_type": "kv_capacity_lease",
+        "resource_units": [
+          6,
+          8
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-046-10719cdf-ead4-4964-83d6-a5bb9ca11fb6"
+        ],
+        "transitions": [
+          "acquire",
+          "release"
+        ],
+        "worker_generation": "EngineCore:PID_041"
+      },
+      {
+        "externally_invalidated": false,
+        "max_resource_units": 8,
+        "resource_id": "kv-lease:c658d6aa084714b1be309b27:13",
+        "resource_type": "kv_capacity_lease",
+        "resource_units": [
+          7,
+          8
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-013-a95206cb-080f-4cb0-83de-da4a147ddbc5"
+        ],
+        "transitions": [
+          "acquire",
+          "release"
+        ],
+        "worker_generation": "EngineCore:PID_041"
+      },
+      {
+        "externally_invalidated": false,
+        "max_resource_units": 14,
+        "resource_id": "kv-lease:d194c73d0131e0715138cd8b:8",
+        "resource_type": "kv_capacity_lease",
+        "resource_units": [
+          13,
+          14
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-007-d6539e11-6dee-402f-9b9f-c6ca1152c79c"
+        ],
+        "transitions": [
+          "acquire",
+          "release"
+        ],
+        "worker_generation": "EngineCore:PID_041"
+      },
+      {
+        "externally_invalidated": false,
+        "max_resource_units": 9,
+        "resource_id": "kv-lease:d1e2cd59efb8de6ad4266b28:55",
+        "resource_type": "kv_capacity_lease",
+        "resource_units": [
+          7,
+          9
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-053-7ac16d2e-3cd3-4900-bcb6-2fc3cd6f8839"
+        ],
+        "transitions": [
+          "acquire",
+          "release"
+        ],
+        "worker_generation": "EngineCore:PID_041"
+      },
+      {
+        "externally_invalidated": false,
+        "max_resource_units": 7,
+        "resource_id": "kv-lease:d3d8b2f6959bf8f1d5b90b38:53",
+        "resource_type": "kv_capacity_lease",
+        "resource_units": [
+          5,
+          7
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-051-6bd29b67-67ce-4914-9a19-7f50edb95516"
+        ],
+        "transitions": [
+          "acquire",
+          "release"
+        ],
+        "worker_generation": "EngineCore:PID_041"
+      },
+      {
+        "externally_invalidated": false,
+        "max_resource_units": 9,
+        "resource_id": "kv-lease:d619403b72f33305669a0b28:3",
+        "resource_type": "kv_capacity_lease",
+        "resource_units": [
+          8,
+          9
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-000-8a13fbb7-ae59-4d0a-8f0f-889ab6497b0d"
+        ],
+        "transitions": [
+          "acquire",
+          "release"
+        ],
+        "worker_generation": "EngineCore:PID_041"
+      },
+      {
+        "externally_invalidated": false,
+        "max_resource_units": 8,
+        "resource_id": "kv-lease:d8a559dbf2b4e0719e3fa616:42",
+        "resource_type": "kv_capacity_lease",
+        "resource_units": [
+          7,
+          8
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-040-4d90bb34-d255-4471-bc38-fe8c23175c1b"
+        ],
+        "transitions": [
+          "acquire",
+          "release"
+        ],
+        "worker_generation": "EngineCore:PID_041"
+      },
+      {
+        "externally_invalidated": false,
+        "max_resource_units": 10,
+        "resource_id": "kv-lease:e33f8b13620f8956b696363a:45",
+        "resource_type": "kv_capacity_lease",
+        "resource_units": [
+          8,
+          10
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-043-0ced23f7-ec9c-4b0a-a78d-86d8a17d1ac3"
+        ],
+        "transitions": [
+          "acquire",
+          "release"
+        ],
+        "worker_generation": "EngineCore:PID_041"
+      },
+      {
+        "externally_invalidated": false,
+        "max_resource_units": 8,
+        "resource_id": "kv-lease:e8f9d51a8b9078efdd089aa1:24",
+        "resource_type": "kv_capacity_lease",
+        "resource_units": [
+          7,
+          8
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-024-72131a6e-5509-4259-937f-07e17b484938"
+        ],
+        "transitions": [
+          "acquire",
+          "release"
+        ],
+        "worker_generation": "EngineCore:PID_041"
+      },
+      {
+        "externally_invalidated": false,
+        "max_resource_units": 11,
+        "resource_id": "kv-lease:f007c6c413dd0c7729886463:65",
+        "resource_type": "kv_capacity_lease",
+        "resource_units": [
+          9,
+          11
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-062-0e9b01d8-850f-4de4-a748-8eead58dd940"
+        ],
+        "transitions": [
+          "acquire",
+          "release"
+        ],
+        "worker_generation": "EngineCore:PID_041"
+      },
+      {
+        "externally_invalidated": false,
+        "max_resource_units": 12,
+        "resource_id": "kv-lease:f20254ad8186a2208da9bbe9:40",
+        "resource_type": "kv_capacity_lease",
+        "resource_units": [
+          11,
+          12
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-038-06a0e32d-132f-41e9-be6f-22645e571030"
+        ],
+        "transitions": [
+          "acquire",
+          "release"
+        ],
+        "worker_generation": "EngineCore:PID_041"
+      },
+      {
+        "externally_invalidated": false,
+        "max_resource_units": 7,
+        "resource_id": "kv-lease:f2eb20b3cbd8dcc41a5924e9:50",
+        "resource_type": "kv_capacity_lease",
+        "resource_units": [
+          6,
+          7
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-048-da63d1dd-1da9-4916-aa5b-d60eb3e9e31d"
+        ],
+        "transitions": [
+          "acquire",
+          "release"
+        ],
+        "worker_generation": "EngineCore:PID_041"
+      },
+      {
+        "externally_invalidated": false,
+        "max_resource_units": 7,
+        "resource_id": "kv-lease:f55a17d1ad1192e8fad38478:57",
+        "resource_type": "kv_capacity_lease",
+        "resource_units": [
+          5,
+          7
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-055-463afe05-6765-4278-8eb9-398dcede77e7"
+        ],
+        "transitions": [
+          "acquire",
+          "release"
+        ],
+        "worker_generation": "EngineCore:PID_041"
+      },
+      {
+        "externally_invalidated": false,
+        "max_resource_units": 6,
+        "resource_id": "kv-lease:fa5038da498d9d5bcbf856ba:6",
+        "resource_type": "kv_capacity_lease",
+        "resource_units": [
+          6,
+          6
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-002-27f9b5af-b8ed-4c4c-88e9-14cb6d2f6399"
+        ],
+        "transitions": [
+          "acquire",
+          "release"
+        ],
+        "worker_generation": "EngineCore:PID_041"
+      },
+      {
+        "externally_invalidated": false,
+        "max_resource_units": 10,
+        "resource_id": "kv-lease:fa8f5bb595b1b65aaf5e5780:67",
+        "resource_type": "kv_capacity_lease",
+        "resource_units": [
+          10,
+          10
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-005-dcc3d723-c1e6-4b34-8205-769248934bce"
+        ],
+        "transitions": [
+          "acquire",
+          "invalidate"
+        ],
+        "worker_generation": "EngineCore:PID_041"
+      },
+      {
+        "externally_invalidated": false,
+        "max_resource_units": 6,
+        "resource_id": "kv-lease:fb7d9f6f32603102b3046b4b:58",
+        "resource_type": "kv_capacity_lease",
+        "resource_units": [
+          5,
+          6
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-056-ba608e4c-ec99-4d1e-956d-8c39fc773c0c"
+        ],
+        "transitions": [
+          "acquire",
+          "release"
+        ],
+        "worker_generation": "EngineCore:PID_041"
+      },
+      {
+        "externally_invalidated": false,
+        "max_resource_units": 7,
+        "resource_id": "kv-lease:fc118a8fb9ce0631a6a1e23f:52",
+        "resource_type": "kv_capacity_lease",
+        "resource_units": [
+          6,
+          7
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-050-43b8b9e7-174f-42ae-abfb-8f815796d5ce"
+        ],
+        "transitions": [
+          "acquire",
+          "release"
+        ],
+        "worker_generation": "EngineCore:PID_041"
+      },
+      {
+        "externally_invalidated": false,
+        "max_resource_units": 17,
+        "resource_id": "kv-lease:fff7f617daa94c2476b359d9:15",
+        "resource_type": "kv_capacity_lease",
+        "resource_units": [
+          16,
+          17
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-015-e600ef88-d0c0-44d1-b7a8-9dfa5ff858ca"
+        ],
+        "transitions": [
+          "acquire",
+          "release"
+        ],
+        "worker_generation": "EngineCore:PID_041"
+      },
+      {
+        "externally_invalidated": false,
+        "max_resource_units": 1,
+        "resource_id": "a19c8b7a50e6413fa8036a41a85feb5c:t:0",
+        "resource_type": "offload_transfer",
+        "resource_units": [
+          1,
+          1,
+          1
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-044-25d86e7b-ee90-459f-8ab1-140bff613874"
+        ],
+        "transitions": [
+          "acquire",
+          "transfer_pending",
+          "release"
+        ],
+        "worker_generation": "VllmWorker-0:PID_042"
+      },
+      {
+        "externally_invalidated": false,
+        "max_resource_units": 1,
+        "resource_id": "a19c8b7a50e6413fa8036a41a85feb5c:t:1",
+        "resource_type": "offload_transfer",
+        "resource_units": [
+          1,
+          1,
+          1
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-001-3cea8e47-8031-4173-a7ae-16bbad0a4ba3"
+        ],
+        "transitions": [
+          "acquire",
+          "transfer_pending",
+          "release"
+        ],
+        "worker_generation": "VllmWorker-0:PID_042"
+      },
+      {
+        "externally_invalidated": false,
+        "max_resource_units": 1,
+        "resource_id": "a19c8b7a50e6413fa8036a41a85feb5c:t:10",
+        "resource_type": "offload_transfer",
+        "resource_units": [
+          1,
+          1,
+          1
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-010-318f32a9-6550-4af5-afaa-218e7eb7e1c1"
+        ],
+        "transitions": [
+          "acquire",
+          "transfer_pending",
+          "release"
+        ],
+        "worker_generation": "VllmWorker-0:PID_042"
+      },
+      {
+        "externally_invalidated": false,
+        "max_resource_units": 1,
+        "resource_id": "a19c8b7a50e6413fa8036a41a85feb5c:t:11",
+        "resource_type": "offload_transfer",
+        "resource_units": [
+          1,
+          1,
+          1
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-011-0c532c20-94aa-4f91-a9f1-18ac594cf96f"
+        ],
+        "transitions": [
+          "acquire",
+          "transfer_pending",
+          "release"
+        ],
+        "worker_generation": "VllmWorker-0:PID_042"
+      },
+      {
+        "externally_invalidated": false,
+        "max_resource_units": 1,
+        "resource_id": "a19c8b7a50e6413fa8036a41a85feb5c:t:12",
+        "resource_type": "offload_transfer",
+        "resource_units": [
+          1,
+          1,
+          1
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-012-c142a120-bf01-42c7-8c7b-125f949a04f1"
+        ],
+        "transitions": [
+          "acquire",
+          "transfer_pending",
+          "release"
+        ],
+        "worker_generation": "VllmWorker-0:PID_042"
+      },
+      {
+        "externally_invalidated": false,
+        "max_resource_units": 1,
+        "resource_id": "a19c8b7a50e6413fa8036a41a85feb5c:t:13",
+        "resource_type": "offload_transfer",
+        "resource_units": [
+          1,
+          1,
+          1
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-012-c142a120-bf01-42c7-8c7b-125f949a04f1"
+        ],
+        "transitions": [
+          "acquire",
+          "transfer_pending",
+          "release"
+        ],
+        "worker_generation": "VllmWorker-0:PID_042"
+      },
+      {
+        "externally_invalidated": false,
+        "max_resource_units": 1,
+        "resource_id": "a19c8b7a50e6413fa8036a41a85feb5c:t:14",
+        "resource_type": "offload_transfer",
+        "resource_units": [
+          1,
+          1,
+          1
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-013-a95206cb-080f-4cb0-83de-da4a147ddbc5"
+        ],
+        "transitions": [
+          "acquire",
+          "transfer_pending",
+          "release"
+        ],
+        "worker_generation": "VllmWorker-0:PID_042"
+      },
+      {
+        "externally_invalidated": false,
+        "max_resource_units": 1,
+        "resource_id": "a19c8b7a50e6413fa8036a41a85feb5c:t:15",
+        "resource_type": "offload_transfer",
+        "resource_units": [
+          1,
+          1,
+          1
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-014-6c8dec47-383f-4728-9e7c-3f08c9f06ba3"
+        ],
+        "transitions": [
+          "acquire",
+          "transfer_pending",
+          "release"
+        ],
+        "worker_generation": "VllmWorker-0:PID_042"
+      },
+      {
+        "externally_invalidated": false,
+        "max_resource_units": 1,
+        "resource_id": "a19c8b7a50e6413fa8036a41a85feb5c:t:16",
+        "resource_type": "offload_transfer",
+        "resource_units": [
+          1,
+          1,
+          1
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-014-6c8dec47-383f-4728-9e7c-3f08c9f06ba3"
+        ],
+        "transitions": [
+          "acquire",
+          "transfer_pending",
+          "release"
+        ],
+        "worker_generation": "VllmWorker-0:PID_042"
+      },
+      {
+        "externally_invalidated": false,
+        "max_resource_units": 1,
+        "resource_id": "a19c8b7a50e6413fa8036a41a85feb5c:t:17",
+        "resource_type": "offload_transfer",
+        "resource_units": [
+          1,
+          1,
+          1
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-015-e600ef88-d0c0-44d1-b7a8-9dfa5ff858ca"
+        ],
+        "transitions": [
+          "acquire",
+          "transfer_pending",
+          "release"
+        ],
+        "worker_generation": "VllmWorker-0:PID_042"
+      },
+      {
+        "externally_invalidated": false,
+        "max_resource_units": 1,
+        "resource_id": "a19c8b7a50e6413fa8036a41a85feb5c:t:18",
+        "resource_type": "offload_transfer",
+        "resource_units": [
+          1,
+          1,
+          1
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-016-723d6feb-ecbb-4950-b455-c119813b271e"
+        ],
+        "transitions": [
+          "acquire",
+          "transfer_pending",
+          "release"
+        ],
+        "worker_generation": "VllmWorker-0:PID_042"
+      },
+      {
+        "externally_invalidated": false,
+        "max_resource_units": 1,
+        "resource_id": "a19c8b7a50e6413fa8036a41a85feb5c:t:19",
+        "resource_type": "offload_transfer",
+        "resource_units": [
+          1,
+          1,
+          1
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-017-ccf8bd02-1546-4e4d-900a-221d582f961c"
+        ],
+        "transitions": [
+          "acquire",
+          "transfer_pending",
+          "release"
+        ],
+        "worker_generation": "VllmWorker-0:PID_042"
+      },
+      {
+        "externally_invalidated": false,
+        "max_resource_units": 1,
+        "resource_id": "a19c8b7a50e6413fa8036a41a85feb5c:t:2",
+        "resource_type": "offload_transfer",
+        "resource_units": [
+          1,
+          1,
+          1
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-035-91001805-007c-4163-b919-3a4de91c9f53"
+        ],
+        "transitions": [
+          "acquire",
+          "transfer_pending",
+          "release"
+        ],
+        "worker_generation": "VllmWorker-0:PID_042"
+      },
+      {
+        "externally_invalidated": false,
+        "max_resource_units": 1,
+        "resource_id": "a19c8b7a50e6413fa8036a41a85feb5c:t:20",
+        "resource_type": "offload_transfer",
+        "resource_units": [
+          1,
+          1,
+          1
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-018-93a5c8a0-0331-46c4-b632-b250b82edd7b"
+        ],
+        "transitions": [
+          "acquire",
+          "transfer_pending",
+          "release"
+        ],
+        "worker_generation": "VllmWorker-0:PID_042"
+      },
+      {
+        "externally_invalidated": false,
+        "max_resource_units": 1,
+        "resource_id": "a19c8b7a50e6413fa8036a41a85feb5c:t:21",
+        "resource_type": "offload_transfer",
+        "resource_units": [
+          1,
+          1,
+          1
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-019-0174b786-5eed-4e07-82ad-026f8ea830ff"
+        ],
+        "transitions": [
+          "acquire",
+          "transfer_pending",
+          "release"
+        ],
+        "worker_generation": "VllmWorker-0:PID_042"
+      },
+      {
+        "externally_invalidated": false,
+        "max_resource_units": 1,
+        "resource_id": "a19c8b7a50e6413fa8036a41a85feb5c:t:22",
+        "resource_type": "offload_transfer",
+        "resource_units": [
+          1,
+          1,
+          1
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-020-15e718b9-6a76-40a5-b70c-da9c97c69eae"
+        ],
+        "transitions": [
+          "acquire",
+          "transfer_pending",
+          "release"
+        ],
+        "worker_generation": "VllmWorker-0:PID_042"
+      },
+      {
+        "externally_invalidated": false,
+        "max_resource_units": 1,
+        "resource_id": "a19c8b7a50e6413fa8036a41a85feb5c:t:23",
+        "resource_type": "offload_transfer",
+        "resource_units": [
+          1,
+          1,
+          1
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-021-418b0c55-bf28-431b-bace-2299c72e15e3"
+        ],
+        "transitions": [
+          "acquire",
+          "transfer_pending",
+          "release"
+        ],
+        "worker_generation": "VllmWorker-0:PID_042"
+      },
+      {
+        "externally_invalidated": false,
+        "max_resource_units": 1,
+        "resource_id": "a19c8b7a50e6413fa8036a41a85feb5c:t:24",
+        "resource_type": "offload_transfer",
+        "resource_units": [
+          1,
+          1,
+          1
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-022-cdef553a-2a03-4e2d-ad52-ec29cb0a3c6a"
+        ],
+        "transitions": [
+          "acquire",
+          "transfer_pending",
+          "release"
+        ],
+        "worker_generation": "VllmWorker-0:PID_042"
+      },
+      {
+        "externally_invalidated": false,
+        "max_resource_units": 1,
+        "resource_id": "a19c8b7a50e6413fa8036a41a85feb5c:t:25",
+        "resource_type": "offload_transfer",
+        "resource_units": [
+          1,
+          1,
+          1
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-023-7f022cc3-43db-4122-8de9-e319bf2cabb9"
+        ],
+        "transitions": [
+          "acquire",
+          "transfer_pending",
+          "release"
+        ],
+        "worker_generation": "VllmWorker-0:PID_042"
+      },
+      {
+        "externally_invalidated": false,
+        "max_resource_units": 1,
+        "resource_id": "a19c8b7a50e6413fa8036a41a85feb5c:t:26",
+        "resource_type": "offload_transfer",
+        "resource_units": [
+          1,
+          1,
+          1
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-023-7f022cc3-43db-4122-8de9-e319bf2cabb9"
+        ],
+        "transitions": [
+          "acquire",
+          "transfer_pending",
+          "release"
+        ],
+        "worker_generation": "VllmWorker-0:PID_042"
+      },
+      {
+        "externally_invalidated": false,
+        "max_resource_units": 1,
+        "resource_id": "a19c8b7a50e6413fa8036a41a85feb5c:t:27",
+        "resource_type": "offload_transfer",
+        "resource_units": [
+          1,
+          1,
+          1
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-024-72131a6e-5509-4259-937f-07e17b484938"
+        ],
+        "transitions": [
+          "acquire",
+          "transfer_pending",
+          "release"
+        ],
+        "worker_generation": "VllmWorker-0:PID_042"
+      },
+      {
+        "externally_invalidated": false,
+        "max_resource_units": 1,
+        "resource_id": "a19c8b7a50e6413fa8036a41a85feb5c:t:28",
+        "resource_type": "offload_transfer",
+        "resource_units": [
+          1,
+          1,
+          1
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-025-6b3e8901-4a18-4f61-a556-51b13b3da848"
+        ],
+        "transitions": [
+          "acquire",
+          "transfer_pending",
+          "release"
+        ],
+        "worker_generation": "VllmWorker-0:PID_042"
+      },
+      {
+        "externally_invalidated": false,
+        "max_resource_units": 1,
+        "resource_id": "a19c8b7a50e6413fa8036a41a85feb5c:t:29",
+        "resource_type": "offload_transfer",
+        "resource_units": [
+          1,
+          1,
+          1
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-026-ae77bc36-0927-424f-8ec9-9fb0c2436258"
+        ],
+        "transitions": [
+          "acquire",
+          "transfer_pending",
+          "release"
+        ],
+        "worker_generation": "VllmWorker-0:PID_042"
+      },
+      {
+        "externally_invalidated": false,
+        "max_resource_units": 1,
+        "resource_id": "a19c8b7a50e6413fa8036a41a85feb5c:t:3",
+        "resource_type": "offload_transfer",
+        "resource_units": [
+          1,
+          1,
+          1
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-000-8a13fbb7-ae59-4d0a-8f0f-889ab6497b0d"
+        ],
+        "transitions": [
+          "acquire",
+          "transfer_pending",
+          "release"
+        ],
+        "worker_generation": "VllmWorker-0:PID_042"
+      },
+      {
+        "externally_invalidated": false,
+        "max_resource_units": 1,
+        "resource_id": "a19c8b7a50e6413fa8036a41a85feb5c:t:30",
+        "resource_type": "offload_transfer",
+        "resource_units": [
+          1,
+          1,
+          1
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-027-549dee53-b6a9-43cf-a324-024c0fa47ca4"
+        ],
+        "transitions": [
+          "acquire",
+          "transfer_pending",
+          "release"
+        ],
+        "worker_generation": "VllmWorker-0:PID_042"
+      },
+      {
+        "externally_invalidated": false,
+        "max_resource_units": 1,
+        "resource_id": "a19c8b7a50e6413fa8036a41a85feb5c:t:31",
+        "resource_type": "offload_transfer",
+        "resource_units": [
+          1,
+          1,
+          1
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-028-3400698a-6b31-489e-82de-4c3a42160b7f"
+        ],
+        "transitions": [
+          "acquire",
+          "transfer_pending",
+          "release"
+        ],
+        "worker_generation": "VllmWorker-0:PID_042"
+      },
+      {
+        "externally_invalidated": false,
+        "max_resource_units": 1,
+        "resource_id": "a19c8b7a50e6413fa8036a41a85feb5c:t:32",
+        "resource_type": "offload_transfer",
+        "resource_units": [
+          1,
+          1,
+          1
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-029-1807538f-8a06-4863-956c-8a1cf86044da"
+        ],
+        "transitions": [
+          "acquire",
+          "transfer_pending",
+          "release"
+        ],
+        "worker_generation": "VllmWorker-0:PID_042"
+      },
+      {
+        "externally_invalidated": false,
+        "max_resource_units": 1,
+        "resource_id": "a19c8b7a50e6413fa8036a41a85feb5c:t:33",
+        "resource_type": "offload_transfer",
+        "resource_units": [
+          1,
+          1,
+          1
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-030-8d8e93ca-4a02-4fe7-984a-c5a2cfb98fc1"
+        ],
+        "transitions": [
+          "acquire",
+          "transfer_pending",
+          "release"
+        ],
+        "worker_generation": "VllmWorker-0:PID_042"
+      },
+      {
+        "externally_invalidated": false,
+        "max_resource_units": 1,
+        "resource_id": "a19c8b7a50e6413fa8036a41a85feb5c:t:34",
+        "resource_type": "offload_transfer",
+        "resource_units": [
+          1,
+          1,
+          1
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-031-223e2190-3afa-4e50-8988-3f1d19f8b9f6"
+        ],
+        "transitions": [
+          "acquire",
+          "transfer_pending",
+          "release"
+        ],
+        "worker_generation": "VllmWorker-0:PID_042"
+      },
+      {
+        "externally_invalidated": false,
+        "max_resource_units": 1,
+        "resource_id": "a19c8b7a50e6413fa8036a41a85feb5c:t:35",
+        "resource_type": "offload_transfer",
+        "resource_units": [
+          1,
+          1,
+          1
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-031-223e2190-3afa-4e50-8988-3f1d19f8b9f6"
+        ],
+        "transitions": [
+          "acquire",
+          "transfer_pending",
+          "release"
+        ],
+        "worker_generation": "VllmWorker-0:PID_042"
+      },
+      {
+        "externally_invalidated": false,
+        "max_resource_units": 1,
+        "resource_id": "a19c8b7a50e6413fa8036a41a85feb5c:t:36",
+        "resource_type": "offload_transfer",
+        "resource_units": [
+          1,
+          1,
+          1
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-032-d1adaaf4-6bbc-40da-84a8-7d219cc73f2c"
+        ],
+        "transitions": [
+          "acquire",
+          "transfer_pending",
+          "release"
+        ],
+        "worker_generation": "VllmWorker-0:PID_042"
+      },
+      {
+        "externally_invalidated": false,
+        "max_resource_units": 1,
+        "resource_id": "a19c8b7a50e6413fa8036a41a85feb5c:t:37",
+        "resource_type": "offload_transfer",
+        "resource_units": [
+          1,
+          1,
+          1
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-033-122000e5-5b07-4db3-ba5f-801eee72f90b"
+        ],
+        "transitions": [
+          "acquire",
+          "transfer_pending",
+          "release"
+        ],
+        "worker_generation": "VllmWorker-0:PID_042"
+      },
+      {
+        "externally_invalidated": false,
+        "max_resource_units": 1,
+        "resource_id": "a19c8b7a50e6413fa8036a41a85feb5c:t:38",
+        "resource_type": "offload_transfer",
+        "resource_units": [
+          1,
+          1,
+          1
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-033-122000e5-5b07-4db3-ba5f-801eee72f90b"
+        ],
+        "transitions": [
+          "acquire",
+          "transfer_pending",
+          "release"
+        ],
+        "worker_generation": "VllmWorker-0:PID_042"
+      },
+      {
+        "externally_invalidated": false,
+        "max_resource_units": 1,
+        "resource_id": "a19c8b7a50e6413fa8036a41a85feb5c:t:39",
+        "resource_type": "offload_transfer",
+        "resource_units": [
+          1,
+          1,
+          1
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-034-0068a6ee-05eb-4342-ba13-88c7dc3a014a"
+        ],
+        "transitions": [
+          "acquire",
+          "transfer_pending",
+          "release"
+        ],
+        "worker_generation": "VllmWorker-0:PID_042"
+      },
+      {
+        "externally_invalidated": false,
+        "max_resource_units": 1,
+        "resource_id": "a19c8b7a50e6413fa8036a41a85feb5c:t:4",
+        "resource_type": "offload_transfer",
+        "resource_units": [
+          1,
+          1,
+          1
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-009-ecf1a17d-9125-45a6-b869-9eb00ececf75"
+        ],
+        "transitions": [
+          "acquire",
+          "transfer_pending",
+          "release"
+        ],
+        "worker_generation": "VllmWorker-0:PID_042"
+      },
+      {
+        "externally_invalidated": false,
+        "max_resource_units": 1,
+        "resource_id": "a19c8b7a50e6413fa8036a41a85feb5c:t:40",
+        "resource_type": "offload_transfer",
+        "resource_units": [
+          1,
+          1,
+          1
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-036-76a4ef1e-b6d6-47b0-b668-ff5b8fac767e"
+        ],
+        "transitions": [
+          "acquire",
+          "transfer_pending",
+          "release"
+        ],
+        "worker_generation": "VllmWorker-0:PID_042"
+      },
+      {
+        "externally_invalidated": false,
+        "max_resource_units": 1,
+        "resource_id": "a19c8b7a50e6413fa8036a41a85feb5c:t:41",
+        "resource_type": "offload_transfer",
+        "resource_units": [
+          1,
+          1,
+          1
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-037-6a078642-6d54-417d-a8e3-7c5211360caa"
+        ],
+        "transitions": [
+          "acquire",
+          "transfer_pending",
+          "release"
+        ],
+        "worker_generation": "VllmWorker-0:PID_042"
+      },
+      {
+        "externally_invalidated": false,
+        "max_resource_units": 1,
+        "resource_id": "a19c8b7a50e6413fa8036a41a85feb5c:t:42",
+        "resource_type": "offload_transfer",
+        "resource_units": [
+          1,
+          1,
+          1
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-038-06a0e32d-132f-41e9-be6f-22645e571030"
+        ],
+        "transitions": [
+          "acquire",
+          "transfer_pending",
+          "release"
+        ],
+        "worker_generation": "VllmWorker-0:PID_042"
+      },
+      {
+        "externally_invalidated": false,
+        "max_resource_units": 1,
+        "resource_id": "a19c8b7a50e6413fa8036a41a85feb5c:t:43",
+        "resource_type": "offload_transfer",
+        "resource_units": [
+          1,
+          1,
+          1
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-039-fead3081-e696-4d76-89c3-6145d3d4f339"
+        ],
+        "transitions": [
+          "acquire",
+          "transfer_pending",
+          "release"
+        ],
+        "worker_generation": "VllmWorker-0:PID_042"
+      },
+      {
+        "externally_invalidated": false,
+        "max_resource_units": 1,
+        "resource_id": "a19c8b7a50e6413fa8036a41a85feb5c:t:44",
+        "resource_type": "offload_transfer",
+        "resource_units": [
+          1,
+          1,
+          1
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-040-4d90bb34-d255-4471-bc38-fe8c23175c1b"
+        ],
+        "transitions": [
+          "acquire",
+          "transfer_pending",
+          "release"
+        ],
+        "worker_generation": "VllmWorker-0:PID_042"
+      },
+      {
+        "externally_invalidated": false,
+        "max_resource_units": 1,
+        "resource_id": "a19c8b7a50e6413fa8036a41a85feb5c:t:45",
+        "resource_type": "offload_transfer",
+        "resource_units": [
+          1,
+          1,
+          1
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-041-4584b1ee-9de0-4e03-9200-23499760faed"
+        ],
+        "transitions": [
+          "acquire",
+          "transfer_pending",
+          "release"
+        ],
+        "worker_generation": "VllmWorker-0:PID_042"
+      },
+      {
+        "externally_invalidated": false,
+        "max_resource_units": 1,
+        "resource_id": "a19c8b7a50e6413fa8036a41a85feb5c:t:46",
+        "resource_type": "offload_transfer",
+        "resource_units": [
+          1,
+          1,
+          1
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-042-7b6be116-55ff-4418-968e-6bb059922697"
+        ],
+        "transitions": [
+          "acquire",
+          "transfer_pending",
+          "release"
+        ],
+        "worker_generation": "VllmWorker-0:PID_042"
+      },
+      {
+        "externally_invalidated": false,
+        "max_resource_units": 1,
+        "resource_id": "a19c8b7a50e6413fa8036a41a85feb5c:t:47",
+        "resource_type": "offload_transfer",
+        "resource_units": [
+          1,
+          1,
+          1
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-043-0ced23f7-ec9c-4b0a-a78d-86d8a17d1ac3"
+        ],
+        "transitions": [
+          "acquire",
+          "transfer_pending",
+          "release"
+        ],
+        "worker_generation": "VllmWorker-0:PID_042"
+      },
+      {
+        "externally_invalidated": false,
+        "max_resource_units": 1,
+        "resource_id": "a19c8b7a50e6413fa8036a41a85feb5c:t:48",
+        "resource_type": "offload_transfer",
+        "resource_units": [
+          1,
+          1,
+          1
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-045-a4745014-ae80-4f94-9526-7a40760887de"
+        ],
+        "transitions": [
+          "acquire",
+          "transfer_pending",
+          "release"
+        ],
+        "worker_generation": "VllmWorker-0:PID_042"
+      },
+      {
+        "externally_invalidated": false,
+        "max_resource_units": 1,
+        "resource_id": "a19c8b7a50e6413fa8036a41a85feb5c:t:49",
+        "resource_type": "offload_transfer",
+        "resource_units": [
+          1,
+          1,
+          1
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-046-10719cdf-ead4-4964-83d6-a5bb9ca11fb6"
+        ],
+        "transitions": [
+          "acquire",
+          "transfer_pending",
+          "release"
+        ],
+        "worker_generation": "VllmWorker-0:PID_042"
+      },
+      {
+        "externally_invalidated": false,
+        "max_resource_units": 1,
+        "resource_id": "a19c8b7a50e6413fa8036a41a85feb5c:t:5",
+        "resource_type": "offload_transfer",
+        "resource_units": [
+          1,
+          1,
+          1
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-004-5f751679-64cc-4c2f-ad3f-8f3494e2ef8b"
+        ],
+        "transitions": [
+          "acquire",
+          "transfer_pending",
+          "release"
+        ],
+        "worker_generation": "VllmWorker-0:PID_042"
+      },
+      {
+        "externally_invalidated": false,
+        "max_resource_units": 1,
+        "resource_id": "a19c8b7a50e6413fa8036a41a85feb5c:t:50",
+        "resource_type": "offload_transfer",
+        "resource_units": [
+          1,
+          1,
+          1
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-047-8f0c885c-8725-4405-82b0-0e7f9a479fdf"
+        ],
+        "transitions": [
+          "acquire",
+          "transfer_pending",
+          "release"
+        ],
+        "worker_generation": "VllmWorker-0:PID_042"
+      },
+      {
+        "externally_invalidated": false,
+        "max_resource_units": 1,
+        "resource_id": "a19c8b7a50e6413fa8036a41a85feb5c:t:51",
+        "resource_type": "offload_transfer",
+        "resource_units": [
+          1,
+          1,
+          1
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-048-da63d1dd-1da9-4916-aa5b-d60eb3e9e31d"
+        ],
+        "transitions": [
+          "acquire",
+          "transfer_pending",
+          "release"
+        ],
+        "worker_generation": "VllmWorker-0:PID_042"
+      },
+      {
+        "externally_invalidated": false,
+        "max_resource_units": 1,
+        "resource_id": "a19c8b7a50e6413fa8036a41a85feb5c:t:52",
+        "resource_type": "offload_transfer",
+        "resource_units": [
+          1,
+          1,
+          1
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-049-371cf2e1-919e-43c9-b602-c16f777b23a3"
+        ],
+        "transitions": [
+          "acquire",
+          "transfer_pending",
+          "release"
+        ],
+        "worker_generation": "VllmWorker-0:PID_042"
+      },
+      {
+        "externally_invalidated": false,
+        "max_resource_units": 1,
+        "resource_id": "a19c8b7a50e6413fa8036a41a85feb5c:t:53",
+        "resource_type": "offload_transfer",
+        "resource_units": [
+          1,
+          1,
+          1
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-050-43b8b9e7-174f-42ae-abfb-8f815796d5ce"
+        ],
+        "transitions": [
+          "acquire",
+          "transfer_pending",
+          "release"
+        ],
+        "worker_generation": "VllmWorker-0:PID_042"
+      },
+      {
+        "externally_invalidated": false,
+        "max_resource_units": 1,
+        "resource_id": "a19c8b7a50e6413fa8036a41a85feb5c:t:54",
+        "resource_type": "offload_transfer",
+        "resource_units": [
+          1,
+          1,
+          1
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-051-6bd29b67-67ce-4914-9a19-7f50edb95516"
+        ],
+        "transitions": [
+          "acquire",
+          "transfer_pending",
+          "release"
+        ],
+        "worker_generation": "VllmWorker-0:PID_042"
+      },
+      {
+        "externally_invalidated": false,
+        "max_resource_units": 1,
+        "resource_id": "a19c8b7a50e6413fa8036a41a85feb5c:t:55",
+        "resource_type": "offload_transfer",
+        "resource_units": [
+          1,
+          1,
+          1
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-052-55a9295c-e40b-46c4-9e74-7c001b70d325"
+        ],
+        "transitions": [
+          "acquire",
+          "transfer_pending",
+          "release"
+        ],
+        "worker_generation": "VllmWorker-0:PID_042"
+      },
+      {
+        "externally_invalidated": false,
+        "max_resource_units": 1,
+        "resource_id": "a19c8b7a50e6413fa8036a41a85feb5c:t:56",
+        "resource_type": "offload_transfer",
+        "resource_units": [
+          1,
+          1,
+          1
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-053-7ac16d2e-3cd3-4900-bcb6-2fc3cd6f8839"
+        ],
+        "transitions": [
+          "acquire",
+          "transfer_pending",
+          "release"
+        ],
+        "worker_generation": "VllmWorker-0:PID_042"
+      },
+      {
+        "externally_invalidated": false,
+        "max_resource_units": 1,
+        "resource_id": "a19c8b7a50e6413fa8036a41a85feb5c:t:57",
+        "resource_type": "offload_transfer",
+        "resource_units": [
+          1,
+          1,
+          1
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-054-4fb9865f-f0a2-4bf8-9cb2-0bf2b0c2252f"
+        ],
+        "transitions": [
+          "acquire",
+          "transfer_pending",
+          "release"
+        ],
+        "worker_generation": "VllmWorker-0:PID_042"
+      },
+      {
+        "externally_invalidated": false,
+        "max_resource_units": 1,
+        "resource_id": "a19c8b7a50e6413fa8036a41a85feb5c:t:58",
+        "resource_type": "offload_transfer",
+        "resource_units": [
+          1,
+          1,
+          1
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-055-463afe05-6765-4278-8eb9-398dcede77e7"
+        ],
+        "transitions": [
+          "acquire",
+          "transfer_pending",
+          "release"
+        ],
+        "worker_generation": "VllmWorker-0:PID_042"
+      },
+      {
+        "externally_invalidated": false,
+        "max_resource_units": 1,
+        "resource_id": "a19c8b7a50e6413fa8036a41a85feb5c:t:59",
+        "resource_type": "offload_transfer",
+        "resource_units": [
+          1,
+          1,
+          1
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-056-ba608e4c-ec99-4d1e-956d-8c39fc773c0c"
+        ],
+        "transitions": [
+          "acquire",
+          "transfer_pending",
+          "release"
+        ],
+        "worker_generation": "VllmWorker-0:PID_042"
+      },
+      {
+        "externally_invalidated": false,
+        "max_resource_units": 1,
+        "resource_id": "a19c8b7a50e6413fa8036a41a85feb5c:t:6",
+        "resource_type": "offload_transfer",
+        "resource_units": [
+          1,
+          1,
+          1
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-002-27f9b5af-b8ed-4c4c-88e9-14cb6d2f6399"
+        ],
+        "transitions": [
+          "acquire",
+          "transfer_pending",
+          "release"
+        ],
+        "worker_generation": "VllmWorker-0:PID_042"
+      },
+      {
+        "externally_invalidated": false,
+        "max_resource_units": 1,
+        "resource_id": "a19c8b7a50e6413fa8036a41a85feb5c:t:60",
+        "resource_type": "offload_transfer",
+        "resource_units": [
+          1,
+          1,
+          1
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-057-2d9e2b9f-6ad5-4bba-a036-486f43b1c0f5"
+        ],
+        "transitions": [
+          "acquire",
+          "transfer_pending",
+          "release"
+        ],
+        "worker_generation": "VllmWorker-0:PID_042"
+      },
+      {
+        "externally_invalidated": false,
+        "max_resource_units": 1,
+        "resource_id": "a19c8b7a50e6413fa8036a41a85feb5c:t:61",
+        "resource_type": "offload_transfer",
+        "resource_units": [
+          1,
+          1,
+          1
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-058-4deb1bd9-3fae-47a2-8e64-9fedc9d5bb7e"
+        ],
+        "transitions": [
+          "acquire",
+          "transfer_pending",
+          "release"
+        ],
+        "worker_generation": "VllmWorker-0:PID_042"
+      },
+      {
+        "externally_invalidated": false,
+        "max_resource_units": 1,
+        "resource_id": "a19c8b7a50e6413fa8036a41a85feb5c:t:62",
+        "resource_type": "offload_transfer",
+        "resource_units": [
+          1,
+          1,
+          1
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-059-db68b32e-981d-4404-8399-c277d3aa232e"
+        ],
+        "transitions": [
+          "acquire",
+          "transfer_pending",
+          "release"
+        ],
+        "worker_generation": "VllmWorker-0:PID_042"
+      },
+      {
+        "externally_invalidated": false,
+        "max_resource_units": 1,
+        "resource_id": "a19c8b7a50e6413fa8036a41a85feb5c:t:63",
+        "resource_type": "offload_transfer",
+        "resource_units": [
+          1,
+          1,
+          1
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-059-db68b32e-981d-4404-8399-c277d3aa232e"
+        ],
+        "transitions": [
+          "acquire",
+          "transfer_pending",
+          "release"
+        ],
+        "worker_generation": "VllmWorker-0:PID_042"
+      },
+      {
+        "externally_invalidated": false,
+        "max_resource_units": 1,
+        "resource_id": "a19c8b7a50e6413fa8036a41a85feb5c:t:64",
+        "resource_type": "offload_transfer",
+        "resource_units": [
+          1,
+          1,
+          1
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-060-2f0f9369-319f-4a70-a0c4-1e155e185f4b"
+        ],
+        "transitions": [
+          "acquire",
+          "transfer_pending",
+          "release"
+        ],
+        "worker_generation": "VllmWorker-0:PID_042"
+      },
+      {
+        "externally_invalidated": false,
+        "max_resource_units": 1,
+        "resource_id": "a19c8b7a50e6413fa8036a41a85feb5c:t:65",
+        "resource_type": "offload_transfer",
+        "resource_units": [
+          1,
+          1,
+          1
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-061-0da8b374-7e8e-4756-9eac-80c1202a3ff9"
+        ],
+        "transitions": [
+          "acquire",
+          "transfer_pending",
+          "release"
+        ],
+        "worker_generation": "VllmWorker-0:PID_042"
+      },
+      {
+        "externally_invalidated": false,
+        "max_resource_units": 1,
+        "resource_id": "a19c8b7a50e6413fa8036a41a85feb5c:t:66",
+        "resource_type": "offload_transfer",
+        "resource_units": [
+          1,
+          1,
+          1
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-062-0e9b01d8-850f-4de4-a748-8eead58dd940"
+        ],
+        "transitions": [
+          "acquire",
+          "transfer_pending",
+          "release"
+        ],
+        "worker_generation": "VllmWorker-0:PID_042"
+      },
+      {
+        "externally_invalidated": false,
+        "max_resource_units": 1,
+        "resource_id": "a19c8b7a50e6413fa8036a41a85feb5c:t:67",
+        "resource_type": "offload_transfer",
+        "resource_units": [
+          1,
+          1,
+          1
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-063-28e5ccec-aa65-4969-a288-f0abdfd5407a"
+        ],
+        "transitions": [
+          "acquire",
+          "transfer_pending",
+          "release"
+        ],
+        "worker_generation": "VllmWorker-0:PID_042"
+      },
+      {
+        "externally_invalidated": true,
+        "max_resource_units": 1,
+        "resource_id": "a19c8b7a50e6413fa8036a41a85feb5c:t:68",
+        "resource_type": "offload_transfer",
+        "resource_units": [
+          1,
+          1
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-005-dcc3d723-c1e6-4b34-8205-769248934bce"
+        ],
+        "transitions": [
+          "acquire",
+          "transfer_pending"
+        ],
+        "worker_generation": "VllmWorker-0:PID_042"
+      },
+      {
+        "externally_invalidated": false,
+        "max_resource_units": 1,
+        "resource_id": "a19c8b7a50e6413fa8036a41a85feb5c:t:7",
+        "resource_type": "offload_transfer",
+        "resource_units": [
+          1,
+          1,
+          1
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-006-574280f9-d4d2-4b44-a927-f28c644535a0"
+        ],
+        "transitions": [
+          "acquire",
+          "transfer_pending",
+          "release"
+        ],
+        "worker_generation": "VllmWorker-0:PID_042"
+      },
+      {
+        "externally_invalidated": false,
+        "max_resource_units": 1,
+        "resource_id": "a19c8b7a50e6413fa8036a41a85feb5c:t:8",
+        "resource_type": "offload_transfer",
+        "resource_units": [
+          1,
+          1,
+          1
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-007-d6539e11-6dee-402f-9b9f-c6ca1152c79c"
+        ],
+        "transitions": [
+          "acquire",
+          "transfer_pending",
+          "release"
+        ],
+        "worker_generation": "VllmWorker-0:PID_042"
+      },
+      {
+        "externally_invalidated": false,
+        "max_resource_units": 1,
+        "resource_id": "a19c8b7a50e6413fa8036a41a85feb5c:t:9",
+        "resource_type": "offload_transfer",
+        "resource_units": [
+          1,
+          1,
+          1
+        ],
+        "runtime_request_ids": [
+          "chatcmpl-issue19-oasst1-r06-008-162497f0-ed0c-47b1-b2c4-dd56390ab8ee"
+        ],
+        "transitions": [
+          "acquire",
+          "transfer_pending",
+          "release"
+        ],
+        "worker_generation": "VllmWorker-0:PID_042"
+      }
+    ]
+  },
+  "resource_tracker_warning_count": 4,
+  "run_id": "c92a512f472a4ff6aadb84ea88ea6f51",
+  "seed": 2026082006,
+  "server_returncode": 0,
+  "state_conservation": true,
+  "summary_count": 4,
+  "target_pid_alive_after_shutdown": false,
+  "terminal_chain_validity": {
+    "issue19-oasst1-r06-000-8a13fbb7-ae59-4d0a-8f0f-889ab6497b0d": true,
+    "issue19-oasst1-r06-001-3cea8e47-8031-4173-a7ae-16bbad0a4ba3": true,
+    "issue19-oasst1-r06-002-27f9b5af-b8ed-4c4c-88e9-14cb6d2f6399": true,
+    "issue19-oasst1-r06-003-8131fa5f-f0dc-4ad8-ac16-13bcc4304aea": true,
+    "issue19-oasst1-r06-004-5f751679-64cc-4c2f-ad3f-8f3494e2ef8b": true,
+    "issue19-oasst1-r06-005-dcc3d723-c1e6-4b34-8205-769248934bce": true,
+    "issue19-oasst1-r06-006-574280f9-d4d2-4b44-a927-f28c644535a0": true,
+    "issue19-oasst1-r06-007-d6539e11-6dee-402f-9b9f-c6ca1152c79c": true,
+    "issue19-oasst1-r06-008-162497f0-ed0c-47b1-b2c4-dd56390ab8ee": true,
+    "issue19-oasst1-r06-009-ecf1a17d-9125-45a6-b869-9eb00ececf75": true,
+    "issue19-oasst1-r06-010-318f32a9-6550-4af5-afaa-218e7eb7e1c1": true,
+    "issue19-oasst1-r06-011-0c532c20-94aa-4f91-a9f1-18ac594cf96f": true,
+    "issue19-oasst1-r06-012-c142a120-bf01-42c7-8c7b-125f949a04f1": true,
+    "issue19-oasst1-r06-013-a95206cb-080f-4cb0-83de-da4a147ddbc5": true,
+    "issue19-oasst1-r06-014-6c8dec47-383f-4728-9e7c-3f08c9f06ba3": true,
+    "issue19-oasst1-r06-015-e600ef88-d0c0-44d1-b7a8-9dfa5ff858ca": true,
+    "issue19-oasst1-r06-016-723d6feb-ecbb-4950-b455-c119813b271e": true,
+    "issue19-oasst1-r06-017-ccf8bd02-1546-4e4d-900a-221d582f961c": true,
+    "issue19-oasst1-r06-018-93a5c8a0-0331-46c4-b632-b250b82edd7b": true,
+    "issue19-oasst1-r06-019-0174b786-5eed-4e07-82ad-026f8ea830ff": true,
+    "issue19-oasst1-r06-020-15e718b9-6a76-40a5-b70c-da9c97c69eae": true,
+    "issue19-oasst1-r06-021-418b0c55-bf28-431b-bace-2299c72e15e3": true,
+    "issue19-oasst1-r06-022-cdef553a-2a03-4e2d-ad52-ec29cb0a3c6a": true,
+    "issue19-oasst1-r06-023-7f022cc3-43db-4122-8de9-e319bf2cabb9": true,
+    "issue19-oasst1-r06-024-72131a6e-5509-4259-937f-07e17b484938": true,
+    "issue19-oasst1-r06-025-6b3e8901-4a18-4f61-a556-51b13b3da848": true,
+    "issue19-oasst1-r06-026-ae77bc36-0927-424f-8ec9-9fb0c2436258": true,
+    "issue19-oasst1-r06-027-549dee53-b6a9-43cf-a324-024c0fa47ca4": true,
+    "issue19-oasst1-r06-028-3400698a-6b31-489e-82de-4c3a42160b7f": true,
+    "issue19-oasst1-r06-029-1807538f-8a06-4863-956c-8a1cf86044da": true,
+    "issue19-oasst1-r06-030-8d8e93ca-4a02-4fe7-984a-c5a2cfb98fc1": true,
+    "issue19-oasst1-r06-031-223e2190-3afa-4e50-8988-3f1d19f8b9f6": true,
+    "issue19-oasst1-r06-032-d1adaaf4-6bbc-40da-84a8-7d219cc73f2c": true,
+    "issue19-oasst1-r06-033-122000e5-5b07-4db3-ba5f-801eee72f90b": true,
+    "issue19-oasst1-r06-034-0068a6ee-05eb-4342-ba13-88c7dc3a014a": true,
+    "issue19-oasst1-r06-035-91001805-007c-4163-b919-3a4de91c9f53": true,
+    "issue19-oasst1-r06-036-76a4ef1e-b6d6-47b0-b668-ff5b8fac767e": true,
+    "issue19-oasst1-r06-037-6a078642-6d54-417d-a8e3-7c5211360caa": true,
+    "issue19-oasst1-r06-038-06a0e32d-132f-41e9-be6f-22645e571030": true,
+    "issue19-oasst1-r06-039-fead3081-e696-4d76-89c3-6145d3d4f339": true,
+    "issue19-oasst1-r06-040-4d90bb34-d255-4471-bc38-fe8c23175c1b": true,
+    "issue19-oasst1-r06-041-4584b1ee-9de0-4e03-9200-23499760faed": true,
+    "issue19-oasst1-r06-042-7b6be116-55ff-4418-968e-6bb059922697": true,
+    "issue19-oasst1-r06-043-0ced23f7-ec9c-4b0a-a78d-86d8a17d1ac3": true,
+    "issue19-oasst1-r06-044-25d86e7b-ee90-459f-8ab1-140bff613874": true,
+    "issue19-oasst1-r06-045-a4745014-ae80-4f94-9526-7a40760887de": true,
+    "issue19-oasst1-r06-046-10719cdf-ead4-4964-83d6-a5bb9ca11fb6": true,
+    "issue19-oasst1-r06-047-8f0c885c-8725-4405-82b0-0e7f9a479fdf": true,
+    "issue19-oasst1-r06-048-da63d1dd-1da9-4916-aa5b-d60eb3e9e31d": true,
+    "issue19-oasst1-r06-049-371cf2e1-919e-43c9-b602-c16f777b23a3": true,
+    "issue19-oasst1-r06-050-43b8b9e7-174f-42ae-abfb-8f815796d5ce": true,
+    "issue19-oasst1-r06-051-6bd29b67-67ce-4914-9a19-7f50edb95516": true,
+    "issue19-oasst1-r06-052-55a9295c-e40b-46c4-9e74-7c001b70d325": true,
+    "issue19-oasst1-r06-053-7ac16d2e-3cd3-4900-bcb6-2fc3cd6f8839": true,
+    "issue19-oasst1-r06-054-4fb9865f-f0a2-4bf8-9cb2-0bf2b0c2252f": true,
+    "issue19-oasst1-r06-055-463afe05-6765-4278-8eb9-398dcede77e7": true,
+    "issue19-oasst1-r06-056-ba608e4c-ec99-4d1e-956d-8c39fc773c0c": true,
+    "issue19-oasst1-r06-057-2d9e2b9f-6ad5-4bba-a036-486f43b1c0f5": true,
+    "issue19-oasst1-r06-058-4deb1bd9-3fae-47a2-8e64-9fedc9d5bb7e": true,
+    "issue19-oasst1-r06-059-db68b32e-981d-4404-8399-c277d3aa232e": true,
+    "issue19-oasst1-r06-060-2f0f9369-319f-4a70-a0c4-1e155e185f4b": true,
+    "issue19-oasst1-r06-061-0da8b374-7e8e-4756-9eac-80c1202a3ff9": true,
+    "issue19-oasst1-r06-062-0e9b01d8-850f-4de4-a748-8eead58dd940": true,
+    "issue19-oasst1-r06-063-28e5ccec-aa65-4969-a288-f0abdfd5407a": true
+  },
+  "terminal_counts": {
+    "issue19-oasst1-r06-000-8a13fbb7-ae59-4d0a-8f0f-889ab6497b0d": 1,
+    "issue19-oasst1-r06-001-3cea8e47-8031-4173-a7ae-16bbad0a4ba3": 2,
+    "issue19-oasst1-r06-002-27f9b5af-b8ed-4c4c-88e9-14cb6d2f6399": 2,
+    "issue19-oasst1-r06-003-8131fa5f-f0dc-4ad8-ac16-13bcc4304aea": 2,
+    "issue19-oasst1-r06-004-5f751679-64cc-4c2f-ad3f-8f3494e2ef8b": 1,
+    "issue19-oasst1-r06-005-dcc3d723-c1e6-4b34-8205-769248934bce": 1,
+    "issue19-oasst1-r06-006-574280f9-d4d2-4b44-a927-f28c644535a0": 1,
+    "issue19-oasst1-r06-007-d6539e11-6dee-402f-9b9f-c6ca1152c79c": 1,
+    "issue19-oasst1-r06-008-162497f0-ed0c-47b1-b2c4-dd56390ab8ee": 1,
+    "issue19-oasst1-r06-009-ecf1a17d-9125-45a6-b869-9eb00ececf75": 1,
+    "issue19-oasst1-r06-010-318f32a9-6550-4af5-afaa-218e7eb7e1c1": 1,
+    "issue19-oasst1-r06-011-0c532c20-94aa-4f91-a9f1-18ac594cf96f": 1,
+    "issue19-oasst1-r06-012-c142a120-bf01-42c7-8c7b-125f949a04f1": 1,
+    "issue19-oasst1-r06-013-a95206cb-080f-4cb0-83de-da4a147ddbc5": 1,
+    "issue19-oasst1-r06-014-6c8dec47-383f-4728-9e7c-3f08c9f06ba3": 1,
+    "issue19-oasst1-r06-015-e600ef88-d0c0-44d1-b7a8-9dfa5ff858ca": 1,
+    "issue19-oasst1-r06-016-723d6feb-ecbb-4950-b455-c119813b271e": 1,
+    "issue19-oasst1-r06-017-ccf8bd02-1546-4e4d-900a-221d582f961c": 1,
+    "issue19-oasst1-r06-018-93a5c8a0-0331-46c4-b632-b250b82edd7b": 1,
+    "issue19-oasst1-r06-019-0174b786-5eed-4e07-82ad-026f8ea830ff": 1,
+    "issue19-oasst1-r06-020-15e718b9-6a76-40a5-b70c-da9c97c69eae": 1,
+    "issue19-oasst1-r06-021-418b0c55-bf28-431b-bace-2299c72e15e3": 1,
+    "issue19-oasst1-r06-022-cdef553a-2a03-4e2d-ad52-ec29cb0a3c6a": 1,
+    "issue19-oasst1-r06-023-7f022cc3-43db-4122-8de9-e319bf2cabb9": 1,
+    "issue19-oasst1-r06-024-72131a6e-5509-4259-937f-07e17b484938": 1,
+    "issue19-oasst1-r06-025-6b3e8901-4a18-4f61-a556-51b13b3da848": 1,
+    "issue19-oasst1-r06-026-ae77bc36-0927-424f-8ec9-9fb0c2436258": 1,
+    "issue19-oasst1-r06-027-549dee53-b6a9-43cf-a324-024c0fa47ca4": 1,
+    "issue19-oasst1-r06-028-3400698a-6b31-489e-82de-4c3a42160b7f": 1,
+    "issue19-oasst1-r06-029-1807538f-8a06-4863-956c-8a1cf86044da": 1,
+    "issue19-oasst1-r06-030-8d8e93ca-4a02-4fe7-984a-c5a2cfb98fc1": 1,
+    "issue19-oasst1-r06-031-223e2190-3afa-4e50-8988-3f1d19f8b9f6": 1,
+    "issue19-oasst1-r06-032-d1adaaf4-6bbc-40da-84a8-7d219cc73f2c": 1,
+    "issue19-oasst1-r06-033-122000e5-5b07-4db3-ba5f-801eee72f90b": 1,
+    "issue19-oasst1-r06-034-0068a6ee-05eb-4342-ba13-88c7dc3a014a": 1,
+    "issue19-oasst1-r06-035-91001805-007c-4163-b919-3a4de91c9f53": 1,
+    "issue19-oasst1-r06-036-76a4ef1e-b6d6-47b0-b668-ff5b8fac767e": 1,
+    "issue19-oasst1-r06-037-6a078642-6d54-417d-a8e3-7c5211360caa": 1,
+    "issue19-oasst1-r06-038-06a0e32d-132f-41e9-be6f-22645e571030": 1,
+    "issue19-oasst1-r06-039-fead3081-e696-4d76-89c3-6145d3d4f339": 1,
+    "issue19-oasst1-r06-040-4d90bb34-d255-4471-bc38-fe8c23175c1b": 1,
+    "issue19-oasst1-r06-041-4584b1ee-9de0-4e03-9200-23499760faed": 1,
+    "issue19-oasst1-r06-042-7b6be116-55ff-4418-968e-6bb059922697": 1,
+    "issue19-oasst1-r06-043-0ced23f7-ec9c-4b0a-a78d-86d8a17d1ac3": 1,
+    "issue19-oasst1-r06-044-25d86e7b-ee90-459f-8ab1-140bff613874": 1,
+    "issue19-oasst1-r06-045-a4745014-ae80-4f94-9526-7a40760887de": 1,
+    "issue19-oasst1-r06-046-10719cdf-ead4-4964-83d6-a5bb9ca11fb6": 1,
+    "issue19-oasst1-r06-047-8f0c885c-8725-4405-82b0-0e7f9a479fdf": 1,
+    "issue19-oasst1-r06-048-da63d1dd-1da9-4916-aa5b-d60eb3e9e31d": 1,
+    "issue19-oasst1-r06-049-371cf2e1-919e-43c9-b602-c16f777b23a3": 1,
+    "issue19-oasst1-r06-050-43b8b9e7-174f-42ae-abfb-8f815796d5ce": 1,
+    "issue19-oasst1-r06-051-6bd29b67-67ce-4914-9a19-7f50edb95516": 1,
+    "issue19-oasst1-r06-052-55a9295c-e40b-46c4-9e74-7c001b70d325": 1,
+    "issue19-oasst1-r06-053-7ac16d2e-3cd3-4900-bcb6-2fc3cd6f8839": 1,
+    "issue19-oasst1-r06-054-4fb9865f-f0a2-4bf8-9cb2-0bf2b0c2252f": 1,
+    "issue19-oasst1-r06-055-463afe05-6765-4278-8eb9-398dcede77e7": 1,
+    "issue19-oasst1-r06-056-ba608e4c-ec99-4d1e-956d-8c39fc773c0c": 1,
+    "issue19-oasst1-r06-057-2d9e2b9f-6ad5-4bba-a036-486f43b1c0f5": 1,
+    "issue19-oasst1-r06-058-4deb1bd9-3fae-47a2-8e64-9fedc9d5bb7e": 1,
+    "issue19-oasst1-r06-059-db68b32e-981d-4404-8399-c277d3aa232e": 1,
+    "issue19-oasst1-r06-060-2f0f9369-319f-4a70-a0c4-1e155e185f4b": 1,
+    "issue19-oasst1-r06-061-0da8b374-7e8e-4756-9eac-80c1202a3ff9": 1,
+    "issue19-oasst1-r06-062-0e9b01d8-850f-4de4-a748-8eead58dd940": 1,
+    "issue19-oasst1-r06-063-28e5ccec-aa65-4969-a288-f0abdfd5407a": 1
+  },
+  "terminal_names": {
+    "issue19-oasst1-r06-000-8a13fbb7-ae59-4d0a-8f0f-889ab6497b0d": [
+      "generation_done"
+    ],
+    "issue19-oasst1-r06-001-3cea8e47-8031-4173-a7ae-16bbad0a4ba3": [
+      "cancelled",
+      "aborted"
+    ],
+    "issue19-oasst1-r06-002-27f9b5af-b8ed-4c4c-88e9-14cb6d2f6399": [
+      "cancelled",
+      "aborted"
+    ],
+    "issue19-oasst1-r06-003-8131fa5f-f0dc-4ad8-ac16-13bcc4304aea": [
+      "aborted",
+      "aborted"
+    ],
+    "issue19-oasst1-r06-004-5f751679-64cc-4c2f-ad3f-8f3494e2ef8b": [
+      "generation_done"
+    ],
+    "issue19-oasst1-r06-005-dcc3d723-c1e6-4b34-8205-769248934bce": [
+      "error"
+    ],
+    "issue19-oasst1-r06-006-574280f9-d4d2-4b44-a927-f28c644535a0": [
+      "generation_done"
+    ],
+    "issue19-oasst1-r06-007-d6539e11-6dee-402f-9b9f-c6ca1152c79c": [
+      "generation_done"
+    ],
+    "issue19-oasst1-r06-008-162497f0-ed0c-47b1-b2c4-dd56390ab8ee": [
+      "generation_done"
+    ],
+    "issue19-oasst1-r06-009-ecf1a17d-9125-45a6-b869-9eb00ececf75": [
+      "generation_done"
+    ],
+    "issue19-oasst1-r06-010-318f32a9-6550-4af5-afaa-218e7eb7e1c1": [
+      "generation_done"
+    ],
+    "issue19-oasst1-r06-011-0c532c20-94aa-4f91-a9f1-18ac594cf96f": [
+      "generation_done"
+    ],
+    "issue19-oasst1-r06-012-c142a120-bf01-42c7-8c7b-125f949a04f1": [
+      "generation_done"
+    ],
+    "issue19-oasst1-r06-013-a95206cb-080f-4cb0-83de-da4a147ddbc5": [
+      "generation_done"
+    ],
+    "issue19-oasst1-r06-014-6c8dec47-383f-4728-9e7c-3f08c9f06ba3": [
+      "generation_done"
+    ],
+    "issue19-oasst1-r06-015-e600ef88-d0c0-44d1-b7a8-9dfa5ff858ca": [
+      "generation_done"
+    ],
+    "issue19-oasst1-r06-016-723d6feb-ecbb-4950-b455-c119813b271e": [
+      "generation_done"
+    ],
+    "issue19-oasst1-r06-017-ccf8bd02-1546-4e4d-900a-221d582f961c": [
+      "generation_done"
+    ],
+    "issue19-oasst1-r06-018-93a5c8a0-0331-46c4-b632-b250b82edd7b": [
+      "generation_done"
+    ],
+    "issue19-oasst1-r06-019-0174b786-5eed-4e07-82ad-026f8ea830ff": [
+      "generation_done"
+    ],
+    "issue19-oasst1-r06-020-15e718b9-6a76-40a5-b70c-da9c97c69eae": [
+      "generation_done"
+    ],
+    "issue19-oasst1-r06-021-418b0c55-bf28-431b-bace-2299c72e15e3": [
+      "generation_done"
+    ],
+    "issue19-oasst1-r06-022-cdef553a-2a03-4e2d-ad52-ec29cb0a3c6a": [
+      "generation_done"
+    ],
+    "issue19-oasst1-r06-023-7f022cc3-43db-4122-8de9-e319bf2cabb9": [
+      "generation_done"
+    ],
+    "issue19-oasst1-r06-024-72131a6e-5509-4259-937f-07e17b484938": [
+      "generation_done"
+    ],
+    "issue19-oasst1-r06-025-6b3e8901-4a18-4f61-a556-51b13b3da848": [
+      "generation_done"
+    ],
+    "issue19-oasst1-r06-026-ae77bc36-0927-424f-8ec9-9fb0c2436258": [
+      "generation_done"
+    ],
+    "issue19-oasst1-r06-027-549dee53-b6a9-43cf-a324-024c0fa47ca4": [
+      "generation_done"
+    ],
+    "issue19-oasst1-r06-028-3400698a-6b31-489e-82de-4c3a42160b7f": [
+      "generation_done"
+    ],
+    "issue19-oasst1-r06-029-1807538f-8a06-4863-956c-8a1cf86044da": [
+      "generation_done"
+    ],
+    "issue19-oasst1-r06-030-8d8e93ca-4a02-4fe7-984a-c5a2cfb98fc1": [
+      "generation_done"
+    ],
+    "issue19-oasst1-r06-031-223e2190-3afa-4e50-8988-3f1d19f8b9f6": [
+      "generation_done"
+    ],
+    "issue19-oasst1-r06-032-d1adaaf4-6bbc-40da-84a8-7d219cc73f2c": [
+      "generation_done"
+    ],
+    "issue19-oasst1-r06-033-122000e5-5b07-4db3-ba5f-801eee72f90b": [
+      "generation_done"
+    ],
+    "issue19-oasst1-r06-034-0068a6ee-05eb-4342-ba13-88c7dc3a014a": [
+      "generation_done"
+    ],
+    "issue19-oasst1-r06-035-91001805-007c-4163-b919-3a4de91c9f53": [
+      "generation_done"
+    ],
+    "issue19-oasst1-r06-036-76a4ef1e-b6d6-47b0-b668-ff5b8fac767e": [
+      "generation_done"
+    ],
+    "issue19-oasst1-r06-037-6a078642-6d54-417d-a8e3-7c5211360caa": [
+      "generation_done"
+    ],
+    "issue19-oasst1-r06-038-06a0e32d-132f-41e9-be6f-22645e571030": [
+      "generation_done"
+    ],
+    "issue19-oasst1-r06-039-fead3081-e696-4d76-89c3-6145d3d4f339": [
+      "generation_done"
+    ],
+    "issue19-oasst1-r06-040-4d90bb34-d255-4471-bc38-fe8c23175c1b": [
+      "generation_done"
+    ],
+    "issue19-oasst1-r06-041-4584b1ee-9de0-4e03-9200-23499760faed": [
+      "generation_done"
+    ],
+    "issue19-oasst1-r06-042-7b6be116-55ff-4418-968e-6bb059922697": [
+      "generation_done"
+    ],
+    "issue19-oasst1-r06-043-0ced23f7-ec9c-4b0a-a78d-86d8a17d1ac3": [
+      "generation_done"
+    ],
+    "issue19-oasst1-r06-044-25d86e7b-ee90-459f-8ab1-140bff613874": [
+      "generation_done"
+    ],
+    "issue19-oasst1-r06-045-a4745014-ae80-4f94-9526-7a40760887de": [
+      "generation_done"
+    ],
+    "issue19-oasst1-r06-046-10719cdf-ead4-4964-83d6-a5bb9ca11fb6": [
+      "generation_done"
+    ],
+    "issue19-oasst1-r06-047-8f0c885c-8725-4405-82b0-0e7f9a479fdf": [
+      "generation_done"
+    ],
+    "issue19-oasst1-r06-048-da63d1dd-1da9-4916-aa5b-d60eb3e9e31d": [
+      "generation_done"
+    ],
+    "issue19-oasst1-r06-049-371cf2e1-919e-43c9-b602-c16f777b23a3": [
+      "generation_done"
+    ],
+    "issue19-oasst1-r06-050-43b8b9e7-174f-42ae-abfb-8f815796d5ce": [
+      "generation_done"
+    ],
+    "issue19-oasst1-r06-051-6bd29b67-67ce-4914-9a19-7f50edb95516": [
+      "generation_done"
+    ],
+    "issue19-oasst1-r06-052-55a9295c-e40b-46c4-9e74-7c001b70d325": [
+      "generation_done"
+    ],
+    "issue19-oasst1-r06-053-7ac16d2e-3cd3-4900-bcb6-2fc3cd6f8839": [
+      "generation_done"
+    ],
+    "issue19-oasst1-r06-054-4fb9865f-f0a2-4bf8-9cb2-0bf2b0c2252f": [
+      "generation_done"
+    ],
+    "issue19-oasst1-r06-055-463afe05-6765-4278-8eb9-398dcede77e7": [
+      "generation_done"
+    ],
+    "issue19-oasst1-r06-056-ba608e4c-ec99-4d1e-956d-8c39fc773c0c": [
+      "generation_done"
+    ],
+    "issue19-oasst1-r06-057-2d9e2b9f-6ad5-4bba-a036-486f43b1c0f5": [
+      "generation_done"
+    ],
+    "issue19-oasst1-r06-058-4deb1bd9-3fae-47a2-8e64-9fedc9d5bb7e": [
+      "generation_done"
+    ],
+    "issue19-oasst1-r06-059-db68b32e-981d-4404-8399-c277d3aa232e": [
+      "generation_done"
+    ],
+    "issue19-oasst1-r06-060-2f0f9369-319f-4a70-a0c4-1e155e185f4b": [
+      "generation_done"
+    ],
+    "issue19-oasst1-r06-061-0da8b374-7e8e-4756-9eac-80c1202a3ff9": [
+      "generation_done"
+    ],
+    "issue19-oasst1-r06-062-0e9b01d8-850f-4de4-a748-8eead58dd940": [
+      "generation_done"
+    ],
+    "issue19-oasst1-r06-063-28e5ccec-aa65-4969-a288-f0abdfd5407a": [
+      "generation_done"
+    ]
+  },
+  "transfer_count": 69,
+  "unaffected_request_count": 58,
+  "unclosed_observer_shards": [
+    {
+      "process_uuid": "a19c8b7a50e6413fa8036a41a85feb5c",
+      "source": "trace.rlp.a19c8b7a50e6413fa8036a41a85feb5c.jsonl",
+      "stream": "trace"
+    },
+    {
+      "process_uuid": "a19c8b7a50e6413fa8036a41a85feb5c",
+      "source": "trace.rlp-kv-recovery.a19c8b7a50e6413fa8036a41a85feb5c.jsonl",
+      "stream": "profile"
+    }
+  ],
+  "unmatched_transfers": [
+    {
+      "done_count": 0,
+      "process_uuid": "a19c8b7a50e6413fa8036a41a85feb5c",
+      "runtime_request_id": "chatcmpl-issue19-oasst1-r06-005-dcc3d723-c1e6-4b34-8205-769248934bce",
+      "submit_count": 1,
+      "submitted_before_worker_exit": true,
+      "transfer_id": "a19c8b7a50e6413fa8036a41a85feb5c:t:68"
+    }
+  ],
+  "worker_exit": {
+    "api_pid": "PID_040",
+    "arm_path": "worker_failure/PID_042.pending-transfer-arm",
+    "injection": "pending-transfer-sigkill",
+    "injection_timestamp_ns": 3105622350837807,
+    "internal_request_id": "chatcmpl-issue19-oasst1-r06-005-dcc3d723-c1e6-4b34-8205-769248934bce",
+    "ownership_verified": true,
+    "pending_transfer_witness": {
+      "connector_job_id": 68,
+      "operation": "d2h_preserve",
+      "pid": "PID_042",
+      "runtime_request_id": "chatcmpl-issue19-oasst1-r06-005-dcc3d723-c1e6-4b34-8205-769248934bce",
+      "schema_version": "issue19-pending-transfer-witness/v1",
+      "timestamp_ns": 3105622347765442,
+      "transfer_id": "a19c8b7a50e6413fa8036a41a85feb5c:t:68",
+      "worker_generation": "VllmWorker-0:PID_042"
+    },
+    "request_id": "issue19-oasst1-r06-005-dcc3d723-c1e6-4b34-8205-769248934bce",
+    "signal": "SIGKILL",
+    "target": {
+      "args": "VLLM::Worker",
+      "comm": "VLLM::Worker",
+      "engine_pid": "PID_041",
+      "pid": "PID_042",
+      "ppid": "PID_041"
+    },
+    "witness_path": "worker_failure/PID_042.pending-transfer.json"
+  },
+  "worker_failure_witnessed": true,
+  "worker_generation_invalidated_transfer_ids": [
+    "a19c8b7a50e6413fa8036a41a85feb5c:t:68"
+  ],
+  "worker_monitor_event_count": 1,
+  "worker_request_failure_event_count": 1,
+  "zombie_request_count": 0,
+  "zombie_request_ids": []
+}

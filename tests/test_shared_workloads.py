@@ -1,9 +1,11 @@
 from __future__ import annotations
 
+import subprocess
+from pathlib import Path
+
 from vllm_request_lifecycle_profiler.shared_workloads import (
     build_shared_workload_report,
     generate_case_requests,
-    load_workloads_module,
     supported_shared_case_ids,
 )
 
@@ -34,7 +36,20 @@ def test_build_shared_workload_report_covers_repo_local_cases() -> None:
 
 
 def test_shared_workload_api_matches_the_pinned_gitlink() -> None:
-    workloads = load_workloads_module()
-    assert (
-        workloads.PINNED_WORKLOAD_COMMIT == "76e24c85bcab76ecfabb831c9444002b6efffd58"
+    repo_root = Path(__file__).resolve().parents[1]
+    gitlink = subprocess.run(
+        [
+            "git",
+            "ls-files",
+            "--stage",
+            "third_party/llm-serving-workloads",
+        ],
+        cwd=repo_root,
+        check=True,
+        capture_output=True,
+        text=True,
     )
+    mode, revision, _stage, path = gitlink.stdout.split()
+    assert mode == "160000"
+    assert revision == "76e24c85bcab76ecfabb831c9444002b6efffd58"
+    assert path == "third_party/llm-serving-workloads"

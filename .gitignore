@@ -27,9 +27,13 @@ paper/request_lifecycle_causal_profiler/tables/generated/
 scratch/
 tmp/
 /.cache/
+.benchmarks/data/
+.venv-issue19/
 # New gate evidence result dirs (G1-G6 + M0 dev validation) kept local; docs summarize them
 .benchmarks/results/g[0-9]*/
 .benchmarks/results/m0_*/
+!.benchmarks/results/m0_issue19_public/
+!.benchmarks/results/m0_issue19_public/**
 
 # Local record/handoff/memory docs (NOT pushed; kept local)
 /docs/claim_ledger.md
