@@ -302,7 +302,7 @@ def test_service_smoke_result_requires_real_initialization_and_complete_trace(
         "service_started": True,
         "health": {"http_status": 200},
         "connector_initialized": True,
-        "resolved_configuration": {**target_configuration(), "port": 18179},
+        "resolved_configuration": {**target_configuration(), "port": 29431},
         "trace_validation": {
             "request_terminal_complete": True,
             "recovery_chain_complete": True,

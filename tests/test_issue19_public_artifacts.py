@@ -15,20 +15,25 @@ PUBLIC_ROOT = REPO_ROOT / (
 
 def test_redactor_preserves_identity_relationship_without_machine_values() -> None:
     redactor = Redactor(
-        pids={"12345": "PID_001"},
-        ports={"18179": "SERVICE_PORT"},
-        devices={"7": "NPU_TARGET"},
+        pids={"54321": "PID_001"},
+        ports={"29431": "SERVICE_PORT"},
+        devices={"3": "NPU_TARGET"},
+        clock_domains={
+            "1234567890abcdef1234567890abcdef": "00000000000000000000000000000001"
+        },
+        model_paths=("/opt/models/example-model",),
     )
     source = {
-        "pid": 12345,
-        "worker_generation": "VllmWorker-0:12345",
-        "port": 18179,
-        "device": 7,
+        "pid": 54321,
+        "worker_generation": "VllmWorker-0:54321",
+        "port": 29431,
+        "device": 3,
+        "clock_domain_id": "1234567890abcdef1234567890abcdef",
+        "model_path": "/opt/models/example-model",
         "path": (
-            "/root/vllm-request-lifecycle-profiler-plugin-issue19-m0/"
-            "worker_failure/12345.pending-transfer.json"
+            "/opt/experiment/worker_failure/54321.pending-transfer.json"
         ),
-        "endpoint": "http://127.0.0.1:18179/v1/chat/completions",
+        "endpoint": "http://127.0.0.1:29431/v1/chat/completions",
     }
 
     public = redactor.value(source)
@@ -37,7 +42,9 @@ def test_redactor_preserves_identity_relationship_without_machine_values() -> No
     assert public["worker_generation"] == "VllmWorker-0:PID_001"
     assert public["port"] == "SERVICE_PORT"
     assert public["device"] == "NPU_TARGET"
-    assert public["path"] == "$WORKTREE/worker_failure/PID_001.pending-transfer.json"
+    assert public["clock_domain_id"] == "00000000000000000000000000000001"
+    assert public["model_path"] == "$MODEL_DIR"
+    assert public["path"] == "$HOST_PATH"
     assert public["endpoint"] == "http://$PRIVATE_HOST:SERVICE_PORT/v1/chat/completions"
 
 

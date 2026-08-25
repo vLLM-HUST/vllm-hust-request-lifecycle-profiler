@@ -15,6 +15,7 @@ DEV_HUB ?= $(abspath $(CURDIR)/third_party/vllm-hust-dev-hub)
 MANAGED_ENV_FILE ?= $(abspath $(CURDIR)/.benchmarks/profiles/npu6_vllm_hust_trace.env)
 TRACE_SUITE_OUTPUT_DIR ?= .benchmarks/results/npu6_existing_server_trace_probe_repeated_smoke
 ISSUE19_RUNTIME_PYTHON ?= $(abspath $(CURDIR)/.venv-issue19/bin/python)
+ISSUE19_MODEL_PATH ?=
 
 PACKAGE_IMPORT := vllm_request_lifecycle_profiler
 BENCH_DIR := .benchmarks
@@ -93,9 +94,11 @@ shared-workloads-smoke:
 shared-workloads-test: test shared-workloads-smoke
 
 issue19-m0-preflight:
+	@test -n "$(ISSUE19_MODEL_PATH)" || \
+		(printf '%s\n' 'Set ISSUE19_MODEL_PATH to the local model directory.' >&2; exit 2)
 	PYTHONPATH=src $(ISSUE19_RUNTIME_PYTHON) -m vllm_request_lifecycle_profiler.issue19_m0 \
 		--runtime-python $(ISSUE19_RUNTIME_PYTHON) \
-		--model-path /root/.cache/huggingface/hub/models--Qwen--Qwen2.5-14B-Instruct/snapshots/cf98f3b3bbb457ad9e2bb7baf9a0125b6b88caa8 \
+		--model-path "$(ISSUE19_MODEL_PATH)" \
 		--output-dir .benchmarks/results/m0_issue19_preflight
 
 issue19-public-evidence-verify:

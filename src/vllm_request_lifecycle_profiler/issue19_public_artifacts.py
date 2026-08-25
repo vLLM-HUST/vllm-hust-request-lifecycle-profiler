@@ -17,7 +17,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
-SANITIZER_VERSION = "issue19-public-sanitizer/v1"
+SANITIZER_VERSION = "issue19-public-sanitizer/v2"
 PUBLIC_SCHEMA = "issue19-public-evidence/v1"
 WITHHELD_NAMES = frozenset(
     {"server.log", "npu_before.txt", "npu_during.txt", "npu_after.txt"}
@@ -35,6 +35,7 @@ PID_KEYS = frozenset(
 )
 DEVICE_KEYS = frozenset({"device", "device_id", "npu_device"})
 PORT_KEYS = frozenset({"port", "service_port"})
+CLOCK_DOMAIN_KEYS = frozenset({"clock_domain_id"})
 PRIVATE_IPV4_RE = re.compile(
     r"\b(?:127\.\d{1,3}\.\d{1,3}\.\d{1,3}"
     r"|10\.\d{1,3}\.\d{1,3}\.\d{1,3}"
@@ -43,13 +44,10 @@ PRIVATE_IPV4_RE = re.compile(
 )
 PCI_RE = re.compile(r"\b[0-9A-Fa-f]{4}:[0-9A-Fa-f]{2}:[0-9A-Fa-f]{2}\.[0-7]\b")
 ABSOLUTE_HOST_PATH_RE = re.compile(
-    r"(?<![\w$])/(?:root|home|tmp|dev)/(?:[^\s\"'`,;:)\]}]+)"
+    r"(?<![\w$])/(?:root|home|tmp|dev|var|etc|opt|mnt|data|usr/local)/"
+    r"(?:[^\s\"'`,;:)\]}]+)"
 )
-WORKTREE_RE = re.compile(r"/root/vllm-request-lifecycle-profiler-plugin-issue19-m0")
-MODEL_RE = re.compile(
-    r"/root/\.cache/huggingface/"
-    r"hub/models--Qwen--Qwen2\.5-14B-Instruct/snapshots/[0-9a-f]+"
-)
+PUBLIC_CLOCK_DOMAIN_RE = re.compile(r"0{24}[0-9a-f]{8}")
 
 
 def _sha256(path: Path) -> str:
@@ -94,12 +92,16 @@ class Redactor:
     pids: dict[str, str] = field(default_factory=dict)
     ports: dict[str, str] = field(default_factory=dict)
     devices: dict[str, str] = field(default_factory=dict)
+    clock_domains: dict[str, str] = field(default_factory=dict)
+    model_paths: tuple[str, ...] = ()
 
     @classmethod
     def from_source(cls, source_root: Path) -> Redactor:
         pid_values: set[str] = set()
         port_values: set[str] = set()
         device_values: set[str] = set()
+        clock_domain_values: set[str] = set()
+        model_path_values: set[str] = set()
         for path in sorted(source_root.rglob("*")):
             if not path.is_file() or path.name in WITHHELD_NAMES:
                 continue
@@ -111,6 +113,10 @@ class Redactor:
                         port_values.add(str(value))
                     elif key in DEVICE_KEYS and isinstance(value, (int, str)):
                         device_values.add(str(value))
+                    elif key in CLOCK_DOMAIN_KEYS and isinstance(value, str):
+                        clock_domain_values.add(value)
+                    elif key == "model_path" and isinstance(value, str):
+                        model_path_values.add(value)
             for part in path.parts:
                 match = re.fullmatch(r"(\d+)\.pending-transfer(?:-arm|\.json)", part)
                 if match:
@@ -122,11 +128,17 @@ class Redactor:
             },
             ports={value: "SERVICE_PORT" for value in sorted(port_values)},
             devices={value: "NPU_TARGET" for value in sorted(device_values)},
+            clock_domains={
+                value: f"{index:032x}"
+                for index, value in enumerate(sorted(clock_domain_values), start=1)
+            },
+            model_paths=tuple(sorted(model_path_values, key=len, reverse=True)),
         )
 
     def text(self, value: str) -> str:
-        result = MODEL_RE.sub("$MODEL_DIR", value)
-        result = WORKTREE_RE.sub("$WORKTREE", result)
+        result = value
+        for model_path in self.model_paths:
+            result = result.replace(model_path, "$MODEL_DIR")
         result = PRIVATE_IPV4_RE.sub("$PRIVATE_HOST", result)
         result = PCI_RE.sub("$PCI_DEVICE", result)
         for original, replacement in sorted(
@@ -141,6 +153,8 @@ class Redactor:
                 rf"\1{replacement}",
                 result,
             )
+        for original, replacement in self.clock_domains.items():
+            result = result.replace(original, replacement)
         return ABSOLUTE_HOST_PATH_RE.sub("$HOST_PATH", result)
 
     def value(self, value: Any, *, key: str | None = None) -> Any:
@@ -150,6 +164,10 @@ class Redactor:
             return self.ports[str(value)]
         if key in DEVICE_KEYS and isinstance(value, (int, str)):
             return self.devices[str(value)]
+        if key in CLOCK_DOMAIN_KEYS and isinstance(value, str):
+            return self.clock_domains[value]
+        if key == "model_path" and isinstance(value, str):
+            return "$MODEL_DIR"
         if isinstance(value, dict):
             return {
                 child_key: self.value(child, key=child_key)
@@ -321,13 +339,20 @@ def recompute_summary(public_root: Path) -> dict[str, Any]:
 def _public_leaks(root: Path, redactor: Redactor | None = None) -> list[str]:
     leaks: list[str] = []
     forbidden = (
-        ("absolute_host_path", re.compile(r"/(?:root|home|tmp|dev)/")),
+        ("absolute_host_path", ABSOLUTE_HOST_PATH_RE),
         ("private_address", PRIVATE_IPV4_RE),
         ("pci_address", PCI_RE),
         ("raw_npu_label", re.compile(r"(?i)\b(?:npu|device)[ _:=#-]*\d+\b")),
-        ("raw_port", re.compile(r"(?<!\d)18179(?!\d)")),
+        ("numeric_url_port", re.compile(r"https?://[^\s/:]+:\d+")),
     )
     raw_pids = tuple(redactor.pids) if redactor is not None else ()
+    raw_pid_pattern = (
+        re.compile(
+            rf"(?<!\d)(?:{'|'.join(re.escape(pid) for pid in raw_pids)})(?!\d)"
+        )
+        if raw_pids
+        else None
+    )
     for path in sorted(root.rglob("*")):
         if not path.is_file():
             continue
@@ -336,10 +361,28 @@ def _public_leaks(root: Path, redactor: Redactor | None = None) -> list[str]:
         for name, pattern in forbidden:
             if pattern.search(relative) or pattern.search(text):
                 leaks.append(f"{relative}: {name}")
-        for pid in raw_pids:
-            if re.search(rf"(?<!\d){re.escape(pid)}(?!\d)", relative + "\n" + text):
-                leaks.append(f"{relative}: raw_pid")
-                break
+        if raw_pid_pattern is not None and raw_pid_pattern.search(
+            relative + "\n" + text
+        ):
+            leaks.append(f"{relative}: raw_pid")
+        for document in _read_structured(path):
+            for key, value in _iter_json_values(document):
+                if (
+                    key in CLOCK_DOMAIN_KEYS
+                    and (
+                        not isinstance(value, str)
+                        or PUBLIC_CLOCK_DOMAIN_RE.fullmatch(value) is None
+                    )
+                ):
+                    leaks.append(f"{relative}: raw_clock_domain")
+                elif key in PORT_KEYS and value != "SERVICE_PORT":
+                    leaks.append(f"{relative}: raw_port")
+                elif key in DEVICE_KEYS and value != "NPU_TARGET":
+                    leaks.append(f"{relative}: raw_device")
+                elif key in PID_KEYS and not (
+                    isinstance(value, str) and re.fullmatch(r"PID_\d{3}", value)
+                ):
+                    leaks.append(f"{relative}: raw_pid")
     return leaks
 
 
@@ -427,6 +470,7 @@ def export_public_artifacts(
                 "NPU device identifiers",
                 "process identifiers",
                 "PCI identifiers",
+                "boot-derived clock-domain identifiers",
             ],
             "preserved": [
                 "fault/control pairing",

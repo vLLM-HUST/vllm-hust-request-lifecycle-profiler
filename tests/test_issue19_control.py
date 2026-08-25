@@ -42,7 +42,7 @@ def _request(path: str, engine: object, *, method: str = "GET") -> Request:
         "query_string": b"",
         "headers": [(b"host", b"127.0.0.1")],
         "client": ("127.0.0.1", 1234),
-        "server": ("127.0.0.1", 18179),
+        "server": ("127.0.0.1", 29431),
         "app": SimpleNamespace(state=SimpleNamespace(engine_client=engine)),
     }
     return Request(scope, receive)

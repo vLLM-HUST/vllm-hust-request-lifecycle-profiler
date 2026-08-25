@@ -101,7 +101,7 @@ def _parse_ordinals(value: str) -> tuple[int, ...]:
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--port", type=int, default=18179)
+    parser.add_argument("--port", type=int, required=True)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--ordinals", type=_parse_ordinals, default=DEFAULT_ORDINALS)
     parser.add_argument("--stagger-ms", type=int, default=200)

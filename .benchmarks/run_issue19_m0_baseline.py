@@ -2048,7 +2048,7 @@ def _parse_repetitions(value: str) -> tuple[int, ...]:
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--device", type=int, required=True)
-    parser.add_argument("--port", type=int, default=18179)
+    parser.add_argument("--port", type=int, required=True)
     parser.add_argument("--output-dir", type=Path, required=True)
     parser.add_argument(
         "--repetitions", type=_parse_repetitions, default=tuple(range(10))

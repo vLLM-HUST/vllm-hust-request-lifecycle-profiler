@@ -23,7 +23,7 @@ def _row(pid: int, ppid: int, comm: str, args: str = "") -> dict[str, object]:
 
 
 def test_tp1_runner_forces_multiproc_backend() -> None:
-    command = _runner()._server_command(18179)
+    command = _runner()._server_command(29431)
 
     option = command.index("--distributed-executor-backend")
     assert command[option + 1] == "mp"
@@ -40,7 +40,7 @@ def test_normal_control_disables_fault_roles_but_preserves_survivor_set() -> Non
 
 def test_server_environment_resolves_child_paths_to_absolute() -> None:
     environment = _runner()._server_environment(
-        Path("relative-results/r00"), 7, "a" * 32
+        Path("relative-results/r00"), 3, "a" * 32
     )
 
     assert Path(environment["VLLM_RLP_TRACE_EXPORT_PATH"]).is_absolute()

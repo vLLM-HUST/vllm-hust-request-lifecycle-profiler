@@ -12,7 +12,9 @@ The exporter retains all ten matched fault/control analyses, client results,
 request/resource traces, failure witnesses, lifecycle snapshots, event
 ordering, monotonic timestamps, and numeric measurements. It replaces machine
 paths, private or loopback addresses, the service port, NPU identifiers, PIDs,
-and PCI identifiers with stable placeholders.
+PCI identifiers, and the boot-derived clock-domain identifier with stable
+placeholders. Request/run identities and clock-domain equality relationships
+remain intact without exposing the execution node's boot fingerprint.
 
 Raw `server.log` files and complete `npu-smi` before/during/after snapshots are
 withheld because they contain execution-node and unrelated-process topology.

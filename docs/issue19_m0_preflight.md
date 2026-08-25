@@ -3,17 +3,17 @@
 The Issue #19 M0 runner must fail closed before it starts a service. Run:
 
 ```bash
-/root/.local/bin/uv venv --system-site-packages \
-  --python /usr/local/python3.12.13/bin/python3 .venv-issue19
-/root/.local/bin/uv pip install --python .venv-issue19/bin/python \
+uv venv --system-site-packages \
+  --python "${ISSUE19_BASE_PYTHON:?set ISSUE19_BASE_PYTHON}" .venv-issue19
+uv pip install --python .venv-issue19/bin/python \
   --no-deps -e .
-/root/.local/bin/uv pip install --python .venv-issue19/bin/python setuptools-rust
-/root/.local/bin/uv pip install --python .venv-issue19/bin/python \
+uv pip install --python .venv-issue19/bin/python setuptools-rust
+uv pip install --python .venv-issue19/bin/python \
   --no-deps 'torch-npu==2.10.0.post4'
 VLLM_TARGET_DEVICE=empty SETUPTOOLS_SCM_PRETEND_VERSION=0.23.0 \
-  /root/.local/bin/uv pip install --python .venv-issue19/bin/python \
+  uv pip install --python .venv-issue19/bin/python \
   --no-deps --no-build-isolation -e third_party/vllm-hust
-make issue19-m0-preflight
+make issue19-m0-preflight ISSUE19_MODEL_PATH="$MODEL_DIR"
 ```
 
 The dedicated ignored environment inherits the host CANN/Torch-NPU stack,

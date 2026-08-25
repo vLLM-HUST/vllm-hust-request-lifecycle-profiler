@@ -1,8 +1,8 @@
 # Issue #19 preliminary M0 evidence boundary
 
-The ignored run directory
-`.benchmarks/results/m0_issue19_baseline/20260822-npu7-baseline-10/` is
-preserved as preliminary real-online evidence. Its ten service lifecycles
+The original preliminary run is retained only in local custody under the
+logical label `preliminary-normal-path-10`; its execution-node directory is
+not part of the public evidence. Its ten service lifecycles
 validly cover normal completion, client disconnect, timeout, duplicate abort,
 natural KV recovery, exact terminal chains, clean observer shutdown, and
 resource teardown.
@@ -32,8 +32,8 @@ distribution must not be presented as treatment or performance evidence.
 
 ## Pending-transfer run and subsequent oracle audit
 
-The corrected ten-lifecycle run is retained under
-`.benchmarks/results/m0_issue19_baseline/20260822-npu7-pending-sigkill-10/`.
+The corrected ten-lifecycle diagnostic run is retained only in local custody
+under the logical label `pending-sigkill-10`.
 All ten repetitions independently witnessed the final
 Worker-exit request's real `d2h_preserve` submission before `SIGKILL` reached
 that exact owned Worker PID. In every repetition, the one submit without a
@@ -74,8 +74,9 @@ returning `NO_GO`.
 
 ## Corrected paired M0 result
 
-The corrected paired run is retained under
-`.benchmarks/results/m0_issue19_baseline/20260822-npu7-corrected-paired-10/`.
+The corrected paired run is published through the sanitized directory
+`.benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/`;
+its execution-node source remains only in local custody.
 It contains ten fault arms and ten matched normal-control arms using the same
 profiler, runtime, Ascend plugin, model, NPU, OASST1 projection, request order,
 seeds, capacity, and resolved server configuration. Lifecycle reconciliation
