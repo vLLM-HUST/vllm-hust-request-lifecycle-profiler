@@ -2,9 +2,10 @@
 
 ## Research Question
 
-Can request-level lifecycle traces be converted into causal bottleneck
-attribution for LLM serving, so optimization work targets the true limiting
-stage instead of correlated symptoms?
+Can an identity-preserving request lifecycle DAG, under matched
+control/intervention evidence, produce more reliable and actionable mechanism
+rankings than equal-budget aggregate metrics, flat timers, and raw-log/manual
+diagnosis, while abstaining when the evidence is insufficient?
 
 ## Why This Is Worth Doing
 
@@ -27,7 +28,16 @@ Collect a per-request event timeline and infer bottleneck chains such as:
 - teardown or cleanup stalls.
 
 The profiler should produce both human-readable reports and machine-readable
-claim ledgers that other optimization repositories can cite.
+claim ledgers that other optimization repositories can cite. A longest stage
+is localization and a complete trace is evidence validity; neither alone is a
+causal root cause. Every non-abstained top-1 requires matched evidence and a
+rank-one counterfactual.
+
+TraceLoom owns the generic execution tree, occurrence-preserving timeline cost,
+and raw profiler-row lineage. Request Lifecycle consumes that structured
+evidence and adds request/lifecycle/epoch identity, resource ownership,
+matched-intervention ranking, confidence/residual, abstention, and decision
+gates. It must not duplicate TraceLoom's tree or row representation.
 
 ## Initial NPU Binding
 
@@ -59,7 +69,10 @@ Primary metrics:
 
 ## Stop/Go Standard
 
-Go if the profiler can correctly attribute controlled bottlenecks with low
-overhead and generate paper-ready evidence packets. Stop or narrow if traces
-cannot disambiguate bottlenecks beyond what simple stage timers already show.
-
+The Issue #19 worker-exit-last reconciliation hypothesis is a scoped `NO_GO`;
+do not rerun or retune it. The topic-level causal claim advances only if two
+fresh opaque positives and one valid negative show a strict decision-score
+advantage over the strongest non-DAG baseline and every non-abstained top-1
+passes its counterfactual. Stop or downgrade the independent causal claim if
+the DAG ties/fails the baseline, cannot narrow coarse spans, depends on answer
+markers, or imposes unacceptable observer overhead.

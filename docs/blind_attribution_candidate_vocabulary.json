@@ -1,0 +1,84 @@
+{
+  "schema": "request-lifecycle-blind-candidates/v1",
+  "candidates": [
+    {
+      "id": "frontend_tokenization",
+      "optimization_family": "frontend",
+      "adjacent": ["queue_or_admission"]
+    },
+    {
+      "id": "queue_or_admission",
+      "optimization_family": "scheduling",
+      "adjacent": ["frontend_tokenization", "scheduler_dispatch"]
+    },
+    {
+      "id": "scheduler_dispatch",
+      "optimization_family": "scheduling",
+      "adjacent": ["queue_or_admission", "worker_handoff"]
+    },
+    {
+      "id": "worker_handoff",
+      "optimization_family": "execution_handoff",
+      "adjacent": [
+        "scheduler_dispatch",
+        "communication_or_synchronization",
+        "device_prefill"
+      ]
+    },
+    {
+      "id": "kv_allocation_or_capacity",
+      "optimization_family": "memory",
+      "adjacent": ["scheduler_dispatch", "graph_or_batch_transition"]
+    },
+    {
+      "id": "graph_or_batch_transition",
+      "optimization_family": "execution_shape",
+      "adjacent": ["kv_allocation_or_capacity", "device_prefill"]
+    },
+    {
+      "id": "device_prefill",
+      "optimization_family": "device_compute",
+      "adjacent": [
+        "worker_handoff",
+        "graph_or_batch_transition",
+        "communication_or_synchronization",
+        "decode_execution"
+      ]
+    },
+    {
+      "id": "decode_execution",
+      "optimization_family": "device_compute",
+      "adjacent": [
+        "device_prefill",
+        "communication_or_synchronization",
+        "response_streaming"
+      ]
+    },
+    {
+      "id": "communication_or_synchronization",
+      "optimization_family": "communication",
+      "adjacent": ["worker_handoff", "device_prefill", "decode_execution"]
+    },
+    {
+      "id": "response_streaming",
+      "optimization_family": "response",
+      "adjacent": ["decode_execution", "cleanup_or_resource_release"]
+    },
+    {
+      "id": "cleanup_or_resource_release",
+      "optimization_family": "lifecycle_cleanup",
+      "adjacent": ["response_streaming"]
+    },
+    {
+      "id": "insufficient_evidence_or_multi_cause",
+      "optimization_family": "abstention",
+      "adjacent": []
+    }
+  ],
+  "wrong_attribution_severity": {
+    "0": "correct top-1 or correct abstention",
+    "1": "wrong candidate listed as adjacent to the oracle candidate",
+    "2": "wrong optimization family",
+    "3": "proposed action violates the case correctness oracle or is unsafe"
+  }
+}
