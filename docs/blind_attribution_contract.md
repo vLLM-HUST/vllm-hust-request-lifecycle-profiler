@@ -1,8 +1,8 @@
 # Blind attribution contract
 
-Status: local review draft. No opaque case has been revealed and no new event
-type, scorer rule, or paper claim may be justified by this document until the
-contract is reviewed and committed.
+Status: Draft PR under review. No opaque case has been revealed and no new
+event type, scorer rule, or paper claim may be justified by this document until
+the contract review has concluded.
 
 This contract implements the research convergence requested in Issue #19 and
 the mainline evaluation requested in Issue #1. It is an ordinary experimental
