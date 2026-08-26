@@ -40,6 +40,10 @@ cause. Queue, KV-pressure, and cleanup ground truth, controlled online runs,
 and broad overhead measurements remain missing. The current evidence therefore
 supports the diagnostic method and a focused research agenda, but not a
 submission-ready evaluation.
+Separately, a real-online matched worker-failure study found resource pathology
+in 1/10 pairs and matched latency pathology in 0/10, below its preregistered
+8/10 gate; it therefore rejected the proposed reconciliation treatment for
+that fixed scenario without rejecting the broader research topic.
 \end{abstract}
 
 \keywords{LLM serving, latency diagnosis, lifecycle tracing, observability}
@@ -242,6 +246,23 @@ overhead. A separate 12-request runtime-hook pair changes TTFT p95 by
 TPOT, CPU, host-memory, NPU-HBM, or general-workload conclusions. We therefore
 exclude overhead from the headline results.
 
+\subsection{Issue 19 as a scoped decision gate}
+
+A separate real-online study fixed a Qwen2.5-14B workload, request order,
+single-device runtime configuration, pending-transfer boundary, and
+worker-exit-last fault before observing results. All ten matched fault/control
+pairs were evidence-valid. One pair retained an orphan lease and run-owned
+mmap, while the other nine conserved resources; no pair met the matched
+latency-pathology condition. Resource and latency pathology counts of 1/10 and
+0/10 were both below the preregistered 8/10 gate, so the decision was
+\texttt{NO\_GO} and the proposed lifecycle reconciliation remained disabled.
+
+This decision applies only to that fixed worker-exit/pending-transfer scenario.
+It does not establish that other disconnect, timeout, receipt-loss,
+multi-Worker, or multi-rank scenarios are safe, and it does not reject Request
+Lifecycle as a research topic. Complete evidence and longest-stage localization
+are not by themselves causal-root-cause proof.
+
 \section{Limitations and Required Evidence}
 
 The current evaluation has four submission blockers. First, the server process
@@ -287,6 +308,9 @@ useful precisely because it stops short of naming an unsupported KV, graph,
 scheduler, or kernel cause and instead defines the next measurements. Missing
 online ground truth and baselines mean the paper is a research draft, not a
 submission candidate.
+Issue 19 likewise shows that complete real-fault evidence can support a scoped
+\texttt{NO\_GO} and stop an unsupported treatment without becoming a
+topic-level negative result.
 
 \section*{Generative AI Disclosure}
 
