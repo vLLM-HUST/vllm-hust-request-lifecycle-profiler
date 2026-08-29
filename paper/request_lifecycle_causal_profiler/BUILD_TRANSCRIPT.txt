@@ -1,0 +1,573 @@
+Script started on 2026-08-30 01:00:06+08:00 [<not executed on terminal>]
+Running TeX ...
+warning: libertine.sty:308:
+Requested font "[LinLibertine_R.otf]/OT" at 8.99997pt
+warning: libertine.sty:308: Requested font "[LinLibertine_R.otf]/OT" at 9.00003pt
+warning: libertine.sty:308: Requested font "[LinLibertine_R.otf]/OT:script=latn;language=dflt;" at 9.00003pt
+warning: libertine.sty:308: Requested font "[LinLibertine_RB.otf]/OT:script=latn;language=dflt;" at 9.00003pt
+warning: libertine.sty:308: Requested font "[LinLibertine_RI.otf]/OT:script=latn;language=dflt;" at 9.00003pt
+warning: libertine.sty:308: Requested font "[LinLibertine_RBI.otf]/OT:script=latn;language=dflt;" at 9.00003pt
+warning: libertine.sty:308: Requested font "[LinLibertine_R.otf]/OT:script=latn;language=dflt;+tnum;+lnum;mapping=tex-text;" at 9.0pt
+warning: libertine.sty:319: Requested font "[LinBiolinum_R.otf]/OT" at 8.99997pt
+warning: libertine.sty:319: Requested font "[LinBiolinum_R.otf]/OT" at 9.00003pt
+warning: libertine.sty:319: Requested font "[LinBiolinum_R.otf]/OT:script=latn;language=dflt;" at 9.00003pt
+warning: libertine.sty:319: Requested font "[LinBiolinum_RB.otf]/OT:script=latn;language=dflt;" at 9.00003pt
+warning: libertine.sty:319: Requested font "[LinBiolinum_RI.otf]/OT:script=latn;language=dflt;" at 9.00003pt
+warning: libertine.sty:319: Requested font "[LinBiolinum_RBO.otf]/OT:script=latn;language=dflt;" at 9.00003pt
+warning: libertine.sty:338: Requested font "[LinLibertine_RZ.otf]/OT" at 8.99997pt
+warning: libertine.sty:338: Requested font "[LinLibertine_RZ.otf]/OT" at 9.00003pt
+warning: libertine.sty:338: Requested font "[LinLibertine_RZ.otf]/OT:script=latn;language=dflt;" at 9.00003pt
+warning: libertine.sty:338: Requested font "[LinLibertine_RZI.otf]/OT:script=latn;language=dflt;" at 9.00003pt
+warning: libertine.sty:361: Requested font "[LinLibertine_DR.otf]/OT" at 8.99997pt
+warning: libertine.sty:361: Requested font "[LinLibertine_DR.otf]/OT" at 9.00003pt
+warning: libertine.sty:361: Requested font "[LinLibertine_DR.otf]/OT:script=latn;language=dflt;" at 9.00003pt
+warning: libertine.sty:435: Requested font "[LinLibertine_M.otf]/OT" at 8.99997pt
+warning: libertine.sty:435: Requested font "[LinLibertine_M.otf]/OT" at 9.00003pt
+warning: libertine.sty:435: Requested font "[LinLibertine_M.otf]/OT:script=latn;language=dflt;" at 9.00003pt
+warning: libertine.sty:435: Requested font "[LinLibertine_MB.otf]/OT:script=latn;language=dflt;" at 9.00003pt
+warning: libertine.sty:435: Requested font "[LinLibertine_MO.otf]/OT:script=latn;language=dflt;" at 9.00003pt
+warning: libertine.sty:435: Requested font "[LinLibertine_MBO.otf]/OT:script=latn;language=dflt;" at 9.00003pt
+warning: libertine.sty:436: Requested font "[LinBiolinum_K.otf]/OT" at 8.99997pt
+warning: libertine.sty:436: Requested font "[LinBiolinum_K.otf]/OT" at 9.00003pt
+warning: libertine.sty:436: Requested font "[LinBiolinum_K.otf]/OT:script=latn;language=dflt;" at 9.00003pt
+warning: libertine.sty:437: Requested font "[LinLibertine_I.otf]/OT" at 8.99997pt
+warning: libertine.sty:437: Requested font "[LinLibertine_I.otf]/OT" at 9.00003pt
+warning: libertine.sty:437: Requested font "[LinLibertine_I.otf]/OT:script=latn;language=dflt;" at 9.00003pt
+warning: acmart.cls:815:
+Requested font "[Inconsolatazi4-Regular.otf]/OT" at 8.99997pt
+warning: acmart.cls:815: Requested font "[Inconsolatazi4-Regular.otf]/OT" at 9.00003pt
+warning: acmart.cls:815: Requested font "[Inconsolatazi4-Regular.otf]/OT:script=latn;language=dflt;" at 9.00003pt
+warning: acmart.cls:815: Requested font "[Inconsolatazi4-Bold.otf]/OT:script=latn;language=dflt;" at 9.00003pt
+warning: request_lifecycle_causal_profiler.tex:23: Requested font "[LinLibertine_R.otf]/OT:script=latn;language=dflt;+tnum;+lnum;mapping=tex-text;" at 7.0pt
+warning: request_lifecycle_causal_profiler.tex:23:
+Requested font "MinLibReg-ot1" at 7.3pt
+warning: request_lifecycle_causal_profiler.tex:23:  -> MinLibReg-ot1
+warning: request_lifecycle_causal_profiler.tex:23: Requested font "MinLibReg-ot1" at 5.5pt
+warning: request_lifecycle_causal_profiler.tex:23:  -> MinLibReg-ot1
+warning: request_lifecycle_causal_profiler.tex:23: Requested font "nxlmi7" at 7.3pt
+warning: request_lifecycle_causal_profiler.tex:23:  -> nxlmi7
+warning: request_lifecycle_causal_profiler.tex:23: Requested font "nxlmi5" at 5.5pt
+warning: request_lifecycle_causal_profiler.tex:23:  -> nxlmi5
+warning: request_lifecycle_causal_profiler.tex:23: Requested font "ntxsy7" at 7.3pt
+warning: request_lifecycle_causal_profiler.tex:23:  -> ntxsy7
+warning: request_lifecycle_causal_profiler.tex:23: Requested font "ntxsy5" at 5.5pt
+warning: request_lifecycle_causal_profiler.tex:23:  -> ntxsy5
+warning: request_lifecycle_causal_profiler.tex:23: Requested font "ntxexx" at 7.3pt
+warning: request_lifecycle_causal_profiler.tex:23:  -> ntxexx
+warning: request_lifecycle_causal_profiler.tex:23: Requested font "ntxexx" at 5.5pt
+warning: request_lifecycle_causal_profiler.tex:23:  -> ntxexx
+warning: request_lifecycle_causal_profiler.tex:23:
+Requested font "msam7" at 7.3pt
+warning: request_lifecycle_causal_profiler.tex:23:  -> msam7
+warning: request_lifecycle_causal_profiler.tex:23: Requested font "msam5" at 5.5pt
+warning: request_lifecycle_causal_profiler.tex:23:  -> msam5
+warning: request_lifecycle_causal_profiler.tex:23:
+Requested font "msbm7" at 7.3pt
+warning: request_lifecycle_causal_profiler.tex:23:  -> msbm7
+warning: request_lifecycle_causal_profiler.tex:23: Requested font "msbm5" at 5.5pt
+warning: request_lifecycle_causal_profiler.tex:23:  -> msbm5
+warning: request_lifecycle_causal_profiler.tex:23:
+Requested font "nxlmia" at 7.3pt
+warning: request_lifecycle_causal_profiler.tex:23:  -> nxlmia
+warning: request_lifecycle_causal_profiler.tex:23: Requested font "nxlmia" at 5.5pt
+warning: request_lifecycle_causal_profiler.tex:23:  -> nxlmia
+warning: request_lifecycle_causal_profiler.tex:23:
+Requested font "ntxsym" at 7.3pt
+warning: request_lifecycle_causal_profiler.tex:23:  -> ntxsym
+warning: request_lifecycle_causal_profiler.tex:23: Requested font "ntxsym" at 5.5pt
+warning: request_lifecycle_causal_profiler.tex:23:  -> ntxsym
+warning: request_lifecycle_causal_profiler.tex:23:
+Requested font "ntxsyc" at 7.3pt
+warning: request_lifecycle_causal_profiler.tex:23:  -> ntxsyc
+warning: request_lifecycle_causal_profiler.tex:23: Requested font "ntxsyc" at 5.5pt
+warning: request_lifecycle_causal_profiler.tex:23:  -> ntxsyc
+warning: request_lifecycle_causal_profiler.tex:23: Requested font "ntxexa" at 7.3pt
+warning: request_lifecycle_causal_profiler.tex:23:  -> ntxexa
+warning: request_lifecycle_causal_profiler.tex:23: Requested font "ntxexa" at 5.5pt
+warning: request_lifecycle_causal_profiler.tex:23:  -> ntxexa
+warning: request_lifecycle_causal_profiler.tex:47: Requested font "[LinLibertine_R.otf]/OT:script=latn;language=dflt;+tnum;+lnum;mapping=tex-text;" at 17.28pt
+warning: request_lifecycle_causal_profiler.tex:47: Requested font "[LinBiolinum_R.otf]/OT:script=latn;language=dflt;+tnum;+lnum;mapping=tex-text;" at 17.28pt
+warning: request_lifecycle_causal_profiler.tex:47: Requested font "[LinBiolinum_RB.otf]/OT:script=latn;language=dflt;+tnum;+lnum;mapping=tex-text;" at 17.28pt
+warning: request_lifecycle_causal_profiler.tex:47: Requested font "[LinLibertine_R.otf]/OT:script=latn;language=dflt;+tnum;+lnum;mapping=tex-text;" at 12.0pt
+warning: request_lifecycle_causal_profiler.tex:47: Requested font "[LinLibertine_R.otf]/OT:script=latn;language=dflt;+tnum;+lnum;mapping=tex-text;" at 10.0pt
+warning: request_lifecycle_causal_profiler.tex:47: Requested font "MinLibReg-ot1" at 10.0pt
+warning: request_lifecycle_causal_profiler.tex:47:  -> MinLibReg-ot1
+warning: request_lifecycle_causal_profiler.tex:47: Requested font "nxlmi" at 10.0pt
+warning: request_lifecycle_causal_profiler.tex:47:  -> nxlmi
+warning: request_lifecycle_causal_profiler.tex:47: Requested font "ntxsy" at 10.0pt
+warning: request_lifecycle_causal_profiler.tex:47:  -> ntxsy
+warning: request_lifecycle_causal_profiler.tex:47: Requested font "ntxexx" at 10.0pt
+warning: request_lifecycle_causal_profiler.tex:47:  -> ntxexx
+warning: request_lifecycle_causal_profiler.tex:47: Requested font "msam10" at 10.0pt
+warning: request_lifecycle_causal_profiler.tex:47:  -> msam10
+warning: request_lifecycle_causal_profiler.tex:47:
+Requested font "msbm10" at 10.0pt
+warning: request_lifecycle_causal_profiler.tex:47:  -> msbm10
+warning: request_lifecycle_causal_profiler.tex:47:
+Requested font "nxlmia" at 10.0pt
+warning: request_lifecycle_causal_profiler.tex:47:  -> nxlmia
+warning: request_lifecycle_causal_profiler.tex:47: Requested font "ntxsym" at 10.0pt
+warning: request_lifecycle_causal_profiler.tex:47:  -> ntxsym
+warning: request_lifecycle_causal_profiler.tex:47: Requested font "ntxsyc" at 10.0pt
+warning: request_lifecycle_causal_profiler.tex:47:  -> ntxsyc
+warning: request_lifecycle_causal_profiler.tex:47: Requested font "ntxexa" at 10.0pt
+warning: request_lifecycle_causal_profiler.tex:47:  -> ntxexa
+warning: request_lifecycle_causal_profiler.tex:47: Requested font "[LinLibertine_RB.otf]/OT:script=latn;language=dflt;+tnum;+lnum;mapping=tex-text;" at 9.0pt
+warning: request_lifecycle_causal_profiler.tex:47: Requested font "[LinLibertine_RB.otf]/OT:script=latn;language=dflt;+tnum;+lnum;mapping=tex-text;" at 10.95pt
+warning: request_lifecycle_causal_profiler.tex:68: Requested font "[LinLibertine_RI.otf]/OT:script=latn;language=dflt;+tnum;+lnum;mapping=tex-text;" at 9.0pt
+warning: request_lifecycle_causal_profiler.tex:83: Requested font "MinLibReg-ot1" at 9.0pt
+warning: request_lifecycle_causal_profiler.tex:83:  -> MinLibReg-ot1
+warning: request_lifecycle_causal_profiler.tex:83: Requested font "nxlmi" at 9.0pt
+warning: request_lifecycle_causal_profiler.tex:83:  -> nxlmi
+warning: request_lifecycle_causal_profiler.tex:83: Requested font "ntxsy" at 9.0pt
+warning: request_lifecycle_causal_profiler.tex:83:  -> ntxsy
+warning: request_lifecycle_causal_profiler.tex:83: Requested font "ntxexx" at 9.0pt
+warning: request_lifecycle_causal_profiler.tex:83:  -> ntxexx
+warning: request_lifecycle_causal_profiler.tex:83: Requested font "msam10" at 9.0pt
+warning: request_lifecycle_causal_profiler.tex:83:  -> msam10
+warning: request_lifecycle_causal_profiler.tex:83: Requested font "msbm10" at 9.0pt
+warning: request_lifecycle_causal_profiler.tex:83:  -> msbm10
+warning: request_lifecycle_causal_profiler.tex:83: Requested font "nxlmia" at 9.0pt
+warning: request_lifecycle_causal_profiler.tex:83:  -> nxlmia
+warning: request_lifecycle_causal_profiler.tex:83: Requested font "ntxsym" at 9.0pt
+warning: request_lifecycle_causal_profiler.tex:83:  -> ntxsym
+warning: request_lifecycle_causal_profiler.tex:83: Requested font "ntxsyc" at 9.0pt
+warning: request_lifecycle_causal_profiler.tex:83:  -> ntxsyc
+warning: request_lifecycle_causal_profiler.tex:83: Requested font "ntxexa" at 9.0pt
+warning: request_lifecycle_causal_profiler.tex:83:  -> ntxexa
+warning: request_lifecycle_causal_profiler.tex:85: Underfull \hbox (badness 2293) in paragraph at lines 83--85
+warning: request_lifecycle_causal_profiler.tex:242: Requested font "[LinBiolinum_R.otf]/OT:script=latn;language=dflt;+tnum;+lnum;mapping=tex-text;" at 9.0pt
+warning: request_lifecycle_causal_profiler.tex:242: Requested font "[LinBiolinum_R.otf]/OT:script=latn;language=dflt;+tnum;+lnum;mapping=tex-text;" at 7.0pt
+warning: tables/generated/npu6_controlled_fault_matrix.tex:2: Requested font "[LinLibertine_R.otf]/OT:script=latn;language=dflt;+tnum;+lnum;mapping=tex-text;" at 8.0pt
+warning: tables/generated/npu6_controlled_fault_matrix.tex:13: Requested font "MinLibReg-ot1" at 8.0pt
+warning: tables/generated/npu6_controlled_fault_matrix.tex:13:  -> MinLibReg-ot1
+warning: tables/generated/npu6_controlled_fault_matrix.tex:13: Requested font "MinLibReg-ot1" at 6.2pt
+warning: tables/generated/npu6_controlled_fault_matrix.tex:13:  -> MinLibReg-ot1
+warning: tables/generated/npu6_controlled_fault_matrix.tex:13: Requested font "nxlmi7" at 8.0pt
+warning: tables/generated/npu6_controlled_fault_matrix.tex:13:  -> nxlmi7
+warning: tables/generated/npu6_controlled_fault_matrix.tex:13: Requested font "nxlmi5" at 6.2pt
+warning: tables/generated/npu6_controlled_fault_matrix.tex:13:  -> nxlmi5
+warning: tables/generated/npu6_controlled_fault_matrix.tex:13: Requested font "ntxsy7" at 8.0pt
+warning: tables/generated/npu6_controlled_fault_matrix.tex:13:  -> ntxsy7
+warning: tables/generated/npu6_controlled_fault_matrix.tex:13: Requested font "ntxsy5" at 6.2pt
+warning: tables/generated/npu6_controlled_fault_matrix.tex:13:  -> ntxsy5
+warning: tables/generated/npu6_controlled_fault_matrix.tex:13: Requested font "ntxexx" at 8.0pt
+warning: tables/generated/npu6_controlled_fault_matrix.tex:13:  -> ntxexx
+warning: tables/generated/npu6_controlled_fault_matrix.tex:13: Requested font "ntxexx" at 6.2pt
+warning: tables/generated/npu6_controlled_fault_matrix.tex:13:  -> ntxexx
+warning: tables/generated/npu6_controlled_fault_matrix.tex:13: Requested font "msam10" at 8.0pt
+warning: tables/generated/npu6_controlled_fault_matrix.tex:13:  -> msam10
+warning: tables/generated/npu6_controlled_fault_matrix.tex:13: Requested font "msam7" at 6.2pt
+warning: tables/generated/npu6_controlled_fault_matrix.tex:13:  -> msam7
+warning: tables/generated/npu6_controlled_fault_matrix.tex:13: Requested font "msbm10" at 8.0pt
+warning: tables/generated/npu6_controlled_fault_matrix.tex:13:  -> msbm10
+warning: tables/generated/npu6_controlled_fault_matrix.tex:13: Requested font "msbm7" at 6.2pt
+warning: tables/generated/npu6_controlled_fault_matrix.tex:13:  -> msbm7
+warning: tables/generated/npu6_controlled_fault_matrix.tex:13: Requested font "nxlmia" at 8.0pt
+warning: tables/generated/npu6_controlled_fault_matrix.tex:13:  -> nxlmia
+warning: tables/generated/npu6_controlled_fault_matrix.tex:13: Requested font "nxlmia" at 6.2pt
+warning: tables/generated/npu6_controlled_fault_matrix.tex:13:  -> nxlmia
+warning: tables/generated/npu6_controlled_fault_matrix.tex:13: Requested font "ntxsym" at 8.0pt
+warning: tables/generated/npu6_controlled_fault_matrix.tex:13:  -> ntxsym
+warning: tables/generated/npu6_controlled_fault_matrix.tex:13: Requested font "ntxsym" at 6.2pt
+warning: tables/generated/npu6_controlled_fault_matrix.tex:13:  -> ntxsym
+warning: tables/generated/npu6_controlled_fault_matrix.tex:13: Requested font "ntxsyc" at 8.0pt
+warning: tables/generated/npu6_controlled_fault_matrix.tex:13:  -> ntxsyc
+warning: tables/generated/npu6_controlled_fault_matrix.tex:13: Requested font "ntxsyc" at 6.2pt
+warning: tables/generated/npu6_controlled_fault_matrix.tex:13:  -> ntxsyc
+warning: tables/generated/npu6_controlled_fault_matrix.tex:13: Requested font "ntxexa" at 8.0pt
+warning: tables/generated/npu6_controlled_fault_matrix.tex:13:  -> ntxexa
+warning: tables/generated/npu6_controlled_fault_matrix.tex:13: Requested font "ntxexa" at 6.2pt
+warning: tables/generated/npu6_controlled_fault_matrix.tex:13:  -> ntxexa
+warning: tables/generated/npu6_controlled_fault_matrix.tex:13: Underfull \hbox (badness 2521) in paragraph at lines 13--13
+warning: request_lifecycle_causal_profiler.tex:275: Requested font "[Inconsolatazi4-Bold.otf]/OT:script=latn;language=dflt;+ss03;" at 9.0pt
+warning: request_lifecycle_causal_profiler.tex:275: Underfull \hbox (badness 6658) in paragraph at lines 275--275
+warning: request_lifecycle_causal_profiler.tex:289: Underfull \hbox (badness 1112) in paragraph at lines 280--289
+Running BibTeX on request_lifecycle_causal_profiler.aux ...
+note: warnings were issued by BibTeX; use --print and/or --keep-logs for details.
+Rerunning TeX because bibtex was run ...
+warning: libertine.sty:308:
+Requested font "[LinLibertine_R.otf]/OT" at 8.99997pt
+warning: libertine.sty:308: Requested font "[LinLibertine_R.otf]/OT" at 9.00003pt
+warning: libertine.sty:308: Requested font "[LinLibertine_R.otf]/OT:script=latn;language=dflt;" at 9.00003pt
+warning: libertine.sty:308: Requested font "[LinLibertine_RB.otf]/OT:script=latn;language=dflt;" at 9.00003pt
+warning: libertine.sty:308: Requested font "[LinLibertine_RI.otf]/OT:script=latn;language=dflt;" at 9.00003pt
+warning: libertine.sty:308: Requested font "[LinLibertine_RBI.otf]/OT:script=latn;language=dflt;" at 9.00003pt
+warning: libertine.sty:308: Requested font "[LinLibertine_R.otf]/OT:script=latn;language=dflt;+tnum;+lnum;mapping=tex-text;" at 9.0pt
+warning: libertine.sty:319: Requested font "[LinBiolinum_R.otf]/OT" at 8.99997pt
+warning: libertine.sty:319: Requested font "[LinBiolinum_R.otf]/OT" at 9.00003pt
+warning: libertine.sty:319: Requested font "[LinBiolinum_R.otf]/OT:script=latn;language=dflt;" at 9.00003pt
+warning: libertine.sty:319: Requested font "[LinBiolinum_RB.otf]/OT:script=latn;language=dflt;" at 9.00003pt
+warning: libertine.sty:319: Requested font "[LinBiolinum_RI.otf]/OT:script=latn;language=dflt;" at 9.00003pt
+warning: libertine.sty:319: Requested font "[LinBiolinum_RBO.otf]/OT:script=latn;language=dflt;" at 9.00003pt
+warning: libertine.sty:338: Requested font "[LinLibertine_RZ.otf]/OT" at 8.99997pt
+warning: libertine.sty:338: Requested font "[LinLibertine_RZ.otf]/OT" at 9.00003pt
+warning: libertine.sty:338: Requested font "[LinLibertine_RZ.otf]/OT:script=latn;language=dflt;" at 9.00003pt
+warning: libertine.sty:338: Requested font "[LinLibertine_RZI.otf]/OT:script=latn;language=dflt;" at 9.00003pt
+warning: libertine.sty:361: Requested font "[LinLibertine_DR.otf]/OT" at 8.99997pt
+warning: libertine.sty:361: Requested font "[LinLibertine_DR.otf]/OT" at 9.00003pt
+warning: libertine.sty:361: Requested font "[LinLibertine_DR.otf]/OT:script=latn;language=dflt;" at 9.00003pt
+warning: libertine.sty:435: Requested font "[LinLibertine_M.otf]/OT" at 8.99997pt
+warning: libertine.sty:435: Requested font "[LinLibertine_M.otf]/OT" at 9.00003pt
+warning: libertine.sty:435: Requested font "[LinLibertine_M.otf]/OT:script=latn;language=dflt;" at 9.00003pt
+warning: libertine.sty:435: Requested font "[LinLibertine_MB.otf]/OT:script=latn;language=dflt;" at 9.00003pt
+warning: libertine.sty:435: Requested font "[LinLibertine_MO.otf]/OT:script=latn;language=dflt;" at 9.00003pt
+warning: libertine.sty:435: Requested font "[LinLibertine_MBO.otf]/OT:script=latn;language=dflt;" at 9.00003pt
+warning: libertine.sty:436: Requested font "[LinBiolinum_K.otf]/OT" at 8.99997pt
+warning: libertine.sty:436: Requested font "[LinBiolinum_K.otf]/OT" at 9.00003pt
+warning: libertine.sty:436: Requested font "[LinBiolinum_K.otf]/OT:script=latn;language=dflt;" at 9.00003pt
+warning: libertine.sty:437: Requested font "[LinLibertine_I.otf]/OT" at 8.99997pt
+warning: libertine.sty:437: Requested font "[LinLibertine_I.otf]/OT" at 9.00003pt
+warning: libertine.sty:437: Requested font "[LinLibertine_I.otf]/OT:script=latn;language=dflt;" at 9.00003pt
+warning: acmart.cls:815:
+Requested font "[Inconsolatazi4-Regular.otf]/OT" at 8.99997pt
+warning: acmart.cls:815: Requested font "[Inconsolatazi4-Regular.otf]/OT" at 9.00003pt
+warning: acmart.cls:815: Requested font "[Inconsolatazi4-Regular.otf]/OT:script=latn;language=dflt;" at 9.00003pt
+warning: acmart.cls:815: Requested font "[Inconsolatazi4-Bold.otf]/OT:script=latn;language=dflt;" at 9.00003pt
+warning: request_lifecycle_causal_profiler.tex:23: Requested font "[LinLibertine_R.otf]/OT:script=latn;language=dflt;+tnum;+lnum;mapping=tex-text;" at 7.0pt
+warning: request_lifecycle_causal_profiler.tex:23:
+Requested font "MinLibReg-ot1" at 7.3pt
+warning: request_lifecycle_causal_profiler.tex:23:  -> MinLibReg-ot1
+warning: request_lifecycle_causal_profiler.tex:23: Requested font "MinLibReg-ot1" at 5.5pt
+warning: request_lifecycle_causal_profiler.tex:23:  -> MinLibReg-ot1
+warning: request_lifecycle_causal_profiler.tex:23: Requested font "nxlmi7" at 7.3pt
+warning: request_lifecycle_causal_profiler.tex:23:  -> nxlmi7
+warning: request_lifecycle_causal_profiler.tex:23: Requested font "nxlmi5" at 5.5pt
+warning: request_lifecycle_causal_profiler.tex:23:  -> nxlmi5
+warning: request_lifecycle_causal_profiler.tex:23: Requested font "ntxsy7" at 7.3pt
+warning: request_lifecycle_causal_profiler.tex:23:  -> ntxsy7
+warning: request_lifecycle_causal_profiler.tex:23: Requested font "ntxsy5" at 5.5pt
+warning: request_lifecycle_causal_profiler.tex:23:  -> ntxsy5
+warning: request_lifecycle_causal_profiler.tex:23: Requested font "ntxexx" at 7.3pt
+warning: request_lifecycle_causal_profiler.tex:23:  -> ntxexx
+warning: request_lifecycle_causal_profiler.tex:23: Requested font "ntxexx" at 5.5pt
+warning: request_lifecycle_causal_profiler.tex:23:  -> ntxexx
+warning: request_lifecycle_causal_profiler.tex:23:
+Requested font "msam7" at 7.3pt
+warning: request_lifecycle_causal_profiler.tex:23:  -> msam7
+warning: request_lifecycle_causal_profiler.tex:23: Requested font "msam5" at 5.5pt
+warning: request_lifecycle_causal_profiler.tex:23:  -> msam5
+warning: request_lifecycle_causal_profiler.tex:23:
+Requested font "msbm7" at 7.3pt
+warning: request_lifecycle_causal_profiler.tex:23:  -> msbm7
+warning: request_lifecycle_causal_profiler.tex:23: Requested font "msbm5" at 5.5pt
+warning: request_lifecycle_causal_profiler.tex:23:  -> msbm5
+warning: request_lifecycle_causal_profiler.tex:23:
+Requested font "nxlmia" at 7.3pt
+warning: request_lifecycle_causal_profiler.tex:23:  -> nxlmia
+warning: request_lifecycle_causal_profiler.tex:23: Requested font "nxlmia" at 5.5pt
+warning: request_lifecycle_causal_profiler.tex:23:  -> nxlmia
+warning: request_lifecycle_causal_profiler.tex:23:
+Requested font "ntxsym" at 7.3pt
+warning: request_lifecycle_causal_profiler.tex:23:  -> ntxsym
+warning: request_lifecycle_causal_profiler.tex:23: Requested font "ntxsym" at 5.5pt
+warning: request_lifecycle_causal_profiler.tex:23:  -> ntxsym
+warning: request_lifecycle_causal_profiler.tex:23:
+Requested font "ntxsyc" at 7.3pt
+warning: request_lifecycle_causal_profiler.tex:23:  -> ntxsyc
+warning: request_lifecycle_causal_profiler.tex:23: Requested font "ntxsyc" at 5.5pt
+warning: request_lifecycle_causal_profiler.tex:23:  -> ntxsyc
+warning: request_lifecycle_causal_profiler.tex:23: Requested font "ntxexa" at 7.3pt
+warning: request_lifecycle_causal_profiler.tex:23:  -> ntxexa
+warning: request_lifecycle_causal_profiler.tex:23: Requested font "ntxexa" at 5.5pt
+warning: request_lifecycle_causal_profiler.tex:23:  -> ntxexa
+warning: request_lifecycle_causal_profiler.tex:47: Requested font "[LinLibertine_R.otf]/OT:script=latn;language=dflt;+tnum;+lnum;mapping=tex-text;" at 17.28pt
+warning: request_lifecycle_causal_profiler.tex:47: Requested font "[LinBiolinum_R.otf]/OT:script=latn;language=dflt;+tnum;+lnum;mapping=tex-text;" at 17.28pt
+warning: request_lifecycle_causal_profiler.tex:47: Requested font "[LinBiolinum_RB.otf]/OT:script=latn;language=dflt;+tnum;+lnum;mapping=tex-text;" at 17.28pt
+warning: request_lifecycle_causal_profiler.tex:47: Requested font "[LinLibertine_R.otf]/OT:script=latn;language=dflt;+tnum;+lnum;mapping=tex-text;" at 12.0pt
+warning: request_lifecycle_causal_profiler.tex:47: Requested font "[LinLibertine_R.otf]/OT:script=latn;language=dflt;+tnum;+lnum;mapping=tex-text;" at 10.0pt
+warning: request_lifecycle_causal_profiler.tex:47: Requested font "MinLibReg-ot1" at 10.0pt
+warning: request_lifecycle_causal_profiler.tex:47:  -> MinLibReg-ot1
+warning: request_lifecycle_causal_profiler.tex:47: Requested font "nxlmi" at 10.0pt
+warning: request_lifecycle_causal_profiler.tex:47:  -> nxlmi
+warning: request_lifecycle_causal_profiler.tex:47: Requested font "ntxsy" at 10.0pt
+warning: request_lifecycle_causal_profiler.tex:47:  -> ntxsy
+warning: request_lifecycle_causal_profiler.tex:47: Requested font "ntxexx" at 10.0pt
+warning: request_lifecycle_causal_profiler.tex:47:  -> ntxexx
+warning: request_lifecycle_causal_profiler.tex:47: Requested font "msam10" at 10.0pt
+warning: request_lifecycle_causal_profiler.tex:47:  -> msam10
+warning: request_lifecycle_causal_profiler.tex:47:
+Requested font "msbm10" at 10.0pt
+warning: request_lifecycle_causal_profiler.tex:47:  -> msbm10
+warning: request_lifecycle_causal_profiler.tex:47:
+Requested font "nxlmia" at 10.0pt
+warning: request_lifecycle_causal_profiler.tex:47:  -> nxlmia
+warning: request_lifecycle_causal_profiler.tex:47: Requested font "ntxsym" at 10.0pt
+warning: request_lifecycle_causal_profiler.tex:47:  -> ntxsym
+warning: request_lifecycle_causal_profiler.tex:47: Requested font "ntxsyc" at 10.0pt
+warning: request_lifecycle_causal_profiler.tex:47:  -> ntxsyc
+warning: request_lifecycle_causal_profiler.tex:47: Requested font "ntxexa" at 10.0pt
+warning: request_lifecycle_causal_profiler.tex:47:  -> ntxexa
+warning: request_lifecycle_causal_profiler.tex:47: Requested font "[LinLibertine_RB.otf]/OT:script=latn;language=dflt;+tnum;+lnum;mapping=tex-text;" at 9.0pt
+warning: request_lifecycle_causal_profiler.tex:47: Requested font "[LinLibertine_RB.otf]/OT:script=latn;language=dflt;+tnum;+lnum;mapping=tex-text;" at 10.95pt
+warning: request_lifecycle_causal_profiler.tex:68: Requested font "[LinLibertine_RI.otf]/OT:script=latn;language=dflt;+tnum;+lnum;mapping=tex-text;" at 9.0pt
+warning: request_lifecycle_causal_profiler.tex:83: Requested font "MinLibReg-ot1" at 9.0pt
+warning: request_lifecycle_causal_profiler.tex:83:  -> MinLibReg-ot1
+warning: request_lifecycle_causal_profiler.tex:83: Requested font "nxlmi" at 9.0pt
+warning: request_lifecycle_causal_profiler.tex:83:  -> nxlmi
+warning: request_lifecycle_causal_profiler.tex:83: Requested font "ntxsy" at 9.0pt
+warning: request_lifecycle_causal_profiler.tex:83:  -> ntxsy
+warning: request_lifecycle_causal_profiler.tex:83: Requested font "ntxexx" at 9.0pt
+warning: request_lifecycle_causal_profiler.tex:83:  -> ntxexx
+warning: request_lifecycle_causal_profiler.tex:83: Requested font "msam10" at 9.0pt
+warning: request_lifecycle_causal_profiler.tex:83:  -> msam10
+warning: request_lifecycle_causal_profiler.tex:83: Requested font "msbm10" at 9.0pt
+warning: request_lifecycle_causal_profiler.tex:83:  -> msbm10
+warning: request_lifecycle_causal_profiler.tex:83: Requested font "nxlmia" at 9.0pt
+warning: request_lifecycle_causal_profiler.tex:83:  -> nxlmia
+warning: request_lifecycle_causal_profiler.tex:83: Requested font "ntxsym" at 9.0pt
+warning: request_lifecycle_causal_profiler.tex:83:  -> ntxsym
+warning: request_lifecycle_causal_profiler.tex:83: Requested font "ntxsyc" at 9.0pt
+warning: request_lifecycle_causal_profiler.tex:83:  -> ntxsyc
+warning: request_lifecycle_causal_profiler.tex:83: Requested font "ntxexa" at 9.0pt
+warning: request_lifecycle_causal_profiler.tex:83:  -> ntxexa
+warning: request_lifecycle_causal_profiler.tex:85: Underfull \hbox (badness 2293) in paragraph at lines 83--85
+warning: request_lifecycle_causal_profiler.tex:242: Requested font "[LinBiolinum_R.otf]/OT:script=latn;language=dflt;+tnum;+lnum;mapping=tex-text;" at 9.0pt
+warning: request_lifecycle_causal_profiler.tex:242: Requested font "[LinBiolinum_R.otf]/OT:script=latn;language=dflt;+tnum;+lnum;mapping=tex-text;" at 7.0pt
+warning: tables/generated/npu6_controlled_fault_matrix.tex:2: Requested font "[LinLibertine_R.otf]/OT:script=latn;language=dflt;+tnum;+lnum;mapping=tex-text;" at 8.0pt
+warning: tables/generated/npu6_controlled_fault_matrix.tex:13: Requested font "MinLibReg-ot1" at 8.0pt
+warning: tables/generated/npu6_controlled_fault_matrix.tex:13:  -> MinLibReg-ot1
+warning: tables/generated/npu6_controlled_fault_matrix.tex:13: Requested font "MinLibReg-ot1" at 6.2pt
+warning: tables/generated/npu6_controlled_fault_matrix.tex:13:  -> MinLibReg-ot1
+warning: tables/generated/npu6_controlled_fault_matrix.tex:13: Requested font "nxlmi7" at 8.0pt
+warning: tables/generated/npu6_controlled_fault_matrix.tex:13:  -> nxlmi7
+warning: tables/generated/npu6_controlled_fault_matrix.tex:13: Requested font "nxlmi5" at 6.2pt
+warning: tables/generated/npu6_controlled_fault_matrix.tex:13:  -> nxlmi5
+warning: tables/generated/npu6_controlled_fault_matrix.tex:13: Requested font "ntxsy7" at 8.0pt
+warning: tables/generated/npu6_controlled_fault_matrix.tex:13:  -> ntxsy7
+warning: tables/generated/npu6_controlled_fault_matrix.tex:13: Requested font "ntxsy5" at 6.2pt
+warning: tables/generated/npu6_controlled_fault_matrix.tex:13:  -> ntxsy5
+warning: tables/generated/npu6_controlled_fault_matrix.tex:13: Requested font "ntxexx" at 8.0pt
+warning: tables/generated/npu6_controlled_fault_matrix.tex:13:  -> ntxexx
+warning: tables/generated/npu6_controlled_fault_matrix.tex:13: Requested font "ntxexx" at 6.2pt
+warning: tables/generated/npu6_controlled_fault_matrix.tex:13:  -> ntxexx
+warning: tables/generated/npu6_controlled_fault_matrix.tex:13: Requested font "msam10" at 8.0pt
+warning: tables/generated/npu6_controlled_fault_matrix.tex:13:  -> msam10
+warning: tables/generated/npu6_controlled_fault_matrix.tex:13: Requested font "msam7" at 6.2pt
+warning: tables/generated/npu6_controlled_fault_matrix.tex:13:  -> msam7
+warning: tables/generated/npu6_controlled_fault_matrix.tex:13: Requested font "msbm10" at 8.0pt
+warning: tables/generated/npu6_controlled_fault_matrix.tex:13:  -> msbm10
+warning: tables/generated/npu6_controlled_fault_matrix.tex:13: Requested font "msbm7" at 6.2pt
+warning: tables/generated/npu6_controlled_fault_matrix.tex:13:  -> msbm7
+warning: tables/generated/npu6_controlled_fault_matrix.tex:13: Requested font "nxlmia" at 8.0pt
+warning: tables/generated/npu6_controlled_fault_matrix.tex:13:  -> nxlmia
+warning: tables/generated/npu6_controlled_fault_matrix.tex:13: Requested font "nxlmia" at 6.2pt
+warning: tables/generated/npu6_controlled_fault_matrix.tex:13:  -> nxlmia
+warning: tables/generated/npu6_controlled_fault_matrix.tex:13: Requested font "ntxsym" at 8.0pt
+warning: tables/generated/npu6_controlled_fault_matrix.tex:13:  -> ntxsym
+warning: tables/generated/npu6_controlled_fault_matrix.tex:13: Requested font "ntxsym" at 6.2pt
+warning: tables/generated/npu6_controlled_fault_matrix.tex:13:  -> ntxsym
+warning: tables/generated/npu6_controlled_fault_matrix.tex:13: Requested font "ntxsyc" at 8.0pt
+warning: tables/generated/npu6_controlled_fault_matrix.tex:13:  -> ntxsyc
+warning: tables/generated/npu6_controlled_fault_matrix.tex:13: Requested font "ntxsyc" at 6.2pt
+warning: tables/generated/npu6_controlled_fault_matrix.tex:13:  -> ntxsyc
+warning: tables/generated/npu6_controlled_fault_matrix.tex:13: Requested font "ntxexa" at 8.0pt
+warning: tables/generated/npu6_controlled_fault_matrix.tex:13:  -> ntxexa
+warning: tables/generated/npu6_controlled_fault_matrix.tex:13: Requested font "ntxexa" at 6.2pt
+warning: tables/generated/npu6_controlled_fault_matrix.tex:13:  -> ntxexa
+warning: tables/generated/npu6_controlled_fault_matrix.tex:13: Underfull \hbox (badness 2521) in paragraph at lines 13--13
+warning: request_lifecycle_causal_profiler.tex:275:
+Requested font "[Inconsolatazi4-Bold.otf]/OT:script=latn;language=dflt;+ss03;" at 9.0pt
+warning: request_lifecycle_causal_profiler.tex:275: Underfull \hbox (badness 6658) in paragraph at lines 275--275
+warning: request_lifecycle_causal_profiler.tex:289: Underfull \hbox (badness 1112) in paragraph at lines 280--289
+warning: request_lifecycle_causal_profiler.bbl:47: Requested font "[LinLibertine_RI.otf]/OT:script=latn;language=dflt;+tnum;+lnum;mapping=tex-text;" at 7.0pt
+warning: request_lifecycle_causal_profiler.bbl:77: Underfull \hbox (badness 1400) in paragraph at lines 71--77
+warning: request_lifecycle_causal_profiler.bbl:117: Underfull \hbox (badness 2409) in paragraph at lines 112--117
+Rerunning TeX because "request_lifecycle_causal_profiler.aux" changed ...
+warning: libertine.sty:308:
+Requested font "[LinLibertine_R.otf]/OT" at 8.99997pt
+warning: libertine.sty:308: Requested font "[LinLibertine_R.otf]/OT" at 9.00003pt
+warning: libertine.sty:308: Requested font "[LinLibertine_R.otf]/OT:script=latn;language=dflt;" at 9.00003pt
+warning: libertine.sty:308: Requested font "[LinLibertine_RB.otf]/OT:script=latn;language=dflt;" at 9.00003pt
+warning: libertine.sty:308: Requested font "[LinLibertine_RI.otf]/OT:script=latn;language=dflt;" at 9.00003pt
+warning: libertine.sty:308: Requested font "[LinLibertine_RBI.otf]/OT:script=latn;language=dflt;" at 9.00003pt
+warning: libertine.sty:308: Requested font "[LinLibertine_R.otf]/OT:script=latn;language=dflt;+tnum;+lnum;mapping=tex-text;" at 9.0pt
+warning: libertine.sty:319: Requested font "[LinBiolinum_R.otf]/OT" at 8.99997pt
+warning: libertine.sty:319: Requested font "[LinBiolinum_R.otf]/OT" at 9.00003pt
+warning: libertine.sty:319: Requested font "[LinBiolinum_R.otf]/OT:script=latn;language=dflt;" at 9.00003pt
+warning: libertine.sty:319: Requested font "[LinBiolinum_RB.otf]/OT:script=latn;language=dflt;" at 9.00003pt
+warning: libertine.sty:319: Requested font "[LinBiolinum_RI.otf]/OT:script=latn;language=dflt;" at 9.00003pt
+warning: libertine.sty:319: Requested font "[LinBiolinum_RBO.otf]/OT:script=latn;language=dflt;" at 9.00003pt
+warning: libertine.sty:338: Requested font "[LinLibertine_RZ.otf]/OT" at 8.99997pt
+warning: libertine.sty:338: Requested font "[LinLibertine_RZ.otf]/OT" at 9.00003pt
+warning: libertine.sty:338: Requested font "[LinLibertine_RZ.otf]/OT:script=latn;language=dflt;" at 9.00003pt
+warning: libertine.sty:338: Requested font "[LinLibertine_RZI.otf]/OT:script=latn;language=dflt;" at 9.00003pt
+warning: libertine.sty:361: Requested font "[LinLibertine_DR.otf]/OT" at 8.99997pt
+warning: libertine.sty:361: Requested font "[LinLibertine_DR.otf]/OT" at 9.00003pt
+warning: libertine.sty:361: Requested font "[LinLibertine_DR.otf]/OT:script=latn;language=dflt;" at 9.00003pt
+warning: libertine.sty:435: Requested font "[LinLibertine_M.otf]/OT" at 8.99997pt
+warning: libertine.sty:435: Requested font "[LinLibertine_M.otf]/OT" at 9.00003pt
+warning: libertine.sty:435: Requested font "[LinLibertine_M.otf]/OT:script=latn;language=dflt;" at 9.00003pt
+warning: libertine.sty:435: Requested font "[LinLibertine_MB.otf]/OT:script=latn;language=dflt;" at 9.00003pt
+warning: libertine.sty:435: Requested font "[LinLibertine_MO.otf]/OT:script=latn;language=dflt;" at 9.00003pt
+warning: libertine.sty:435: Requested font "[LinLibertine_MBO.otf]/OT:script=latn;language=dflt;" at 9.00003pt
+warning: libertine.sty:436: Requested font "[LinBiolinum_K.otf]/OT" at 8.99997pt
+warning: libertine.sty:436: Requested font "[LinBiolinum_K.otf]/OT" at 9.00003pt
+warning: libertine.sty:436: Requested font "[LinBiolinum_K.otf]/OT:script=latn;language=dflt;" at 9.00003pt
+warning: libertine.sty:437: Requested font "[LinLibertine_I.otf]/OT" at 8.99997pt
+warning: libertine.sty:437: Requested font "[LinLibertine_I.otf]/OT" at 9.00003pt
+warning: libertine.sty:437: Requested font "[LinLibertine_I.otf]/OT:script=latn;language=dflt;" at 9.00003pt
+warning: acmart.cls:815:
+Requested font "[Inconsolatazi4-Regular.otf]/OT" at 8.99997pt
+warning: acmart.cls:815: Requested font "[Inconsolatazi4-Regular.otf]/OT" at 9.00003pt
+warning: acmart.cls:815: Requested font "[Inconsolatazi4-Regular.otf]/OT:script=latn;language=dflt;" at 9.00003pt
+warning: acmart.cls:815: Requested font "[Inconsolatazi4-Bold.otf]/OT:script=latn;language=dflt;" at 9.00003pt
+warning: request_lifecycle_causal_profiler.tex:23: Requested font "[LinLibertine_R.otf]/OT:script=latn;language=dflt;+tnum;+lnum;mapping=tex-text;" at 7.0pt
+warning: request_lifecycle_causal_profiler.tex:23:
+Requested font "MinLibReg-ot1" at 7.3pt
+warning: request_lifecycle_causal_profiler.tex:23:  -> MinLibReg-ot1
+warning: request_lifecycle_causal_profiler.tex:23: Requested font "MinLibReg-ot1" at 5.5pt
+warning: request_lifecycle_causal_profiler.tex:23:  -> MinLibReg-ot1
+warning: request_lifecycle_causal_profiler.tex:23: Requested font "nxlmi7" at 7.3pt
+warning: request_lifecycle_causal_profiler.tex:23:  -> nxlmi7
+warning: request_lifecycle_causal_profiler.tex:23: Requested font "nxlmi5" at 5.5pt
+warning: request_lifecycle_causal_profiler.tex:23:  -> nxlmi5
+warning: request_lifecycle_causal_profiler.tex:23: Requested font "ntxsy7" at 7.3pt
+warning: request_lifecycle_causal_profiler.tex:23:  -> ntxsy7
+warning: request_lifecycle_causal_profiler.tex:23: Requested font "ntxsy5" at 5.5pt
+warning: request_lifecycle_causal_profiler.tex:23:  -> ntxsy5
+warning: request_lifecycle_causal_profiler.tex:23: Requested font "ntxexx" at 7.3pt
+warning: request_lifecycle_causal_profiler.tex:23:  -> ntxexx
+warning: request_lifecycle_causal_profiler.tex:23: Requested font "ntxexx" at 5.5pt
+warning: request_lifecycle_causal_profiler.tex:23:  -> ntxexx
+warning: request_lifecycle_causal_profiler.tex:23:
+Requested font "msam7" at 7.3pt
+warning: request_lifecycle_causal_profiler.tex:23:  -> msam7
+warning: request_lifecycle_causal_profiler.tex:23: Requested font "msam5" at 5.5pt
+warning: request_lifecycle_causal_profiler.tex:23:  -> msam5
+warning: request_lifecycle_causal_profiler.tex:23:
+Requested font "msbm7" at 7.3pt
+warning: request_lifecycle_causal_profiler.tex:23:  -> msbm7
+warning: request_lifecycle_causal_profiler.tex:23: Requested font "msbm5" at 5.5pt
+warning: request_lifecycle_causal_profiler.tex:23:  -> msbm5
+warning: request_lifecycle_causal_profiler.tex:23:
+Requested font "nxlmia" at 7.3pt
+warning: request_lifecycle_causal_profiler.tex:23:  -> nxlmia
+warning: request_lifecycle_causal_profiler.tex:23: Requested font "nxlmia" at 5.5pt
+warning: request_lifecycle_causal_profiler.tex:23:  -> nxlmia
+warning: request_lifecycle_causal_profiler.tex:23:
+Requested font "ntxsym" at 7.3pt
+warning: request_lifecycle_causal_profiler.tex:23:  -> ntxsym
+warning: request_lifecycle_causal_profiler.tex:23: Requested font "ntxsym" at 5.5pt
+warning: request_lifecycle_causal_profiler.tex:23:  -> ntxsym
+warning: request_lifecycle_causal_profiler.tex:23:
+Requested font "ntxsyc" at 7.3pt
+warning: request_lifecycle_causal_profiler.tex:23:  -> ntxsyc
+warning: request_lifecycle_causal_profiler.tex:23: Requested font "ntxsyc" at 5.5pt
+warning: request_lifecycle_causal_profiler.tex:23:  -> ntxsyc
+warning: request_lifecycle_causal_profiler.tex:23: Requested font "ntxexa" at 7.3pt
+warning: request_lifecycle_causal_profiler.tex:23:  -> ntxexa
+warning: request_lifecycle_causal_profiler.tex:23: Requested font "ntxexa" at 5.5pt
+warning: request_lifecycle_causal_profiler.tex:23:  -> ntxexa
+warning: request_lifecycle_causal_profiler.tex:47: Requested font "[LinLibertine_R.otf]/OT:script=latn;language=dflt;+tnum;+lnum;mapping=tex-text;" at 17.28pt
+warning: request_lifecycle_causal_profiler.tex:47: Requested font "[LinBiolinum_R.otf]/OT:script=latn;language=dflt;+tnum;+lnum;mapping=tex-text;" at 17.28pt
+warning: request_lifecycle_causal_profiler.tex:47: Requested font "[LinBiolinum_RB.otf]/OT:script=latn;language=dflt;+tnum;+lnum;mapping=tex-text;" at 17.28pt
+warning: request_lifecycle_causal_profiler.tex:47: Requested font "[LinLibertine_R.otf]/OT:script=latn;language=dflt;+tnum;+lnum;mapping=tex-text;" at 12.0pt
+warning: request_lifecycle_causal_profiler.tex:47: Requested font "[LinLibertine_R.otf]/OT:script=latn;language=dflt;+tnum;+lnum;mapping=tex-text;" at 10.0pt
+warning: request_lifecycle_causal_profiler.tex:47: Requested font "MinLibReg-ot1" at 10.0pt
+warning: request_lifecycle_causal_profiler.tex:47:  -> MinLibReg-ot1
+warning: request_lifecycle_causal_profiler.tex:47: Requested font "nxlmi" at 10.0pt
+warning: request_lifecycle_causal_profiler.tex:47:  -> nxlmi
+warning: request_lifecycle_causal_profiler.tex:47: Requested font "ntxsy" at 10.0pt
+warning: request_lifecycle_causal_profiler.tex:47:  -> ntxsy
+warning: request_lifecycle_causal_profiler.tex:47: Requested font "ntxexx" at 10.0pt
+warning: request_lifecycle_causal_profiler.tex:47:  -> ntxexx
+warning: request_lifecycle_causal_profiler.tex:47: Requested font "msam10" at 10.0pt
+warning: request_lifecycle_causal_profiler.tex:47:  -> msam10
+warning: request_lifecycle_causal_profiler.tex:47:
+Requested font "msbm10" at 10.0pt
+warning: request_lifecycle_causal_profiler.tex:47:  -> msbm10
+warning: request_lifecycle_causal_profiler.tex:47:
+Requested font "nxlmia" at 10.0pt
+warning: request_lifecycle_causal_profiler.tex:47:  -> nxlmia
+warning: request_lifecycle_causal_profiler.tex:47: Requested font "ntxsym" at 10.0pt
+warning: request_lifecycle_causal_profiler.tex:47:  -> ntxsym
+warning: request_lifecycle_causal_profiler.tex:47: Requested font "ntxsyc" at 10.0pt
+warning: request_lifecycle_causal_profiler.tex:47:  -> ntxsyc
+warning: request_lifecycle_causal_profiler.tex:47: Requested font "ntxexa" at 10.0pt
+warning: request_lifecycle_causal_profiler.tex:47:  -> ntxexa
+warning: request_lifecycle_causal_profiler.tex:47: Requested font "[LinLibertine_RB.otf]/OT:script=latn;language=dflt;+tnum;+lnum;mapping=tex-text;" at 9.0pt
+warning: request_lifecycle_causal_profiler.tex:47: Requested font "[LinLibertine_RB.otf]/OT:script=latn;language=dflt;+tnum;+lnum;mapping=tex-text;" at 10.95pt
+warning: request_lifecycle_causal_profiler.tex:68: Requested font "[LinLibertine_RI.otf]/OT:script=latn;language=dflt;+tnum;+lnum;mapping=tex-text;" at 9.0pt
+warning: request_lifecycle_causal_profiler.tex:83: Requested font "MinLibReg-ot1" at 9.0pt
+warning: request_lifecycle_causal_profiler.tex:83:  -> MinLibReg-ot1
+warning: request_lifecycle_causal_profiler.tex:83: Requested font "nxlmi" at 9.0pt
+warning: request_lifecycle_causal_profiler.tex:83:  -> nxlmi
+warning: request_lifecycle_causal_profiler.tex:83: Requested font "ntxsy" at 9.0pt
+warning: request_lifecycle_causal_profiler.tex:83:  -> ntxsy
+warning: request_lifecycle_causal_profiler.tex:83: Requested font "ntxexx" at 9.0pt
+warning: request_lifecycle_causal_profiler.tex:83:  -> ntxexx
+warning: request_lifecycle_causal_profiler.tex:83: Requested font "msam10" at 9.0pt
+warning: request_lifecycle_causal_profiler.tex:83:  -> msam10
+warning: request_lifecycle_causal_profiler.tex:83: Requested font "msbm10" at 9.0pt
+warning: request_lifecycle_causal_profiler.tex:83:  -> msbm10
+warning: request_lifecycle_causal_profiler.tex:83: Requested font "nxlmia" at 9.0pt
+warning: request_lifecycle_causal_profiler.tex:83:  -> nxlmia
+warning: request_lifecycle_causal_profiler.tex:83: Requested font "ntxsym" at 9.0pt
+warning: request_lifecycle_causal_profiler.tex:83:  -> ntxsym
+warning: request_lifecycle_causal_profiler.tex:83: Requested font "ntxsyc" at 9.0pt
+warning: request_lifecycle_causal_profiler.tex:83:  -> ntxsyc
+warning: request_lifecycle_causal_profiler.tex:83: Requested font "ntxexa" at 9.0pt
+warning: request_lifecycle_causal_profiler.tex:83:  -> ntxexa
+warning: request_lifecycle_causal_profiler.tex:85: Underfull \hbox (badness 2293) in paragraph at lines 83--85
+warning: request_lifecycle_causal_profiler.tex:242: Requested font "[LinBiolinum_R.otf]/OT:script=latn;language=dflt;+tnum;+lnum;mapping=tex-text;" at 9.0pt
+warning: request_lifecycle_causal_profiler.tex:242: Requested font "[LinBiolinum_R.otf]/OT:script=latn;language=dflt;+tnum;+lnum;mapping=tex-text;" at 7.0pt
+warning: tables/generated/npu6_controlled_fault_matrix.tex:2: Requested font "[LinLibertine_R.otf]/OT:script=latn;language=dflt;+tnum;+lnum;mapping=tex-text;" at 8.0pt
+warning: tables/generated/npu6_controlled_fault_matrix.tex:13: Requested font "MinLibReg-ot1" at 8.0pt
+warning: tables/generated/npu6_controlled_fault_matrix.tex:13:  -> MinLibReg-ot1
+warning: tables/generated/npu6_controlled_fault_matrix.tex:13: Requested font "MinLibReg-ot1" at 6.2pt
+warning: tables/generated/npu6_controlled_fault_matrix.tex:13:  -> MinLibReg-ot1
+warning: tables/generated/npu6_controlled_fault_matrix.tex:13: Requested font "nxlmi7" at 8.0pt
+warning: tables/generated/npu6_controlled_fault_matrix.tex:13:  -> nxlmi7
+warning: tables/generated/npu6_controlled_fault_matrix.tex:13: Requested font "nxlmi5" at 6.2pt
+warning: tables/generated/npu6_controlled_fault_matrix.tex:13:  -> nxlmi5
+warning: tables/generated/npu6_controlled_fault_matrix.tex:13: Requested font "ntxsy7" at 8.0pt
+warning: tables/generated/npu6_controlled_fault_matrix.tex:13:  -> ntxsy7
+warning: tables/generated/npu6_controlled_fault_matrix.tex:13: Requested font "ntxsy5" at 6.2pt
+warning: tables/generated/npu6_controlled_fault_matrix.tex:13:  -> ntxsy5
+warning: tables/generated/npu6_controlled_fault_matrix.tex:13: Requested font "ntxexx" at 8.0pt
+warning: tables/generated/npu6_controlled_fault_matrix.tex:13:  -> ntxexx
+warning: tables/generated/npu6_controlled_fault_matrix.tex:13: Requested font "ntxexx" at 6.2pt
+warning: tables/generated/npu6_controlled_fault_matrix.tex:13:  -> ntxexx
+warning: tables/generated/npu6_controlled_fault_matrix.tex:13: Requested font "msam10" at 8.0pt
+warning: tables/generated/npu6_controlled_fault_matrix.tex:13:  -> msam10
+warning: tables/generated/npu6_controlled_fault_matrix.tex:13: Requested font "msam7" at 6.2pt
+warning: tables/generated/npu6_controlled_fault_matrix.tex:13:  -> msam7
+warning: tables/generated/npu6_controlled_fault_matrix.tex:13: Requested font "msbm10" at 8.0pt
+warning: tables/generated/npu6_controlled_fault_matrix.tex:13:  -> msbm10
+warning: tables/generated/npu6_controlled_fault_matrix.tex:13: Requested font "msbm7" at 6.2pt
+warning: tables/generated/npu6_controlled_fault_matrix.tex:13:  -> msbm7
+warning: tables/generated/npu6_controlled_fault_matrix.tex:13: Requested font "nxlmia" at 8.0pt
+warning: tables/generated/npu6_controlled_fault_matrix.tex:13:  -> nxlmia
+warning: tables/generated/npu6_controlled_fault_matrix.tex:13: Requested font "nxlmia" at 6.2pt
+warning: tables/generated/npu6_controlled_fault_matrix.tex:13:  -> nxlmia
+warning: tables/generated/npu6_controlled_fault_matrix.tex:13: Requested font "ntxsym" at 8.0pt
+warning: tables/generated/npu6_controlled_fault_matrix.tex:13:  -> ntxsym
+warning: tables/generated/npu6_controlled_fault_matrix.tex:13: Requested font "ntxsym" at 6.2pt
+warning: tables/generated/npu6_controlled_fault_matrix.tex:13:  -> ntxsym
+warning: tables/generated/npu6_controlled_fault_matrix.tex:13: Requested font "ntxsyc" at 8.0pt
+warning: tables/generated/npu6_controlled_fault_matrix.tex:13:  -> ntxsyc
+warning: tables/generated/npu6_controlled_fault_matrix.tex:13: Requested font "ntxsyc" at 6.2pt
+warning: tables/generated/npu6_controlled_fault_matrix.tex:13:  -> ntxsyc
+warning: tables/generated/npu6_controlled_fault_matrix.tex:13: Requested font "ntxexa" at 8.0pt
+warning: tables/generated/npu6_controlled_fault_matrix.tex:13:  -> ntxexa
+warning: tables/generated/npu6_controlled_fault_matrix.tex:13: Requested font "ntxexa" at 6.2pt
+warning: tables/generated/npu6_controlled_fault_matrix.tex:13:  -> ntxexa
+warning: tables/generated/npu6_controlled_fault_matrix.tex:13: Underfull \hbox (badness 2521) in paragraph at lines 13--13
+warning: request_lifecycle_causal_profiler.tex:275:
+Requested font "[Inconsolatazi4-Bold.otf]/OT:script=latn;language=dflt;+ss03;" at 9.0pt
+warning: request_lifecycle_causal_profiler.tex:275: Underfull \hbox (badness 6658) in paragraph at lines 275--275
+warning: request_lifecycle_causal_profiler.tex:289: Underfull \hbox (badness 1112) in paragraph at lines 280--289
+warning: request_lifecycle_causal_profiler.bbl:47: Requested font "[LinLibertine_RI.otf]/OT:script=latn;language=dflt;+tnum;+lnum;mapping=tex-text;" at 7.0pt
+warning: request_lifecycle_causal_profiler.bbl:77: Underfull \hbox (badness 1400) in paragraph at lines 71--77
+warning: request_lifecycle_causal_profiler.bbl:117: Underfull \hbox (badness 2409) in paragraph at lines 112--117
+warning: warnings were issued by the TeX engine; use --print and/or --keep-logs for details.
+Running xdvipdfmx ...
+Writing `request_lifecycle_causal_profiler.out` (3.75 KiB)
+Writing `request_lifecycle_causal_profiler.blg` (557 B)
+Writing `request_lifecycle_causal_profiler.aux` (5.2880859375 KiB)
+Writing `request_lifecycle_causal_profiler.bbl` (5.47265625 KiB)
+Writing `request_lifecycle_causal_profiler.pdf` (91.9755859375 KiB)
+Writing `request_lifecycle_causal_profiler.log` (62.818359375 KiB)
+
+Script done on 2026-08-30 01:00:25+08:00 [COMMAND_EXIT_CODE="0"]

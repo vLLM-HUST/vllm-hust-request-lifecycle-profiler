@@ -95,6 +95,61 @@ repository-controlled online experiments, and several central baselines and
 fault classes remain absent. We retain this limitation because it determines
 the experiments that must be run next.
 
+\subsection{Seven-Question Research Contract}
+
+\textbf{(1) Problem.} Can identity-bound lifecycle events attribute a slow LLM
+request to an actionable serving stage without silently filling missing spans?
+\textbf{(2) Importance.} The same TTFT or tail-latency symptom can imply
+conflicting scheduler, cache, graph, kernel, or delivery interventions.
+\textbf{(3) Common hidden assumption and related-work boundary.} Aggregate
+timers, raw application logs, generic distributed tracing, and general latency
+profilers assume that correlation or function association is sufficient; this
+work tests whether serving-stage ordering, completeness, and controlled
+interventions add auditable causal value. \textbf{(4) Mechanism hypothesis.}
+Request-, process-, generation-, and stage-bound receipts plus fail-closed
+span construction can localize the responsible stage, while matched
+interventions and stage-specific metadata can distinguish causes within an
+otherwise identical coarse span. \textbf{(5) Feasibility.} Existing-server
+probes already exercise streaming, decode, and prefill correspondence and expose
+a 12.2\,s-class prefill-localized counterexample, but they lack controlled
+server custody and several internal boundaries. \textbf{(6) Matched
+evaluation.} Compare the profiler with raw logs, aggregate/simple timers,
+rules-disabled spans, generic tracing where available, and timed manual
+diagnosis under identical requests and controlled single-fault injections.
+The oracle is the injected stage and fault identity; primary gates are trace
+completeness, attribution accuracy, unsafe-attribution rate, diagnosis time,
+and end-to-end overhead with CPU, host memory, and NPU memory disclosed.
+\textbf{(7) Citable takeaway.} A positive result requires repeated blind
+attribution that improves accuracy or diagnosis time over the strongest
+baseline within the overhead gate; otherwise the citable result is the bounded
+localization capability and a no-go for causal attribution.
+
+The study stops when an observer cannot be joined to the same request and
+process identity, the intervention changes more than one preregistered stage,
+any required endpoint is absent, or the strongest baseline is not run under the
+same trace. Missing queue, KV-pressure, cleanup, graph, or kernel ground truth
+remains ``evidence required'' rather than a zero. A result is labeled
+\emph{existing-server probe}, \emph{simulation/model}, or
+\emph{derived artifact} unless the harness owns the complete endpoint, process,
+request, workload, and hardware receipts needed for real-online evidence.
+
+\subsection{Ascend Architecture and Portability Boundary}
+
+The architecture fact is that Ascend serving can place scheduler dispatch,
+worker execution, graph capture/replay, KV allocation, and device prefill inside
+one coarse prefill-visible interval. This invalidates the assumption that a
+large TTFT or prefill span names its root cause. The real counterexample is the
+checked-in existing-server trace with two 12.2\,s-class events: the profiler
+localizes them to prefill but cannot distinguish handoff, KV, graph, or device
+execution. The proposed native observation contract is to bind timestamps and
+state receipts on both sides of those accelerator-runtime boundaries. Because
+that chain and a repository-controlled graph-mode rerun are absent, the current
+NPU contribution is architecture validation and instrumentation adaptation,
+not a native Ascend optimization. Its predictive boundary is the recorded
+Qwen2.5-7B existing-server carrier and measured workloads; the generalization
+class is request-oriented serving runtimes whose control, state, and device
+events can share stable identities.
+
 \section{Background and Motivation}
 
 \subsection{Why aggregate timers are ambiguous}
