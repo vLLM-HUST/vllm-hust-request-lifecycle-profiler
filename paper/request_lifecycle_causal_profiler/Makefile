@@ -1,4 +1,5 @@
 TECTONIC ?= tectonic
+SCRIPT ?= script
 PYTHON ?= python3
 SOURCE_DATE_EPOCH ?= 0
 PAPER_TEX := request_lifecycle_causal_profiler.tex
@@ -27,13 +28,14 @@ PAPER_ASSET_SUMMARY_TEX := $(GENERATED_TABLES_DIR)/results_summary.tex
 
 .DEFAULT_GOAL := help
 
-.PHONY: help paper-assets pdf clean
+.PHONY: help paper-assets pdf review-pdf clean
 
 help:
 	@printf '%s\n' \
 		'Paper targets:' \
 		'  make paper-assets  Refresh generated paper-facing assets from results/' \
 		'  make pdf    Build the standalone plugin artifact draft with tectonic' \
+		'  make review-pdf  Build the checked-in paper inputs without regenerating results' \
 		'  make clean  Remove local LaTeX build outputs'
 
 paper-assets: $(PAPER_ASSET_EXPORT_SCRIPT)
@@ -60,6 +62,9 @@ pdf: paper-assets
 			--output-name "$(LLM_OPTIMIZATIONS_PDF_NAME)" \
 			--destination-dir "$(LLM_OPTIMIZATIONS_PDF_DIR)"; \
 	fi
+
+review-pdf:
+	$(SCRIPT) -q -e -c '$(TECTONIC) --keep-logs --keep-intermediates $(PAPER_TEX)' BUILD_TRANSCRIPT.txt
 
 clean:
 	rm -rf $(OUTDIR) $(GENERATED_FIGURES_DIR) $(GENERATED_TABLES_DIR)
