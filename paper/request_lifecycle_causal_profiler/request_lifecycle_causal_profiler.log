@@ -1320,12 +1320,12 @@ Package caption Info: Begin \AtBeginDocument code.
 Package caption Info: float package is loaded.
 Package caption Info: End \AtBeginDocument code.
 LaTeX Font Info:    Font shape `TU/LinLibertine(0)/m/n' will be
-(Font)              scaled to size 17.28pt on input line 47.
+(Font)              scaled to size 17.28pt on input line 51.
 Requested font "[LinLibertine_R.otf]/OT:script=latn;language=dflt;+tnum;+lnum;m
 apping=tex-text;" at 17.28pt
  -> LinLibertine_R.otf
 LaTeX Font Info:    Font shape `TU/LinBiolinum(0)/m/n' will be
-(Font)              scaled to size 17.28pt on input line 47.
+(Font)              scaled to size 17.28pt on input line 51.
 Requested font "[LinBiolinum_R.otf]/OT:script=latn;language=dflt;+tnum;+lnum;ma
 pping=tex-text;" at 17.28pt
  -> LinBiolinum_R.otf
@@ -1334,17 +1334,17 @@ Package microtype Info: Loading generic protrusion settings for font family
 (microtype)             For optimal results, create family-specific settings.
 (microtype)             See the microtype manual for details.
 LaTeX Font Info:    Font shape `TU/LinBiolinum(0)/b/n' will be
-(Font)              scaled to size 17.28pt on input line 47.
+(Font)              scaled to size 17.28pt on input line 51.
 Requested font "[LinBiolinum_RB.otf]/OT:script=latn;language=dflt;+tnum;+lnum;m
 apping=tex-text;" at 17.28pt
  -> LinBiolinum_RB.otf
 LaTeX Font Info:    Font shape `TU/LinLibertine(0)/m/n' will be
-(Font)              scaled to size 12.0pt on input line 47.
+(Font)              scaled to size 12.0pt on input line 51.
 Requested font "[LinLibertine_R.otf]/OT:script=latn;language=dflt;+tnum;+lnum;m
 apping=tex-text;" at 12.0pt
  -> LinLibertine_R.otf
 LaTeX Font Info:    Font shape `TU/LinLibertine(0)/m/n' will be
-(Font)              scaled to size 10.0pt on input line 47.
+(Font)              scaled to size 10.0pt on input line 51.
 Requested font "[LinLibertine_R.otf]/OT:script=latn;language=dflt;+tnum;+lnum;m
 apping=tex-text;" at 10.0pt
  -> LinLibertine_R.otf
@@ -1391,17 +1391,17 @@ Requested font "ntxsyc" at 10.0pt
 Requested font "ntxexa" at 10.0pt
  -> ntxexa
 LaTeX Font Info:    Font shape `TU/LinLibertine(0)/b/n' will be
-(Font)              scaled to size 9.0pt on input line 47.
+(Font)              scaled to size 9.0pt on input line 51.
 Requested font "[LinLibertine_RB.otf]/OT:script=latn;language=dflt;+tnum;+lnum;
 mapping=tex-text;" at 9.0pt
  -> LinLibertine_RB.otf
 LaTeX Font Info:    Font shape `TU/LinLibertine(0)/b/n' will be
-(Font)              scaled to size 10.95pt on input line 47.
+(Font)              scaled to size 10.95pt on input line 51.
 Requested font "[LinLibertine_RB.otf]/OT:script=latn;language=dflt;+tnum;+lnum;
 mapping=tex-text;" at 10.95pt
  -> LinLibertine_RB.otf
 LaTeX Font Info:    Font shape `TU/LinLibertine(0)/m/it' will be
-(Font)              scaled to size 9.0pt on input line 68.
+(Font)              scaled to size 9.0pt on input line 72.
 Requested font "[LinLibertine_RI.otf]/OT:script=latn;language=dflt;+tnum;+lnum;
 mapping=tex-text;" at 9.0pt
  -> LinLibertine_RI.otf
@@ -1429,7 +1429,7 @@ Requested font "ntxsyc" at 9.0pt
 Requested font "ntxexa" at 9.0pt
  -> ntxexa
 
-Underfull \hbox (badness 2293) in paragraph at lines 83--85
+Underfull \hbox (badness 2293) in paragraph at lines 87--89
 []\TU/LinLibertine(0)/m/n/9 a request-lifecycle schema and completeness contrac
 t
  []
@@ -1437,17 +1437,23 @@ t
 [1.1
 
 ]
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+
+Underfull \vbox (badness 8189) has occurred while \output is active []
+
 LaTeX Font Info:    Font shape `TU/LinBiolinum(0)/m/n' will be
-(Font)              scaled to size 9.0pt on input line 242.
+(Font)              scaled to size 9.0pt on input line 246.
 Requested font "[LinBiolinum_R.otf]/OT:script=latn;language=dflt;+tnum;+lnum;ma
 pping=tex-text;" at 9.0pt
  -> LinBiolinum_R.otf
 LaTeX Font Info:    Font shape `TU/LinBiolinum(0)/m/n' will be
-(Font)              scaled to size 7.0pt on input line 242.
+(Font)              scaled to size 7.0pt on input line 246.
 Requested font "[LinBiolinum_R.otf]/OT:script=latn;language=dflt;+tnum;+lnum;ma
 pping=tex-text;" at 7.0pt
  -> LinBiolinum_R.otf
- [2.2] (tables/generated/npu6_controlled_fault_matrix.tex
+ [2.2]
+(tables/generated/npu6_controlled_fault_matrix.tex
 LaTeX Font Info:    Font shape `TU/LinLibertine(0)/m/n' will be
 (Font)              scaled to size 8.0pt on input line 2.
 Requested font "[LinLibertine_R.otf]/OT:script=latn;language=dflt;+tnum;+lnum;m
@@ -1507,24 +1513,31 @@ Package microtype Info: Loading generic protrusion settings for font family
 (microtype)             For optimal results, create family-specific settings.
 (microtype)             See the microtype manual for details.
 
-Underfull \hbox (badness 6658) in paragraph at lines 275--275
+Underfull \hbox (badness 6658) in paragraph at lines 279--279
 []\TU/LinLibertine(0)/b/n/9 Table 2: |Post-hoc analysis of existing-server runt
 ime
  []
 
 (tables/generated/npu6_runtime_concurrency_anomaly.tex)
-Underfull \hbox (badness 1112) in paragraph at lines 280--289
+Underfull \hbox (badness 1112) in paragraph at lines 284--293
 []\TU/LinLibertine(0)/m/n/9 This is the strongest non-obvious result, but it is
  localiza-
  []
 
-(request_lifecycle_causal_profiler.bbl
+Requested font "[Inconsolatazi4-Regular.otf]/OT:script=latn;language=dflt;+ss03
+;" at 9.0pt
+ -> Inconsolatazi4-Regular.otf
+
+Overfull \vbox (9.13292pt too high) has occurred while \output is active []
+
+
+[3.3] (request_lifecycle_causal_profiler.bbl
 LaTeX Font Info:    Font shape `TU/LinLibertine(0)/m/it' will be
 (Font)              scaled to size 7.0pt on input line 47.
 Requested font "[LinLibertine_RI.otf]/OT:script=latn;language=dflt;+tnum;+lnum;
 mapping=tex-text;" at 7.0pt
  -> LinLibertine_RI.otf
- [3.3]
+
 Underfull \hbox (badness 1400) in paragraph at lines 71--77
 []\TU/LinLibertine(0)/m/n/7 Woosuk Kwon, Zhuohan Li, Siyuan Zhuang, Ying Sheng,
  Lianmin Zheng,
@@ -1543,7 +1556,7 @@ File: se-utf32be.def 2019/11/29 v1.12 stringenc: UTF-32BE
 ) [4.4] (request_lifecycle_causal_profiler.aux)
 Package rerunfilecheck Info: File `request_lifecycle_causal_profiler.out' has n
 ot changed.
-(rerunfilecheck)             Checksum: E9C4CF5169E8DFAF4E50A2B692855419;3840.
+(rerunfilecheck)             Checksum: 24FD07DA9DEC2EDC78D0A51EC6172523;4109.
  )
-Output written on request_lifecycle_causal_profiler.xdv (4 pages, 229612 bytes)
+Output written on request_lifecycle_causal_profiler.xdv (4 pages, 244372 bytes)
 .
