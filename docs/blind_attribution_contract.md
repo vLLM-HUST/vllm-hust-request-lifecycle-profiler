@@ -1,6 +1,6 @@
 # Blind attribution contract
 
-Status: Draft PR under review. No opaque case has been revealed and no new
+Status: PR under review. No opaque case has been revealed and no new
 event type, scorer rule, or paper claim may be justified by this document until
 the contract review has concluded.
 
