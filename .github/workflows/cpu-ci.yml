@@ -58,7 +58,7 @@ jobs:
       - name: Fetch current runtime ABI source
         env:
           RUNTIME_SOURCE_DIR: ${{ runner.temp }}/vllm-hust-runtime
-          RUNTIME_SOURCE_SHA: 50a6df2bef5c06e7f38107dedd9214e61ff58df1
+          RUNTIME_SOURCE_SHA: c180d643c66f7a12434ae551cfc83cd7b7795302
         run: |
           set -euo pipefail
           git init "$RUNTIME_SOURCE_DIR"
@@ -69,6 +69,11 @@ jobs:
           test "$(git -C "$RUNTIME_SOURCE_DIR" rev-parse HEAD)" = \
             "$RUNTIME_SOURCE_SHA"
           printf 'VLLM_HUST_G1_SRC=%s\n' "$RUNTIME_SOURCE_DIR" >> "$GITHUB_ENV"
+
+      - name: Initialize pinned OASST1 metadata
+        env:
+          GIT_LFS_SKIP_SMUDGE: "1"
+        run: git submodule update --init third_party/oasst1
 
       - name: Select fork-safe workload fixture
         run: |

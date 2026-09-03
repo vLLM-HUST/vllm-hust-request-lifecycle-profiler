@@ -5,8 +5,15 @@
 [submodule "third_party/vllm-hust"]
 	path = third_party/vllm-hust
 	url = git@github.com:vLLM-HUST/vllm-hust.git
-	branch = feat/request-lifecycle-profiler-vllm-hust
+	branch = feature/kvdelta-runtime-integration-v023
 [submodule "third_party/vllm-hust-dev-hub"]
 	path = third_party/vllm-hust-dev-hub
 	url = git@github.com:vLLM-HUST/vllm-hust-dev-hub.git
 	branch = feature/request-lifecycle-profiler-dev-hub
+[submodule "third_party/vllm-ascend-hust"]
+	path = third_party/vllm-ascend-hust
+	url = https://github.com/intellistream/vllm-ascend-hust-legacy-20260831.git
+	branch = feature/issue19-observer-only-v023
+[submodule "third_party/oasst1"]
+	path = third_party/oasst1
+	url = https://huggingface.co/datasets/OpenAssistant/oasst1

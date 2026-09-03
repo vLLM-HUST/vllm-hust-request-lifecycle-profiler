@@ -1,0 +1,28 @@
+{
+  "api_pid": "PID_052",
+  "arm_path": "worker_failure/PID_054.pending-transfer-arm",
+  "injection": "pending-transfer-sigkill",
+  "injection_timestamp_ns": 3106740573788719,
+  "internal_request_id": "chatcmpl-issue19-oasst1-r08-005-da5cf8a9-96ee-4bfe-89f8-411e9d2e85c8",
+  "ownership_verified": true,
+  "pending_transfer_witness": {
+    "connector_job_id": 71,
+    "operation": "d2h_preserve",
+    "pid": "PID_054",
+    "runtime_request_id": "chatcmpl-issue19-oasst1-r08-005-da5cf8a9-96ee-4bfe-89f8-411e9d2e85c8",
+    "schema_version": "issue19-pending-transfer-witness/v1",
+    "timestamp_ns": 3106740562294117,
+    "transfer_id": "b1f24f97979b440a88b463b4b1474a8f:t:71",
+    "worker_generation": "VllmWorker-0:PID_054"
+  },
+  "request_id": "issue19-oasst1-r08-005-da5cf8a9-96ee-4bfe-89f8-411e9d2e85c8",
+  "signal": "SIGKILL",
+  "target": {
+    "args": "VLLM::Worker",
+    "comm": "VLLM::Worker",
+    "engine_pid": "PID_053",
+    "pid": "PID_054",
+    "ppid": "PID_053"
+  },
+  "witness_path": "worker_failure/PID_054.pending-transfer.json"
+}

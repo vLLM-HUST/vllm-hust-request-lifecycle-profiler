@@ -1,0 +1,26 @@
+{
+  "engine": {
+    "active_internal_request_ids": [
+      "chatcmpl-issue19-oasst1-r08-005-da5cf8a9-96ee-4bfe-89f8-411e9d2e85c8"
+    ],
+    "external_request_ids": {
+      "chatcmpl-issue19-oasst1-r08-005-da5cf8a9-96ee-4bfe-89f8-411e9d2e85c8": [
+        "chatcmpl-issue19-oasst1-r08-005-da5cf8a9-96ee-4bfe-89f8-411e9d2e85c8"
+      ]
+    }
+  },
+  "observer": {
+    "abort_attempts": {
+      "chatcmpl-issue19-oasst1-r08-001-78a5782f-f31f-4afc-ae48-db2af52ce876": 1,
+      "chatcmpl-issue19-oasst1-r08-002-d660b875-6d80-450e-83ad-3233fce807df": 1,
+      "chatcmpl-issue19-oasst1-r08-003-b941bc2c-8c23-4186-aafc-a58655031598": 2
+    },
+    "active_request_ids": [
+      "chatcmpl-issue19-oasst1-r08-005-da5cf8a9-96ee-4bfe-89f8-411e9d2e85c8"
+    ],
+    "available": true,
+    "resource_observation_count": 0,
+    "resource_observation_scope": "process-local"
+  },
+  "schema_version": "issue19-control-state/v1"
+}

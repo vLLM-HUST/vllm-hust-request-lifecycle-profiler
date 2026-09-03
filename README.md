@@ -17,6 +17,12 @@ integration tests precede service and hardware measurements. Controlled
 intervention-based attribution remains the evaluation goal. See
 [`RESEARCH_UPGRADE_20260727.md`](RESEARCH_UPGRADE_20260727.md).
 
+The corrected Issue #19 experiment is an evidence-valid mechanism `NO_GO`:
+resource pathology appeared in 1/10 matched repetitions and latency pathology
+in 0/10, below the preregistered 8/10 gate. Reconciliation remains disabled
+for that fixed worker-exit-last specialty scenario. This decision does not
+reject the broader Request Lifecycle research topic.
+
 ## Research Question
 
 Can request-level lifecycle traces be converted into causal bottleneck
@@ -40,6 +46,8 @@ stage instead of correlated symptoms?
 - `docs/research_logic.md`: seven-step research framing.
 - `docs/experiment_plan.md`: evaluation plan and evidence labels.
 - `docs/claim_ledger.md`: current claims and forbidden wording.
+- `docs/issue19_public_evidence.md`: sanitized Issue #19 evidence and its
+  durable, scenario-scoped decision boundary.
 - `docs/runtime_fault_attribution_roadmap.md`: path from complete runtime
   hooks to controlled-fault attribution evidence.
 - `paper/request_lifecycle_causal_profiler/`: systems-paper scaffold.

@@ -1,0 +1,26 @@
+{
+  "engine": {
+    "active_internal_request_ids": [
+      "chatcmpl-issue19-oasst1-r05-005-cf36f71b-f9bb-483e-adbd-09b4e00af231"
+    ],
+    "external_request_ids": {
+      "chatcmpl-issue19-oasst1-r05-005-cf36f71b-f9bb-483e-adbd-09b4e00af231": [
+        "chatcmpl-issue19-oasst1-r05-005-cf36f71b-f9bb-483e-adbd-09b4e00af231"
+      ]
+    }
+  },
+  "observer": {
+    "abort_attempts": {
+      "chatcmpl-issue19-oasst1-r05-001-58c76d40-4140-42f4-9390-80dd8a6170fb": 1,
+      "chatcmpl-issue19-oasst1-r05-002-235f65ec-0a33-47b1-b1dc-ce0bfbcf8c20": 1,
+      "chatcmpl-issue19-oasst1-r05-003-5cab01b4-cc3f-4d16-9233-cf5b15a42adc": 2
+    },
+    "active_request_ids": [
+      "chatcmpl-issue19-oasst1-r05-005-cf36f71b-f9bb-483e-adbd-09b4e00af231"
+    ],
+    "available": true,
+    "resource_observation_count": 0,
+    "resource_observation_scope": "process-local"
+  },
+  "schema_version": "issue19-control-state/v1"
+}

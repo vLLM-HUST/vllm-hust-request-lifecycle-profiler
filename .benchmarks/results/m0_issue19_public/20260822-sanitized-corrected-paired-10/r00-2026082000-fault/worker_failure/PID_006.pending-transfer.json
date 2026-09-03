@@ -1,0 +1,10 @@
+{
+  "connector_job_id": 79,
+  "operation": "d2h_preserve",
+  "pid": "PID_006",
+  "runtime_request_id": "chatcmpl-issue19-oasst1-r00-005-86dadc6b-18a7-4135-9b10-dddfdad8c6cc",
+  "schema_version": "issue19-pending-transfer-witness/v1",
+  "timestamp_ns": 3102215033265355,
+  "transfer_id": "8c261f062a594003aede7901b6eb43e3:t:79",
+  "worker_generation": "VllmWorker-0:PID_006"
+}

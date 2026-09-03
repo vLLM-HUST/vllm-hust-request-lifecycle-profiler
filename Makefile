@@ -14,6 +14,8 @@ WORKLOAD_REPO ?= $(abspath $(CURDIR)/third_party/llm-serving-workloads)
 DEV_HUB ?= $(abspath $(CURDIR)/third_party/vllm-hust-dev-hub)
 MANAGED_ENV_FILE ?= $(abspath $(CURDIR)/.benchmarks/profiles/npu6_vllm_hust_trace.env)
 TRACE_SUITE_OUTPUT_DIR ?= .benchmarks/results/npu6_existing_server_trace_probe_repeated_smoke
+ISSUE19_RUNTIME_PYTHON ?= $(abspath $(CURDIR)/.venv-issue19/bin/python)
+ISSUE19_MODEL_PATH ?=
 
 PACKAGE_IMPORT := vllm_request_lifecycle_profiler
 BENCH_DIR := .benchmarks
@@ -21,7 +23,7 @@ PAPER_DIR := paper/request_lifecycle_causal_profiler
 
 .DEFAULT_GOAL := help
 
-.PHONY: help bootstrap-shared-env install-dev smoke test shared-workloads-smoke shared-workloads-test offline-intervention-gate synthetic-fault-injection trace-diagnosis npu6-controlled-fault-matrix npu6-runtime-hook-pair-plan npu6-runtime-concurrency-anomaly-analysis top-tier-readiness npu6-trace-preflight npu6-existing-server-trace-probe npu6-existing-server-trace-suite-smoke npu6-existing-server-slow-stream-trace-smoke npu6-slow-stream-trace-diagnosis npu6-existing-server-trace-overhead-smoke managed-install managed-start managed-restart managed-stop managed-status managed-health managed-logs managed-foreground lint format build bench paper paper-assets paper-pdf paper-clean clean
+.PHONY: help bootstrap-shared-env install-dev smoke test shared-workloads-smoke shared-workloads-test issue19-m0-preflight issue19-public-evidence-verify offline-intervention-gate synthetic-fault-injection trace-diagnosis npu6-controlled-fault-matrix npu6-runtime-hook-pair-plan npu6-runtime-concurrency-anomaly-analysis top-tier-readiness npu6-trace-preflight npu6-existing-server-trace-probe npu6-existing-server-trace-suite-smoke npu6-existing-server-slow-stream-trace-smoke npu6-slow-stream-trace-diagnosis npu6-existing-server-trace-overhead-smoke managed-install managed-start managed-restart managed-stop managed-status managed-health managed-logs managed-foreground lint format build bench paper paper-assets paper-pdf paper-clean clean
 
 help:
 	@printf '%s\n' \
@@ -33,6 +35,8 @@ help:
 		'  make test         Run the unit test suite' \
 		'  make shared-workloads-smoke Run the repo-local shared workload compatibility sweep' \
 		'  make shared-workloads-test  Run unit tests plus the shared workload compatibility sweep' \
+		'  make issue19-m0-preflight Build the fixed six-path plan and fail-closed serving readiness report' \
+		'  make issue19-public-evidence-verify Verify the sanitized matched-M0 export and recompute its decision' \
 		'  make offline-intervention-gate Evaluate the CPU-only matched-intervention fixture' \
 		'  make synthetic-fault-injection Run no-NPU controlled lifecycle attribution checks' \
 		'  make trace-diagnosis Derive client-visible stage diagnosis from checked-in NPU6 trace probe' \
@@ -88,6 +92,18 @@ shared-workloads-smoke:
 		--output-markdown .benchmarks/results/shared_workloads_smoke.md
 
 shared-workloads-test: test shared-workloads-smoke
+
+issue19-m0-preflight:
+	@test -n "$(ISSUE19_MODEL_PATH)" || \
+		(printf '%s\n' 'Set ISSUE19_MODEL_PATH to the local model directory.' >&2; exit 2)
+	PYTHONPATH=src $(ISSUE19_RUNTIME_PYTHON) -m vllm_request_lifecycle_profiler.issue19_m0 \
+		--runtime-python $(ISSUE19_RUNTIME_PYTHON) \
+		--model-path "$(ISSUE19_MODEL_PATH)" \
+		--output-dir .benchmarks/results/m0_issue19_preflight
+
+issue19-public-evidence-verify:
+	PYTHONPATH=src $(ISSUE19_RUNTIME_PYTHON) -m vllm_request_lifecycle_profiler.issue19_public_artifacts verify \
+		--public-root .benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10
 
 offline-intervention-gate:
 	PYTHONPATH=src $(PYTHON) .benchmarks/evaluate_offline_intervention_fixture.py

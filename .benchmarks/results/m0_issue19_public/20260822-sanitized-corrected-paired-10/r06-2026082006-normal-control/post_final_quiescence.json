@@ -1,0 +1,14 @@
+{
+  "engine": {
+    "active_internal_request_ids": [],
+    "external_request_ids": {}
+  },
+  "observer": {
+    "abort_attempts": {},
+    "active_request_ids": [],
+    "available": true,
+    "resource_observation_count": 0,
+    "resource_observation_scope": "process-local"
+  },
+  "schema_version": "issue19-control-state/v1"
+}

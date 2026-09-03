@@ -14,6 +14,7 @@ _REGISTERED_PID: int | None = None
 _RUNTIME_HOOKS: RuntimeLifecycleHooks | None = None
 _RUNTIME_BRIDGE: object | None = None
 _OBSERVER_FACTORY: object | None = None
+_LIFECYCLE_OBSERVER: object | None = None
 
 
 def register_plugin() -> None:
@@ -23,7 +24,8 @@ def register_plugin() -> None:
     multiple processes.
     """
 
-    global _OBSERVER_FACTORY, _REGISTERED_PID, _RUNTIME_BRIDGE, _RUNTIME_HOOKS
+    global _LIFECYCLE_OBSERVER, _OBSERVER_FACTORY, _REGISTERED_PID
+    global _RUNTIME_BRIDGE, _RUNTIME_HOOKS
     process_id = os.getpid()
     if _REGISTERED_PID == process_id:
         return
@@ -37,6 +39,7 @@ def register_plugin() -> None:
     vllm_envs.VLLM_GENERAL_PLUGIN_TEMPLATE_LOADED = True
 
     hooks = RuntimeLifecycleHooks.from_env()
+    bridge = None
     if (
         hooks.enabled
         and hooks.config.communication_mode == KV_RECOVERY_COMMUNICATION_MODE
@@ -68,5 +71,43 @@ def register_plugin() -> None:
         except Exception:
             logger.exception("Failed to register the optional KV-recovery profiler.")
 
+    if hooks.enabled:
+        try:
+            from vllm_request_lifecycle_profiler.issue19_lifecycle import (
+                Issue19LifecycleObserver,
+            )
+            from vllm_request_lifecycle_profiler.kv_recovery_runtime import (
+                RuntimeBaseLifecycleBridge,
+            )
+
+            if bridge is None:
+                bridge = RuntimeBaseLifecycleBridge(hooks)
+                _RUNTIME_BRIDGE = bridge
+            run_id = (
+                hooks.config.kv_recovery_profile_config.run_id
+                if hooks.config.kv_recovery_profile_config is not None
+                else hooks.process_uuid
+            )
+            if run_id is not None:
+                _LIFECYCLE_OBSERVER = Issue19LifecycleObserver(hooks, bridge, run_id)
+        except Exception:
+            logger.exception("Failed to register the optional lifecycle observer.")
+
     _RUNTIME_HOOKS = hooks
     _REGISTERED_PID = process_id
+
+
+def get_lifecycle_observer() -> object | None:
+    """Return the process-local observer created by normal plugin loading."""
+
+    register_plugin()
+    return _LIFECYCLE_OBSERVER
+
+
+def close_engine_failure_observers() -> None:
+    """Commit process-local profiler shards before EngineCore death is sent."""
+
+    factory = _OBSERVER_FACTORY
+    callback = getattr(factory, "close_for_engine_failure", None)
+    if callable(callback):
+        callback()

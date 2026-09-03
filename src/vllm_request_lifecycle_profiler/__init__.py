@@ -4,6 +4,10 @@ from vllm_request_lifecycle_profiler.causal_attribution import (
     evaluate_intervention_fixture,
     load_intervention_fixture,
 )
+from vllm_request_lifecycle_profiler.issue19_lifecycle import (
+    Issue19LifecycleObserver,
+    ResourceObservation,
+)
 from vllm_request_lifecycle_profiler.kv_recovery import (
     KVRecoveryDecomposition,
     KVRecoveryEvent,
@@ -68,6 +72,7 @@ __all__ = [
     "EventDraft",
     "ExpectedH2DRecovery",
     "ExpectedKVRecoveryEpisode",
+    "Issue19LifecycleObserver",
     "JsonlTraceSink",
     "KVRecoveryDecomposition",
     "KVRecoveryEvent",
@@ -83,6 +88,7 @@ __all__ = [
     "ProfileRecordRef",
     "RecordRef",
     "RequestLifecycleIdentity",
+    "ResourceObservation",
     "RuntimeBaseLifecycleBridge",
     "RuntimeLifecycleHooks",
     "RuntimeProvenance",

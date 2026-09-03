@@ -1,0 +1,18 @@
+{
+  "engine": {
+    "active_internal_request_ids": [],
+    "external_request_ids": {}
+  },
+  "observer": {
+    "abort_attempts": {
+      "chatcmpl-issue19-oasst1-r07-001-c8b03f7a-0ec9-4673-82f9-9524a0fec8cd": 1,
+      "chatcmpl-issue19-oasst1-r07-002-4dc40d29-aa24-4169-a5ef-8bcd7a00be28": 1,
+      "chatcmpl-issue19-oasst1-r07-003-61af7f97-130e-44ee-b9d0-f2ed80f05851": 2
+    },
+    "active_request_ids": [],
+    "available": true,
+    "resource_observation_count": 0,
+    "resource_observation_scope": "process-local"
+  },
+  "schema_version": "issue19-control-state/v1"
+}

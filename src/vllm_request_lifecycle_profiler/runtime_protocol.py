@@ -185,6 +185,11 @@ _register(
     "error",
     "cleanup_started",
     "cleanup_done",
+    "resource_acquired",
+    "resource_transfer_pending",
+    "resource_released",
+    "resource_policy_retained",
+    "resource_invalidated",
 )
 _register("engine_sample", "engine_client", "queued")
 _register(
@@ -839,6 +844,39 @@ def _validate_event_metadata(
     draft: EventDraft,
     metadata: Mapping[str, MetadataValue],
 ) -> None:
+    if draft.event_name.startswith("resource_"):
+        expected_keys = {
+            "runtime_request_id",
+            "resource_type",
+            "resource_id",
+            "resource_transition",
+            "resource_units",
+            "worker_generation",
+        }
+        if set(metadata) != expected_keys:
+            raise ProtocolValidationError("resource metadata keys differ")
+        expected_transition = {
+            "resource_acquired": "acquire",
+            "resource_transfer_pending": "transfer_pending",
+            "resource_released": "release",
+            "resource_policy_retained": "policy_retain",
+            "resource_invalidated": "invalidate",
+        }[draft.event_name]
+        if metadata.get("resource_transition") != expected_transition:
+            raise ProtocolValidationError("resource transition/event mismatch")
+        for key in (
+            "runtime_request_id",
+            "resource_type",
+            "resource_id",
+            "worker_generation",
+        ):
+            if not isinstance(metadata.get(key), str) or not metadata[key]:
+                raise ProtocolValidationError(f"resource metadata {key} is invalid")
+        if not isinstance(metadata.get("resource_units"), int) or not (
+            1 <= metadata["resource_units"] <= _UINT64_MAX
+        ):
+            raise ProtocolValidationError("resource metadata resource_units is invalid")
+
     if draft.scope == "root_request" and draft.event_name == "received":
         expected_values: dict[str, object] = {
             "sampling_n": 1,
