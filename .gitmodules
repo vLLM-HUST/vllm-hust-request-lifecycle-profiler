@@ -17,3 +17,6 @@
 [submodule "third_party/oasst1"]
 	path = third_party/oasst1
 	url = https://huggingface.co/datasets/OpenAssistant/oasst1
+[submodule "third_party/traceloom"]
+	path = third_party/traceloom
+	url = https://github.com/vLLM-HUST/vllm-hust-perf-analyzer.git

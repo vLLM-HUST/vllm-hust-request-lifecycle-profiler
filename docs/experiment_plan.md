@@ -1,5 +1,16 @@
 # Experiment Plan
 
+> **Current research direction (2026-08-26):** The G1--G6 ladder below is
+> retained as historical development context. The corrected Issue #19 paired
+> M0 is an evidence-valid scoped mechanism `NO_GO` (resource pathology 1/10,
+> matched latency pathology 0/10, fixed gate 8/10), so do not rerun that M0 or
+> implement reconciliation. The active protocol is
+> [`blind_attribution_contract.md`](blind_attribution_contract.md): consume
+> TraceLoom's structured execution evidence, compare five equal-budget
+> diagnosis arms on two fresh opaque positives and one valid negative, and
+> validate every non-abstained top-1 with a rank-one counterfactual. A longest
+> span or complete trace is not a causal-root-cause result.
+
 > **G1 CPU development checkpoint (2026-08-08, revised after audit):** the
 > controlled-trace cases succeeded for the current working trees (profiler
 > `feature/kv-recovery-config-cleanup`, runtime

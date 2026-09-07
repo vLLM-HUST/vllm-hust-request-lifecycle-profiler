@@ -7,27 +7,27 @@ on NPU6 and follows the optimization-repository workflow used by the
 
 ## Current research focus
 
-The profiler owns low-overhead state feedback and causal attribution. It may
-export inputs to roofline and statistical-gate projects, but trace ownership
-alone does not make those contributions complete. The current implementation
-focus is an optional KV-recovery profile connected to the runtime
-`OffloadingConnector` path. It is default-off and becomes active only when the
-profiler environment and runtime `additional_config` both opt in. CPU
-integration tests precede service and hardware measurements. Controlled
-intervention-based attribution remains the evaluation goal. See
-[`RESEARCH_UPGRADE_20260727.md`](RESEARCH_UPGRADE_20260727.md).
+The profiler joins request identity across frontend, scheduler, KV, executor,
+and response events, validates lifecycle completeness and resource ownership,
+and ranks mechanisms only against matched evidence. Its open research question
+is whether this request-scoped lifecycle DAG changes diagnosis and optimization
+decisions more reliably than aggregate metrics, flat timers, or timed raw-log
+inspection, while abstaining when the evidence is insufficient.
 
 The corrected Issue #19 experiment is an evidence-valid mechanism `NO_GO`:
-resource pathology appeared in 1/10 matched repetitions and latency pathology
-in 0/10, below the preregistered 8/10 gate. Reconciliation remains disabled
-for that fixed worker-exit-last specialty scenario. This decision does not
-reject the broader Request Lifecycle research topic.
+resource pathology appeared in 1/10 repetitions and matched latency pathology
+in 0/10, below the preregistered 8/10 gate. Reconciliation therefore remains
+disabled and will not be implemented for that fixed scenario. This is a
+decision-gate result, not a rejection of the Request Lifecycle research topic.
+The next research phase is the fresh opaque blind-attribution study described
+in [`docs/blind_attribution_contract.md`](docs/blind_attribution_contract.md).
 
 ## Research Question
 
-Can request-level lifecycle traces be converted into causal bottleneck
-attribution for LLM serving, so optimization work targets the true limiting
-stage instead of correlated symptoms?
+Can identity-preserving request lifecycle DAGs, evaluated with matched
+interventions, produce more reliable and actionable mechanism rankings than
+the same evidence viewed as aggregate metrics, flat timers, or raw logs, and
+abstain when causal evidence is insufficient?
 
 ## Repository Map
 
@@ -39,6 +39,8 @@ stage instead of correlated symptoms?
   they are not approval or activation gates.
 - `.benchmarks/`: trace probes and controlled fault-injection entrypoints.
 - `third_party/llm-serving-workloads/`: pinned shared workload suite.
+- `third_party/traceloom/`: pinned provider of the structured augmented-SQLite
+  execution evidence consumed by the blind-attribution adapter.
 - `third_party/vllm-hust/`: pinned historical vLLM-HUST hook carrier used only
   as a reviewed patch/evidence reference; new integration starts from current
   runtime main.
@@ -46,8 +48,12 @@ stage instead of correlated symptoms?
 - `docs/research_logic.md`: seven-step research framing.
 - `docs/experiment_plan.md`: evaluation plan and evidence labels.
 - `docs/claim_ledger.md`: current claims and forbidden wording.
-- `docs/issue19_public_evidence.md`: sanitized Issue #19 evidence and its
-  durable, scenario-scoped decision boundary.
+- `docs/issue19_public_evidence.md`: sanitized evidence and the scoped Issue
+  #19 decision boundary.
+- `docs/blind_attribution_contract.md`: next-stage blind custody/reveal,
+  baseline, scorer, and counterfactual contract.
+- `docs/blind_attribution_candidate_vocabulary.json`: frozen candidate IDs,
+  optimization families, adjacency, and error-severity rubric.
 - `docs/runtime_fault_attribution_roadmap.md`: path from complete runtime
   hooks to controlled-fault attribution evidence.
 - `paper/request_lifecycle_causal_profiler/`: systems-paper scaffold.
@@ -63,9 +69,19 @@ compute, and requeue time. Keeping this optional avoids making historical
 non-pressure traces appear incomplete.
 
 The initial profiler represents each request as ordered lifecycle events and
-computes complete stage spans. The first attribution rule reports the dominant
-lifecycle span with a reason code. This is intentionally deterministic so
-controlled fault-injection experiments can validate it.
+computes complete stage spans. Its deterministic dominant-span rule is a
+development localization heuristic, not a causal-root-cause rule. A complete
+trace establishes evidence availability, and a long stage narrows an interval;
+neither alone establishes a mechanism. Non-abstained causal claims require a
+matched comparison, explicit identity/ownership links, confidence and residual
+reporting, and a rank-one counterfactual.
+
+TraceLoom owns generic timeline-native execution trees, occurrence-preserving
+cost accounting, and lineage to raw profiler rows. This repository consumes
+that structured evidence and adds request/lifecycle/epoch joins, state and
+resource-ownership edges, matched intervention diffs, rankings, and
+abstention. It must not duplicate TraceLoom's execution-tree or profiler-row
+representation.
 
 `make offline-intervention-gate` additionally evaluates a CPU-only matched
 control/intervention fixture. Its output keeps `dominant_span_localization`
@@ -133,15 +149,14 @@ make shared-workloads-smoke PYTHON=python3
 
 ## Next step
 
-Complete the normal configuration path for the optional KV-recovery profiler,
-keep the disabled serving path unchanged, and validate the whole runtime-to-
-profile chain on CPU. After the implementation and CI are stable, run a small
-NPU service smoke before matched performance experiments. Performance claims
-must follow the cross-repository benchmark performance policy (workspace-level
-`AGENTS.md`, kept local).
+Keep the Issue #19 negative evidence and fixed gate unchanged, and do not
+implement the rejected reconciliation treatment. Freeze the blind-attribution
+contract before any opaque case is revealed, then evaluate two fresh positive
+cases and one valid insufficient-evidence/no-single-root-cause negative case.
+All comparison arms must receive the same normalized evidence and time budget;
+every non-abstained top-1 requires a rank-one counterfactual.
 
-The checked-in hook-enabled NPU6 artifacts remain useful contaminated
-development evidence: the smoke pair has complete historical chains and a
-small-workload smoke delta observed once per mode. They are not primary
-blind-localization cases and do not prove M0. New controlled-live scoring
-requires fresh cases and a reproducible target configuration.
+Historical public artifacts and synthetic fixtures remain development inputs
+only. They do not count toward blind accuracy. A later performance
+implementation claim must separately follow the cross-repository benchmark
+performance policy in the workspace-level `AGENTS.md`.
