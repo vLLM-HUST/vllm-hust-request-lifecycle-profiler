@@ -15,7 +15,7 @@ import statistics
 import time
 from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import asdict, dataclass
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from itertools import pairwise
 from pathlib import Path
 from typing import Any
@@ -582,7 +582,7 @@ def timed_score_case(
         bootstrap_resamples,
     )
     validate_case_bundle(bundle, candidate_ids=candidate_ids)
-    started_at = datetime.now(UTC)
+    started_at = datetime.now(timezone.utc)
     started_ns = time.perf_counter_ns()
     result = _score_validated_case(
         bundle,
@@ -593,7 +593,7 @@ def timed_score_case(
         bootstrap_resamples=bootstrap_resamples,
     )
     elapsed_ms = (time.perf_counter_ns() - started_ns) / 1_000_000
-    ended_at = datetime.now(UTC)
+    ended_at = datetime.now(timezone.utc)
     payload = asdict(result)
     payload.update(
         {
