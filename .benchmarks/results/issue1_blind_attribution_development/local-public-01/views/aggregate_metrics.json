@@ -1,0 +1,257 @@
+{
+  "case_id": "case-dev-001",
+  "pairs": [
+    {
+      "baseline": {
+        "clock_model_id": "dev-clock-model-1",
+        "configuration_id": "dev-config-1",
+        "evidence_status": {
+          "clock_ambiguous": false,
+          "configuration_matched": true,
+          "event_loss_count": 0,
+          "identity_complete": true
+        },
+        "metrics": {
+          "error_count": 0,
+          "latency_ms": 200.0,
+          "throughput_rps": 4.0,
+          "tpot_ms": 10.0,
+          "ttft_ms": 100.0
+        },
+        "run_id": "run-01-a"
+      },
+      "matching": {
+        "batch_shape": [
+          1
+        ],
+        "concurrency": 1,
+        "output_tokens": 32,
+        "prompt_tokens": 128,
+        "request_order_id": "order-01",
+        "workload_id": "dev-workload"
+      },
+      "order": "AB",
+      "pair_id": "pair-01",
+      "treatment": {
+        "clock_model_id": "dev-clock-model-1",
+        "configuration_id": "dev-config-1",
+        "evidence_status": {
+          "clock_ambiguous": false,
+          "configuration_matched": true,
+          "event_loss_count": 0,
+          "identity_complete": true
+        },
+        "metrics": {
+          "error_count": 0,
+          "latency_ms": 220.0,
+          "throughput_rps": 3.8,
+          "tpot_ms": 10.0,
+          "ttft_ms": 120.0
+        },
+        "run_id": "run-01-b"
+      }
+    },
+    {
+      "baseline": {
+        "clock_model_id": "dev-clock-model-1",
+        "configuration_id": "dev-config-1",
+        "evidence_status": {
+          "clock_ambiguous": false,
+          "configuration_matched": true,
+          "event_loss_count": 0,
+          "identity_complete": true
+        },
+        "metrics": {
+          "error_count": 0,
+          "latency_ms": 201.0,
+          "throughput_rps": 4.0,
+          "tpot_ms": 10.0,
+          "ttft_ms": 101.0
+        },
+        "run_id": "run-02-a"
+      },
+      "matching": {
+        "batch_shape": [
+          1
+        ],
+        "concurrency": 1,
+        "output_tokens": 32,
+        "prompt_tokens": 128,
+        "request_order_id": "order-02",
+        "workload_id": "dev-workload"
+      },
+      "order": "BA",
+      "pair_id": "pair-02",
+      "treatment": {
+        "clock_model_id": "dev-clock-model-1",
+        "configuration_id": "dev-config-1",
+        "evidence_status": {
+          "clock_ambiguous": false,
+          "configuration_matched": true,
+          "event_loss_count": 0,
+          "identity_complete": true
+        },
+        "metrics": {
+          "error_count": 0,
+          "latency_ms": 222.0,
+          "throughput_rps": 3.8,
+          "tpot_ms": 10.0,
+          "ttft_ms": 122.0
+        },
+        "run_id": "run-02-b"
+      }
+    },
+    {
+      "baseline": {
+        "clock_model_id": "dev-clock-model-1",
+        "configuration_id": "dev-config-1",
+        "evidence_status": {
+          "clock_ambiguous": false,
+          "configuration_matched": true,
+          "event_loss_count": 0,
+          "identity_complete": true
+        },
+        "metrics": {
+          "error_count": 0,
+          "latency_ms": 199.0,
+          "throughput_rps": 4.1,
+          "tpot_ms": 10.0,
+          "ttft_ms": 99.0
+        },
+        "run_id": "run-03-a"
+      },
+      "matching": {
+        "batch_shape": [
+          1
+        ],
+        "concurrency": 1,
+        "output_tokens": 32,
+        "prompt_tokens": 128,
+        "request_order_id": "order-03",
+        "workload_id": "dev-workload"
+      },
+      "order": "AB",
+      "pair_id": "pair-03",
+      "treatment": {
+        "clock_model_id": "dev-clock-model-1",
+        "configuration_id": "dev-config-1",
+        "evidence_status": {
+          "clock_ambiguous": false,
+          "configuration_matched": true,
+          "event_loss_count": 0,
+          "identity_complete": true
+        },
+        "metrics": {
+          "error_count": 0,
+          "latency_ms": 218.0,
+          "throughput_rps": 3.9,
+          "tpot_ms": 10.0,
+          "ttft_ms": 118.0
+        },
+        "run_id": "run-03-b"
+      }
+    },
+    {
+      "baseline": {
+        "clock_model_id": "dev-clock-model-1",
+        "configuration_id": "dev-config-1",
+        "evidence_status": {
+          "clock_ambiguous": false,
+          "configuration_matched": true,
+          "event_loss_count": 0,
+          "identity_complete": true
+        },
+        "metrics": {
+          "error_count": 0,
+          "latency_ms": 200.0,
+          "throughput_rps": 4.0,
+          "tpot_ms": 10.0,
+          "ttft_ms": 100.0
+        },
+        "run_id": "run-04-a"
+      },
+      "matching": {
+        "batch_shape": [
+          1
+        ],
+        "concurrency": 1,
+        "output_tokens": 32,
+        "prompt_tokens": 128,
+        "request_order_id": "order-04",
+        "workload_id": "dev-workload"
+      },
+      "order": "BA",
+      "pair_id": "pair-04",
+      "treatment": {
+        "clock_model_id": "dev-clock-model-1",
+        "configuration_id": "dev-config-1",
+        "evidence_status": {
+          "clock_ambiguous": false,
+          "configuration_matched": true,
+          "event_loss_count": 0,
+          "identity_complete": true
+        },
+        "metrics": {
+          "error_count": 0,
+          "latency_ms": 222.0,
+          "throughput_rps": 3.7,
+          "tpot_ms": 10.0,
+          "ttft_ms": 122.0
+        },
+        "run_id": "run-04-b"
+      }
+    },
+    {
+      "baseline": {
+        "clock_model_id": "dev-clock-model-1",
+        "configuration_id": "dev-config-1",
+        "evidence_status": {
+          "clock_ambiguous": false,
+          "configuration_matched": true,
+          "event_loss_count": 0,
+          "identity_complete": true
+        },
+        "metrics": {
+          "error_count": 0,
+          "latency_ms": 200.0,
+          "throughput_rps": 4.0,
+          "tpot_ms": 10.0,
+          "ttft_ms": 100.0
+        },
+        "run_id": "run-05-a"
+      },
+      "matching": {
+        "batch_shape": [
+          1
+        ],
+        "concurrency": 1,
+        "output_tokens": 32,
+        "prompt_tokens": 128,
+        "request_order_id": "order-05",
+        "workload_id": "dev-workload"
+      },
+      "order": "AB",
+      "pair_id": "pair-05",
+      "treatment": {
+        "clock_model_id": "dev-clock-model-1",
+        "configuration_id": "dev-config-1",
+        "evidence_status": {
+          "clock_ambiguous": false,
+          "configuration_matched": true,
+          "event_loss_count": 0,
+          "identity_complete": true
+        },
+        "metrics": {
+          "error_count": 0,
+          "latency_ms": 220.0,
+          "throughput_rps": 3.8,
+          "tpot_ms": 10.0,
+          "ttft_ms": 120.0
+        },
+        "run_id": "run-05-b"
+      }
+    }
+  ],
+  "schema": "request-lifecycle-blind-view/v1",
+  "view": "aggregate_metrics"
+}

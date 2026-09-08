@@ -15,6 +15,7 @@ import uuid
 from collections.abc import Mapping
 from dataclasses import dataclass
 from pathlib import Path
+from types import MappingProxyType
 
 SCHEMA_VERSION = "rlp.trace/v1alpha1"
 KV_RECOVERY_COMMUNICATION_MODE = "issue2:kv-recovery-v1alpha1"
@@ -223,6 +224,7 @@ _register(
 )
 
 EVENT_NAMES = frozenset(event for _, event in _COMPONENT_BY_SCOPE_EVENT)
+EVENT_COMPONENT_BY_SCOPE = MappingProxyType(dict(_COMPONENT_BY_SCOPE_EVENT))
 ABNORMAL_TERMINALS = frozenset({"aborted", "cancelled", "error"})
 TERMINAL_EVENTS = frozenset(
     {"request_done", "generation_done", "stream_done", *ABNORMAL_TERMINALS}
