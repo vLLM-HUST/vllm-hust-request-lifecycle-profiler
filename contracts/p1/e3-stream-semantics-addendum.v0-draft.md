@@ -26,7 +26,7 @@ Any consumer claiming conformance to these post-v4.3 E3 semantics MUST bind
 both of the following immutable semantic dependencies by independent SHA-256:
 
 1. Idle Evidence Contract v4.3:
-   - repository: `intellistream/vllm-request-lifecycle-profiler-plugin`;
+   - repository: `vLLM-HUST/vllm-hust-request-lifecycle-profiler`;
    - source commit: `7e10622eb5755e1af544546e93e3f63a91214ffc`;
    - path: `docs/idle_evidence_contract.md`;
    - version text: `Draft v4.3 (proposed for M0 approval)`;

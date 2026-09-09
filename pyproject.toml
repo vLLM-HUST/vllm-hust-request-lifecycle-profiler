@@ -9,7 +9,12 @@ description = "Causal request lifecycle tracing and bottleneck attribution for L
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = []
-authors = [{name = "Shuhao Prototype"}]
+authors = [{name = "Shifeng Liu"}]
+maintainers = [{name = "Shifeng Liu"}]
+
+[project.urls]
+Repository = "https://github.com/vLLM-HUST/vllm-hust-request-lifecycle-profiler"
+Issues = "https://github.com/vLLM-HUST/vllm-hust-request-lifecycle-profiler/issues"
 
 [project.scripts]
 vllm-request-lifecycle-profiler-serve = "vllm_request_lifecycle_profiler.launcher:main"
