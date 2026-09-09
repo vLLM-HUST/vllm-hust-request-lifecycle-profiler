@@ -3,7 +3,7 @@
 Status: Draft v4.3 (`NOT_M0_PROVEN`)
 
 Target: cross-layer device idle-gap and synchronization evidence, as defined in
-intellistream/vllm-request-lifecycle-profiler-plugin#2 (M0) and
+vLLM-HUST/vllm-hust-request-lifecycle-profiler#2 (M0) and
 vLLM-HUST/vllm-hust-perf-analyzer#3 (engineering).
 
 Related design: `notes/rfc-synchronization-gap-attribution.md` (v2 draft).
