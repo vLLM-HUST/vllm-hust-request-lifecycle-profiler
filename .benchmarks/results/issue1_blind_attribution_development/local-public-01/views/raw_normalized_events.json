@@ -1,0 +1,697 @@
+{
+  "case_id": "case-dev-001",
+  "pairs": [
+    {
+      "baseline": {
+        "clock_model_id": "dev-clock-model-1",
+        "configuration_id": "dev-config-1",
+        "events": [
+          {
+            "clock_domain": "host-monotonic",
+            "component": "engine_client",
+            "engine_lifecycle_id": "life-01-a",
+            "event_id": "e-01-a-0",
+            "event_name": "queued",
+            "evidence_source": "development_fixture",
+            "recovery_epoch": 0,
+            "request_id": "req-01-a",
+            "scope": "engine_sample",
+            "support_state": "supported_exact",
+            "timestamp_ns": 0,
+            "trace_id": "trace-01-a"
+          },
+          {
+            "clock_domain": "host-monotonic",
+            "component": "engine_core",
+            "engine_lifecycle_id": "life-01-a",
+            "event_id": "e-01-a-1",
+            "event_name": "scheduled",
+            "evidence_source": "development_fixture",
+            "recovery_epoch": 0,
+            "request_id": "req-01-a",
+            "scope": "engine_sample",
+            "support_state": "supported_exact",
+            "timestamp_ns": 10000000,
+            "trace_id": "trace-01-a"
+          },
+          {
+            "clock_domain": "host-monotonic",
+            "component": "engine_core",
+            "engine_lifecycle_id": "life-01-a",
+            "event_id": "e-01-a-2",
+            "event_name": "prefill_started",
+            "evidence_source": "development_fixture",
+            "recovery_epoch": 0,
+            "request_id": "req-01-a",
+            "scope": "engine_sample",
+            "support_state": "supported_exact",
+            "timestamp_ns": 15000000,
+            "trace_id": "trace-01-a"
+          }
+        ],
+        "evidence_status": {
+          "clock_ambiguous": false,
+          "configuration_matched": true,
+          "event_loss_count": 0,
+          "identity_complete": true
+        },
+        "metrics": {
+          "error_count": 0,
+          "latency_ms": 200.0,
+          "throughput_rps": 4.0,
+          "tpot_ms": 10.0,
+          "ttft_ms": 100.0
+        },
+        "run_id": "run-01-a"
+      },
+      "matching": {
+        "batch_shape": [
+          1
+        ],
+        "concurrency": 1,
+        "output_tokens": 32,
+        "prompt_tokens": 128,
+        "request_order_id": "order-01",
+        "workload_id": "dev-workload"
+      },
+      "order": "AB",
+      "pair_id": "pair-01",
+      "treatment": {
+        "clock_model_id": "dev-clock-model-1",
+        "configuration_id": "dev-config-1",
+        "events": [
+          {
+            "clock_domain": "host-monotonic",
+            "component": "engine_client",
+            "engine_lifecycle_id": "life-01-b",
+            "event_id": "e-01-b-0",
+            "event_name": "queued",
+            "evidence_source": "development_fixture",
+            "recovery_epoch": 0,
+            "request_id": "req-01-b",
+            "scope": "engine_sample",
+            "support_state": "supported_exact",
+            "timestamp_ns": 0,
+            "trace_id": "trace-01-b"
+          },
+          {
+            "clock_domain": "host-monotonic",
+            "component": "engine_core",
+            "engine_lifecycle_id": "life-01-b",
+            "event_id": "e-01-b-1",
+            "event_name": "scheduled",
+            "evidence_source": "development_fixture",
+            "recovery_epoch": 0,
+            "request_id": "req-01-b",
+            "scope": "engine_sample",
+            "support_state": "supported_exact",
+            "timestamp_ns": 30000000,
+            "trace_id": "trace-01-b"
+          },
+          {
+            "clock_domain": "host-monotonic",
+            "component": "engine_core",
+            "engine_lifecycle_id": "life-01-b",
+            "event_id": "e-01-b-2",
+            "event_name": "prefill_started",
+            "evidence_source": "development_fixture",
+            "recovery_epoch": 0,
+            "request_id": "req-01-b",
+            "scope": "engine_sample",
+            "support_state": "supported_exact",
+            "timestamp_ns": 37000000,
+            "trace_id": "trace-01-b"
+          }
+        ],
+        "evidence_status": {
+          "clock_ambiguous": false,
+          "configuration_matched": true,
+          "event_loss_count": 0,
+          "identity_complete": true
+        },
+        "metrics": {
+          "error_count": 0,
+          "latency_ms": 220.0,
+          "throughput_rps": 3.8,
+          "tpot_ms": 10.0,
+          "ttft_ms": 120.0
+        },
+        "run_id": "run-01-b"
+      }
+    },
+    {
+      "baseline": {
+        "clock_model_id": "dev-clock-model-1",
+        "configuration_id": "dev-config-1",
+        "events": [
+          {
+            "clock_domain": "host-monotonic",
+            "component": "engine_client",
+            "engine_lifecycle_id": "life-02-a",
+            "event_id": "e-02-a-0",
+            "event_name": "queued",
+            "evidence_source": "development_fixture",
+            "recovery_epoch": 0,
+            "request_id": "req-02-a",
+            "scope": "engine_sample",
+            "support_state": "supported_exact",
+            "timestamp_ns": 0,
+            "trace_id": "trace-02-a"
+          },
+          {
+            "clock_domain": "host-monotonic",
+            "component": "engine_core",
+            "engine_lifecycle_id": "life-02-a",
+            "event_id": "e-02-a-1",
+            "event_name": "scheduled",
+            "evidence_source": "development_fixture",
+            "recovery_epoch": 0,
+            "request_id": "req-02-a",
+            "scope": "engine_sample",
+            "support_state": "supported_exact",
+            "timestamp_ns": 10000000,
+            "trace_id": "trace-02-a"
+          },
+          {
+            "clock_domain": "host-monotonic",
+            "component": "engine_core",
+            "engine_lifecycle_id": "life-02-a",
+            "event_id": "e-02-a-2",
+            "event_name": "prefill_started",
+            "evidence_source": "development_fixture",
+            "recovery_epoch": 0,
+            "request_id": "req-02-a",
+            "scope": "engine_sample",
+            "support_state": "supported_exact",
+            "timestamp_ns": 15000000,
+            "trace_id": "trace-02-a"
+          }
+        ],
+        "evidence_status": {
+          "clock_ambiguous": false,
+          "configuration_matched": true,
+          "event_loss_count": 0,
+          "identity_complete": true
+        },
+        "metrics": {
+          "error_count": 0,
+          "latency_ms": 201.0,
+          "throughput_rps": 4.0,
+          "tpot_ms": 10.0,
+          "ttft_ms": 101.0
+        },
+        "run_id": "run-02-a"
+      },
+      "matching": {
+        "batch_shape": [
+          1
+        ],
+        "concurrency": 1,
+        "output_tokens": 32,
+        "prompt_tokens": 128,
+        "request_order_id": "order-02",
+        "workload_id": "dev-workload"
+      },
+      "order": "BA",
+      "pair_id": "pair-02",
+      "treatment": {
+        "clock_model_id": "dev-clock-model-1",
+        "configuration_id": "dev-config-1",
+        "events": [
+          {
+            "clock_domain": "host-monotonic",
+            "component": "engine_client",
+            "engine_lifecycle_id": "life-02-b",
+            "event_id": "e-02-b-0",
+            "event_name": "queued",
+            "evidence_source": "development_fixture",
+            "recovery_epoch": 0,
+            "request_id": "req-02-b",
+            "scope": "engine_sample",
+            "support_state": "supported_exact",
+            "timestamp_ns": 0,
+            "trace_id": "trace-02-b"
+          },
+          {
+            "clock_domain": "host-monotonic",
+            "component": "engine_core",
+            "engine_lifecycle_id": "life-02-b",
+            "event_id": "e-02-b-1",
+            "event_name": "scheduled",
+            "evidence_source": "development_fixture",
+            "recovery_epoch": 0,
+            "request_id": "req-02-b",
+            "scope": "engine_sample",
+            "support_state": "supported_exact",
+            "timestamp_ns": 31000000,
+            "trace_id": "trace-02-b"
+          },
+          {
+            "clock_domain": "host-monotonic",
+            "component": "engine_core",
+            "engine_lifecycle_id": "life-02-b",
+            "event_id": "e-02-b-2",
+            "event_name": "prefill_started",
+            "evidence_source": "development_fixture",
+            "recovery_epoch": 0,
+            "request_id": "req-02-b",
+            "scope": "engine_sample",
+            "support_state": "supported_exact",
+            "timestamp_ns": 38000000,
+            "trace_id": "trace-02-b"
+          }
+        ],
+        "evidence_status": {
+          "clock_ambiguous": false,
+          "configuration_matched": true,
+          "event_loss_count": 0,
+          "identity_complete": true
+        },
+        "metrics": {
+          "error_count": 0,
+          "latency_ms": 222.0,
+          "throughput_rps": 3.8,
+          "tpot_ms": 10.0,
+          "ttft_ms": 122.0
+        },
+        "run_id": "run-02-b"
+      }
+    },
+    {
+      "baseline": {
+        "clock_model_id": "dev-clock-model-1",
+        "configuration_id": "dev-config-1",
+        "events": [
+          {
+            "clock_domain": "host-monotonic",
+            "component": "engine_client",
+            "engine_lifecycle_id": "life-03-a",
+            "event_id": "e-03-a-0",
+            "event_name": "queued",
+            "evidence_source": "development_fixture",
+            "recovery_epoch": 0,
+            "request_id": "req-03-a",
+            "scope": "engine_sample",
+            "support_state": "supported_exact",
+            "timestamp_ns": 0,
+            "trace_id": "trace-03-a"
+          },
+          {
+            "clock_domain": "host-monotonic",
+            "component": "engine_core",
+            "engine_lifecycle_id": "life-03-a",
+            "event_id": "e-03-a-1",
+            "event_name": "scheduled",
+            "evidence_source": "development_fixture",
+            "recovery_epoch": 0,
+            "request_id": "req-03-a",
+            "scope": "engine_sample",
+            "support_state": "supported_exact",
+            "timestamp_ns": 10000000,
+            "trace_id": "trace-03-a"
+          },
+          {
+            "clock_domain": "host-monotonic",
+            "component": "engine_core",
+            "engine_lifecycle_id": "life-03-a",
+            "event_id": "e-03-a-2",
+            "event_name": "prefill_started",
+            "evidence_source": "development_fixture",
+            "recovery_epoch": 0,
+            "request_id": "req-03-a",
+            "scope": "engine_sample",
+            "support_state": "supported_exact",
+            "timestamp_ns": 15000000,
+            "trace_id": "trace-03-a"
+          }
+        ],
+        "evidence_status": {
+          "clock_ambiguous": false,
+          "configuration_matched": true,
+          "event_loss_count": 0,
+          "identity_complete": true
+        },
+        "metrics": {
+          "error_count": 0,
+          "latency_ms": 199.0,
+          "throughput_rps": 4.1,
+          "tpot_ms": 10.0,
+          "ttft_ms": 99.0
+        },
+        "run_id": "run-03-a"
+      },
+      "matching": {
+        "batch_shape": [
+          1
+        ],
+        "concurrency": 1,
+        "output_tokens": 32,
+        "prompt_tokens": 128,
+        "request_order_id": "order-03",
+        "workload_id": "dev-workload"
+      },
+      "order": "AB",
+      "pair_id": "pair-03",
+      "treatment": {
+        "clock_model_id": "dev-clock-model-1",
+        "configuration_id": "dev-config-1",
+        "events": [
+          {
+            "clock_domain": "host-monotonic",
+            "component": "engine_client",
+            "engine_lifecycle_id": "life-03-b",
+            "event_id": "e-03-b-0",
+            "event_name": "queued",
+            "evidence_source": "development_fixture",
+            "recovery_epoch": 0,
+            "request_id": "req-03-b",
+            "scope": "engine_sample",
+            "support_state": "supported_exact",
+            "timestamp_ns": 0,
+            "trace_id": "trace-03-b"
+          },
+          {
+            "clock_domain": "host-monotonic",
+            "component": "engine_core",
+            "engine_lifecycle_id": "life-03-b",
+            "event_id": "e-03-b-1",
+            "event_name": "scheduled",
+            "evidence_source": "development_fixture",
+            "recovery_epoch": 0,
+            "request_id": "req-03-b",
+            "scope": "engine_sample",
+            "support_state": "supported_exact",
+            "timestamp_ns": 29000000,
+            "trace_id": "trace-03-b"
+          },
+          {
+            "clock_domain": "host-monotonic",
+            "component": "engine_core",
+            "engine_lifecycle_id": "life-03-b",
+            "event_id": "e-03-b-2",
+            "event_name": "prefill_started",
+            "evidence_source": "development_fixture",
+            "recovery_epoch": 0,
+            "request_id": "req-03-b",
+            "scope": "engine_sample",
+            "support_state": "supported_exact",
+            "timestamp_ns": 36000000,
+            "trace_id": "trace-03-b"
+          }
+        ],
+        "evidence_status": {
+          "clock_ambiguous": false,
+          "configuration_matched": true,
+          "event_loss_count": 0,
+          "identity_complete": true
+        },
+        "metrics": {
+          "error_count": 0,
+          "latency_ms": 218.0,
+          "throughput_rps": 3.9,
+          "tpot_ms": 10.0,
+          "ttft_ms": 118.0
+        },
+        "run_id": "run-03-b"
+      }
+    },
+    {
+      "baseline": {
+        "clock_model_id": "dev-clock-model-1",
+        "configuration_id": "dev-config-1",
+        "events": [
+          {
+            "clock_domain": "host-monotonic",
+            "component": "engine_client",
+            "engine_lifecycle_id": "life-04-a",
+            "event_id": "e-04-a-0",
+            "event_name": "queued",
+            "evidence_source": "development_fixture",
+            "recovery_epoch": 0,
+            "request_id": "req-04-a",
+            "scope": "engine_sample",
+            "support_state": "supported_exact",
+            "timestamp_ns": 0,
+            "trace_id": "trace-04-a"
+          },
+          {
+            "clock_domain": "host-monotonic",
+            "component": "engine_core",
+            "engine_lifecycle_id": "life-04-a",
+            "event_id": "e-04-a-1",
+            "event_name": "scheduled",
+            "evidence_source": "development_fixture",
+            "recovery_epoch": 0,
+            "request_id": "req-04-a",
+            "scope": "engine_sample",
+            "support_state": "supported_exact",
+            "timestamp_ns": 10000000,
+            "trace_id": "trace-04-a"
+          },
+          {
+            "clock_domain": "host-monotonic",
+            "component": "engine_core",
+            "engine_lifecycle_id": "life-04-a",
+            "event_id": "e-04-a-2",
+            "event_name": "prefill_started",
+            "evidence_source": "development_fixture",
+            "recovery_epoch": 0,
+            "request_id": "req-04-a",
+            "scope": "engine_sample",
+            "support_state": "supported_exact",
+            "timestamp_ns": 15000000,
+            "trace_id": "trace-04-a"
+          }
+        ],
+        "evidence_status": {
+          "clock_ambiguous": false,
+          "configuration_matched": true,
+          "event_loss_count": 0,
+          "identity_complete": true
+        },
+        "metrics": {
+          "error_count": 0,
+          "latency_ms": 200.0,
+          "throughput_rps": 4.0,
+          "tpot_ms": 10.0,
+          "ttft_ms": 100.0
+        },
+        "run_id": "run-04-a"
+      },
+      "matching": {
+        "batch_shape": [
+          1
+        ],
+        "concurrency": 1,
+        "output_tokens": 32,
+        "prompt_tokens": 128,
+        "request_order_id": "order-04",
+        "workload_id": "dev-workload"
+      },
+      "order": "BA",
+      "pair_id": "pair-04",
+      "treatment": {
+        "clock_model_id": "dev-clock-model-1",
+        "configuration_id": "dev-config-1",
+        "events": [
+          {
+            "clock_domain": "host-monotonic",
+            "component": "engine_client",
+            "engine_lifecycle_id": "life-04-b",
+            "event_id": "e-04-b-0",
+            "event_name": "queued",
+            "evidence_source": "development_fixture",
+            "recovery_epoch": 0,
+            "request_id": "req-04-b",
+            "scope": "engine_sample",
+            "support_state": "supported_exact",
+            "timestamp_ns": 0,
+            "trace_id": "trace-04-b"
+          },
+          {
+            "clock_domain": "host-monotonic",
+            "component": "engine_core",
+            "engine_lifecycle_id": "life-04-b",
+            "event_id": "e-04-b-1",
+            "event_name": "scheduled",
+            "evidence_source": "development_fixture",
+            "recovery_epoch": 0,
+            "request_id": "req-04-b",
+            "scope": "engine_sample",
+            "support_state": "supported_exact",
+            "timestamp_ns": 32000000,
+            "trace_id": "trace-04-b"
+          },
+          {
+            "clock_domain": "host-monotonic",
+            "component": "engine_core",
+            "engine_lifecycle_id": "life-04-b",
+            "event_id": "e-04-b-2",
+            "event_name": "prefill_started",
+            "evidence_source": "development_fixture",
+            "recovery_epoch": 0,
+            "request_id": "req-04-b",
+            "scope": "engine_sample",
+            "support_state": "supported_exact",
+            "timestamp_ns": 39000000,
+            "trace_id": "trace-04-b"
+          }
+        ],
+        "evidence_status": {
+          "clock_ambiguous": false,
+          "configuration_matched": true,
+          "event_loss_count": 0,
+          "identity_complete": true
+        },
+        "metrics": {
+          "error_count": 0,
+          "latency_ms": 222.0,
+          "throughput_rps": 3.7,
+          "tpot_ms": 10.0,
+          "ttft_ms": 122.0
+        },
+        "run_id": "run-04-b"
+      }
+    },
+    {
+      "baseline": {
+        "clock_model_id": "dev-clock-model-1",
+        "configuration_id": "dev-config-1",
+        "events": [
+          {
+            "clock_domain": "host-monotonic",
+            "component": "engine_client",
+            "engine_lifecycle_id": "life-05-a",
+            "event_id": "e-05-a-0",
+            "event_name": "queued",
+            "evidence_source": "development_fixture",
+            "recovery_epoch": 0,
+            "request_id": "req-05-a",
+            "scope": "engine_sample",
+            "support_state": "supported_exact",
+            "timestamp_ns": 0,
+            "trace_id": "trace-05-a"
+          },
+          {
+            "clock_domain": "host-monotonic",
+            "component": "engine_core",
+            "engine_lifecycle_id": "life-05-a",
+            "event_id": "e-05-a-1",
+            "event_name": "scheduled",
+            "evidence_source": "development_fixture",
+            "recovery_epoch": 0,
+            "request_id": "req-05-a",
+            "scope": "engine_sample",
+            "support_state": "supported_exact",
+            "timestamp_ns": 10000000,
+            "trace_id": "trace-05-a"
+          },
+          {
+            "clock_domain": "host-monotonic",
+            "component": "engine_core",
+            "engine_lifecycle_id": "life-05-a",
+            "event_id": "e-05-a-2",
+            "event_name": "prefill_started",
+            "evidence_source": "development_fixture",
+            "recovery_epoch": 0,
+            "request_id": "req-05-a",
+            "scope": "engine_sample",
+            "support_state": "supported_exact",
+            "timestamp_ns": 15000000,
+            "trace_id": "trace-05-a"
+          }
+        ],
+        "evidence_status": {
+          "clock_ambiguous": false,
+          "configuration_matched": true,
+          "event_loss_count": 0,
+          "identity_complete": true
+        },
+        "metrics": {
+          "error_count": 0,
+          "latency_ms": 200.0,
+          "throughput_rps": 4.0,
+          "tpot_ms": 10.0,
+          "ttft_ms": 100.0
+        },
+        "run_id": "run-05-a"
+      },
+      "matching": {
+        "batch_shape": [
+          1
+        ],
+        "concurrency": 1,
+        "output_tokens": 32,
+        "prompt_tokens": 128,
+        "request_order_id": "order-05",
+        "workload_id": "dev-workload"
+      },
+      "order": "AB",
+      "pair_id": "pair-05",
+      "treatment": {
+        "clock_model_id": "dev-clock-model-1",
+        "configuration_id": "dev-config-1",
+        "events": [
+          {
+            "clock_domain": "host-monotonic",
+            "component": "engine_client",
+            "engine_lifecycle_id": "life-05-b",
+            "event_id": "e-05-b-0",
+            "event_name": "queued",
+            "evidence_source": "development_fixture",
+            "recovery_epoch": 0,
+            "request_id": "req-05-b",
+            "scope": "engine_sample",
+            "support_state": "supported_exact",
+            "timestamp_ns": 0,
+            "trace_id": "trace-05-b"
+          },
+          {
+            "clock_domain": "host-monotonic",
+            "component": "engine_core",
+            "engine_lifecycle_id": "life-05-b",
+            "event_id": "e-05-b-1",
+            "event_name": "scheduled",
+            "evidence_source": "development_fixture",
+            "recovery_epoch": 0,
+            "request_id": "req-05-b",
+            "scope": "engine_sample",
+            "support_state": "supported_exact",
+            "timestamp_ns": 30000000,
+            "trace_id": "trace-05-b"
+          },
+          {
+            "clock_domain": "host-monotonic",
+            "component": "engine_core",
+            "engine_lifecycle_id": "life-05-b",
+            "event_id": "e-05-b-2",
+            "event_name": "prefill_started",
+            "evidence_source": "development_fixture",
+            "recovery_epoch": 0,
+            "request_id": "req-05-b",
+            "scope": "engine_sample",
+            "support_state": "supported_exact",
+            "timestamp_ns": 37000000,
+            "trace_id": "trace-05-b"
+          }
+        ],
+        "evidence_status": {
+          "clock_ambiguous": false,
+          "configuration_matched": true,
+          "event_loss_count": 0,
+          "identity_complete": true
+        },
+        "metrics": {
+          "error_count": 0,
+          "latency_ms": 220.0,
+          "throughput_rps": 3.8,
+          "tpot_ms": 10.0,
+          "ttft_ms": 120.0
+        },
+        "run_id": "run-05-b"
+      }
+    }
+  ],
+  "schema": "request-lifecycle-blind-view/v1",
+  "view": "raw_normalized_events"
+}

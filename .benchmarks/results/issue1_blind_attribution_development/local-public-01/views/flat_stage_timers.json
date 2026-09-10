@@ -1,0 +1,227 @@
+{
+  "case_id": "case-dev-001",
+  "pairs": [
+    {
+      "baseline": {
+        "clock_model_id": "dev-clock-model-1",
+        "configuration_id": "dev-config-1",
+        "evidence_status": {
+          "clock_ambiguous": false,
+          "configuration_matched": true,
+          "event_loss_count": 0,
+          "identity_complete": true
+        },
+        "run_id": "run-01-a",
+        "stage_timers_ms": {
+          "queue_or_admission": 10.0,
+          "scheduler_dispatch": 5.0
+        }
+      },
+      "matching": {
+        "batch_shape": [
+          1
+        ],
+        "concurrency": 1,
+        "output_tokens": 32,
+        "prompt_tokens": 128,
+        "request_order_id": "order-01",
+        "workload_id": "dev-workload"
+      },
+      "order": "AB",
+      "pair_id": "pair-01",
+      "treatment": {
+        "clock_model_id": "dev-clock-model-1",
+        "configuration_id": "dev-config-1",
+        "evidence_status": {
+          "clock_ambiguous": false,
+          "configuration_matched": true,
+          "event_loss_count": 0,
+          "identity_complete": true
+        },
+        "run_id": "run-01-b",
+        "stage_timers_ms": {
+          "queue_or_admission": 30.0,
+          "scheduler_dispatch": 7.0
+        }
+      }
+    },
+    {
+      "baseline": {
+        "clock_model_id": "dev-clock-model-1",
+        "configuration_id": "dev-config-1",
+        "evidence_status": {
+          "clock_ambiguous": false,
+          "configuration_matched": true,
+          "event_loss_count": 0,
+          "identity_complete": true
+        },
+        "run_id": "run-02-a",
+        "stage_timers_ms": {
+          "queue_or_admission": 10.0,
+          "scheduler_dispatch": 5.0
+        }
+      },
+      "matching": {
+        "batch_shape": [
+          1
+        ],
+        "concurrency": 1,
+        "output_tokens": 32,
+        "prompt_tokens": 128,
+        "request_order_id": "order-02",
+        "workload_id": "dev-workload"
+      },
+      "order": "BA",
+      "pair_id": "pair-02",
+      "treatment": {
+        "clock_model_id": "dev-clock-model-1",
+        "configuration_id": "dev-config-1",
+        "evidence_status": {
+          "clock_ambiguous": false,
+          "configuration_matched": true,
+          "event_loss_count": 0,
+          "identity_complete": true
+        },
+        "run_id": "run-02-b",
+        "stage_timers_ms": {
+          "queue_or_admission": 31.0,
+          "scheduler_dispatch": 7.0
+        }
+      }
+    },
+    {
+      "baseline": {
+        "clock_model_id": "dev-clock-model-1",
+        "configuration_id": "dev-config-1",
+        "evidence_status": {
+          "clock_ambiguous": false,
+          "configuration_matched": true,
+          "event_loss_count": 0,
+          "identity_complete": true
+        },
+        "run_id": "run-03-a",
+        "stage_timers_ms": {
+          "queue_or_admission": 10.0,
+          "scheduler_dispatch": 5.0
+        }
+      },
+      "matching": {
+        "batch_shape": [
+          1
+        ],
+        "concurrency": 1,
+        "output_tokens": 32,
+        "prompt_tokens": 128,
+        "request_order_id": "order-03",
+        "workload_id": "dev-workload"
+      },
+      "order": "AB",
+      "pair_id": "pair-03",
+      "treatment": {
+        "clock_model_id": "dev-clock-model-1",
+        "configuration_id": "dev-config-1",
+        "evidence_status": {
+          "clock_ambiguous": false,
+          "configuration_matched": true,
+          "event_loss_count": 0,
+          "identity_complete": true
+        },
+        "run_id": "run-03-b",
+        "stage_timers_ms": {
+          "queue_or_admission": 29.0,
+          "scheduler_dispatch": 7.0
+        }
+      }
+    },
+    {
+      "baseline": {
+        "clock_model_id": "dev-clock-model-1",
+        "configuration_id": "dev-config-1",
+        "evidence_status": {
+          "clock_ambiguous": false,
+          "configuration_matched": true,
+          "event_loss_count": 0,
+          "identity_complete": true
+        },
+        "run_id": "run-04-a",
+        "stage_timers_ms": {
+          "queue_or_admission": 10.0,
+          "scheduler_dispatch": 5.0
+        }
+      },
+      "matching": {
+        "batch_shape": [
+          1
+        ],
+        "concurrency": 1,
+        "output_tokens": 32,
+        "prompt_tokens": 128,
+        "request_order_id": "order-04",
+        "workload_id": "dev-workload"
+      },
+      "order": "BA",
+      "pair_id": "pair-04",
+      "treatment": {
+        "clock_model_id": "dev-clock-model-1",
+        "configuration_id": "dev-config-1",
+        "evidence_status": {
+          "clock_ambiguous": false,
+          "configuration_matched": true,
+          "event_loss_count": 0,
+          "identity_complete": true
+        },
+        "run_id": "run-04-b",
+        "stage_timers_ms": {
+          "queue_or_admission": 32.0,
+          "scheduler_dispatch": 7.0
+        }
+      }
+    },
+    {
+      "baseline": {
+        "clock_model_id": "dev-clock-model-1",
+        "configuration_id": "dev-config-1",
+        "evidence_status": {
+          "clock_ambiguous": false,
+          "configuration_matched": true,
+          "event_loss_count": 0,
+          "identity_complete": true
+        },
+        "run_id": "run-05-a",
+        "stage_timers_ms": {
+          "queue_or_admission": 10.0,
+          "scheduler_dispatch": 5.0
+        }
+      },
+      "matching": {
+        "batch_shape": [
+          1
+        ],
+        "concurrency": 1,
+        "output_tokens": 32,
+        "prompt_tokens": 128,
+        "request_order_id": "order-05",
+        "workload_id": "dev-workload"
+      },
+      "order": "AB",
+      "pair_id": "pair-05",
+      "treatment": {
+        "clock_model_id": "dev-clock-model-1",
+        "configuration_id": "dev-config-1",
+        "evidence_status": {
+          "clock_ambiguous": false,
+          "configuration_matched": true,
+          "event_loss_count": 0,
+          "identity_complete": true
+        },
+        "run_id": "run-05-b",
+        "stage_timers_ms": {
+          "queue_or_admission": 30.0,
+          "scheduler_dispatch": 7.0
+        }
+      }
+    }
+  ],
+  "schema": "request-lifecycle-blind-view/v1",
+  "view": "flat_stage_timers"
+}

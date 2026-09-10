@@ -1,8 +1,8 @@
 # Blind attribution contract
 
-Status: PR under review. No opaque case has been revealed and no new
-event type, scorer rule, or paper claim may be justified by this document until
-the contract review has concluded.
+Status: merged through PR #23. No opaque case has been revealed. The contract
+authorizes implementation and development-fixture validation of the declared
+pipeline; it does not establish blind accuracy or a paper result.
 
 This contract implements the research convergence requested in Issue #19 and
 the mainline evaluation requested in Issue #1. It is an ordinary experimental

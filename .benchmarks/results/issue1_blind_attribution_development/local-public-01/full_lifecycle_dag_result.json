@@ -1,0 +1,83 @@
+{
+  "abstain_reasons": [],
+  "abstained": false,
+  "automated_wall_clock_ms": 298.950949,
+  "bootstrap_resamples": 10000,
+  "bootstrap_seed": 2026082701,
+  "candidates": [
+    {
+      "bootstrap_ci95_ms": [
+        19.0,
+        22.0
+      ],
+      "candidate_id": "queue_or_admission",
+      "edge_kinds": [
+        "request_handoff"
+      ],
+      "iqr_delta_ms": 1.0,
+      "median_delta_ms": 20.0,
+      "owners": [
+        "scheduler"
+      ],
+      "paired_deltas_ms": [
+        20.0,
+        21.0,
+        19.0,
+        22.0,
+        20.0
+      ],
+      "positive_delta_share": 0.9090909090909091,
+      "span_count": 10,
+      "top1_selection_frequency": 1.0,
+      "traceloom_link_count": 0
+    },
+    {
+      "bootstrap_ci95_ms": [
+        2.0,
+        2.0
+      ],
+      "candidate_id": "scheduler_dispatch",
+      "edge_kinds": [
+        "request_handoff"
+      ],
+      "iqr_delta_ms": 0.0,
+      "median_delta_ms": 2.0,
+      "owners": [
+        "scheduler"
+      ],
+      "paired_deltas_ms": [
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0
+      ],
+      "positive_delta_share": 0.09090909090909091,
+      "span_count": 10,
+      "top1_selection_frequency": 0.0,
+      "traceloom_link_count": 0
+    }
+  ],
+  "case_id": "case-dev-001",
+  "confidence_score": 0.9090909090909091,
+  "dominance_score": 0.9090909090909091,
+  "ended_at": "2026-09-08T08:05:33.294342+00:00",
+  "input_complete": true,
+  "input_event_loss_count": 0,
+  "insufficient_evidence_floor_ms": 5.0,
+  "m0_status": "NOT_M0_PROVEN",
+  "method": "full_lifecycle_dag",
+  "proposed_counterfactual": {
+    "candidate_id": "queue_or_admission",
+    "constraint": "change_only_predicted_mechanism"
+  },
+  "schema": "request-lifecycle-blind-result/v1",
+  "started_at": "2026-09-08T08:05:32.995374+00:00",
+  "time_to_localize_ms": 298.950949,
+  "top1": "queue_or_admission",
+  "top3": [
+    "queue_or_admission",
+    "scheduler_dispatch"
+  ],
+  "unexplained_residual_share": 0.09090909090909094
+}

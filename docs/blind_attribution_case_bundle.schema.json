@@ -1,0 +1,212 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "request-lifecycle-blind-case/v1",
+  "title": "Request Lifecycle diagnosis-side case bundle",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "case_id", "pairs"],
+  "properties": {
+    "schema": {"const": "request-lifecycle-blind-case/v1"},
+    "case_id": {"type": "string", "minLength": 1, "maxLength": 64},
+    "pairs": {
+      "type": "array",
+      "minItems": 5,
+      "maxItems": 4096,
+      "items": {"$ref": "#/$defs/pair"}
+    }
+  },
+  "$defs": {
+    "pair": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["pair_id", "order", "matching", "baseline", "treatment"],
+      "properties": {
+        "pair_id": {"type": "string", "minLength": 1, "maxLength": 64},
+        "order": {"enum": ["AB", "BA"]},
+        "matching": {"$ref": "#/$defs/matching"},
+        "baseline": {"$ref": "#/$defs/observation"},
+        "treatment": {"$ref": "#/$defs/observation"}
+      }
+    },
+    "observation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "run_id",
+        "configuration_id",
+        "clock_model_id",
+        "metrics",
+        "evidence_status",
+        "normalized_events",
+        "lifecycle_spans",
+        "lifecycle_edges",
+        "traceloom_links"
+      ],
+      "properties": {
+        "run_id": {"type": "string", "minLength": 1, "maxLength": 64},
+        "configuration_id": {"type": "string", "minLength": 1, "maxLength": 128},
+        "clock_model_id": {"type": "string", "minLength": 1, "maxLength": 128},
+        "metrics": {"$ref": "#/$defs/metrics"},
+        "evidence_status": {"$ref": "#/$defs/evidence_status"},
+        "normalized_events": {"type": "array", "minItems": 1, "maxItems": 4096, "items": {"$ref": "#/$defs/normalized_event"}},
+        "lifecycle_spans": {"type": "array", "minItems": 1, "maxItems": 4096, "items": {"$ref": "#/$defs/span"}},
+        "lifecycle_edges": {"type": "array", "maxItems": 4096, "items": {"$ref": "#/$defs/edge"}},
+        "traceloom_links": {"type": "array", "maxItems": 4096, "items": {"$ref": "#/$defs/link"}}
+      }
+    },
+    "matching": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["workload_id", "request_order_id", "prompt_tokens", "output_tokens", "concurrency", "batch_shape"],
+      "properties": {
+        "workload_id": {"type": "string", "minLength": 1, "maxLength": 128},
+        "request_order_id": {"type": "string", "minLength": 1, "maxLength": 128},
+        "prompt_tokens": {"type": "integer", "minimum": 1},
+        "output_tokens": {"type": "integer", "minimum": 1},
+        "concurrency": {"type": "integer", "minimum": 1},
+        "batch_shape": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 16,
+          "items": {"type": "integer", "minimum": 1}
+        }
+      }
+    },
+    "metrics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ttft_ms", "tpot_ms", "latency_ms", "throughput_rps", "error_count"],
+      "properties": {
+        "ttft_ms": {"type": "number", "minimum": 0},
+        "tpot_ms": {"type": "number", "minimum": 0},
+        "latency_ms": {"type": "number", "minimum": 0},
+        "throughput_rps": {"type": "number", "minimum": 0},
+        "error_count": {"type": "integer", "minimum": 0}
+      }
+    },
+    "evidence_status": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["identity_complete", "event_loss_count", "clock_ambiguous", "configuration_matched"],
+      "properties": {
+        "identity_complete": {"type": "boolean"},
+        "event_loss_count": {"type": "integer", "minimum": 0},
+        "clock_ambiguous": {"type": "boolean"},
+        "configuration_matched": {"type": "boolean"}
+      }
+    },
+    "normalized_event": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["event_id", "trace_id", "engine_lifecycle_id", "recovery_epoch", "request_id", "scope", "component", "event_name", "timestamp_ns", "clock_domain", "evidence_source", "support_state"],
+      "properties": {
+        "event_id": {"type": "string", "minLength": 1, "maxLength": 96},
+        "trace_id": {"type": "string", "minLength": 1, "maxLength": 128},
+        "engine_lifecycle_id": {"type": "string", "minLength": 1, "maxLength": 128},
+        "recovery_epoch": {"type": "integer", "minimum": 0},
+        "request_id": {"type": "string", "minLength": 1, "maxLength": 128},
+        "scope": {"enum": ["root_request", "engine_sample", "response"]},
+        "component": {"type": "string", "minLength": 1, "maxLength": 128},
+        "event_name": {"type": "string", "minLength": 1, "maxLength": 128},
+        "timestamp_ns": {"type": "integer", "minimum": 0},
+        "clock_domain": {"type": "string", "minLength": 1, "maxLength": 128},
+        "evidence_source": {"type": "string", "minLength": 1, "maxLength": 128},
+        "support_state": {"type": "string", "minLength": 1, "maxLength": 128},
+        "batch_id": {"type": "string", "minLength": 1, "maxLength": 128},
+        "step_id": {"type": "string", "minLength": 1, "maxLength": 128}
+      }
+    },
+    "span": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "span_id",
+        "start_event_id",
+        "end_event_id",
+        "candidate_id",
+        "trace_id",
+        "engine_lifecycle_id",
+        "recovery_epoch",
+        "request_id",
+        "owner",
+        "clock_domain",
+        "evidence_source",
+        "support_state",
+        "start_ns",
+        "end_ns",
+        "accounted_duration_ms"
+      ],
+      "properties": {
+        "span_id": {"type": "string", "minLength": 1, "maxLength": 96},
+        "start_event_id": {"type": "string", "minLength": 1, "maxLength": 96},
+        "end_event_id": {"type": "string", "minLength": 1, "maxLength": 96},
+        "candidate_id": {"type": "string", "minLength": 1, "maxLength": 128},
+        "trace_id": {"type": "string", "minLength": 1, "maxLength": 128},
+        "engine_lifecycle_id": {"type": "string", "minLength": 1, "maxLength": 128},
+        "recovery_epoch": {"type": "integer", "minimum": 0},
+        "request_id": {"type": "string", "minLength": 1, "maxLength": 128},
+        "owner": {"type": "string", "minLength": 1, "maxLength": 128},
+        "clock_domain": {"type": "string", "minLength": 1, "maxLength": 128},
+        "evidence_source": {"type": "string", "minLength": 1, "maxLength": 128},
+        "support_state": {"type": "string", "minLength": 1, "maxLength": 128},
+        "start_ns": {"type": "integer"},
+        "end_ns": {"type": "integer"},
+        "accounted_duration_ms": {"type": "number", "minimum": 0},
+        "batch_id": {"type": "string", "minLength": 1, "maxLength": 128},
+        "step_id": {"type": "string", "minLength": 1, "maxLength": 128}
+      }
+    },
+    "edge": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source_span_id", "target_span_id", "kind"],
+      "properties": {
+        "source_span_id": {"type": "string", "minLength": 1, "maxLength": 96},
+        "target_span_id": {"type": "string", "minLength": 1, "maxLength": 96},
+        "kind": {"enum": ["request_handoff", "batch_membership", "execution_support", "resource_owner", "precedes"]}
+      }
+    },
+    "link": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "span_id",
+        "trace_id",
+        "engine_lifecycle_id",
+        "recovery_epoch",
+        "request_id",
+        "link_kind",
+        "owner",
+        "clock_domain",
+        "evidence_source",
+        "support_state"
+      ],
+      "properties": {
+        "span_id": {"type": "string", "minLength": 1, "maxLength": 96},
+        "trace_id": {"type": "string", "minLength": 1, "maxLength": 128},
+        "engine_lifecycle_id": {"type": "string", "minLength": 1, "maxLength": 128},
+        "recovery_epoch": {"type": "integer", "minimum": 0},
+        "request_id": {"type": "string", "minLength": 1, "maxLength": 128},
+        "batch_id": {"type": "string", "minLength": 1, "maxLength": 128},
+        "step_id": {"type": "string", "minLength": 1, "maxLength": 128},
+        "tree_id": {"type": "string", "minLength": 1, "maxLength": 128},
+        "node_id": {"type": "string", "minLength": 1, "maxLength": 128},
+        "occurrence_idx": {"type": "integer", "minimum": 0},
+        "anchor_id": {"type": "string", "minLength": 1, "maxLength": 128},
+        "event_id": {"type": "string", "minLength": 1, "maxLength": 128},
+        "runtime_relation_id": {"type": "string", "minLength": 1, "maxLength": 128},
+        "runtime_call_id": {"type": "string", "minLength": 1, "maxLength": 128},
+        "device_work_id": {"type": "string", "minLength": 1, "maxLength": 128},
+        "sync_action_id": {"type": "string", "minLength": 1, "maxLength": 128},
+        "graph_event_id": {"type": "string", "minLength": 1, "maxLength": 128},
+        "graph_envelope_id": {"type": "string", "minLength": 1, "maxLength": 128},
+        "link_kind": {"enum": ["request_handoff", "batch_membership", "execution_support", "resource_owner"]},
+        "owner": {"type": "string", "minLength": 1, "maxLength": 128},
+        "clock_domain": {"type": "string", "minLength": 1, "maxLength": 128},
+        "evidence_source": {"const": "traceloom_sqlite"},
+        "support_state": {"type": "string", "minLength": 1, "maxLength": 128},
+        "reason": {"type": "string", "minLength": 1, "maxLength": 256}
+      }
+    }
+  }
+}
