@@ -1,5 +1,9 @@
 # Request Lifecycle Causal Profiler
 
+Maintainer: [Shifeng Liu (`Remygred`)](https://github.com/Remygred). This
+repository is a vLLM-HUST MOD exposed through the `vllm.general_plugins`
+entry-point interface.
+
 This repository is an incubation observability/artifact line for causal request
 lifecycle tracing in LLM serving. It targets a single-NPU first implementation
 on NPU6 and follows the optimization-repository workflow used by the

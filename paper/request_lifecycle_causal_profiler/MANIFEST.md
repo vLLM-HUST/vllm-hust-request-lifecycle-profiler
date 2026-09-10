@@ -1,6 +1,6 @@
 # Request Lifecycle paper artifact manifest
 
-- Repository: `intellistream/vllm-request-lifecycle-profiler-plugin`
+- Repository: `vLLM-HUST/vllm-hust-request-lifecycle-profiler`
 - Source PR: `#24` (merged into `main`, then integrated into Draft PR `#22`)
 - PR #24 base head: `cfecbd05cdcf7c2156f227f8560ff6c4f64e3850`
 - PR #24 artifact commit: `ce8f90306de3cc5ab4b471de0faa4841f3027b05`
