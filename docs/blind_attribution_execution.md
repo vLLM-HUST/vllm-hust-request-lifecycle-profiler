@@ -52,3 +52,11 @@ as opaque accuracy, NPU calibration, or counterfactual evidence.
 The deferred work is unchanged: five matched no-intervention NPU calibration
 pairs, custody-provided opaque cases, pre-reveal method outputs, reveal,
 rank-one counterfactuals, the final score table, and any justified claim update.
+
+The exact public calibration target, workload order, scorer settings, and role
+isolation boundary are recorded in `blind_attribution_preblind_target.json`.
+The calibration uses the maximum total positive measurable-candidate duration
+delta from five independent no-intervention pairs. The
+`insufficient_evidence_or_multi_cause` abstention bucket remains visible in the
+pair report but is excluded from that total, matching the scorer's aggregation
+domain. The calibration contains no fault or case oracle.

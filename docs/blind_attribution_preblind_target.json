@@ -1,0 +1,56 @@
+{
+  "schema": "request-lifecycle-preblind-target/v1",
+  "status": "public-no-opaque-calibration-target",
+  "profiler_source": "exact execution commit is recorded by the calibration runner",
+  "runtime_commit": "c180d643c66f7a12434ae551cfc83cd7b7795302",
+  "ascend_commit": "95f390bb7816b5d557eb327c110b801f2a5b2cf5",
+  "workload_commit": "76e24c85bcab76ecfabb831c9444002b6efffd58",
+  "oasst1_commit": "fdf72ae0827c1cda404aff25b6603abec9e3399b",
+  "traceloom_commit": "63e86fc5095ee2552400c8a6c2c863faeaabf0b4",
+  "model": "Qwen/Qwen2.5-14B-Instruct",
+  "model_revision": "cf98f3b3bbb457ad9e2bb7baf9a0125b6b88caa8",
+  "target": {
+    "device_class": "Ascend 910B2",
+    "device_count": 1,
+    "tensor_parallel_size": 1
+  },
+  "service_configuration": {
+    "dtype": "bfloat16",
+    "max_model_len": 10880,
+    "kv_cache_memory_bytes": 2147483648,
+    "distributed_executor_backend": "mp",
+    "enforce_eager": true,
+    "connector": "OffloadingConnector",
+    "offloading_spec": "TieringOffloadingSpec",
+    "cpu_offload_bytes": 8589934592,
+    "lifecycle_reconcile": false
+  },
+  "workload": {
+    "id": "oasst1-fixed-64-v1",
+    "requests_per_lifecycle": 64,
+    "arrival_stagger_ms": 200,
+    "max_output_tokens": 192,
+    "initial_arrival_order": [44, 1, 35, 0, 9, 4, 2, 3, 6, 7, 8, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 36, 37, 38, 39, 40, 41, 42, 43, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63],
+    "final_request_ordinal": 5
+  },
+  "calibration": {
+    "pair_count": 5,
+    "order": ["AB", "BA", "AB", "BA", "AB"],
+    "arm_a_intervention": "none",
+    "arm_b_intervention": "none",
+    "noise_measure": "sum of positive B-A measurable-candidate duration totals in each no-intervention pair, excluding the abstention bucket; floor uses the maximum across five pairs",
+    "minimum_floor_ms": 5.0,
+    "dominance": 0.6,
+    "maximum_residual_share": 0.4,
+    "bootstrap_seed": 2026082701,
+    "bootstrap_resamples": 10000
+  },
+  "blind_roles": {
+    "team_a": "constructs cases and retains fault manifests, assignments, salts, and oracle",
+    "team_b": "receives only validated normalized bundles until results are locked",
+    "shared_chat_branch_only_is_sufficient": false,
+    "required_isolation": "separate filesystem or external custodian; Team B must not have read access to Team A custody"
+  },
+  "diagnosis_time_budget_minutes_per_method_per_case": 30,
+  "opaque_case_accessed": false
+}
