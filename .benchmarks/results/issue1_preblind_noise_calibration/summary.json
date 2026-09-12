@@ -1,0 +1,134 @@
+{
+  "schema": "request-lifecycle-preblind-null-calibration-public/v1",
+  "status": "VALID_REAL_ONLINE_CALIBRATION",
+  "completed_date_utc": "2026-09-11",
+  "evidence_class": "real-online",
+  "purpose": "public pre-blind no-intervention service-jitter calibration",
+  "opaque_case_accessed": false,
+  "intervention": "none",
+  "command": "python .benchmarks/run_preblind_noise_calibration.py --device $NPU_DEVICE --port $SERVICE_PORT --output-dir $LOCAL_OUTPUT_DIR",
+  "commits": {
+    "profiler": "13cdcc4bb28bc9ad8baf6f671047b3fcf9b25ebc",
+    "runtime": "c180d643c66f7a12434ae551cfc83cd7b7795302",
+    "ascend": "95f390bb7816b5d557eb327c110b801f2a5b2cf5",
+    "workload": "76e24c85bcab76ecfabb831c9444002b6efffd58",
+    "oasst1": "fdf72ae0827c1cda404aff25b6603abec9e3399b",
+    "traceloom": "63e86fc5095ee2552400c8a6c2c863faeaabf0b4"
+  },
+  "target": {
+    "device_class": "Ascend 910B2",
+    "device_count": 1,
+    "model": "Qwen/Qwen2.5-14B-Instruct",
+    "tensor_parallel_size": 1,
+    "configuration_id": "qwen2.5-14b-tp1-ascend910b2-kv2g-eager-v1",
+    "workload_id": "oasst1-fixed-64-v1",
+    "requests_per_lifecycle": 64
+  },
+  "execution": {
+    "pair_count": 5,
+    "service_lifecycle_count": 10,
+    "pair_orders": [
+      "AB",
+      "BA",
+      "AB",
+      "BA",
+      "AB"
+    ],
+    "all_arms_no_intervention": true
+  },
+  "evidence_validation": {
+    "valid_arms": 10,
+    "total_arms": 10,
+    "successful_requests": 640,
+    "total_requests": 640,
+    "client_error_count": 0,
+    "process_summary_count": 30,
+    "profile_summary_count": 30,
+    "non_drained_summary_count": 0,
+    "dropped_data_count": 0,
+    "dropped_control_count": 0,
+    "writer_failure_count": 0,
+    "loss_interval_count": 0,
+    "profile_loss_interval_count": 0
+  },
+  "pair_results": [
+    {
+      "pair_id": "null-01",
+      "order": "AB",
+      "candidate_deltas_ms": {
+        "communication_or_synchronization": 32.853239999999914,
+        "decode_execution": -18811.84770100005,
+        "insufficient_evidence_or_multi_cause": -2538.5597129999987,
+        "queue_or_admission": -148732.18344100192
+      },
+      "total_positive_measurable_candidate_delta_ms": 32.853239999999914
+    },
+    {
+      "pair_id": "null-02",
+      "order": "BA",
+      "candidate_deltas_ms": {
+        "communication_or_synchronization": 16.7638629999999,
+        "decode_execution": -15551.81313000014,
+        "insufficient_evidence_or_multi_cause": -479.1003060000003,
+        "queue_or_admission": -29693.65696799988
+      },
+      "total_positive_measurable_candidate_delta_ms": 16.7638629999999
+    },
+    {
+      "pair_id": "null-03",
+      "order": "AB",
+      "candidate_deltas_ms": {
+        "communication_or_synchronization": -15.525822000000062,
+        "decode_execution": 72515.14799199998,
+        "insufficient_evidence_or_multi_cause": 4850.111885000002,
+        "queue_or_admission": 140330.25556400092
+      },
+      "total_positive_measurable_candidate_delta_ms": 212845.4035560009
+    },
+    {
+      "pair_id": "null-04",
+      "order": "BA",
+      "candidate_deltas_ms": {
+        "communication_or_synchronization": -67.31683900000007,
+        "decode_execution": 22525.796913000057,
+        "insufficient_evidence_or_multi_cause": 1423.9794039999997,
+        "queue_or_admission": 61683.41345799994
+      },
+      "total_positive_measurable_candidate_delta_ms": 84209.210371
+    },
+    {
+      "pair_id": "null-05",
+      "order": "AB",
+      "candidate_deltas_ms": {
+        "communication_or_synchronization": 356.150853,
+        "decode_execution": -684.4364480001386,
+        "insufficient_evidence_or_multi_cause": 3307.2393269999993,
+        "queue_or_admission": 46937.30541700078
+      },
+      "total_positive_measurable_candidate_delta_ms": 47293.45627000078
+    }
+  ],
+  "total_positive_matched_deltas_ms": [
+    32.853239999999914,
+    16.7638629999999,
+    212845.4035560009,
+    84209.210371,
+    47293.45627000078
+  ],
+  "scorer_configuration": {
+    "minimum_absolute_floor_ms": 5.0,
+    "null_delta_p95_ms": 212845.4035560009,
+    "insufficient_evidence_floor_ms": 212845.4035560009,
+    "single_root_dominance": 0.6,
+    "maximum_unexplained_residual_share": 0.4,
+    "bootstrap_seed": 2026082701,
+    "bootstrap_resamples": 10000
+  },
+  "interpretation": {
+    "aggregation_scope": "candidate-duration totals accumulated over 64 requests per service lifecycle",
+    "abstention_bucket_excluded_from_floor": true,
+    "single_request_latency_claim": false,
+    "performance_claim": false,
+    "raw_artifacts": "retained in local custody and withheld from the repository because they contain host-local details"
+  }
+}
