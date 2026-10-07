@@ -1,0 +1,59 @@
+name: ECPA bundle
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["3.10", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - run: python -m pip install -e . pytest ruff build
+      - run: python -m pytest -q tests/test_ecpa_manifest.py
+      - run: python -m ruff check src/vllm_request_lifecycle_profiler/manifests tests/test_ecpa_manifest.py
+      - run: python -m build --wheel
+      - name: Verify clean-wheel fail-closed lifecycle
+        if: matrix.python == '3.12'
+        run: |
+          git clone --filter=blob:none \
+            https://github.com/vLLM-HUST/extension-manager.git /tmp/ecpa-manager
+          git -C /tmp/ecpa-manager checkout \
+            6ef9af01492eec248ae5f4d82fea4352ee119b03
+          python -m build --wheel --outdir /tmp/ecpa-dist /tmp/ecpa-manager
+          python -m venv /tmp/ecpa-profiler
+          /tmp/ecpa-profiler/bin/pip install \
+            /tmp/ecpa-dist/vllm_hust_ext-*.whl dist/*.whl
+          export XDG_CONFIG_HOME=/tmp/ecpa-state/config
+          export XDG_STATE_HOME=/tmp/ecpa-state/state
+          export XDG_CACHE_HOME=/tmp/ecpa-state/cache
+          cli=/tmp/ecpa-profiler/bin/vllm-hust-ext
+          id=org.vllm-hust.request-lifecycle-profiler
+          "$cli" extension list | grep "$id 0.1.0 disabled"
+          "$cli" extension inspect "$id" | grep '"activation_ready": false'
+          "$cli" extension validate "$id" >/dev/null
+          "$cli" extension check "$id" | grep '"degraded"'
+          if "$cli" extension enable "$id"; then
+            echo 'historical carrier was unexpectedly enabled' >&2
+            exit 1
+          fi
+          "$cli" extension plan "$id" | grep '"operation": "inspect_only"'
+          "$cli" extension render "$id" \
+            | grep '\\"operation\\": \\"inspect_only\\"'
+          /tmp/ecpa-profiler/bin/pip uninstall -y \
+            vllm-request-lifecycle-profiler-plugin
+          if "$cli" extension list | grep -q "$id"; then
+            echo 'uninstalled Bundle remains discoverable' >&2
+            exit 1
+          fi
