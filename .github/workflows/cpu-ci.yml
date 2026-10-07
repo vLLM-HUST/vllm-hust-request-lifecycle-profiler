@@ -58,7 +58,7 @@ jobs:
       - name: Fetch current runtime ABI source
         env:
           RUNTIME_SOURCE_DIR: ${{ runner.temp }}/vllm-hust-runtime
-          RUNTIME_SOURCE_SHA: c180d643c66f7a12434ae551cfc83cd7b7795302
+          RUNTIME_SOURCE_SHA: ebfcfba6507501c3a359a75eb4911ecc442bc2ff
         run: |
           set -euo pipefail
           git init "$RUNTIME_SOURCE_DIR"

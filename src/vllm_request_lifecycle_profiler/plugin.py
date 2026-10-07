@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import logging
 import os
+import secrets
 
 from vllm_request_lifecycle_profiler.runtime_hooks import RuntimeLifecycleHooks
 from vllm_request_lifecycle_profiler.runtime_protocol import (
@@ -15,6 +16,8 @@ _RUNTIME_HOOKS: RuntimeLifecycleHooks | None = None
 _RUNTIME_BRIDGE: object | None = None
 _OBSERVER_FACTORY: object | None = None
 _LIFECYCLE_OBSERVER: object | None = None
+_NATIVE_EVENT_BUS: object | None = None
+_NATIVE_EVENT_SINK: object | None = None
 
 
 def register_plugin() -> None:
@@ -24,21 +27,53 @@ def register_plugin() -> None:
     multiple processes.
     """
 
-    global _LIFECYCLE_OBSERVER, _OBSERVER_FACTORY, _REGISTERED_PID
-    global _RUNTIME_BRIDGE, _RUNTIME_HOOKS
+    global _LIFECYCLE_OBSERVER, _NATIVE_EVENT_BUS, _NATIVE_EVENT_SINK
+    global _OBSERVER_FACTORY, _REGISTERED_PID, _RUNTIME_BRIDGE, _RUNTIME_HOOKS
     process_id = os.getpid()
     if _REGISTERED_PID == process_id:
         return
 
     try:
-        from vllm import envs as vllm_envs
-    except Exception:
-        logger.exception("Failed to import vLLM during plugin registration.")
-        return
-
-    vllm_envs.VLLM_GENERAL_PLUGIN_TEMPLATE_LOADED = True
+        from vllm.v1.events import (
+            REQUEST_LIFECYCLE_EVENTS_API_VERSION,
+            EventBus,
+            RequestFinished,
+            RequestKvReclaimed,
+            RequestPreempted,
+        )
+    except Exception as error:
+        raise RuntimeError(
+            "request lifecycle profiler requires vLLM-HUST "
+            "request-lifecycle-events v1"
+        ) from error
+    if REQUEST_LIFECYCLE_EVENTS_API_VERSION != "1.0":
+        raise RuntimeError(
+            "unsupported vLLM-HUST request-lifecycle-events API: "
+            f"{REQUEST_LIFECYCLE_EVENTS_API_VERSION!r}; expected '1.0'"
+        )
 
     hooks = RuntimeLifecycleHooks.from_env()
+    from vllm_request_lifecycle_profiler.native_event_bus import (
+        NativeLifecycleEventSink,
+        native_evidence_emitter,
+    )
+
+    inherited_sink = _NATIVE_EVENT_SINK
+    inherited_bus = _NATIVE_EVENT_BUS
+    if inherited_sink is not None and inherited_bus is not None:
+        inherited_bus.unregister_sink(inherited_sink)
+    run_id = os.getenv("VLLM_ECPA_LAUNCH_ID") or hooks.process_uuid or secrets.token_hex(16)
+    native_sink = NativeLifecycleEventSink(
+        hooks,
+        run_id,
+        finished_type=RequestFinished,
+        preempted_type=RequestPreempted,
+        reclaimed_type=RequestKvReclaimed,
+        evidence_emitter=native_evidence_emitter,
+    )
+    EventBus.register_sink(native_sink)
+    _NATIVE_EVENT_BUS = EventBus
+    _NATIVE_EVENT_SINK = native_sink
     bridge = None
     if (
         hooks.enabled
@@ -95,6 +130,27 @@ def register_plugin() -> None:
 
     _RUNTIME_HOOKS = hooks
     _REGISTERED_PID = process_id
+
+
+def close_native_event_sink() -> None:
+    """Unregister the process-local native sink without owning host shutdown."""
+
+    global _NATIVE_EVENT_BUS, _NATIVE_EVENT_SINK
+    event_bus = _NATIVE_EVENT_BUS
+    sink = _NATIVE_EVENT_SINK
+    if event_bus is not None and sink is not None:
+        try:
+            event_bus.unregister_sink(sink)
+        except Exception:
+            logger.debug("Failed to unregister native lifecycle sink", exc_info=True)
+    _NATIVE_EVENT_BUS = None
+    _NATIVE_EVENT_SINK = None
+
+
+def get_native_event_sink() -> object | None:
+    """Return the registered process-local EventBus sink."""
+
+    return _NATIVE_EVENT_SINK
 
 
 def get_lifecycle_observer() -> object | None:
