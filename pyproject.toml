@@ -26,6 +26,9 @@ vllm-request-lifecycle-profiler-sanitize-issue19 = "vllm_request_lifecycle_profi
 [project.entry-points."vllm.general_plugins"]
 request_lifecycle_profiler = "vllm_request_lifecycle_profiler.plugin:register_plugin"
 
+[project.entry-points."vllm_hust.extension_bundles"]
+"org.vllm-hust.request-lifecycle-profiler" = "vllm_request_lifecycle_profiler.manifests"
+
 [project.optional-dependencies]
 dev = [
     "build>=1.2",
@@ -40,6 +43,9 @@ package-dir = {"" = "src"}
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.setuptools.package-data]
+vllm_request_lifecycle_profiler = ["manifests/*.json"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

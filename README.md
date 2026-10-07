@@ -9,6 +9,16 @@ lifecycle tracing in LLM serving. It targets a single-NPU first implementation
 on NPU6 and follows the optimization-repository workflow used by the
 `llm-optimizations` workspace.
 
+### ECPA 0.3 packaging boundary
+
+The wheel publishes `org.vllm-hust.request-lifecycle-profiler` for static ECPA
+discovery. It is deliberately `legacy_unregistered`: current vLLM-HUST main
+publishes request-lifecycle events, but this plugin still targets a historical
+KV-recovery ABI and does not register a sink with the native event bus. ECPA
+therefore permits inspect, validate, check, plan, and render, but rejects
+enablement. Packaging, historical trace artifacts, and successful import are
+not `runtime_effective`, NPU qualification, or performance evidence.
+
 ## Current research focus
 
 The profiler joins request identity across frontend, scheduler, KV, executor,
