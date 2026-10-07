@@ -55,10 +55,10 @@ jobs:
           cache: pip
           cache-dependency-path: pyproject.toml
 
-      - name: Fetch current runtime ABI source
+      - name: Fetch pinned G1 runtime ABI source
         env:
           RUNTIME_SOURCE_DIR: ${{ runner.temp }}/vllm-hust-runtime
-          RUNTIME_SOURCE_SHA: ebfcfba6507501c3a359a75eb4911ecc442bc2ff
+          RUNTIME_SOURCE_SHA: c180d643c66f7a12434ae551cfc83cd7b7795302
         run: |
           set -euo pipefail
           git init "$RUNTIME_SOURCE_DIR"
@@ -69,6 +69,22 @@ jobs:
           test "$(git -C "$RUNTIME_SOURCE_DIR" rev-parse HEAD)" = \
             "$RUNTIME_SOURCE_SHA"
           printf 'VLLM_HUST_G1_SRC=%s\n' "$RUNTIME_SOURCE_DIR" >> "$GITHUB_ENV"
+
+      - name: Fetch current request-lifecycle host contract
+        env:
+          CURRENT_HOST_SOURCE_DIR: ${{ runner.temp }}/vllm-hust-current
+          CURRENT_HOST_SOURCE_SHA: ebfcfba6507501c3a359a75eb4911ecc442bc2ff
+        run: |
+          set -euo pipefail
+          git init "$CURRENT_HOST_SOURCE_DIR"
+          git -C "$CURRENT_HOST_SOURCE_DIR" remote add origin \
+            https://github.com/vLLM-HUST/vllm-hust.git
+          git -C "$CURRENT_HOST_SOURCE_DIR" fetch --depth=1 origin \
+            "$CURRENT_HOST_SOURCE_SHA"
+          git -C "$CURRENT_HOST_SOURCE_DIR" checkout --detach FETCH_HEAD
+          test "$(git -C "$CURRENT_HOST_SOURCE_DIR" rev-parse HEAD)" = \
+            "$CURRENT_HOST_SOURCE_SHA"
+          printf 'VLLM_HUST_SOURCE=%s\n' "$CURRENT_HOST_SOURCE_DIR" >> "$GITHUB_ENV"
 
       - name: Initialize pinned OASST1 metadata
         env:
