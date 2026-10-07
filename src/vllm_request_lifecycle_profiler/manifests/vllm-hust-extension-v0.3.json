@@ -1,12 +1,12 @@
 {
   "schema_version": "0.3-experimental",
   "extension_id": "org.vllm-hust.request-lifecycle-profiler",
-  "extension_version": "0.1.0",
+  "extension_version": "0.1.1",
   "kind": "in_process_plugin",
   "host": {
     "provider": "vllm",
     "name": "vllm",
-    "version_range": ">=0.29.1,<0.30",
+    "version_range": ">=0.23,<0.24",
     "api_range": ">=1,<2"
   },
   "runtime": {
@@ -30,7 +30,7 @@
       "type": "python_module",
       "module": "vllm_request_lifecycle_profiler.plugin",
       "object": "register_plugin",
-      "status": "legacy_unregistered"
+      "status": "active"
     }
   ],
   "requires_services": [],
@@ -44,9 +44,9 @@
   ],
   "components": [
     {
-      "component_id": "request-lifecycle-profiler-scaffold",
+      "component_id": "request-lifecycle-profiler-native-sink",
       "contracts": [
-        "vllm.request-lifecycle-events"
+        "vllm.request-lifecycle-events.v1"
       ],
       "execution_planes": [
         "api",

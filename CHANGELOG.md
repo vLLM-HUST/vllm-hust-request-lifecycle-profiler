@@ -4,6 +4,9 @@
 
 ### Added
 
+- Added a vLLM-HUST request-lifecycle EventBus 1.0 sink for finished,
+  preempted, and KV-reclaimed events, with callback-bound ECPA runtime
+  evidence and optional trace export.
 - Added a shared top-level `Makefile` with consistent `install-dev`, `smoke`, `test`, `lint`, `format`, `build`, `bench`, and `paper` targets.
 - Added a top-level `CHANGELOG.md` so the template matches the standalone plugin repository structure used across the related vLLM and SGLang artifact repos.
 - Added a `.benchmarks/` workspace plus a generic shared-workload smoke harness that consumes the repo-local case catalog from `llm-serving-workloads`.
@@ -17,6 +20,9 @@
 
 ### Changed
 
+- Promoted the ECPA Bundle to the narrow native observer carrier in 0.1.1;
+  installation remains inert and historical KV-recovery tracing remains
+  optional.
 - Clarified changelog ownership: template changes must be recorded in this repository's own `CHANGELOG.md`, not in `/home/shuhao/sagellm/CHANGELOG.md`.
 - Standardized local developer metadata by aligning `.[dev]` dependencies, pytest testpaths, and CONTRIBUTING workflow wording with the other standalone plugin repos.
 - Changed the template's default environment guidance to use a dedicated `vllm-request-lifecycle-profiler-exp` clone of the shared vLLM baseline instead of reusing the shared env directly.

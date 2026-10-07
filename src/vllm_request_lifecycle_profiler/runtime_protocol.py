@@ -204,6 +204,9 @@ _register(
     "external_evidence",
     "communication_started",
     "communication_done",
+    "request_finished_observed",
+    "request_preempted_observed",
+    "request_kv_reclaimed_observed",
 )
 _register(
     "response",
@@ -878,6 +881,67 @@ def _validate_event_metadata(
             1 <= metadata["resource_units"] <= _UINT64_MAX
         ):
             raise ProtocolValidationError("resource metadata resource_units is invalid")
+
+    native_event_keys = {
+        "request_finished_observed": {
+            "runtime_request_id",
+            "session_present",
+            "prompt_tokens",
+            "output_tokens",
+            "sequence_tokens",
+            "kv_blocks",
+            "kv_reclaim_deferred",
+            "finished_reason",
+        },
+        "request_preempted_observed": {
+            "runtime_request_id",
+            "session_present",
+            "num_preemptions",
+            "kv_blocks",
+            "kv_reclaim_deferred",
+        },
+        "request_kv_reclaimed_observed": {
+            "runtime_request_id",
+            "session_present",
+            "kv_blocks",
+            "reclaim_path",
+        },
+    }
+    expected_native_keys = native_event_keys.get(draft.event_name)
+    if expected_native_keys is not None:
+        if set(metadata) != expected_native_keys:
+            raise ProtocolValidationError("native lifecycle metadata keys differ")
+        if not isinstance(metadata.get("runtime_request_id"), str) or not metadata[
+            "runtime_request_id"
+        ]:
+            raise ProtocolValidationError("native lifecycle request ID is invalid")
+        if not isinstance(metadata.get("session_present"), bool):
+            raise ProtocolValidationError("native lifecycle session flag is invalid")
+        for key in expected_native_keys - {
+            "runtime_request_id",
+            "session_present",
+            "kv_reclaim_deferred",
+            "finished_reason",
+            "reclaim_path",
+        }:
+            _required_metadata_uint(metadata, key)
+        if "kv_reclaim_deferred" in expected_native_keys and not isinstance(
+            metadata.get("kv_reclaim_deferred"), bool
+        ):
+            raise ProtocolValidationError("native lifecycle deferred flag is invalid")
+        if draft.event_name == "request_finished_observed":
+            if metadata["sequence_tokens"] != (
+                metadata["prompt_tokens"] + metadata["output_tokens"]
+            ):
+                raise ProtocolValidationError("native lifecycle token counts differ")
+            if not isinstance(metadata.get("finished_reason"), str) or not metadata[
+                "finished_reason"
+            ]:
+                raise ProtocolValidationError("native lifecycle finish reason is invalid")
+        if draft.event_name == "request_kv_reclaimed_observed" and metadata.get(
+            "reclaim_path"
+        ) not in {"immediate", "deferred"}:
+            raise ProtocolValidationError("native lifecycle reclaim path is invalid")
 
     if draft.scope == "root_request" and draft.event_name == "received":
         expected_values: dict[str, object] = {

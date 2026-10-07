@@ -23,21 +23,24 @@ def test_ecpa_manifest_is_static_and_versioned() -> None:
     value = load_manifest()
     assert value["schema_version"] == "0.3-experimental"
     assert value["extension_id"] == BUNDLE_ID
-    assert value["extension_version"] == "0.1.0"
+    assert value["extension_version"] == "0.1.1"
     assert value["host"] == {
         "provider": "vllm",
         "name": "vllm",
-        "version_range": ">=0.29.1,<0.30",
+        "version_range": ">=0.23,<0.24",
         "api_range": ">=1,<2",
     }
 
 
-def test_historical_carrier_fails_closed() -> None:
+def test_native_event_bus_carrier_is_activation_ready() -> None:
     value = load_manifest()
-    assert value["implementation"][0]["status"] == "legacy_unregistered"
+    assert value["implementation"][0]["status"] == "active"
     assert value["activation"]["entry_points"] == [
         {"group": "vllm.general_plugins", "name": "request_lifecycle_profiler"}
     ]
+    assert value["components"][0]["component_id"] == (
+        "request-lifecycle-profiler-native-sink"
+    )
 
 
 def test_native_event_contract_and_shared_observer_are_declared() -> None:

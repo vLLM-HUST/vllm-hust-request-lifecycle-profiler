@@ -12,12 +12,19 @@ on NPU6 and follows the optimization-repository workflow used by the
 ### ECPA 0.3 packaging boundary
 
 The wheel publishes `org.vllm-hust.request-lifecycle-profiler` for static ECPA
-discovery. It is deliberately `legacy_unregistered`: current vLLM-HUST main
-publishes request-lifecycle events, but this plugin still targets a historical
-KV-recovery ABI and does not register a sink with the native event bus. ECPA
-therefore permits inspect, validate, check, plan, and render, but rejects
-enablement. Packaging, historical trace artifacts, and successful import are
-not `runtime_effective`, NPU qualification, or performance evidence.
+discovery and registers a shared sink with the current vLLM-HUST
+`vllm.request-lifecycle-events` v1 EventBus when explicitly selected through
+`vllm.general_plugins`. Installation remains inert. The sink observes the
+host-owned finished, preempted, and KV-reclaimed events, records their bounded
+typed payloads when trace export is configured, and emits launch-bound ECPA
+evidence only after a real callback. Import, registration, or an enabled trace
+path alone is not `runtime_effective`, NPU qualification, or performance
+evidence. The historical KV-recovery adapter remains optional and separate.
+
+The native EventBus currently exposes scheduler terminal, preemption, and KV
+reclamation boundaries. It does not expose the complete frontend-to-response
+DAG, so activation of this sink must not be described as complete causal
+coverage or as closing the blind-attribution study.
 
 ## Current research focus
 
