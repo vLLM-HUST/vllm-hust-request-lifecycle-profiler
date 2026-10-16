@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.2
+
+- Bind the ECPA activation manifest to the validated vLLM-HUST 0.31.1
+  request-lifecycle-events v1 host line.
+
 ## [Unreleased]
 
 ### Added

@@ -46,7 +46,7 @@ jobs:
           export XDG_CACHE_HOME=/tmp/ecpa-state/cache
           cli=/tmp/ecpa-profiler/bin/vllm-hust-ext
           id=org.vllm-hust.request-lifecycle-profiler
-          "$cli" extension list | grep "$id 0.1.1 disabled"
+          "$cli" extension list | grep "$id 0.1.2 disabled"
           "$cli" extension inspect "$id" | grep '"activation_ready": true'
           "$cli" extension validate "$id" >/dev/null
           "$cli" extension check "$id" | grep '"degraded"'

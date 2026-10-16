@@ -23,11 +23,11 @@ def test_ecpa_manifest_is_static_and_versioned() -> None:
     value = load_manifest()
     assert value["schema_version"] == "0.3-experimental"
     assert value["extension_id"] == BUNDLE_ID
-    assert value["extension_version"] == "0.1.1"
+    assert value["extension_version"] == "0.1.2"
     assert value["host"] == {
         "provider": "vllm",
         "name": "vllm",
-        "version_range": ">=0.23,<0.24",
+        "version_range": ">=0.31.1,<0.32",
         "api_range": ">=1,<2",
     }
 

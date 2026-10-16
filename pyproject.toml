@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "vllm-request-lifecycle-profiler-plugin"
-version = "0.1.1"
+version = "0.1.2"
 description = "Causal request lifecycle tracing and bottleneck attribution for LLM serving"
 readme = "README.md"
 requires-python = ">=3.10"

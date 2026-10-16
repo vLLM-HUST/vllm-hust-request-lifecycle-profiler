@@ -1,12 +1,12 @@
 {
   "schema_version": "0.3-experimental",
   "extension_id": "org.vllm-hust.request-lifecycle-profiler",
-  "extension_version": "0.1.1",
+  "extension_version": "0.1.2",
   "kind": "in_process_plugin",
   "host": {
     "provider": "vllm",
     "name": "vllm",
-    "version_range": ">=0.23,<0.24",
+    "version_range": ">=0.31.1,<0.32",
     "api_range": ">=1,<2"
   },
   "runtime": {
