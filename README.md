@@ -26,6 +26,16 @@ reclamation boundaries. It does not expose the complete frontend-to-response
 DAG, so activation of this sink must not be described as complete causal
 coverage or as closing the blind-attribution study.
 
+The ECPA manifest is bound to the validated vLLM-HUST `>=0.31.1,<0.32`
+host line. The validation target is commit
+`47c8aa1caa7638d2e5e231eedced45448106fde5`, whose installed version is
+`0.31.1.post1.dev5+g47c8aa1ca.empty` and whose request-lifecycle EventBus
+reports API `1.0`. This compatibility statement covers plugin registration,
+typed callback delivery (finished, preempted, and immediate/deferred KV
+reclaimed events), and sink removal in CPU ABI tests. These tests create no
+serving requests or native evidence receipts. It does not assert model-serving
+effectiveness or performance.
+
 ## Current research focus
 
 The profiler joins request identity across frontend, scheduler, KV, executor,

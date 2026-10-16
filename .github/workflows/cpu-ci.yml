@@ -73,7 +73,7 @@ jobs:
       - name: Fetch current request-lifecycle host contract
         env:
           CURRENT_HOST_SOURCE_DIR: ${{ runner.temp }}/vllm-hust-current
-          CURRENT_HOST_SOURCE_SHA: ebfcfba6507501c3a359a75eb4911ecc442bc2ff
+          CURRENT_HOST_SOURCE_SHA: 47c8aa1caa7638d2e5e231eedced45448106fde5
         run: |
           set -euo pipefail
           git init "$CURRENT_HOST_SOURCE_DIR"
