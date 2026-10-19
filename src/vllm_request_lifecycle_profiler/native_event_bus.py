@@ -7,7 +7,10 @@ import threading
 from collections.abc import Callable
 from dataclasses import dataclass
 
-from vllm_request_lifecycle_profiler.runtime_hooks import RuntimeLifecycleHooks
+from vllm_request_lifecycle_profiler.runtime_hooks import (
+    CloseResult,
+    RuntimeLifecycleHooks,
+)
 from vllm_request_lifecycle_profiler.runtime_protocol import EventDraft
 
 EvidenceEmitter = Callable[[str, str], bool]
@@ -45,6 +48,15 @@ class NativeLifecycleEventSink:
         self._finished_count = 0
         self._preempted_count = 0
         self._reclaimed_count = 0
+
+    def close(self) -> CloseResult | None:
+        """Return the original process-local exporter's bounded drain result.
+
+        No hook is registered or initialized here. RuntimeLifecycleHooks.close
+        retains its existing two-second bound, concurrency and loss accounting.
+        None/timeout/failure is not a successful drain.
+        """
+        return self._hooks.close()
 
     def emit(self, event: object) -> None:
         """Consume one host-owned event; all observation failures fail open."""

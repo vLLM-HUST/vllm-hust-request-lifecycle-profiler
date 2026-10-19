@@ -62,10 +62,9 @@ def make_sink(hooks, evidence):
         finished_type=Finished,
         preempted_type=Preempted,
         reclaimed_type=Reclaimed,
-        evidence_emitter=lambda name, request_id: evidence.append(
-            (name, request_id)
-        )
-        is None,
+        evidence_emitter=lambda name, request_id: (
+            evidence.append((name, request_id)) is None
+        ),
     )
 
 
@@ -129,3 +128,79 @@ def test_unknown_or_malformed_events_fail_open() -> None:
     assert hooks.drafts == []
     assert evidence == []
     assert sink.snapshot().event_count == 0
+
+
+def test_public_close_drains_real_hooks_and_retains_original_records(tmp_path):
+    import json
+    import time
+
+    from vllm_request_lifecycle_profiler.runtime_hooks import (
+        JsonlTraceSink,
+        RuntimeLifecycleHooks,
+        RuntimeTraceConfig,
+    )
+    from vllm_request_lifecycle_profiler.runtime_protocol import RuntimeProvenance
+
+    writer = JsonlTraceSink(
+        tmp_path / "trace.jsonl", RuntimeProvenance("a" * 40, "b" * 40, "c" * 40)
+    )
+    hooks = RuntimeLifecycleHooks(
+        RuntimeTraceConfig(tmp_path / "trace.jsonl"), sink=writer
+    )
+    sink = make_sink(hooks, [])
+    sink.emit(
+        Finished(
+            "request", None, 1201, 32, 1233, 77, False, "stop", time.monotonic_ns()
+        )
+    )
+    sink.emit(Reclaimed("request", None, 77, "immediate", time.monotonic_ns()))
+    result = sink.close()
+    assert result.close_outcome == "drained"
+    assert result.summary_written is True
+    assert result.written_event_count == 2
+    assert result.dropped_data_count == 0
+    rows = [json.loads(line) for line in writer.shard_path.read_bytes().splitlines()]
+    assert [row["record_type"] for row in rows] == [
+        "process_start",
+        "event",
+        "event",
+        "process_summary",
+    ]
+    assert rows[-1]["written_event_count"] == 2
+    assert rows[-1]["dropped_data_count"] == 0
+    assert sink.close() == result
+
+
+def test_public_close_returns_original_none_without_initializing_exporter(monkeypatch):
+    from vllm_request_lifecycle_profiler.runtime_hooks import RuntimeLifecycleHooks
+
+    def forbidden():
+        raise AssertionError("close must not register a new hook")
+
+    monkeypatch.setattr(RuntimeLifecycleHooks, "from_env", forbidden)
+
+    class ExistingHooks:
+        calls = 0
+
+        def close(self):
+            self.calls += 1
+
+    hooks = ExistingHooks()
+    assert make_sink(hooks, []).close() is None
+    assert hooks.calls == 1
+
+
+def test_public_close_preserves_exact_timeout_accounting():
+    from vllm_request_lifecycle_profiler.runtime_hooks import CloseResult
+
+    expected = CloseResult("timeout", False, 1, 0, 0, 1, 0)
+
+    class ExistingHooks:
+        def close(self):
+            return expected
+
+    result = make_sink(ExistingHooks(), []).close()
+    assert result is expected
+    assert result.summary_written is False
+    assert result.close_outcome == "timeout"
+    assert result.dropped_data_count == 1
