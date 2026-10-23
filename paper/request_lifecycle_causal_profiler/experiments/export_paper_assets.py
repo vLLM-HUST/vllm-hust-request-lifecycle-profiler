@@ -15,8 +15,11 @@ def parse_args() -> argparse.Namespace:
         description="Refresh generic paper-facing assets from a paper results directory."
     )
     parser.add_argument("--results-dir", required=True)
-    parser.add_argument("--historical-evidence-root", required=True,
-                        help="External verified BENCHMARK_HISTORY.json capsule root")
+    parser.add_argument(
+        "--historical-evidence-root",
+        required=True,
+        help="External verified BENCHMARK_HISTORY.json capsule root",
+    )
     parser.add_argument("--live-results-dir")
     parser.add_argument("--output-dir", required=True)
     parser.add_argument("--figure-dir", required=True)

@@ -24,7 +24,7 @@ ordinary CPU tests. The semantic test still requires the exact original NO_GO de
 
 ## Additional historical directories
 
-[Canonical history manifest](https://github.com/vLLM-HUST/vllm-hust-benchmark/blob/aadff9107d2514ab8a319a5f6385a99671c98cfd/archive/mod-history-20261023/profiler/manifest.json) lists original paths, sizes and SHA256.
+[Canonical history manifest](https://github.com/vLLM-HUST/vllm-hust-benchmark/blob/afd47a8e9964b71844dec75a8e908f279ae98202/archive/mod-history-20261023/profiler/manifest.json) lists original paths, sizes and SHA256.
 This is a separate capsule from BENCHMARK_EVIDENCE.json; do not reuse its destination.
 No hardware experiment or new performance acceptance is implied.
 
