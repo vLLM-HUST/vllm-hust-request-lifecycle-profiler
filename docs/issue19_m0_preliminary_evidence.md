@@ -77,6 +77,8 @@ returning `NO_GO`.
 The corrected paired run is published through the sanitized directory
 `.benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/`;
 its execution-node source remains only in local custody.
+The public directory now lives in the fixed [benchmark capsule](../EVIDENCE.md);
+resolve it relative to `BENCHMARK_EVIDENCE_ROOT`, not this checkout.
 It contains ten fault arms and ten matched normal-control arms using the same
 profiler, runtime, Ascend plugin, model, NPU, OASST1 projection, request order,
 seeds, capacity, and resolved server configuration. Lifecycle reconciliation

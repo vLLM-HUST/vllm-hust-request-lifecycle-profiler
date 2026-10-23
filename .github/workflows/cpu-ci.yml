@@ -123,7 +123,11 @@ jobs:
           paper/request_lifecycle_causal_profiler/experiments
 
       - name: Run unit tests
-        run: python -m pytest -q
+        env:
+          BENCHMARK_EVIDENCE_ROOT: ${{ runner.temp }}/benchmark-evidence
+        run: |
+          python scripts/fetch_mod_consumer_evidence.py --destination "$BENCHMARK_EVIDENCE_ROOT"
+          python -m pytest -q
 
       - name: Build source and wheel distributions
         run: python -m build
