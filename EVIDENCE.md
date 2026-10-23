@@ -63,3 +63,8 @@ All paths below are archive-relative; generation commands may still produce igno
 Current forwarding documents, configuration and imported code remain; exact retained paths are tested in tests/test_collection_evidence_boundary.py.
 
 Paper export additionally requires --collection-evidence-root; offline Make targets use BENCHMARK_COLLECTION_ROOT. Missing full runtime JSONL inputs stay missing: compact summaries are not substitutes. Generated paper presentation outputs remain a separate projection, not new measurements.
+
+The old M0 development validator now reads its concurrency CSV from this external root.
+Its separate `/root/kv-recovery-service-g4/runs` inputs are not supplied by this capsule;
+the old G1/G2 preflight scripts likewise require their separately generated inputs.
+These historical local workflows were not executed or declared reproducible by this migration.
