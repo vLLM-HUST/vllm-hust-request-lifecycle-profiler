@@ -125,8 +125,10 @@ jobs:
       - name: Run unit tests
         env:
           BENCHMARK_EVIDENCE_ROOT: ${{ runner.temp }}/benchmark-evidence
+          BENCHMARK_HISTORY_ROOT: ${{ runner.temp }}/benchmark-history
         run: |
           python scripts/fetch_mod_consumer_evidence.py --destination "$BENCHMARK_EVIDENCE_ROOT"
+          python scripts/fetch_mod_consumer_evidence.py --config BENCHMARK_HISTORY.json --destination "$BENCHMARK_HISTORY_ROOT"
           python -m pytest -q
 
       - name: Build source and wheel distributions

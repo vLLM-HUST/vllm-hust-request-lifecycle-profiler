@@ -7,7 +7,6 @@ import shutil
 from collections import Counter
 from pathlib import Path
 
-
 FIGURE_SUFFIXES = {".pdf", ".png", ".jpg", ".jpeg", ".svg", ".webp"}
 
 
@@ -16,6 +15,8 @@ def parse_args() -> argparse.Namespace:
         description="Refresh generic paper-facing assets from a paper results directory."
     )
     parser.add_argument("--results-dir", required=True)
+    parser.add_argument("--historical-evidence-root", required=True,
+                        help="External verified BENCHMARK_HISTORY.json capsule root")
     parser.add_argument("--live-results-dir")
     parser.add_argument("--output-dir", required=True)
     parser.add_argument("--figure-dir", required=True)
@@ -286,7 +287,7 @@ def _trace_overhead_rows(repo_root: Path) -> list[dict[str, object]]:
     result_dir = repo_root / ".benchmarks" / "results" / result_dir_name
     overhead = _load_json(result_dir / "overhead_summary.json")
     if overhead is None:
-        return []
+        raise FileNotFoundError(result_dir / "overhead_summary.json")
     comparison = overhead["comparison"]
     rows: list[dict[str, object]] = []
     for row in comparison["modes"]:
@@ -1416,6 +1417,11 @@ def main() -> None:
     args = parse_args()
 
     repo_root = _repo_root()
+    historical_root = Path(args.historical_evidence_root)
+    if not historical_root.is_absolute() or path_is_within(historical_root.resolve(), repo_root):
+        raise ValueError("Historical evidence must be in an external absolute directory")
+    # Fail before emitting assets if the migrated consumer input is absent.
+    _trace_overhead_rows(historical_root)
     results_dir = Path(args.results_dir)
     live_results_dir = Path(args.live_results_dir) if args.live_results_dir else None
     output_dir = Path(args.output_dir)
@@ -1528,7 +1534,7 @@ def main() -> None:
             table_dir=table_dir,
         )
         + generate_trace_overhead_assets(
-            repo_root=repo_root,
+            repo_root=historical_root,
             output_dir=output_dir,
             table_dir=table_dir,
         )

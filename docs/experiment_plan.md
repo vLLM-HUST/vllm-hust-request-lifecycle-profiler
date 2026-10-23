@@ -405,3 +405,8 @@ expected-process roster and committed receipts, preflight marker/admission
 status, correctness result, trace-loss result, and a separate validity status.
 Readiness (`READY` or `BLOCKED`) is orthogonal to the six source labels and is
 never itself a performance measurement.
+
+
+Historical blocked-server and client trace-overhead directories now refer to
+[benchmark archive members](https://github.com/vLLM-HUST/vllm-hust-benchmark/blob/aadff9107d2514ab8a319a5f6385a99671c98cfd/archive/mod-history-20261023/profiler/manifest.json), not tracked local files.
+See EVIDENCE.md for retrieval. Other entries above retain their stated scope.
