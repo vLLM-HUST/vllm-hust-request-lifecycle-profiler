@@ -11,7 +11,9 @@ def _load_overhead_module():
         / ".benchmarks"
         / "run_existing_server_trace_overhead_suite.py"
     )
-    spec = importlib.util.spec_from_file_location("run_existing_server_trace_overhead_suite", path)
+    spec = importlib.util.spec_from_file_location(
+        "run_existing_server_trace_overhead_suite", path
+    )
     assert spec is not None
     module = importlib.util.module_from_spec(spec)
     assert spec.loader is not None
@@ -83,6 +85,8 @@ def test_runtime_hook_pair_plan_reports_missing_runs(tmp_path: Path) -> None:
             str(tmp_path / "disabled"),
             "--hook-enabled-dir",
             str(tmp_path / "enabled"),
+            "--trace-export-path",
+            str(tmp_path / "missing-trace.jsonl"),
             "--output-dir",
             str(tmp_path / "out"),
         ]
@@ -91,12 +95,15 @@ def test_runtime_hook_pair_plan_reports_missing_runs(tmp_path: Path) -> None:
 
     assert result["summary"]["missing_result_count"] == 2
     assert result["summary"]["rows"][0]["status"] == "missing-result"
-    assert "TRACE_SUITE_OUTPUT_DIR=" in result["summary"]["rows"][0][
-        "required_next_run"
-    ][-1]
+    assert (
+        "TRACE_SUITE_OUTPUT_DIR="
+        in result["summary"]["rows"][0]["required_next_run"][-1]
+    )
 
 
-def test_npu6_profile_uses_pinned_runtime_and_does_not_enable_hooks_by_default() -> None:
+def test_npu6_profile_uses_pinned_runtime_and_does_not_enable_hooks_by_default() -> (
+    None
+):
     profile = (
         Path(__file__).resolve().parents[1]
         / ".benchmarks"

@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import glob
 import json
+import os
 from pathlib import Path
 
 from vllm_request_lifecycle_profiler.m0_evaluation import (
@@ -107,7 +108,12 @@ def run() -> None:
     out["case_A_restore_tail"] = report_to_dict(rep_a)
 
     # ---- Case B: concurrency-2 prefill tail ----
-    csv_path = RES / "npu6_runtime_hooks_concurrency_sweep" / "runtime_internal_spans.csv"
+    collection = Path(os.environ["BENCHMARK_COLLECTION_ROOT"])
+    if not collection.is_absolute() or collection.resolve().is_relative_to(
+        Path(__file__).resolve().parents[1]
+    ):
+        raise ValueError("BENCHMARK_COLLECTION_ROOT must be outside the checkout")
+    csv_path = collection / ".benchmarks/results/npu6_runtime_hooks_concurrency_sweep/runtime_internal_spans.csv"
     rows_all = load_phase_rows_csv(csv_path)
     rows_measured = [r for r in rows_all if "warmup" not in str(r.request_id) or True]
     # filter by assigned_concurrency is not in the RequestPhases; reload with concurrency

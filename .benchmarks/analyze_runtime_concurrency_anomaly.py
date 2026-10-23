@@ -1,15 +1,13 @@
 from __future__ import annotations
 
 import argparse
-from collections import defaultdict
-from datetime import datetime
-from datetime import timezone
 import json
-from pathlib import Path
 import subprocess
 import sys
+from collections import defaultdict
+from datetime import datetime, timezone
+from pathlib import Path
 from typing import Any
-
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_INPUT_DIR = (
@@ -184,7 +182,9 @@ def _assigned_blocks(input_dir: Path) -> list[tuple[int, float, float]]:
     return blocks
 
 
-def _assign_by_order(rows: list[dict[str, Any]], blocks: list[tuple[int, float, float]]) -> None:
+def _assign_by_order(
+    rows: list[dict[str, Any]], blocks: list[tuple[int, float, float]]
+) -> None:
     measured = [row for row in rows if not row["is_warmup"]]
     block_sizes = [9, 9, 9]
     cursor = 0
@@ -276,8 +276,12 @@ def build_analysis(args: argparse.Namespace) -> dict[str, Any]:
         )
 
     per_concurrency: list[dict[str, Any]] = []
-    for concurrency in sorted({int(row["assigned_concurrency"]) for row in measured_rows}):
-        group = [row for row in measured_rows if row["assigned_concurrency"] == concurrency]
+    for concurrency in sorted(
+        {int(row["assigned_concurrency"]) for row in measured_rows}
+    ):
+        group = [
+            row for row in measured_rows if row["assigned_concurrency"] == concurrency
+        ]
         prefill = [float(row["spans_ms"]["prefill"]) for row in group]
         queueing = [float(row["spans_ms"]["queueing"]) for row in group]
         decode = [float(row["spans_ms"]["decode"]) for row in group]
@@ -445,8 +449,8 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Analyze checked-in runtime hook traces for the NPU6 concurrency anomaly."
     )
-    parser.add_argument("--input-dir", type=Path, default=DEFAULT_INPUT_DIR)
-    parser.add_argument("--runtime-trace", type=Path, default=RUNTIME_TRACE)
+    parser.add_argument("--input-dir", type=Path, required=True)
+    parser.add_argument("--runtime-trace", type=Path, required=True)
     parser.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT_DIR)
     return parser.parse_args(argv)
 

@@ -52,3 +52,6 @@ tmp/
 # Historical originals live in benchmark (issue 326).
 /.benchmarks/results/npu6_existing_server_probe_blocked/
 /.benchmarks/results/npu6_existing_server_trace_overhead_smoke/
+
+# Migrated collection originals. Retained tracked code/docs are reviewed explicitly.
+/.benchmarks/results/
