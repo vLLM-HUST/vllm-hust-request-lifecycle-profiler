@@ -4,13 +4,7 @@ import subprocess
 from pathlib import Path
 
 PREFIXES = [".benchmarks/results/"]
-RETAINED = [
-    ".benchmarks/results/npu6_controlled_fault_matrix/matrix.md",
-    ".benchmarks/results/npu6_runtime_hooks_concurrency_sweep/concurrency_anomaly_analysis/anomaly_analysis.md",
-    ".benchmarks/results/npu6_runtime_hooks_concurrency_sweep/concurrency_sweep_summary.md",
-    ".benchmarks/results/npu6_runtime_hooks_concurrency_sweep/runtime_internal_span_analysis.md",
-    ".benchmarks/results/shared_workloads_smoke.md",
-]
+RETAINED = []
 
 
 def test_migrated_collection_boundary():
