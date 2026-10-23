@@ -39,11 +39,13 @@ help:
 		'  make clean  Remove local LaTeX build outputs'
 
 paper-assets: $(PAPER_ASSET_EXPORT_SCRIPT)
+	@test -n "$(BENCHMARK_COLLECTION_ROOT)" || (echo 'Set BENCHMARK_COLLECTION_ROOT to the verified external collection'; exit 1)
 	@test -n "$(BENCHMARK_HISTORY_ROOT)" || (echo 'Set BENCHMARK_HISTORY_ROOT to the verified external capsule (see ../../EVIDENCE.md)'; exit 1)
 	mkdir -p $(RESULTS_DIR) $(LIVE_RESULTS_DIR) $(FIGURES_DIR) $(TABLES_DIR) $(MANUAL_TABLES_DIR) $(PAPER_ASSET_OUTPUT_DIR)
 	$(PYTHON) $(PAPER_ASSET_EXPORT_SCRIPT) \
 		--results-dir $(RESULTS_DIR) \
 		--historical-evidence-root "$(BENCHMARK_HISTORY_ROOT)" \
+		--collection-evidence-root "$(BENCHMARK_COLLECTION_ROOT)" \
 		--live-results-dir $(LIVE_RESULTS_DIR) \
 		--output-dir $(PAPER_ASSET_OUTPUT_DIR) \
 		--figure-dir $(GENERATED_FIGURES_DIR) \

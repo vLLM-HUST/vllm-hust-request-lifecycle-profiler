@@ -1,23 +1,22 @@
 from __future__ import annotations
 
 import argparse
-from collections import Counter
-from collections import defaultdict
-from datetime import datetime
-from datetime import timezone
 import csv
 import json
-from pathlib import Path
 import subprocess
 import sys
+from collections import Counter, defaultdict
+from datetime import datetime, timezone
+from pathlib import Path
 from typing import Any
 
-from vllm_request_lifecycle_profiler.trace import LifecycleStage
-from vllm_request_lifecycle_profiler.trace import TraceEvent
-from vllm_request_lifecycle_profiler.trace import attribute_bottleneck
-from vllm_request_lifecycle_profiler.trace import compute_spans
-from vllm_request_lifecycle_profiler.trace import evaluate_schema_coverage
-
+from vllm_request_lifecycle_profiler.trace import (
+    LifecycleStage,
+    TraceEvent,
+    attribute_bottleneck,
+    compute_spans,
+    evaluate_schema_coverage,
+)
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_INPUT = (
@@ -258,7 +257,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Derive client-visible lifecycle diagnosis from NPU6 probe traces."
     )
-    parser.add_argument("--input-probe-results", type=Path, default=DEFAULT_INPUT)
+    parser.add_argument("--input-probe-results", type=Path, required=True)
     parser.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT_DIR)
     return parser.parse_args(argv)
 

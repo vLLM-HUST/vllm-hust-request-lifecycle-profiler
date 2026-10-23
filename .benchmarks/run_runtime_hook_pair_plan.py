@@ -1,15 +1,13 @@
 from __future__ import annotations
 
 import argparse
-from collections import Counter
-from datetime import datetime
-from datetime import timezone
 import json
-from pathlib import Path
 import subprocess
 import sys
+from collections import Counter
+from datetime import datetime, timezone
+from pathlib import Path
 from typing import Any
-
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_DISABLED_DIR = (
@@ -198,9 +196,7 @@ def _mode_row(
     }
 
 
-def _delta(
-    rows: list[dict[str, Any]], *, key: str
-) -> float | int | None:
+def _delta(rows: list[dict[str, Any]], *, key: str) -> float | int | None:
     by_mode = {row["mode"]: row for row in rows if row["status"] == "loaded"}
     disabled = by_mode.get("hook-disabled", {}).get(key)
     enabled = by_mode.get("hook-enabled", {}).get(key)
@@ -299,9 +295,9 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Plan or aggregate paired NPU6 runtime-hook probes."
     )
-    parser.add_argument("--hook-disabled-dir", type=Path, default=DEFAULT_DISABLED_DIR)
-    parser.add_argument("--hook-enabled-dir", type=Path, default=DEFAULT_ENABLED_DIR)
-    parser.add_argument("--trace-export-path", type=Path, default=DEFAULT_TRACE_PATH)
+    parser.add_argument("--hook-disabled-dir", type=Path, required=True)
+    parser.add_argument("--hook-enabled-dir", type=Path, required=True)
+    parser.add_argument("--trace-export-path", type=Path, required=True)
     parser.add_argument(
         "--make-target",
         default="npu6-existing-server-trace-suite-smoke",
@@ -309,10 +305,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument(
         "--output-dir",
         type=Path,
-        default=REPO_ROOT
-        / ".benchmarks"
-        / "results"
-        / "npu6_runtime_hook_pair_plan",
+        default=REPO_ROOT / ".benchmarks" / "results" / "npu6_runtime_hook_pair_plan",
     )
     return parser.parse_args(argv)
 

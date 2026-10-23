@@ -2,14 +2,12 @@ from __future__ import annotations
 
 import argparse
 import csv
-from datetime import datetime
-from datetime import timezone
 import json
-from pathlib import Path
 import subprocess
 import sys
+from datetime import datetime, timezone
+from pathlib import Path
 from typing import Any
-
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_OUTPUT_DIR = (
@@ -123,7 +121,14 @@ def _load_json(path: Path) -> dict[str, Any]:
 
 
 def _rel(path: str) -> Path:
-    return REPO_ROOT / path
+    import os
+
+    root = Path(os.environ["BENCHMARK_COLLECTION_ROOT"])
+    if not root.is_absolute() or root.resolve().is_relative_to(REPO_ROOT):
+        raise ValueError(
+            "BENCHMARK_COLLECTION_ROOT must be an external absolute directory"
+        )
+    return root / path
 
 
 def _summary_value(summary: dict[str, Any], *keys: str) -> Any:
@@ -191,7 +196,9 @@ def _baseline_rows(
         {
             "baseline": "event_coverage",
             "status": "available",
-            "observed_bottleneck": "complete" if missing_event_p95 == 0 else "incomplete",
+            "observed_bottleneck": "complete"
+            if missing_event_p95 == 0
+            else "incomplete",
             "correct": missing_event_p95 == 0,
             "time_to_root_cause_measurement": "not_applicable",
             "diagnostic_steps": 1,
@@ -250,9 +257,9 @@ def _case_row(case: dict[str, Any]) -> dict[str, Any]:
         "ttft_p95_ms": _summary_value(probe_summary, "first_token_ms", "p95"),
         "latency_p95_ms": _summary_value(probe_summary, "latency_ms", "p95"),
         "ground_truth": case["fault_ground_truth"],
-        "probe_dir": str(probe_dir.relative_to(REPO_ROOT)),
-        "diagnosis_dir": str(diagnosis_dir.relative_to(REPO_ROOT)),
-        "runtime_trace_summary": str(runtime_trace_summary_path.relative_to(REPO_ROOT)),
+        "probe_dir": str(probe_dir.relative_to(_rel(""))),
+        "diagnosis_dir": str(diagnosis_dir.relative_to(_rel(""))),
+        "runtime_trace_summary": str(runtime_trace_summary_path.relative_to(_rel(""))),
         "source_parent_commit": _summary_value(probe_metadata, "repo", "commit"),
         "source_dirty_excluding_output_dir": _summary_value(
             probe_metadata, "repo", "dirty_excluding_output_dir"
@@ -334,7 +341,9 @@ def build_matrix() -> dict[str, Any]:
             "real_online_matrix_status": "incomplete",
             "missing_classes": [row["case_id"] for row in missing_rows],
         },
-        "ground_truth": [row["ground_truth"] | {"case_id": row["case_id"]} for row in rows],
+        "ground_truth": [
+            row["ground_truth"] | {"case_id": row["case_id"]} for row in rows
+        ],
         "rows": rows,
         "missing_rows": missing_rows,
     }
@@ -373,8 +382,7 @@ def write_outputs(args: argparse.Namespace, result: dict[str, Any]) -> None:
         encoding="utf-8",
     )
     (args.output_dir / "matrix.json").write_text(
-        json.dumps({**result, "metadata": metadata}, indent=2, sort_keys=True)
-        + "\n",
+        json.dumps({**result, "metadata": metadata}, indent=2, sort_keys=True) + "\n",
         encoding="utf-8",
     )
     (args.output_dir / "summary.json").write_text(

@@ -1,3 +1,4 @@
+export BENCHMARK_COLLECTION_ROOT
 CONDA ?= conda
 CONDA_ENV ?= vllm-request-lifecycle-profiler-exp
 CONDA_ENV_PREFIX ?= /home/shuhao/miniconda3/envs/$(CONDA_ENV)
@@ -114,18 +115,27 @@ synthetic-fault-injection:
 		--output-dir .benchmarks/results/synthetic_fault_injection
 
 trace-diagnosis:
+	@test -n "$(BENCHMARK_COLLECTION_ROOT)" || (echo "Set verified BENCHMARK_COLLECTION_ROOT; see EVIDENCE.md"; exit 1)
 	PYTHONPATH=src $(PYTHON) .benchmarks/analyze_trace_diagnosis.py \
-		--input-probe-results .benchmarks/results/npu6_existing_server_trace_probe_repeated_smoke/probe_results.json \
+		--input-probe-results "$(BENCHMARK_COLLECTION_ROOT)/.benchmarks/results/npu6_existing_server_trace_probe_repeated_smoke/probe_results.json" \
 		--output-dir .benchmarks/results/npu6_trace_diagnosis
 
 npu6-controlled-fault-matrix:
+	@test -n "$(BENCHMARK_COLLECTION_ROOT)" || (echo "Set verified BENCHMARK_COLLECTION_ROOT; see EVIDENCE.md"; exit 1)
 	PYTHONPATH=src $(PYTHON) .benchmarks/analyze_controlled_fault_matrix.py
 
 npu6-runtime-hook-pair-plan:
-	PYTHONPATH=src $(PYTHON) .benchmarks/run_runtime_hook_pair_plan.py
+	@test -n "$(BENCHMARK_COLLECTION_ROOT)" || (echo "Set verified BENCHMARK_COLLECTION_ROOT; see EVIDENCE.md"; exit 1)
+	PYTHONPATH=src $(PYTHON) .benchmarks/run_runtime_hook_pair_plan.py \
+		--hook-disabled-dir "$(BENCHMARK_COLLECTION_ROOT)/.benchmarks/results/npu6_runtime_hooks_disabled_low_overhead_baseline" \
+		--hook-enabled-dir "$(BENCHMARK_COLLECTION_ROOT)/.benchmarks/results/npu6_runtime_hooks_low_overhead_enabled_smoke" \
+		--trace-export-path "$(BENCHMARK_COLLECTION_ROOT)/.benchmarks/results/npu6_runtime_hooks_low_overhead_enabled_smoke/runtime_trace.jsonl"
 
 npu6-runtime-concurrency-anomaly-analysis:
-	PYTHONPATH=src $(PYTHON) .benchmarks/analyze_runtime_concurrency_anomaly.py
+	@test -n "$(BENCHMARK_COLLECTION_ROOT)" || (echo "Set verified BENCHMARK_COLLECTION_ROOT; see EVIDENCE.md"; exit 1)
+	PYTHONPATH=src $(PYTHON) .benchmarks/analyze_runtime_concurrency_anomaly.py \
+		--input-dir "$(BENCHMARK_COLLECTION_ROOT)/.benchmarks/results/npu6_runtime_hooks_concurrency_sweep" \
+		--runtime-trace "$(BENCHMARK_COLLECTION_ROOT)/.benchmarks/results/npu6_runtime_hooks_concurrency_sweep/runtime_trace.jsonl"
 
 top-tier-readiness: test synthetic-fault-injection trace-diagnosis npu6-controlled-fault-matrix npu6-runtime-hook-pair-plan npu6-runtime-concurrency-anomaly-analysis paper-assets
 	@PYTHONPATH=src $(PYTHON) -c "import json, pathlib, sys; p=pathlib.Path('.benchmarks/results/npu6_runtime_hook_pair_plan/summary.json'); data=json.loads(p.read_text()); rows=data.get('rows', []); enabled=next((r for r in rows if r.get('mode') == 'hook-enabled'), {}); summary=enabled.get('runtime_trace_summary') or {}; complete=summary.get('complete_chain_count', 0); total=summary.get('request_chain_count', 0); missing=summary.get('missing_stage_counts', {}); print({'runtime_hook_complete_chains': complete, 'runtime_hook_total_chains': total, 'missing_stage_counts': missing}); sys.exit(0 if total and complete == total and not missing else 1)"
@@ -174,8 +184,10 @@ npu6-existing-server-slow-stream-trace-smoke:
 		--output-dir .benchmarks/results/npu6_existing_server_slow_stream_trace_smoke
 
 npu6-slow-stream-trace-diagnosis:
+	@test -n "$(BENCHMARK_COLLECTION_ROOT)" || (echo "Set verified BENCHMARK_COLLECTION_ROOT; see EVIDENCE.md"; exit 1)
+	@test -n "$(BENCHMARK_COLLECTION_ROOT)" || (echo "Set verified BENCHMARK_COLLECTION_ROOT; see EVIDENCE.md"; exit 1)
 	PYTHONPATH=src $(PYTHON) .benchmarks/analyze_trace_diagnosis.py \
-		--input-probe-results .benchmarks/results/npu6_existing_server_slow_stream_trace_smoke/probe_results.json \
+		--input-probe-results "$(BENCHMARK_COLLECTION_ROOT)/.benchmarks/results/npu6_existing_server_slow_stream_trace_smoke/probe_results.json" \
 		--output-dir .benchmarks/results/npu6_slow_stream_trace_diagnosis
 
 npu6-existing-server-trace-overhead-smoke:

@@ -1,2 +1,0 @@
-READY: read-only preflight passed. Run the actual trace probe workload next.
-This directory is readiness evidence only, not a paper measurement.

@@ -42,3 +42,24 @@ The restored root preserves these original paths:
 Frozen reports retain original labels and local paths; these do not assert that omitted captures were recovered.
 
 Set `BENCHMARK_HISTORY_ROOT` to this root for CPU tests and paper `make paper-assets`. The exporter requires `--historical-evidence-root`; missing overhead input fails closed.
+
+
+## Remaining collections (formal / handoff / TP4-TP8 / profiler)
+
+[Member manifest](https://github.com/vLLM-HUST/vllm-hust-benchmark/blob/87651130e720d3e41225c16823642508d4857cd4/archive/mod-collections-20261023/profiler/manifest.json) preserves the source commit and every original hash.
+
+```sh
+python scripts/fetch_mod_consumer_evidence.py --config BENCHMARK_COLLECTION.json \
+  --destination /absolute/new/external/collection
+export BENCHMARK_COLLECTION_ROOT=/absolute/new/external/collection
+```
+
+This root is separate from BENCHMARK_EVIDENCE_ROOT and BENCHMARK_HISTORY_ROOT.
+Do not execute archived scripts; use the maintained repository validators.
+All paths below are archive-relative; generation commands may still produce ignored local outputs.
+
+- `.benchmarks/results/`
+
+Current forwarding documents, configuration and imported code remain; exact retained paths are tested in tests/test_collection_evidence_boundary.py.
+
+Paper export additionally requires --collection-evidence-root; offline Make targets use BENCHMARK_COLLECTION_ROOT. Missing full runtime JSONL inputs stay missing: compact summaries are not substitutes. Generated paper presentation outputs remain a separate projection, not new measurements.
