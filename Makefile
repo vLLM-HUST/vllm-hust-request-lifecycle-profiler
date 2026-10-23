@@ -102,8 +102,9 @@ issue19-m0-preflight:
 		--output-dir .benchmarks/results/m0_issue19_preflight
 
 issue19-public-evidence-verify:
+	@test -n "$(BENCHMARK_EVIDENCE_ROOT)" || (echo 'Fetch canonical evidence and set BENCHMARK_EVIDENCE_ROOT; see EVIDENCE.md'; exit 1)
 	PYTHONPATH=src $(ISSUE19_RUNTIME_PYTHON) -m vllm_request_lifecycle_profiler.issue19_public_artifacts verify \
-		--public-root .benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10
+		--public-root "$(BENCHMARK_EVIDENCE_ROOT)/.benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10"
 
 offline-intervention-gate:
 	PYTHONPATH=src $(PYTHON) .benchmarks/evaluate_offline_intervention_fixture.py

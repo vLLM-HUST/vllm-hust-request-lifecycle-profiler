@@ -6,6 +6,11 @@ is a deterministic sanitized export of the execution-node artifacts. The
 original files remain unchanged in controlled local custody and are not part
 of the public pull request history.
 
+The public export has moved to [canonical benchmark custody](../EVIDENCE.md).
+The path above is now relative to the verified external `BENCHMARK_EVIDENCE_ROOT`,
+not this source checkout. Download it and export that variable before the Make
+verification below. The unchanged NO_GO assertion still verifies every public file.
+
 ## Boundary
 
 The exporter retains all ten matched fault/control analyses, client results,

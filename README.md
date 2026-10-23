@@ -1,5 +1,8 @@
 # Request Lifecycle Causal Profiler
 
+Historical data for the migrated batch is in [benchmark custody](EVIDENCE.md),
+with pinned hashes and an external-directory downloader. Source/runtime behavior is unchanged.
+
 Maintainer: [Shifeng Liu (`Remygred`)](https://github.com/Remygred). This
 repository is a vLLM-HUST MOD exposed through the `vllm.general_plugins`
 entry-point interface.

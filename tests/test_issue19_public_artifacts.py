@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 from pathlib import Path
 
 from vllm_request_lifecycle_profiler.issue19_public_artifacts import (
@@ -7,10 +8,6 @@ from vllm_request_lifecycle_profiler.issue19_public_artifacts import (
     verify_public_artifacts,
 )
 
-REPO_ROOT = Path(__file__).resolve().parents[1]
-PUBLIC_ROOT = REPO_ROOT / (
-    ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10"
-)
 
 
 def test_redactor_preserves_identity_relationship_without_machine_values() -> None:
@@ -48,8 +45,11 @@ def test_redactor_preserves_identity_relationship_without_machine_values() -> No
     assert public["endpoint"] == "http://$PRIVATE_HOST:SERVICE_PORT/v1/chat/completions"
 
 
-def test_checked_in_public_export_is_reproducible_and_no_go() -> None:
-    result = verify_public_artifacts(PUBLIC_ROOT)
+def test_canonical_public_export_is_reproducible_and_no_go() -> None:
+    public_root = Path(os.environ["BENCHMARK_EVIDENCE_ROOT"]) / (
+        ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10"
+    )
+    result = verify_public_artifacts(public_root)
 
     assert result == {
         "correctness_100_percent": False,

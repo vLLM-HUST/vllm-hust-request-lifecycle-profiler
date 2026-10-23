@@ -1,5 +1,8 @@
 # Claim Ledger
 
+Issue19 public paths below are relative to the external `BENCHMARK_EVIDENCE_ROOT`.
+See [canonical benchmark data](../EVIDENCE.md) for the pinned manifest and download.
+
 | Claim | Current status | Required evidence | Forbidden wording |
 | --- | --- | --- | --- |
 | The fixed Issue #19 worker-exit-last/pending-transfer specialty scenario does not justify implementing lifecycle reconciliation. | Supported as an evidence-valid `real-online` mechanism `NO_GO`: all 10 matched fault/control pairs are evidence-valid, resource pathology appears in 1/10, and matched latency pathology in 0/10, below the preregistered 8/10 gate. Reconciliation remains disabled. | Sanitized per-arm analyses and summary under `.benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/`, verified by `make issue19-public-evidence-verify`; the unchanged raw source remains in controlled local custody. | Do not generalize this result to all lifecycle failures, all reconciliation designs, disconnect, timeout, receipt loss, multi-Worker, multi-rank, or the Request Lifecycle topic. Do not retune the workload, capacity, fault order, or gate and call the result a retry of Issue #19. |

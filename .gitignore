@@ -45,3 +45,6 @@ tmp/
 /docs/runtime_fault_attribution_roadmap.md
 /docs/submission_readiness_audit.md
 /.github/agents/request-lifecycle-profiler.agent.md
+
+# Historical public export now lives in the pinned benchmark capsule.
+/.benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/
