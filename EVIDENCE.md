@@ -20,3 +20,25 @@ diagnostic/NO_GO scopes remain unchanged. No hardware experiment is required to 
 After downloading and exporting the root, run `make issue19-public-evidence-verify` or the
 ordinary CPU tests. The semantic test still requires the exact original NO_GO decision and
 272 verified public files; the capsule additionally preserves the original context/manifest.
+
+
+## Additional historical directories
+
+[Canonical history manifest](https://github.com/vLLM-HUST/vllm-hust-benchmark/blob/afd47a8e9964b71844dec75a8e908f279ae98202/archive/mod-history-20261023/profiler/manifest.json) lists original paths, sizes and SHA256.
+This is a separate capsule from BENCHMARK_EVIDENCE.json; do not reuse its destination.
+No hardware experiment or new performance acceptance is implied.
+
+```sh
+python scripts/fetch_mod_consumer_evidence.py --config BENCHMARK_HISTORY.json \
+  --destination /absolute/new/external/history
+```
+
+The restored root preserves these original paths:
+
+- `.benchmarks/results/npu6_existing_server_probe_blocked/`
+- `.benchmarks/results/npu6_existing_server_trace_overhead_smoke/`
+- `docs/claim_ledger.md`
+
+Frozen reports retain original labels and local paths; these do not assert that omitted captures were recovered.
+
+Set `BENCHMARK_HISTORY_ROOT` to this root for CPU tests and paper `make paper-assets`. The exporter requires `--historical-evidence-root`; missing overhead input fails closed.

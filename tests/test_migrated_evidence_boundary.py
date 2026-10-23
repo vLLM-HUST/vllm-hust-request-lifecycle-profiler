@@ -13,6 +13,8 @@ def test_migrated_directory_has_no_tracked_copies():
             str(root),
             "ls-files",
             "--",
+            ".benchmarks/results/npu6_existing_server_probe_blocked/",
+            ".benchmarks/results/npu6_existing_server_trace_overhead_smoke/",
             ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/",
         ]
     )
