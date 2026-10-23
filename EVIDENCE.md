@@ -60,7 +60,9 @@ All paths below are archive-relative; generation commands may still produce igno
 
 - `.benchmarks/results/`
 
-Current forwarding documents, configuration and imported code remain; exact retained paths are tested in tests/test_collection_evidence_boundary.py.
+No tracked originals or forwarding stubs remain under `.benchmarks/results/`.
+This entrypoint replaces the old local navigation; tests/test_collection_evidence_boundary.py
+checks the empty tracked-results boundary. Maintained consumers stay outside that directory.
 
 Paper export additionally requires --collection-evidence-root; offline Make targets use BENCHMARK_COLLECTION_ROOT. Missing full runtime JSONL inputs stay missing: compact summaries are not substitutes. Generated paper presentation outputs remain a separate projection, not new measurements.
 
