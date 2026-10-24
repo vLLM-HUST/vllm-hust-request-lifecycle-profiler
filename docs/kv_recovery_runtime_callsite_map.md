@@ -1,5 +1,16 @@
 # KV-Recovery Runtime Call-Site Map
 
+Historical observations and the complete pre-migration text: [benchmark original](https://github.com/vLLM-HUST/vllm-hust-benchmark/blob/842fc4bc69978e50e3b776731a962bfcf33ffaf3/archive/mod-targeted-20261023/profiler-protocols/snapshot/docs/kv_recovery_runtime_callsite_map.md).
+[Evidence and consumer map](protocol_evidence.md) distinguishes archived members,
+unrecovered inputs and newly generated outputs. Protocol values are not new measurements.
+
+This is a pinned historical implementation map, not a map of current main.
+Historical `owner_review_required` labels do not reinstate the retired approval
+framework; [AGENTS.md](../AGENTS.md) defines the current workflow. Source line
+numbers, encoding budgets and stage counts below are implementation facts,
+not benchmark measurements. The dated addendum describes later work and is
+not claimed to exist in the two earlier pinned source commits.
+
 - Audit status: `complete_static_read_only`
 - Evidence status: `NOT_M0_PROVEN`
 - Runtime: `f229ba7cad21a4dba58681af6738a9fd947388e2`

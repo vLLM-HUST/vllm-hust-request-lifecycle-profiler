@@ -1,5 +1,9 @@
 # Issue #19 public M0 evidence
 
+Historical observations and the complete pre-migration text: [benchmark original](https://github.com/vLLM-HUST/vllm-hust-benchmark/blob/842fc4bc69978e50e3b776731a962bfcf33ffaf3/archive/mod-targeted-20261023/profiler-protocols/snapshot/docs/issue19_public_evidence.md).
+[Evidence and consumer map](protocol_evidence.md) distinguishes archived members,
+unrecovered inputs and newly generated outputs. Protocol values are not new measurements.
+
 The public evidence under
 `.benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/`
 is a deterministic sanitized export of the execution-node artifacts. The
@@ -47,13 +51,9 @@ aggregate decision from the sanitized per-arm analyses:
 make issue19-public-evidence-verify
 ```
 
-The recomputed result is:
-
-- evidence valid: `10/10`;
-- resource pathology: `1/10`;
-- matched latency pathology: `0/10`;
-- fixed reproduction gate: `8/10`;
-- decision: `NO_GO`.
+The historical numerical decision and per-arm measurements are preserved in
+the linked benchmark original and verified public capsule. The command above
+recomputes from those inputs; this page does not maintain a duplicate score table.
 
 ## Scientific decision and scope
 
@@ -82,9 +82,8 @@ Issue #19 is retained as a negative decision-impact case:
 1. request and resource evidence remained complete during a real Worker fault;
 2. the evaluator distinguished expected fault noncompletion, invalid evidence,
    and a state-conservation failure;
-3. one repetition contained a real orphan lease and retained run-owned mmap;
-4. the failure occurred in only 1/10 repetitions and no matched latency
-   pathology occurred; and
+3. an evidence-valid resource conservation failure was retained rather than hidden;
+4. the measured reproduction did not reach the fixed gate; and
 5. the preregistered gate therefore stopped an unsupported treatment instead
    of allowing post-hoc threshold, workload, or capacity changes.
 
@@ -98,7 +97,7 @@ evidence, uncertainty/residual reporting, and a validating counterfactual.
 
 `correctness_100_percent=false` does not mean that the evidence is invalid.
 An injected fault request is expected not to complete normally. The false
-aggregate value records the one evidence-valid repetition with a resource
+aggregate value records an evidence-valid resource
 state-conservation failure; it prevents a universal correctness claim while
 leaving the negative go/no-go decision evaluable.
 
