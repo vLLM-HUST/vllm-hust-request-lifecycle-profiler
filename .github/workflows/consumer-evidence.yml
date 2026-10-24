@@ -40,4 +40,4 @@ jobs:
           VERIFY_PROTOCOL_ORIGINALS: '1'
         run: |
           python scripts/fetch_mod_consumer_evidence.py --config BENCHMARK_RESEARCH.json --destination "$BENCHMARK_RESEARCH_ROOT"
-          python -m pytest -q -c /dev/null tests/test_research_paper_custody.py tests/test_notes_evidence.py
+          python -m pytest -q -c /dev/null tests/test_research_paper_custody.py tests/test_notes_evidence.py tests/test_entry_evidence.py

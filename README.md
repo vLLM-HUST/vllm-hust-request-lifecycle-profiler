@@ -1,5 +1,9 @@
 # Request Lifecycle Causal Profiler
 
+[Complete historical original](https://github.com/vLLM-HUST/vllm-hust-benchmark/blob/db79a80ae22f974e31d19fd84ba2a20ed919290c/archive/mod-targeted-20261023/profiler-entry-docs/snapshot/README.md).
+[Evidence and consumer map](docs/entry_evidence.md); historical observations are not current
+readiness or performance qualification. Status remains `NOT_M0_PROVEN`.
+
 Historical data for the migrated batch is in [benchmark custody](EVIDENCE.md),
 with pinned hashes and an external-directory downloader. Source/runtime behavior is unchanged.
 
@@ -49,8 +53,9 @@ decisions more reliably than aggregate metrics, flat timers, or timed raw-log
 inspection, while abstaining when the evidence is insufficient.
 
 The corrected Issue #19 experiment is an evidence-valid mechanism `NO_GO`:
-resource pathology appeared in 1/10 repetitions and matched latency pathology
-in 0/10, below the preregistered 8/10 gate. Reconciliation therefore remains
+the archived paired observations did not meet the unchanged preregistered
+gate. Read the [public evidence and scoped decision](docs/issue19_public_evidence.md)
+and [raw benchmark export](https://github.com/vLLM-HUST/vllm-hust-benchmark/releases/download/evidence-mod-consumers-20261023-v1/profiler.tar.gz). Reconciliation therefore remains
 disabled and will not be implemented for that fixed scenario. This is a
 decision-gate result, not a rejection of the Request Lifecycle research topic.
 The next research phase is the fresh opaque blind-attribution study described
@@ -65,8 +70,8 @@ abstain when causal evidence is insufficient?
 
 ## Repository Map
 
-- Development and performance-evidence policy: see the workspace-level
-  `AGENTS.md` (kept local; not part of this repository).
+- Development and performance-evidence policy: see the tracked
+  [AGENTS.md](AGENTS.md) and [benchmark policy](https://github.com/vLLM-HUST/vllm-hust-benchmark/issues/95).
 - `src/vllm_request_lifecycle_profiler/`: trace schema, attribution logic, and
   plugin code.
 - `contracts/`: historical design notes retained only for technical context;
@@ -193,7 +198,7 @@ every non-abstained top-1 requires a rank-one counterfactual.
 Historical public artifacts and synthetic fixtures remain development inputs
 only. They do not count toward blind accuracy. A later performance
 implementation claim must separately follow the cross-repository benchmark
-performance policy in the workspace-level `AGENTS.md`.
+performance policy linked from the tracked [AGENTS.md](AGENTS.md).
 
 ## Canonical MOD metadata
 

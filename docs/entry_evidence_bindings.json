@@ -1,0 +1,97 @@
+{
+  "schema": "profiler-entry-docs/v1",
+  "bindings": [
+    {
+      "document": "docs/runtime_fault_attribution_roadmap.md",
+      "legacy_path": ".benchmarks/results/npu6_runtime_hook_pair_plan/",
+      "members": [
+        ".benchmarks/results/npu6_runtime_hook_pair_plan/run_metadata.json",
+        ".benchmarks/results/npu6_runtime_hook_pair_plan/runtime_hook_pair_plan.json",
+        ".benchmarks/results/npu6_runtime_hook_pair_plan/summary.json"
+      ],
+      "status": "archived"
+    },
+    {
+      "document": "docs/runtime_fault_attribution_roadmap.md",
+      "legacy_path": ".benchmarks/results/npu6_runtime_hooks_concurrency_sweep/concurrency_anomaly_analysis/",
+      "members": [
+        ".benchmarks/results/npu6_runtime_hooks_concurrency_sweep/concurrency_anomaly_analysis/anomaly_analysis.md",
+        ".benchmarks/results/npu6_runtime_hooks_concurrency_sweep/concurrency_anomaly_analysis/request_rows.json",
+        ".benchmarks/results/npu6_runtime_hooks_concurrency_sweep/concurrency_anomaly_analysis/run_metadata.json",
+        ".benchmarks/results/npu6_runtime_hooks_concurrency_sweep/concurrency_anomaly_analysis/summary.json"
+      ],
+      "status": "archived"
+    },
+    {
+      "document": "docs/runtime_fault_attribution_roadmap.md",
+      "legacy_path": ".benchmarks/results/npu6_runtime_hooks_decode_heavy_fault_smoke/",
+      "members": [
+        ".benchmarks/results/npu6_runtime_hooks_decode_heavy_fault_smoke/FAILED.txt",
+        ".benchmarks/results/npu6_runtime_hooks_decode_heavy_fault_smoke/client_proxy_trace.jsonl",
+        ".benchmarks/results/npu6_runtime_hooks_decode_heavy_fault_smoke/probe_results.json",
+        ".benchmarks/results/npu6_runtime_hooks_decode_heavy_fault_smoke/run_metadata.json",
+        ".benchmarks/results/npu6_runtime_hooks_decode_heavy_fault_smoke/summary.json"
+      ],
+      "status": "archived"
+    },
+    {
+      "document": "docs/runtime_fault_attribution_roadmap.md",
+      "legacy_path": ".benchmarks/results/npu6_runtime_hooks_disabled_low_overhead_baseline/",
+      "members": [
+        ".benchmarks/results/npu6_runtime_hooks_disabled_low_overhead_baseline/probe_results.json",
+        ".benchmarks/results/npu6_runtime_hooks_disabled_low_overhead_baseline/run_metadata.json",
+        ".benchmarks/results/npu6_runtime_hooks_disabled_low_overhead_baseline/summary.json"
+      ],
+      "status": "archived"
+    },
+    {
+      "document": "docs/runtime_fault_attribution_roadmap.md",
+      "legacy_path": ".benchmarks/results/npu6_runtime_hooks_long_prefill_fault_smoke/",
+      "members": [
+        ".benchmarks/results/npu6_runtime_hooks_long_prefill_fault_smoke/FAILED.txt",
+        ".benchmarks/results/npu6_runtime_hooks_long_prefill_fault_smoke/client_proxy_trace.jsonl",
+        ".benchmarks/results/npu6_runtime_hooks_long_prefill_fault_smoke/probe_results.json",
+        ".benchmarks/results/npu6_runtime_hooks_long_prefill_fault_smoke/run_metadata.json",
+        ".benchmarks/results/npu6_runtime_hooks_long_prefill_fault_smoke/summary.json"
+      ],
+      "status": "archived"
+    },
+    {
+      "document": "docs/runtime_fault_attribution_roadmap.md",
+      "legacy_path": ".benchmarks/results/npu6_runtime_hooks_low_overhead_enabled_smoke/",
+      "members": [
+        ".benchmarks/results/npu6_runtime_hooks_low_overhead_enabled_smoke/probe_results.json",
+        ".benchmarks/results/npu6_runtime_hooks_low_overhead_enabled_smoke/run_metadata.json",
+        ".benchmarks/results/npu6_runtime_hooks_low_overhead_enabled_smoke/runtime_trace.jsonl",
+        ".benchmarks/results/npu6_runtime_hooks_low_overhead_enabled_smoke/summary.json"
+      ],
+      "status": "archived"
+    },
+    {
+      "document": "docs/runtime_fault_attribution_roadmap.md",
+      "legacy_path": ".benchmarks/results/npu6_runtime_hooks_slow_stream_fault_smoke/",
+      "members": [
+        ".benchmarks/results/npu6_runtime_hooks_slow_stream_fault_smoke/client_proxy_trace.jsonl",
+        ".benchmarks/results/npu6_runtime_hooks_slow_stream_fault_smoke/probe_results.json",
+        ".benchmarks/results/npu6_runtime_hooks_slow_stream_fault_smoke/run_metadata.json",
+        ".benchmarks/results/npu6_runtime_hooks_slow_stream_fault_smoke/runtime_trace.jsonl",
+        ".benchmarks/results/npu6_runtime_hooks_slow_stream_fault_smoke/runtime_trace_summary.json",
+        ".benchmarks/results/npu6_runtime_hooks_slow_stream_fault_smoke/summary.json"
+      ],
+      "status": "archived"
+    },
+    {
+      "document": "docs/runtime_fault_attribution_roadmap.md",
+      "legacy_path": ".benchmarks/results/npu6_runtime_hooks_structured_decode_fault_smoke/",
+      "members": [
+        ".benchmarks/results/npu6_runtime_hooks_structured_decode_fault_smoke/client_proxy_trace.jsonl",
+        ".benchmarks/results/npu6_runtime_hooks_structured_decode_fault_smoke/probe_results.json",
+        ".benchmarks/results/npu6_runtime_hooks_structured_decode_fault_smoke/run_metadata.json",
+        ".benchmarks/results/npu6_runtime_hooks_structured_decode_fault_smoke/runtime_trace.jsonl",
+        ".benchmarks/results/npu6_runtime_hooks_structured_decode_fault_smoke/runtime_trace_summary.json",
+        ".benchmarks/results/npu6_runtime_hooks_structured_decode_fault_smoke/summary.json"
+      ],
+      "status": "archived"
+    }
+  ]
+}

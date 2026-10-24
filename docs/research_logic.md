@@ -1,5 +1,9 @@
 # Seven-Step Research Logic
 
+[Complete historical original](https://github.com/vLLM-HUST/vllm-hust-benchmark/blob/db79a80ae22f974e31d19fd84ba2a20ed919290c/archive/mod-targeted-20261023/profiler-entry-docs/snapshot/docs/research_logic.md).
+[Evidence and consumer map](entry_evidence.md); historical observations are not current
+readiness or performance qualification. Status remains `NOT_M0_PROVEN`.
+
 ## 1. Problem
 
 How can an LLM serving system turn per-request lifecycle traces into causal
@@ -30,10 +34,10 @@ show when internal spans confirm or overturn the client-visible hypothesis.
 
 ## 5. Feasibility
 
-The first implementation runs on NPU6 with optional runtime hooks in the pinned
-`third_party/vllm-hust` submodule. The smoke gate already shows complete
-runtime chains and bounded latency overhead; the next feasibility question is
-whether known live faults are attributed correctly.
+Historical capture and smoke-overhead observations are retained in the
+benchmark original and [roadmap evidence map](entry_evidence.md). They do not
+establish current runtime readiness or general bounded overhead. The remaining
+question is matched blind attribution and counterfactual validation.
 
 ## 6. Evaluation
 
@@ -46,7 +50,7 @@ time-to-root-cause.
 
 ## 7. Takeaway
 
-This work shows that request lifecycle traces can become auditable causal
+This work investigates whether request lifecycle traces can become auditable causal
 evidence for LLM serving optimization. To become a top-tier systems paper, it
 must show that this evidence changes the next optimization decision compared
 with raw logs or aggregate timers.
