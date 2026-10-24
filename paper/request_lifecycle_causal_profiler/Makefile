@@ -8,9 +8,7 @@ OUTDIR := build
 CACHE_DIR := .tectonic-cache
 CONFIG_DIR := .tectonic-config
 REPO_ROOT := $(abspath $(CURDIR)/../..)
-LLM_OPTIMIZATIONS_ROOT ?= $(abspath $(REPO_ROOT)/../llm-optimizations)
-LLM_OPTIMIZATIONS_PDF_DIR ?= $(LLM_OPTIMIZATIONS_ROOT)/docs/papers
-LLM_OPTIMIZATIONS_PDF_NAME ?= vllm-request-lifecycle-profiler-plugin__request_lifecycle_causal_profiler.pdf
+PAPER_REVIEW_OUTPUT ?=
 EXPERIMENTS_DIR := experiments
 RESULTS_DIR := results
 LIVE_RESULTS_DIR := $(RESULTS_DIR)/example_live
@@ -35,7 +33,7 @@ help:
 		'Paper targets:' \
 		'  make paper-assets  Refresh generated paper-facing assets from results/' \
 		'  make pdf    Build the standalone plugin artifact draft with tectonic' \
-		'  make review-pdf  Build the checked-in paper inputs without regenerating results' \
+		'  make review-pdf  Rebuild verified benchmark paper inputs in a new external directory' \
 		'  make clean  Remove local LaTeX build outputs'
 
 paper-assets: $(PAPER_ASSET_EXPORT_SCRIPT)
@@ -54,21 +52,13 @@ paper-assets: $(PAPER_ASSET_EXPORT_SCRIPT)
 		--summary-markdown $(PAPER_ASSET_SUMMARY_MD) \
 		--summary-tex $(PAPER_ASSET_SUMMARY_TEX)
 
-pdf: paper-assets
-	mkdir -p $(OUTDIR) $(CACHE_DIR) $(CONFIG_DIR)
-	SOURCE_DATE_EPOCH=$(SOURCE_DATE_EPOCH) FORCE_SOURCE_DATE=1 XDG_CACHE_HOME=$(CURDIR)/$(CACHE_DIR) XDG_CONFIG_HOME=$(CURDIR)/$(CONFIG_DIR) $(TECTONIC) --keep-logs --keep-intermediates --outdir $(OUTDIR) $(PAPER_TEX)
-	$(PYTHON) $(PDF_CANONICALIZE_SCRIPT) $(OUTDIR)/$(PAPER_PDF)
-	@if [ -d "$(LLM_OPTIMIZATIONS_ROOT)" ] && [ -f "$(OUTDIR)/$(PAPER_PDF)" ]; then \
-		python3 "$(LLM_OPTIMIZATIONS_ROOT)/scripts/export_paper_pdf.py" \
-			--workspace-file "$(LLM_OPTIMIZATIONS_ROOT)/llm-optimizations.code-workspace" \
-			--repo-root "$(REPO_ROOT)" \
-			--source-pdf "$(OUTDIR)/$(PAPER_PDF)" \
-			--output-name "$(LLM_OPTIMIZATIONS_PDF_NAME)" \
-			--destination-dir "$(LLM_OPTIMIZATIONS_PDF_DIR)"; \
-	fi
+pdf: review-pdf
 
 review-pdf:
-	$(SCRIPT) -q -e -c '$(TECTONIC) --keep-logs --keep-intermediates $(PAPER_TEX)' BUILD_TRANSCRIPT.txt
+	@test -n "$(BENCHMARK_RESEARCH_ROOT)" -a -n "$(PAPER_REVIEW_OUTPUT)" || (echo 'Set verified BENCHMARK_RESEARCH_ROOT and a new external PAPER_REVIEW_OUTPUT'; exit 1)
+	$(PYTHON) $(REPO_ROOT)/scripts/stage_paper_review.py \
+		--evidence-root "$(BENCHMARK_RESEARCH_ROOT)" \
+		--output-dir "$(PAPER_REVIEW_OUTPUT)" --compile
 
 clean:
 	rm -rf $(OUTDIR) $(GENERATED_FIGURES_DIR) $(GENERATED_TABLES_DIR)

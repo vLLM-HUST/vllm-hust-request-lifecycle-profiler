@@ -30,3 +30,9 @@ jobs:
           BENCHMARK_HISTORY_ROOT: ${{ runner.temp }}/history-evidence
           BENCHMARK_COLLECTION_ROOT: ${{ runner.temp }}/collection-evidence
         run: python -m pytest -q -c /dev/null tests/test_claim_evidence_bindings.py
+      - name: Verify research archive and paper consumers
+        env:
+          BENCHMARK_RESEARCH_ROOT: ${{ runner.temp }}/research-evidence
+        run: |
+          python scripts/fetch_mod_consumer_evidence.py --config BENCHMARK_RESEARCH.json --destination "$BENCHMARK_RESEARCH_ROOT"
+          python -m pytest -q -c /dev/null tests/test_research_paper_custody.py

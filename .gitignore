@@ -55,3 +55,9 @@ tmp/
 
 # Migrated collection originals. Retained tracked code/docs are reviewed explicitly.
 /.benchmarks/results/
+
+# Frozen research manuscript/build products are benchmark-owned.
+/paper/request_lifecycle_causal_profiler/request_lifecycle_causal_profiler.tex
+/paper/request_lifecycle_causal_profiler/request_lifecycle_causal_profiler.pdf
+/paper/request_lifecycle_causal_profiler/BUILD_TRANSCRIPT.txt
+/paper/request_lifecycle_causal_profiler/results/README.md

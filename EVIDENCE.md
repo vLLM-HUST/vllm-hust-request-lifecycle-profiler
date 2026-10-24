@@ -92,7 +92,41 @@ Research consumer boundaries:
 | `top-tier-readiness` | Newly generated prerequisite outputs | Must not silently substitute old archived summaries; not an online qualification |
 | Historical G1/G4 workflows | Separate old local captures | Not supplied by these capsules; missing status retained |
 
-Tracked paper PDF/log/table/CSV projections and other mixed research documents
-still require a separate byte-preserving archive/consumer migration. They are not
-deleted by this claim-ledger change. Do not add new experimental outputs under
+Other mixed method/research documents still require review. Do not add new experimental outputs under
 `paper/`, `docs/` or `.benchmarks/`; publish them to benchmark with source bindings.
+
+## Historical research and paper projections
+
+The [research archive](https://github.com/vLLM-HUST/vllm-hust-benchmark/releases/download/evidence-profiler-research-20261024-v1/profiler-research-20261024.tar.gz)
+preserves eight full mixed research records and the complete paper workspace,
+including PDF, mixed manuscript, build logs, CSVs, generated TeX tables and SVG.
+`BENCHMARK_RESEARCH.json` pins the member manifest; source commit, original
+filenames, sizes and hashes are retained. This is custody, not fresh validation.
+
+```sh
+python scripts/fetch_mod_consumer_evidence.py --config BENCHMARK_RESEARCH.json \
+  --destination /absolute/new/external/research
+export BENCHMARK_RESEARCH_ROOT=/absolute/new/external/research
+```
+
+Read the PDF at `$BENCHMARK_RESEARCH_ROOT/paper/request_lifecycle_causal_profiler/request_lifecycle_causal_profiler.pdf`.
+The MOD no longer tracks the frozen manuscript or generated projections.
+`make paper-pdf` now requires this verified root and a new external
+`PAPER_REVIEW_OUTPUT`; the maintained staging tool verifies input hashes and
+copies only TeX/bibliography/figure inputs before running Tectonic. Archived
+Makefiles and Python helpers are never executed. Automatic export into a sibling
+workspace is removed. `make paper-assets` remains a separate fresh derivation;
+its outputs must not silently replace the frozen manuscript's historical inputs.
+
+The eight forwarding research pages retain scoped limitations. G1/G4 private or
+missing captures remain missing, and the Issue1 single-operator pilot is not
+independent-human blind proof. Other implementation/protocol documents may still
+mix historical observations and require separate classification.
+
+## Trusted custody gate
+
+The `pull_request_target` caller checks only GitHub PR metadata using the fixed
+central `.github` policy commit, never PR-head code. Main requires
+`Benchmark-only data (organization)` from the GitHub Actions app with strict
+up-to-date checking and administrator enforcement. Repository branch protection
+is separate from the after-publication organization drift audit.
