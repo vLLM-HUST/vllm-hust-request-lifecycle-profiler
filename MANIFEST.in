@@ -2,3 +2,4 @@ prune .benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-
 prune .benchmarks/results/npu6_existing_server_probe_blocked
 prune .benchmarks/results/npu6_existing_server_trace_overhead_smoke
 prune .benchmarks/results
+prune paper

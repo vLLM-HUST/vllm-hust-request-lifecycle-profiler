@@ -1,18 +1,24 @@
-# Paper Workspace
+# Paper workspace
 
-The paper candidate is under `paper/request_lifecycle_causal_profiler/`.
+Current status: research draft, NOT_M0_PROVEN. The fixed Issue19 scenario is
+NO_GO, not a reconciliation speedup or rejection of the research topic.
 
-Current status: research draft. Issue #19 provides an evidence-valid scoped
-mechanism `NO_GO`, not a reconciliation speedup and not a rejection of the
-Request Lifecycle topic. In its fixed worker-exit-last specialty scenario,
-resource pathology occurred in 1/10 repetitions and matched latency pathology
-in 0/10, below the preregistered 8/10 gate. The result is retained as a
-decision-gate example because it stopped an unsupported treatment.
+The [complete original paper archive](https://github.com/vLLM-HUST/vllm-hust-benchmark/releases/download/evidence-profiler-research-20261024-v1/profiler-research-20261024.tar.gz) preserves the historical PDF,
+manuscript, build transcript/log, CSVs, generated TeX tables, figure and original
+manifest under `snapshot/paper/`. Read the PDF from the verified external
+`BENCHMARK_RESEARCH_ROOT`; see [EVIDENCE.md](../EVIDENCE.md).
 
-Required before a systems-conference submission:
+The maintained repository retains exporter/build code, bibliography, template
+fixtures and methodological documentation. Experimental outputs belong in
+benchmark. `make paper-assets` is a fresh local derivation using the existing
+external history/collection roots; it does not rewrite the frozen manuscript.
 
-- lifecycle trace abstraction;
-- causal attribution method;
-- controlled fault-injection ground truth;
-- comparison with raw logs, simple timers, and manual diagnosis;
-- manifest-backed NPU6 artifacts.
+For a historical paper rebuild, set `BENCHMARK_RESEARCH_ROOT` and a new absolute
+`PAPER_REVIEW_OUTPUT` outside this checkout, then run `make paper-pdf` (Tectonic
+required). The maintained staging tool verifies source hashes before copying
+only manuscript/bibliography/table/figure inputs. It never executes archived
+Makefiles or Python helpers. The new PDF/log are rebuild outputs, not new
+measurements, and need not match the historical PDF byte-for-byte.
+
+Missing full traces, private raw records, G1/G4 captures and blind/causal
+evaluation gaps remain missing. Migration does not authorize hardware runs.
