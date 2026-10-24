@@ -1,35 +1,35 @@
-# Potential 04 Request Lifecycle Profiler Push Plan
+# Request Lifecycle Profiler research plan
+
+[Complete historical original](https://github.com/vLLM-HUST/vllm-hust-benchmark/blob/c45a279dd2ee48c57a7cb27a0d7ad0666f25afd5/archive/mod-targeted-20261023/profiler-notes/snapshot/task_plan.md).
+[Evidence and consumer map](docs/notes_evidence.md) distinguishes immutable
+historical records, current methods and missing local artifacts. This page
+does not claim a new experiment, build, visual review or device admission.
 
 ## Goal
 
-Move the request lifecycle profiler from probe/readiness evidence toward
-benchmark-owned real-online controlled-fault evidence, without overstating
-synthetic or existing-server-probe results.
+Move from probe/readiness evidence toward controlled causal evidence without
+overstating synthetic, existing-server or derived results. Current sequence:
+[next_agent_task.md](docs/next_agent_task.md); status: `NOT_M0_PROVEN`.
 
-## Constraints
+## Source and artifact ownership
 
-- Protect the dirty worktree; do not reset, clean, or revert unrelated changes.
-- Parent repository is the source of truth for benchmark scripts, artifacts,
-  paper scaffolding, and submodule pointers.
-- Runtime changes must stay in the correct submodule feature branch.
-- Formal results must use graph mode; eager diagnostics must not be mixed into
-  paper evidence.
-- Every result directory needs a provenance label and manifest.
-- Do not kill unrelated processes or silently switch hardware.
+- This repository owns maintained scripts, methods, schemas, synthetic fixtures
+  and source/dependency pointers. Historical measurements and generated paper
+  outputs belong in benchmark, as indexed in [EVIDENCE.md](EVIDENCE.md).
+- Preserve unrelated worktree changes; do not reset, clean or revert them.
+- Keep runtime changes in the appropriate repository and feature branch.
+- Keep diagnostic and formal execution modes distinct, and record actual
+  provenance. Apply the current benchmark protocol rather than interpreting an
+  old planning note as an additional acceptance rule.
+- Never kill unrelated processes, switch hardware silently or overwrite
+  downloaded archival inputs. New outputs need separate run-owned locations.
 
-## Phases
+## Historical phases and errors
 
-| Phase | Status | Notes |
-| --- | --- | --- |
-| 1. Repository and evidence audit | complete | Read AGENTS/README/status/submodules/results/planning. |
-| 2. Identify reusable current artifacts | complete | Existing positive cases: slow-stream, decode, prefill, concurrency anomaly; missing queue/KV/cleanup. |
-| 3. Add controlled-fault matrix/baseline tooling | complete | Added derived controlled-fault matrix over checked-in NPU6 artifacts; missing queue/KV/cleanup gates remain explicit. |
-| 4. Add 12.2s tail root-cause analysis/ablation scaffold | complete | Tail remains localized only to coarse prefill; four candidate substages and required fields are explicit and tested. |
-| 5. Run safe tests/probes | complete | Lint, 32 tests, shared-workload smoke, readiness gates, two stable PDF builds, and three-page visual audit passed; no hardware used. |
-| 6. Update claims/paper/artifacts/handoff | complete | Paper and ledger are evidence-scoped; repo audit and central PDF are complete. Verdict: research draft, not a submission candidate. |
-| 7. Offline causal-contract readiness | complete | Matched intervention fixture/evaluator separates longest-span localization from intervention support; controlled live gate remains `NOT_M0_PROVEN` |
-
-## Errors Encountered
-
-| Error | Attempt | Resolution |
-| --- | --- | --- |
+The original completed-phase table, numeric observations, test/build/visual
+checks and error table are retained verbatim at the original link above.
+They are historical receipts, not a current queue or current-main test result.
+The associated [progress](progress.md) and [findings](findings.md) remain
+stable navigation entries. Current validity and missing-input boundaries are
+in [the evidence map](docs/notes_evidence.md) and [claim ledger](docs/claim_ledger.md).
+No new device experiment or paper rebuild is implied by this migration.

@@ -1,0 +1,71 @@
+{
+  "schema": "profiler-notes-bindings/v1",
+  "original_manifest": "https://github.com/vLLM-HUST/vllm-hust-benchmark/blob/c45a279dd2ee48c57a7cb27a0d7ad0666f25afd5/archive/mod-targeted-20261023/profiler-notes/manifest.json",
+  "bindings": [
+    {
+      "document": "TOP_TIER_PUSH_PLAN.md",
+      "legacy_path": ".benchmarks/results/npu6_runtime_hook_pair_plan/summary.json",
+      "matches": [
+        {
+          "capsule": "collection",
+          "members": [
+            ".benchmarks/results/npu6_runtime_hook_pair_plan/summary.json"
+          ]
+        }
+      ],
+      "status": "archived"
+    },
+    {
+      "document": "progress.md",
+      "legacy_path": ".benchmarks/results/npu6_controlled_fault_matrix/",
+      "matches": [
+        {
+          "capsule": "collection",
+          "members": [
+            ".benchmarks/results/npu6_controlled_fault_matrix/fault_matrix.csv",
+            ".benchmarks/results/npu6_controlled_fault_matrix/ground_truth.json",
+            ".benchmarks/results/npu6_controlled_fault_matrix/matrix.json",
+            ".benchmarks/results/npu6_controlled_fault_matrix/matrix.md",
+            ".benchmarks/results/npu6_controlled_fault_matrix/run_metadata.json",
+            ".benchmarks/results/npu6_controlled_fault_matrix/summary.json"
+          ]
+        }
+      ],
+      "status": "archived"
+    },
+    {
+      "document": "findings.md",
+      "legacy_path": ".benchmarks/results/npu6_controlled_fault_matrix/",
+      "matches": [
+        {
+          "capsule": "collection",
+          "members": [
+            ".benchmarks/results/npu6_controlled_fault_matrix/fault_matrix.csv",
+            ".benchmarks/results/npu6_controlled_fault_matrix/ground_truth.json",
+            ".benchmarks/results/npu6_controlled_fault_matrix/matrix.json",
+            ".benchmarks/results/npu6_controlled_fault_matrix/matrix.md",
+            ".benchmarks/results/npu6_controlled_fault_matrix/run_metadata.json",
+            ".benchmarks/results/npu6_controlled_fault_matrix/summary.json"
+          ]
+        }
+      ],
+      "status": "archived"
+    }
+  ],
+  "historical_pdf": {
+    "documents": [
+      "progress.md",
+      "findings.md"
+    ],
+    "legacy_path": "/home/shuhao/llm-optimizations/docs/papers/08-vllm-request-lifecycle-profiler-plugin__request_lifecycle_causal_profiler.pdf",
+    "recorded_sha256": "b4da67d59a466b107bd5e8a4d3e3236b39ed1b397415d7099ad5dcba6543cf71",
+    "status": "recorded-digest-not-in-pinned-capsules",
+    "known_different_pdf": {
+      "capsule": "research",
+      "path": "paper/request_lifecycle_causal_profiler/request_lifecycle_causal_profiler.pdf",
+      "bytes": 97422,
+      "sha256": "293d538f9fac6e21a83926dcd5958cc940cbdaab9469310d9b28de3284ae0988",
+      "git_blob": "7e7f8a6779b9a976c719f923ab832eb0d324e2d8"
+    }
+  }
+}

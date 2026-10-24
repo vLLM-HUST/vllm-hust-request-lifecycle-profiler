@@ -1,107 +1,32 @@
-# Findings
+# Findings — historical archive
 
-## 2026-07-18 Initial State
+[Complete historical original](https://github.com/vLLM-HUST/vllm-hust-benchmark/blob/c45a279dd2ee48c57a7cb27a0d7ad0666f25afd5/archive/mod-targeted-20261023/profiler-notes/snapshot/findings.md).
+[Evidence and consumer map](docs/notes_evidence.md) distinguishes immutable
+historical records, current methods and missing local artifacts. This page
+does not claim a new experiment, build, visual review or device admission.
 
-- Current branch is `main`, `HEAD=f648c44f50fe3a0cda890a37b222dd55e967d4e4`,
-  and `HEAD...origin/main` is `0 0`.
-- Worktree is dirty before this session; existing modified files include
-  NPU6 runtime hook analysis, diagnosis outputs, paper assets, and tests.
-- Submodules:
-  - `third_party/llm-serving-workloads` at
-    `76e24c85bcab76ecfabb831c9444002b6efffd58`.
-  - `third_party/vllm-hust` at
-    `0daab7a300fb91efebd35b221b9a6f6c6d7486f8` on
-    `faculty-twin-runtime-20260706-21-g0daab7a30`.
-- Top-level AGENTS requires graph-mode formal vLLM-HUST evidence; eager is
-  diagnostic only and must not be published as formal benchmark data.
+The original repository snapshot, numerical observations, paper-layout review,
+build digest and offline-contract findings remain complete in benchmark.
+Historical branch, environment, submodule and device statements are not facts
+about the current checkout or its available hardware.
 
-## Evidence Audit
+## Retained interpretation boundaries
 
-- Existing live-ish controlled artifacts are still `existing-server-probe`
-  source runs plus `derived-artifact` diagnoses, not benchmark-owned
-  repo-launched `real-online` runs.
-- Positive controlled cases present:
-  - slow-stream client fault: 4/4 measured success, client diagnosis
-    `streaming`, runtime hook coverage 5/5 complete chains.
-  - structured decode-heavy: 4/4 measured success, client diagnosis `decode`,
-    runtime hook coverage 5/5 complete chains.
-  - prompt-heavy low-output: 8/8 measured success, client diagnosis `prefill`,
-    runtime hook coverage 9/9 complete chains.
-  - concurrency sweep: 27/27 measured success, runtime hook coverage 30/30
-    complete chains, concurrency 2 exposes a severe runtime prefill tail.
-- Missing positive live matrix classes: queue, KV pressure, cleanup. Existing
-  synthetic seven-fault accuracy cannot support live diagnosis accuracy.
-- Existing 12.2s tail analysis localizes the anomaly to coarse runtime
-  `scheduled`→`prefill_done`; observed metadata does not distinguish scheduler
-  handoff, KV allocation/cache pressure, graph/batch transition, or prefill
-  kernel execution.
-- Existing overhead pair plan reports TTFT/latency deltas and trace bytes, but
-  not TPOT, CPU, host memory, or NPU HBM overhead.
+- Existing-server probes and derived diagnoses are distinct from formal
+  repository-controlled `real-online` evidence.
+- Repeated requests within a scenario are not independent lifecycle trials.
+- A concurrency-sensitive prefill tail is an observation, not controlled-fault
+  ground truth or proof of a KV, scheduler, graph or kernel mechanism.
+- Synthetic attribution does not establish live diagnosis accuracy. Missing
+  queue/KV/cleanup coverage and unmeasured manual baselines remain visible in
+  the archived audit rather than being silently filled in.
+- Small client/runtime-hook pairs do not establish broad TPOT, CPU, host-memory
+  or NPU-HBM overhead claims.
+- A dominant span is `localization_only` without valid matched intervention
+  linkage. The offline evaluator validates semantics, not server causality.
+- Historical PDF rendering/build statements are not repeated here as current
+  verification; the old digest differs from the known archived PDF.
 
-## Controlled Fault Matrix Audit
-
-- Added `.benchmarks/results/npu6_controlled_fault_matrix/` as a
-  `derived-artifact` audit over checked-in NPU6 probe/diagnosis directories.
-- Available rows: slow streaming backpressure, structured decode-heavy,
-  prompt-heavy low-output prefill, and the concurrency-2 prefill tail. These
-  are still `existing-server-probe` plus `derived-artifact`, not repo-launched
-  `real-online`.
-- Missing real-online rows are explicit: queue pressure, KV pressure, cleanup.
-  Raw-log baseline is missing, and manual time-to-root-cause is not measured.
-- Available-row causal-rule agreement is 4/4 with missing-event-rate p95 max
-  0.0, but this only audits checked-in artifacts and must not be used as
-  internal-only diagnosis accuracy.
-
-## 2026-07-26 Submission Readiness Audit
-
-- The existing three-page PDF is not submission-ready: it uses eight small
-  tables, directory-by-directory narration, internal readiness strings, and
-  repeated claim disclaimers instead of a normal systems-paper argument.
-- The strongest controlled evidence is limited to three existing-server-probe
-  scenario correspondences: injected slow client reads map to streaming (4/4),
-  decode-heavy output maps to decode (4/4), and prompt-heavy/low-output maps to
-  prefill (8/8). Repeated requests within each scenario are not independent
-  lifecycle experiments and cannot establish a population accuracy rate.
-- The concurrency-2 tail is a separate observation, not controlled-fault
-  ground truth. Two chains exceed one second and runtime prefill p95 reaches
-  12,261.98 ms, but current fields cannot distinguish scheduler handoff, KV
-  allocation/cache pressure, graph or batch transition, or device execution.
-- Existing-server manifests do not establish graph mode or custody of the
-  serving process. Formal evidence therefore requires a repository-controlled
-  graph-mode protocol; the current artifacts cannot be promoted to formal
-  online results.
-- The small client pair measures probe event-construction overhead. The
-  separate small runtime-hook pair does not support TPOT, CPU, host-memory,
-  NPU-HBM, or broad-workload overhead claims.
-- Paper restructuring now uses two main displays: a human-readable
-  coverage/gap table and a compact concurrency-tail table. The source assets
-  remain available for audit but are no longer each promoted to a main-text
-  table.
-- PDF visual review, pages 1--2: title, abstract, contributions, background,
-  design, method, and result lead-in are readable at 144 dpi with balanced
-  columns, embedded fonts, no clipping, and no visibly excessive word
-  fragmentation. Page 1 states the not-submission-ready boundary in both the
-  abstract and introduction without turning the paper into an internal status
-  report.
-- Final PDF visual review, page 3: the coverage table uses human-facing labels,
-  combines the three unmeasured fault classes into a readable gap row, and
-  explicitly labels the concurrency tail as an observation. The final-page
-  columns are balanced; the disclosure and six references are legible with no
-  overlap, clipping, or excessive orphaned whitespace.
-- Tectonic alone retained volatile XMP dates. Reconstructing the PDF page by
-  page with pypdf, clearing creation/modification metadata, and atomically
-  replacing the file preserves embedded fonts and produces stable bytes.
-  Two complete builds match at SHA-256
-  `b4da67d59a466b107bd5e8a4d3e3236b39ed1b397415d7099ad5dcba6543cf71`.
-
-## 2026-07-27 Offline Intervention Contract
-
-- Added a matched control/intervention fixture and evaluator that reports
-  dominant-span localization independently from causal support.
-- A dominant prefill span without intervention linkage remains
-  `localization_only`. A deterministic decode intervention is supported only
-  when the target delta clears the threshold and every non-target span remains
-  unchanged.
-- The fixture is `simulation/model`; it validates evaluator semantics, not a
-  server or Ascend causal claim. Controlled graph-mode live attribution remains
-  `NOT_M0_PROVEN`.
+See [the current claim ledger](docs/claim_ledger.md) and
+[blind contract](docs/blind_attribution_contract.md) for maintained claims and
+methods. `NOT_M0_PROVEN` and the scoped Issue #19 `NO_GO` remain unchanged.
