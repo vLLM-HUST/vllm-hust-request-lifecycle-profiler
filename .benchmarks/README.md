@@ -1,5 +1,9 @@
 # Benchmarks
 
+[Complete historical original](https://github.com/vLLM-HUST/vllm-hust-benchmark/blob/db79a80ae22f974e31d19fd84ba2a20ed919290c/archive/mod-targeted-20261023/profiler-entry-docs/snapshot/.benchmarks/README.md).
+[Evidence and consumer map](../docs/entry_evidence.md); historical observations are not current
+readiness or performance qualification. Status remains `NOT_M0_PROVEN`.
+
 Benchmark and probe entrypoints for request lifecycle causal profiling.
 
 ## Expected Flow
@@ -14,27 +18,19 @@ All run directories must include `run_metadata.json` and an evidence label.
 Profiler-only evidence should be framed as diagnosis or artifact evidence, not
 runtime optimization.
 
-The current runtime-hook smoke gate is ready: `make npu6-runtime-hook-pair-plan`
-aggregates checked-in hook-disabled/enabled NPU6 runs and reports complete
-chains with all required stages. Treat that as readiness for controlled fault
-attribution, not as final diagnosis accuracy.
+## Historical inputs and current consumers
 
-Use `preflight_npu6_trace_probe.py` before an existing-server probe. It checks
-the endpoint, authentication, model path, Ascend runtime root, NPU6 ownership,
-trace export schema, and pinned workload submodule metadata without launching or
-killing any service.
+`make npu6-runtime-hook-pair-plan` consumes verified external
+`BENCHMARK_COLLECTION_ROOT` inputs, not checked-in runs. It creates a fresh
+derived summary; historical capture completeness does not establish current
+device readiness, blind accuracy or broad overhead qualification.
 
-The repo also provides a non-secret vLLM-HUST dev-hub profile at
-`.benchmarks/profiles/npu6_vllm_hust_trace.env`. The profile launches NPU6 from
-the pinned parent-repo runtime path and does not enable runtime hooks unless
-`VLLM_RLP_TRACE_EXPORT_PATH` is set by the caller. Use:
+Use [EVIDENCE.md](../EVIDENCE.md) to fetch and verify inputs and
+[the NPU probe runbook](../docs/npu6_trace_probe_runbook.md) to distinguish
+historical profiles, schema preflight and fresh authorized collection. A
+preflight is not a workload execution or performance result. Do not launch a
+service from old documentation without verifying current hardware ownership.
 
-```bash
-make managed-start
-make managed-health
-make npu6-trace-preflight
-make top-tier-readiness
-```
-
-The preflight is readiness evidence only until real workload requests and trace
-exports are collected.
+`top-tier-readiness` includes tests and multiple derived-output consumers;
+it is not a read-only inspection command. Keep new outputs separate from the
+verified archival roots. The scoped Issue #19 `NO_GO` remains unchanged.

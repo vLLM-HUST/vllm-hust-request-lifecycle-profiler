@@ -1,5 +1,16 @@
 # Changelog
 
+[Complete historical original](https://github.com/vLLM-HUST/vllm-hust-benchmark/blob/db79a80ae22f974e31d19fd84ba2a20ed919290c/archive/mod-targeted-20261023/profiler-entry-docs/snapshot/CHANGELOG.md).
+[Evidence and consumer map](docs/entry_evidence.md); historical observations are not current
+readiness or performance qualification. Status remains `NOT_M0_PROVEN`.
+
+## Evidence custody update
+
+Historical paper scaffolding entries below describe the earlier template, not
+the current rebuild contract. Use [paper/README.md](paper/README.md) for verified
+external inputs and isolated outputs. Do not rerun the placeholder renderer
+over this maintained workspace to reconstruct historical evidence.
+
 ## 0.1.2
 
 - Bind the ECPA activation manifest to the validated vLLM-HUST 0.31.1
@@ -28,7 +39,7 @@
 - Promoted the ECPA Bundle to the narrow native observer carrier in 0.1.1;
   installation remains inert and historical KV-recovery tracing remains
   optional.
-- Clarified changelog ownership: template changes must be recorded in this repository's own `CHANGELOG.md`, not in `/home/shuhao/sagellm/CHANGELOG.md`.
+- Clarified changelog ownership: template changes must be recorded in this repository's own `CHANGELOG.md`, not in a former sibling workspace changelog (original local path retained in the archived original).
 - Standardized local developer metadata by aligning `.[dev]` dependencies, pytest testpaths, and CONTRIBUTING workflow wording with the other standalone plugin repos.
 - Changed the template's default environment guidance to use a dedicated `vllm-request-lifecycle-profiler-exp` clone of the shared vLLM baseline instead of reusing the shared env directly.
 - Changed `install-dev` so the sibling `llm-serving-workloads` checkout is installed automatically when present.
