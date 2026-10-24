@@ -1,5 +1,9 @@
 # G4 Execution Spec (repo-defined modes, 2026-08-10)
 
+Historical observations and the complete pre-migration text: [benchmark original](https://github.com/vLLM-HUST/vllm-hust-benchmark/blob/842fc4bc69978e50e3b776731a962bfcf33ffaf3/archive/mod-targeted-20261023/profiler-protocols/snapshot/docs/g4_execution_spec.md).
+[Evidence and consumer map](protocol_evidence.md) distinguishes archived members,
+unrecovered inputs and newly generated outputs. Protocol values are not new measurements.
+
 > Mode semantics follow the repository's own definition in
 > `scripts/verify_g0_pinned_pair.py` (`validate_config_candidate_data`) and
 > `docs/pinned_pair_scheduler_compatibility.md`. Registry constants are copied
@@ -41,23 +45,23 @@ are normative and are what this spec executes. `tiering_disabled`'s
 
 ## 4. Workload
 
-Pressure profile (the official 1-RPS registry workloads are negative coverage at
-8 GiB — first-round finding): 4 concurrent `/v1/completions`, 15000-token prompt
+Pressure profile (historical selection rationale is in the archived original): 4 concurrent `/v1/completions`, 15000-token prompt
 (seed 20260809), `max_tokens=8192`, temperature 0, streaming.
 
-## 5. Matrix protocol (completed 2026-08-10)
+## 5. Matrix protocol (historical specification, not a new completion claim)
 
 - 3 modes × 3 independent lifecycles, alternating order
-  (`disabled → enabled → hbm → …`). **Done** — see
-  `docs/g4_execution_result.md` and
-  `.benchmarks/results/g4_fixed_8gib_modes_20260810/run_summary.json`.
+  (`disabled → enabled → hbm → …`). Historical outcome:
+  [G4 result](g4_execution_result.md); archived summary members are in the
+  [evidence map](protocol_evidence.md).
 - Per lifecycle: one independent server process (start → warm → pressure client
   → drain); report every repetition + median/IQR per mode.
 - Observer overhead: `tiering_enabled` ×3 tracing off vs the ×3 tracing-on rows.
-  **Done** — +1.1 s median (~0.3%).
+  Historical measured overhead remains in the archived result, not this protocol.
 
 ## 6. Evidence per run
 
 `server.log`, `pressure_client.out`, trace shards, run_id, resolved config,
 environment manifest (CANN 9.0.0, driver 26.0.rc1, torch 2.10.0, torch_npu
-2.10.0). Artifacts root `/root/kv-recovery-service-g4/runs/<run_id>/`.
+2.10.0). The historical local capture root is not a usable public input. Full G4 local
+captures remain unavailable; archived summaries do not replace their raw logs.

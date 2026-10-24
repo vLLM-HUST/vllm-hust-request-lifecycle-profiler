@@ -1,5 +1,16 @@
 # Canonical historical data
 
+## Mixed protocols and implementation context
+
+[Protocol evidence and consumer map](docs/protocol_evidence.md) links five complete
+historical originals and exact legacy members. `BENCHMARK_PROTOCOLS.json` binds
+their fixed benchmark manifest and SHA256. These small originals live in benchmark
+Git; existing raw-data Release capsules are reused, not republished. Protocol
+thresholds and configuration remain in source; historical observations do not.
+The canonical-data workflow verifies both the originals and the legacy member map.
+
+## Public experiment capsule
+
 This migration batch is stored only in [vllm-hust-benchmark](https://github.com/vLLM-HUST/vllm-hust-benchmark/tree/2144d58de108cddaff3800fdcbf12dc9d3ab1d18/archive/mod-consumers-20261023/profiler).
 `BENCHMARK_EVIDENCE.json` pins the manifest and its SHA256. The manifest preserves original
 repository/commit/path identities, failures and every file hash. This is custody, not a new result.

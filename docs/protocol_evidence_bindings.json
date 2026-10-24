@@ -1,0 +1,743 @@
+{
+  "schema": "profiler-protocol-bindings/v1",
+  "original_manifest": "https://github.com/vLLM-HUST/vllm-hust-benchmark/blob/842fc4bc69978e50e3b776731a962bfcf33ffaf3/archive/mod-targeted-20261023/profiler-protocols/manifest.json",
+  "bindings": [
+    {
+      "document": "docs/experiment_plan.md",
+      "legacy_path": ".benchmarks/results/g1_cpu_controlled_trace_20260808/",
+      "matches": [],
+      "status": "not-in-pinned-capsules"
+    },
+    {
+      "document": "docs/experiment_plan.md",
+      "legacy_path": ".benchmarks/results/g2_readonly_admission_20260808/",
+      "matches": [],
+      "status": "not-in-pinned-capsules"
+    },
+    {
+      "document": "docs/experiment_plan.md",
+      "legacy_path": ".benchmarks/results/g3_minimum_online_trace_smoke_20260809/",
+      "matches": [],
+      "status": "not-in-pinned-capsules"
+    },
+    {
+      "document": "docs/experiment_plan.md",
+      "legacy_path": ".benchmarks/results/g5_capacity_surface_20260810/",
+      "matches": [],
+      "status": "not-in-pinned-capsules"
+    },
+    {
+      "document": "docs/experiment_plan.md",
+      "legacy_path": ".benchmarks/results/g6_counterfactual_20260811/",
+      "matches": [],
+      "status": "not-in-pinned-capsules"
+    },
+    {
+      "document": "docs/experiment_plan.md",
+      "legacy_path": ".benchmarks/results/npu6_controlled_fault_matrix/",
+      "matches": [
+        {
+          "capsule": "collection",
+          "members": [
+            ".benchmarks/results/npu6_controlled_fault_matrix/fault_matrix.csv",
+            ".benchmarks/results/npu6_controlled_fault_matrix/ground_truth.json",
+            ".benchmarks/results/npu6_controlled_fault_matrix/matrix.json",
+            ".benchmarks/results/npu6_controlled_fault_matrix/matrix.md",
+            ".benchmarks/results/npu6_controlled_fault_matrix/run_metadata.json",
+            ".benchmarks/results/npu6_controlled_fault_matrix/summary.json"
+          ]
+        }
+      ],
+      "status": "archived"
+    },
+    {
+      "document": "docs/experiment_plan.md",
+      "legacy_path": ".benchmarks/results/npu6_existing_server_probe_blocked/",
+      "matches": [
+        {
+          "capsule": "history",
+          "members": [
+            ".benchmarks/results/npu6_existing_server_probe_blocked/BLOCKED.txt",
+            ".benchmarks/results/npu6_existing_server_probe_blocked/run_metadata.json"
+          ]
+        }
+      ],
+      "status": "archived"
+    },
+    {
+      "document": "docs/experiment_plan.md",
+      "legacy_path": ".benchmarks/results/npu6_existing_server_slow_stream_trace_smoke/",
+      "matches": [
+        {
+          "capsule": "collection",
+          "members": [
+            ".benchmarks/results/npu6_existing_server_slow_stream_trace_smoke/probe_results.json",
+            ".benchmarks/results/npu6_existing_server_slow_stream_trace_smoke/run_metadata.json",
+            ".benchmarks/results/npu6_existing_server_slow_stream_trace_smoke/summary.json"
+          ]
+        }
+      ],
+      "status": "archived"
+    },
+    {
+      "document": "docs/experiment_plan.md",
+      "legacy_path": ".benchmarks/results/npu6_existing_server_trace_overhead_smoke/",
+      "matches": [
+        {
+          "capsule": "history",
+          "members": [
+            ".benchmarks/results/npu6_existing_server_trace_overhead_smoke/no-trace/probe_results.json",
+            ".benchmarks/results/npu6_existing_server_trace_overhead_smoke/no-trace/run_metadata.json",
+            ".benchmarks/results/npu6_existing_server_trace_overhead_smoke/no-trace/summary.json",
+            ".benchmarks/results/npu6_existing_server_trace_overhead_smoke/overhead_summary.json",
+            ".benchmarks/results/npu6_existing_server_trace_overhead_smoke/run_metadata.json",
+            ".benchmarks/results/npu6_existing_server_trace_overhead_smoke/trace/probe_results.json",
+            ".benchmarks/results/npu6_existing_server_trace_overhead_smoke/trace/run_metadata.json",
+            ".benchmarks/results/npu6_existing_server_trace_overhead_smoke/trace/summary.json",
+            ".benchmarks/results/npu6_existing_server_trace_overhead_smoke/trace_trace.jsonl"
+          ]
+        }
+      ],
+      "status": "archived"
+    },
+    {
+      "document": "docs/experiment_plan.md",
+      "legacy_path": ".benchmarks/results/npu6_existing_server_trace_probe_repeated_smoke/",
+      "matches": [
+        {
+          "capsule": "collection",
+          "members": [
+            ".benchmarks/results/npu6_existing_server_trace_probe_repeated_smoke/probe_results.json",
+            ".benchmarks/results/npu6_existing_server_trace_probe_repeated_smoke/run_metadata.json",
+            ".benchmarks/results/npu6_existing_server_trace_probe_repeated_smoke/summary.json"
+          ]
+        }
+      ],
+      "status": "archived"
+    },
+    {
+      "document": "docs/experiment_plan.md",
+      "legacy_path": ".benchmarks/results/npu6_existing_server_trace_probe_smoke/",
+      "matches": [
+        {
+          "capsule": "collection",
+          "members": [
+            ".benchmarks/results/npu6_existing_server_trace_probe_smoke/probe_results.json",
+            ".benchmarks/results/npu6_existing_server_trace_probe_smoke/run_metadata.json",
+            ".benchmarks/results/npu6_existing_server_trace_probe_smoke/summary.json"
+          ]
+        }
+      ],
+      "status": "archived"
+    },
+    {
+      "document": "docs/experiment_plan.md",
+      "legacy_path": ".benchmarks/results/npu6_runtime_hook_pair_plan/",
+      "matches": [
+        {
+          "capsule": "collection",
+          "members": [
+            ".benchmarks/results/npu6_runtime_hook_pair_plan/run_metadata.json",
+            ".benchmarks/results/npu6_runtime_hook_pair_plan/runtime_hook_pair_plan.json",
+            ".benchmarks/results/npu6_runtime_hook_pair_plan/summary.json"
+          ]
+        }
+      ],
+      "status": "archived"
+    },
+    {
+      "document": "docs/experiment_plan.md",
+      "legacy_path": ".benchmarks/results/npu6_runtime_hooks_concurrency_sweep/",
+      "matches": [
+        {
+          "capsule": "collection",
+          "members": [
+            ".benchmarks/results/npu6_runtime_hooks_concurrency_sweep/concurrency_1/client_proxy_trace.jsonl",
+            ".benchmarks/results/npu6_runtime_hooks_concurrency_sweep/concurrency_1/probe_results.json",
+            ".benchmarks/results/npu6_runtime_hooks_concurrency_sweep/concurrency_1/run_metadata.json",
+            ".benchmarks/results/npu6_runtime_hooks_concurrency_sweep/concurrency_1/summary.json",
+            ".benchmarks/results/npu6_runtime_hooks_concurrency_sweep/concurrency_2/client_proxy_trace.jsonl",
+            ".benchmarks/results/npu6_runtime_hooks_concurrency_sweep/concurrency_2/probe_results.json",
+            ".benchmarks/results/npu6_runtime_hooks_concurrency_sweep/concurrency_2/run_metadata.json",
+            ".benchmarks/results/npu6_runtime_hooks_concurrency_sweep/concurrency_2/summary.json",
+            ".benchmarks/results/npu6_runtime_hooks_concurrency_sweep/concurrency_3/client_proxy_trace.jsonl",
+            ".benchmarks/results/npu6_runtime_hooks_concurrency_sweep/concurrency_3/probe_results.json",
+            ".benchmarks/results/npu6_runtime_hooks_concurrency_sweep/concurrency_3/run_metadata.json",
+            ".benchmarks/results/npu6_runtime_hooks_concurrency_sweep/concurrency_3/summary.json",
+            ".benchmarks/results/npu6_runtime_hooks_concurrency_sweep/concurrency_anomaly_analysis/anomaly_analysis.md",
+            ".benchmarks/results/npu6_runtime_hooks_concurrency_sweep/concurrency_anomaly_analysis/request_rows.json",
+            ".benchmarks/results/npu6_runtime_hooks_concurrency_sweep/concurrency_anomaly_analysis/run_metadata.json",
+            ".benchmarks/results/npu6_runtime_hooks_concurrency_sweep/concurrency_anomaly_analysis/summary.json",
+            ".benchmarks/results/npu6_runtime_hooks_concurrency_sweep/concurrency_sweep_summary.json",
+            ".benchmarks/results/npu6_runtime_hooks_concurrency_sweep/concurrency_sweep_summary.md",
+            ".benchmarks/results/npu6_runtime_hooks_concurrency_sweep/diagnosis_concurrency_1/diagnosis.json",
+            ".benchmarks/results/npu6_runtime_hooks_concurrency_sweep/diagnosis_concurrency_1/request_diagnosis.csv",
+            ".benchmarks/results/npu6_runtime_hooks_concurrency_sweep/diagnosis_concurrency_1/run_metadata.json",
+            ".benchmarks/results/npu6_runtime_hooks_concurrency_sweep/diagnosis_concurrency_1/summary.json",
+            ".benchmarks/results/npu6_runtime_hooks_concurrency_sweep/diagnosis_concurrency_2/diagnosis.json",
+            ".benchmarks/results/npu6_runtime_hooks_concurrency_sweep/diagnosis_concurrency_2/request_diagnosis.csv",
+            ".benchmarks/results/npu6_runtime_hooks_concurrency_sweep/diagnosis_concurrency_2/run_metadata.json",
+            ".benchmarks/results/npu6_runtime_hooks_concurrency_sweep/diagnosis_concurrency_2/summary.json",
+            ".benchmarks/results/npu6_runtime_hooks_concurrency_sweep/diagnosis_concurrency_3/diagnosis.json",
+            ".benchmarks/results/npu6_runtime_hooks_concurrency_sweep/diagnosis_concurrency_3/request_diagnosis.csv",
+            ".benchmarks/results/npu6_runtime_hooks_concurrency_sweep/diagnosis_concurrency_3/run_metadata.json",
+            ".benchmarks/results/npu6_runtime_hooks_concurrency_sweep/diagnosis_concurrency_3/summary.json",
+            ".benchmarks/results/npu6_runtime_hooks_concurrency_sweep/runtime_internal_span_analysis.json",
+            ".benchmarks/results/npu6_runtime_hooks_concurrency_sweep/runtime_internal_span_analysis.md",
+            ".benchmarks/results/npu6_runtime_hooks_concurrency_sweep/runtime_internal_spans.csv",
+            ".benchmarks/results/npu6_runtime_hooks_concurrency_sweep/runtime_trace.jsonl",
+            ".benchmarks/results/npu6_runtime_hooks_concurrency_sweep/runtime_trace_summary.json"
+          ]
+        }
+      ],
+      "status": "archived"
+    },
+    {
+      "document": "docs/experiment_plan.md",
+      "legacy_path": ".benchmarks/results/npu6_runtime_hooks_concurrency_sweep/concurrency_anomaly_analysis/",
+      "matches": [
+        {
+          "capsule": "collection",
+          "members": [
+            ".benchmarks/results/npu6_runtime_hooks_concurrency_sweep/concurrency_anomaly_analysis/anomaly_analysis.md",
+            ".benchmarks/results/npu6_runtime_hooks_concurrency_sweep/concurrency_anomaly_analysis/request_rows.json",
+            ".benchmarks/results/npu6_runtime_hooks_concurrency_sweep/concurrency_anomaly_analysis/run_metadata.json",
+            ".benchmarks/results/npu6_runtime_hooks_concurrency_sweep/concurrency_anomaly_analysis/summary.json"
+          ]
+        }
+      ],
+      "status": "archived"
+    },
+    {
+      "document": "docs/experiment_plan.md",
+      "legacy_path": ".benchmarks/results/npu6_runtime_hooks_decode_heavy_fault_smoke/",
+      "matches": [
+        {
+          "capsule": "collection",
+          "members": [
+            ".benchmarks/results/npu6_runtime_hooks_decode_heavy_fault_smoke/FAILED.txt",
+            ".benchmarks/results/npu6_runtime_hooks_decode_heavy_fault_smoke/client_proxy_trace.jsonl",
+            ".benchmarks/results/npu6_runtime_hooks_decode_heavy_fault_smoke/probe_results.json",
+            ".benchmarks/results/npu6_runtime_hooks_decode_heavy_fault_smoke/run_metadata.json",
+            ".benchmarks/results/npu6_runtime_hooks_decode_heavy_fault_smoke/summary.json"
+          ]
+        }
+      ],
+      "status": "archived"
+    },
+    {
+      "document": "docs/experiment_plan.md",
+      "legacy_path": ".benchmarks/results/npu6_runtime_hooks_disabled_low_overhead_baseline/",
+      "matches": [
+        {
+          "capsule": "collection",
+          "members": [
+            ".benchmarks/results/npu6_runtime_hooks_disabled_low_overhead_baseline/probe_results.json",
+            ".benchmarks/results/npu6_runtime_hooks_disabled_low_overhead_baseline/run_metadata.json",
+            ".benchmarks/results/npu6_runtime_hooks_disabled_low_overhead_baseline/summary.json"
+          ]
+        }
+      ],
+      "status": "archived"
+    },
+    {
+      "document": "docs/experiment_plan.md",
+      "legacy_path": ".benchmarks/results/npu6_runtime_hooks_long_prefill_fault_smoke/",
+      "matches": [
+        {
+          "capsule": "collection",
+          "members": [
+            ".benchmarks/results/npu6_runtime_hooks_long_prefill_fault_smoke/FAILED.txt",
+            ".benchmarks/results/npu6_runtime_hooks_long_prefill_fault_smoke/client_proxy_trace.jsonl",
+            ".benchmarks/results/npu6_runtime_hooks_long_prefill_fault_smoke/probe_results.json",
+            ".benchmarks/results/npu6_runtime_hooks_long_prefill_fault_smoke/run_metadata.json",
+            ".benchmarks/results/npu6_runtime_hooks_long_prefill_fault_smoke/summary.json"
+          ]
+        }
+      ],
+      "status": "archived"
+    },
+    {
+      "document": "docs/experiment_plan.md",
+      "legacy_path": ".benchmarks/results/npu6_runtime_hooks_low_overhead_enabled_smoke/",
+      "matches": [
+        {
+          "capsule": "collection",
+          "members": [
+            ".benchmarks/results/npu6_runtime_hooks_low_overhead_enabled_smoke/probe_results.json",
+            ".benchmarks/results/npu6_runtime_hooks_low_overhead_enabled_smoke/run_metadata.json",
+            ".benchmarks/results/npu6_runtime_hooks_low_overhead_enabled_smoke/runtime_trace.jsonl",
+            ".benchmarks/results/npu6_runtime_hooks_low_overhead_enabled_smoke/summary.json"
+          ]
+        }
+      ],
+      "status": "archived"
+    },
+    {
+      "document": "docs/experiment_plan.md",
+      "legacy_path": ".benchmarks/results/npu6_runtime_hooks_low_overhead_enabled_smoke/runtime_trace.jsonl",
+      "matches": [
+        {
+          "capsule": "collection",
+          "members": [
+            ".benchmarks/results/npu6_runtime_hooks_low_overhead_enabled_smoke/runtime_trace.jsonl"
+          ]
+        }
+      ],
+      "status": "archived"
+    },
+    {
+      "document": "docs/experiment_plan.md",
+      "legacy_path": ".benchmarks/results/npu6_runtime_hooks_prompt_heavy_low_output_diagnosis/",
+      "matches": [
+        {
+          "capsule": "collection",
+          "members": [
+            ".benchmarks/results/npu6_runtime_hooks_prompt_heavy_low_output_diagnosis/diagnosis.json",
+            ".benchmarks/results/npu6_runtime_hooks_prompt_heavy_low_output_diagnosis/request_diagnosis.csv",
+            ".benchmarks/results/npu6_runtime_hooks_prompt_heavy_low_output_diagnosis/run_metadata.json",
+            ".benchmarks/results/npu6_runtime_hooks_prompt_heavy_low_output_diagnosis/summary.json"
+          ]
+        }
+      ],
+      "status": "archived"
+    },
+    {
+      "document": "docs/experiment_plan.md",
+      "legacy_path": ".benchmarks/results/npu6_runtime_hooks_prompt_heavy_low_output_smoke/",
+      "matches": [
+        {
+          "capsule": "collection",
+          "members": [
+            ".benchmarks/results/npu6_runtime_hooks_prompt_heavy_low_output_smoke/client_proxy_trace.jsonl",
+            ".benchmarks/results/npu6_runtime_hooks_prompt_heavy_low_output_smoke/probe_results.json",
+            ".benchmarks/results/npu6_runtime_hooks_prompt_heavy_low_output_smoke/run_metadata.json",
+            ".benchmarks/results/npu6_runtime_hooks_prompt_heavy_low_output_smoke/runtime_trace.jsonl",
+            ".benchmarks/results/npu6_runtime_hooks_prompt_heavy_low_output_smoke/runtime_trace_summary.json",
+            ".benchmarks/results/npu6_runtime_hooks_prompt_heavy_low_output_smoke/summary.json"
+          ]
+        }
+      ],
+      "status": "archived"
+    },
+    {
+      "document": "docs/experiment_plan.md",
+      "legacy_path": ".benchmarks/results/npu6_runtime_hooks_slow_stream_fault_diagnosis/",
+      "matches": [
+        {
+          "capsule": "collection",
+          "members": [
+            ".benchmarks/results/npu6_runtime_hooks_slow_stream_fault_diagnosis/diagnosis.json",
+            ".benchmarks/results/npu6_runtime_hooks_slow_stream_fault_diagnosis/request_diagnosis.csv",
+            ".benchmarks/results/npu6_runtime_hooks_slow_stream_fault_diagnosis/run_metadata.json",
+            ".benchmarks/results/npu6_runtime_hooks_slow_stream_fault_diagnosis/summary.json"
+          ]
+        }
+      ],
+      "status": "archived"
+    },
+    {
+      "document": "docs/experiment_plan.md",
+      "legacy_path": ".benchmarks/results/npu6_runtime_hooks_slow_stream_fault_smoke/",
+      "matches": [
+        {
+          "capsule": "collection",
+          "members": [
+            ".benchmarks/results/npu6_runtime_hooks_slow_stream_fault_smoke/client_proxy_trace.jsonl",
+            ".benchmarks/results/npu6_runtime_hooks_slow_stream_fault_smoke/probe_results.json",
+            ".benchmarks/results/npu6_runtime_hooks_slow_stream_fault_smoke/run_metadata.json",
+            ".benchmarks/results/npu6_runtime_hooks_slow_stream_fault_smoke/runtime_trace.jsonl",
+            ".benchmarks/results/npu6_runtime_hooks_slow_stream_fault_smoke/runtime_trace_summary.json",
+            ".benchmarks/results/npu6_runtime_hooks_slow_stream_fault_smoke/summary.json"
+          ]
+        }
+      ],
+      "status": "archived"
+    },
+    {
+      "document": "docs/experiment_plan.md",
+      "legacy_path": ".benchmarks/results/npu6_runtime_hooks_structured_decode_fault_diagnosis/",
+      "matches": [
+        {
+          "capsule": "collection",
+          "members": [
+            ".benchmarks/results/npu6_runtime_hooks_structured_decode_fault_diagnosis/diagnosis.json",
+            ".benchmarks/results/npu6_runtime_hooks_structured_decode_fault_diagnosis/request_diagnosis.csv",
+            ".benchmarks/results/npu6_runtime_hooks_structured_decode_fault_diagnosis/run_metadata.json",
+            ".benchmarks/results/npu6_runtime_hooks_structured_decode_fault_diagnosis/summary.json"
+          ]
+        }
+      ],
+      "status": "archived"
+    },
+    {
+      "document": "docs/experiment_plan.md",
+      "legacy_path": ".benchmarks/results/npu6_runtime_hooks_structured_decode_fault_smoke/",
+      "matches": [
+        {
+          "capsule": "collection",
+          "members": [
+            ".benchmarks/results/npu6_runtime_hooks_structured_decode_fault_smoke/client_proxy_trace.jsonl",
+            ".benchmarks/results/npu6_runtime_hooks_structured_decode_fault_smoke/probe_results.json",
+            ".benchmarks/results/npu6_runtime_hooks_structured_decode_fault_smoke/run_metadata.json",
+            ".benchmarks/results/npu6_runtime_hooks_structured_decode_fault_smoke/runtime_trace.jsonl",
+            ".benchmarks/results/npu6_runtime_hooks_structured_decode_fault_smoke/runtime_trace_summary.json",
+            ".benchmarks/results/npu6_runtime_hooks_structured_decode_fault_smoke/summary.json"
+          ]
+        }
+      ],
+      "status": "archived"
+    },
+    {
+      "document": "docs/experiment_plan.md",
+      "legacy_path": ".benchmarks/results/npu6_slow_stream_trace_diagnosis/",
+      "matches": [
+        {
+          "capsule": "collection",
+          "members": [
+            ".benchmarks/results/npu6_slow_stream_trace_diagnosis/diagnosis.json",
+            ".benchmarks/results/npu6_slow_stream_trace_diagnosis/request_diagnosis.csv",
+            ".benchmarks/results/npu6_slow_stream_trace_diagnosis/run_metadata.json",
+            ".benchmarks/results/npu6_slow_stream_trace_diagnosis/summary.json"
+          ]
+        }
+      ],
+      "status": "archived"
+    },
+    {
+      "document": "docs/experiment_plan.md",
+      "legacy_path": ".benchmarks/results/npu6_trace_diagnosis/",
+      "matches": [
+        {
+          "capsule": "collection",
+          "members": [
+            ".benchmarks/results/npu6_trace_diagnosis/diagnosis.json",
+            ".benchmarks/results/npu6_trace_diagnosis/request_diagnosis.csv",
+            ".benchmarks/results/npu6_trace_diagnosis/run_metadata.json",
+            ".benchmarks/results/npu6_trace_diagnosis/summary.json"
+          ]
+        }
+      ],
+      "status": "archived"
+    },
+    {
+      "document": "docs/experiment_plan.md",
+      "legacy_path": ".benchmarks/results/npu6_trace_probe_preflight/",
+      "matches": [
+        {
+          "capsule": "collection",
+          "members": [
+            ".benchmarks/results/npu6_trace_probe_preflight/READY.txt",
+            ".benchmarks/results/npu6_trace_probe_preflight/run_metadata.json"
+          ]
+        }
+      ],
+      "status": "archived"
+    },
+    {
+      "document": "docs/experiment_plan.md",
+      "legacy_path": ".benchmarks/results/synthetic_fault_injection_env/",
+      "matches": [
+        {
+          "capsule": "collection",
+          "members": [
+            ".benchmarks/results/synthetic_fault_injection_env/matrix.json",
+            ".benchmarks/results/synthetic_fault_injection_env/run_metadata.json"
+          ]
+        }
+      ],
+      "status": "archived"
+    },
+    {
+      "document": "docs/g4_execution_spec.md",
+      "legacy_path": ".benchmarks/results/g4_fixed_8gib_modes_20260810/run_summary.json",
+      "matches": [],
+      "status": "not-in-pinned-capsules"
+    },
+    {
+      "document": "docs/issue19_public_evidence.md",
+      "legacy_path": ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/",
+      "matches": [
+        {
+          "capsule": "evidence",
+          "members": [
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/fixed_plan.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r00-2026082000-fault/analysis.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r00-2026082000-fault/at_worker_failure_state.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r00-2026082000-fault/client_results.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r00-2026082000-fault/manifest.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r00-2026082000-fault/post_worker_resource_state.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r00-2026082000-fault/pre_worker_quiescence.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r00-2026082000-fault/trace.rlp-kv-recovery.28f29cbbbf8143c382122e6b3793d26c.jsonl",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r00-2026082000-fault/trace.rlp-kv-recovery.8c261f062a594003aede7901b6eb43e3.jsonl",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r00-2026082000-fault/trace.rlp-kv-recovery.b16358b394ba477c85fc36774f6935d0.jsonl",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r00-2026082000-fault/trace.rlp.28f29cbbbf8143c382122e6b3793d26c.jsonl",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r00-2026082000-fault/trace.rlp.8c261f062a594003aede7901b6eb43e3.jsonl",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r00-2026082000-fault/trace.rlp.b16358b394ba477c85fc36774f6935d0.jsonl",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r00-2026082000-fault/worker_exit.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r00-2026082000-fault/worker_failure/PID_006.pending-transfer-arm",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r00-2026082000-fault/worker_failure/PID_006.pending-transfer.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r00-2026082000-normal-control/analysis.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r00-2026082000-normal-control/client_results.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r00-2026082000-normal-control/manifest.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r00-2026082000-normal-control/post_final_quiescence.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r00-2026082000-normal-control/post_service_resource_state.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r00-2026082000-normal-control/pre_final_quiescence.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r00-2026082000-normal-control/trace.rlp-kv-recovery.67240eedfd8d441d884834a4ffd7d017.jsonl",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r00-2026082000-normal-control/trace.rlp-kv-recovery.b030a8c75c4c4f2a8b27b6f0b7433fb5.jsonl",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r00-2026082000-normal-control/trace.rlp-kv-recovery.f1c6e2bb65aa4dd1a73f48825be3ffef.jsonl",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r00-2026082000-normal-control/trace.rlp.67240eedfd8d441d884834a4ffd7d017.jsonl",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r00-2026082000-normal-control/trace.rlp.b030a8c75c4c4f2a8b27b6f0b7433fb5.jsonl",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r00-2026082000-normal-control/trace.rlp.f1c6e2bb65aa4dd1a73f48825be3ffef.jsonl",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r01-2026082001-fault/analysis.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r01-2026082001-fault/at_worker_failure_state.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r01-2026082001-fault/client_results.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r01-2026082001-fault/manifest.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r01-2026082001-fault/post_worker_resource_state.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r01-2026082001-fault/pre_worker_quiescence.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r01-2026082001-fault/trace.rlp-kv-recovery.0816fcb708514b7690a378f68d7047be.jsonl",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r01-2026082001-fault/trace.rlp-kv-recovery.a19625c776f44bd6ac23d90014a5d653.jsonl",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r01-2026082001-fault/trace.rlp-kv-recovery.cb599dd775664d819ae7936ff88caa55.jsonl",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r01-2026082001-fault/trace.rlp.0816fcb708514b7690a378f68d7047be.jsonl",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r01-2026082001-fault/trace.rlp.a19625c776f44bd6ac23d90014a5d653.jsonl",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r01-2026082001-fault/trace.rlp.cb599dd775664d819ae7936ff88caa55.jsonl",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r01-2026082001-fault/worker_exit.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r01-2026082001-fault/worker_failure/PID_009.pending-transfer-arm",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r01-2026082001-fault/worker_failure/PID_009.pending-transfer.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r01-2026082001-normal-control/analysis.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r01-2026082001-normal-control/client_results.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r01-2026082001-normal-control/manifest.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r01-2026082001-normal-control/post_final_quiescence.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r01-2026082001-normal-control/post_service_resource_state.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r01-2026082001-normal-control/pre_final_quiescence.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r01-2026082001-normal-control/trace.rlp-kv-recovery.1e35b7adcc0645cc96f15ba389297498.jsonl",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r01-2026082001-normal-control/trace.rlp-kv-recovery.db4fd0df9b61447aa35f490203a038a4.jsonl",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r01-2026082001-normal-control/trace.rlp-kv-recovery.e7262691bb814a6cbf1e4618f678d346.jsonl",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r01-2026082001-normal-control/trace.rlp.1e35b7adcc0645cc96f15ba389297498.jsonl",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r01-2026082001-normal-control/trace.rlp.db4fd0df9b61447aa35f490203a038a4.jsonl",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r01-2026082001-normal-control/trace.rlp.e7262691bb814a6cbf1e4618f678d346.jsonl",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r02-2026082002-fault/analysis.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r02-2026082002-fault/at_worker_failure_state.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r02-2026082002-fault/client_results.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r02-2026082002-fault/manifest.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r02-2026082002-fault/post_worker_resource_state.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r02-2026082002-fault/pre_worker_quiescence.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r02-2026082002-fault/trace.rlp-kv-recovery.28e01cf9ea434cb1abb3a2ee84eee08c.jsonl",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r02-2026082002-fault/trace.rlp-kv-recovery.5b9ce047eacb4d1497aa4bc1f81de996.jsonl",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r02-2026082002-fault/trace.rlp-kv-recovery.6e816fe3e5084ad7bfad5384ede38793.jsonl",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r02-2026082002-fault/trace.rlp.28e01cf9ea434cb1abb3a2ee84eee08c.jsonl",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r02-2026082002-fault/trace.rlp.5b9ce047eacb4d1497aa4bc1f81de996.jsonl",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r02-2026082002-fault/trace.rlp.6e816fe3e5084ad7bfad5384ede38793.jsonl",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r02-2026082002-fault/worker_exit.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r02-2026082002-fault/worker_failure/PID_018.pending-transfer-arm",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r02-2026082002-fault/worker_failure/PID_018.pending-transfer.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r02-2026082002-normal-control/analysis.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r02-2026082002-normal-control/client_results.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r02-2026082002-normal-control/manifest.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r02-2026082002-normal-control/post_final_quiescence.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r02-2026082002-normal-control/post_service_resource_state.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r02-2026082002-normal-control/pre_final_quiescence.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r02-2026082002-normal-control/trace.rlp-kv-recovery.68b3aa545e7a4da3a70e38f922fe5bb8.jsonl",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r02-2026082002-normal-control/trace.rlp-kv-recovery.a1a291f6e3f54ff6a7729e6f1e56751b.jsonl",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r02-2026082002-normal-control/trace.rlp-kv-recovery.f0c3e43c50734744bc99054bfd4235ae.jsonl",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r02-2026082002-normal-control/trace.rlp.68b3aa545e7a4da3a70e38f922fe5bb8.jsonl",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r02-2026082002-normal-control/trace.rlp.a1a291f6e3f54ff6a7729e6f1e56751b.jsonl",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r02-2026082002-normal-control/trace.rlp.f0c3e43c50734744bc99054bfd4235ae.jsonl",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r03-2026082003-fault/analysis.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r03-2026082003-fault/at_worker_failure_state.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r03-2026082003-fault/client_results.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r03-2026082003-fault/manifest.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r03-2026082003-fault/post_worker_resource_state.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r03-2026082003-fault/pre_worker_quiescence.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r03-2026082003-fault/trace.rlp-kv-recovery.22cf06cc2f8d420c8d1e7e92f1f0f29f.jsonl",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r03-2026082003-fault/trace.rlp-kv-recovery.2a6b685e1cca4511b14b368617a9b864.jsonl",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r03-2026082003-fault/trace.rlp-kv-recovery.d8ced113d80f489cae768de7acc44c8a.jsonl",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r03-2026082003-fault/trace.rlp.22cf06cc2f8d420c8d1e7e92f1f0f29f.jsonl",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r03-2026082003-fault/trace.rlp.2a6b685e1cca4511b14b368617a9b864.jsonl",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r03-2026082003-fault/trace.rlp.d8ced113d80f489cae768de7acc44c8a.jsonl",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r03-2026082003-fault/worker_exit.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r03-2026082003-fault/worker_failure/PID_021.pending-transfer-arm",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r03-2026082003-fault/worker_failure/PID_021.pending-transfer.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r03-2026082003-normal-control/analysis.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r03-2026082003-normal-control/client_results.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r03-2026082003-normal-control/manifest.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r03-2026082003-normal-control/post_final_quiescence.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r03-2026082003-normal-control/post_service_resource_state.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r03-2026082003-normal-control/pre_final_quiescence.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r03-2026082003-normal-control/trace.rlp-kv-recovery.6b7563e23ca841ea9b8b9f1a4d5f02cf.jsonl",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r03-2026082003-normal-control/trace.rlp-kv-recovery.afd0ed969ddc47ada6a32a836fdb11f9.jsonl",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r03-2026082003-normal-control/trace.rlp-kv-recovery.e2510bf361e34e11a614a6345812d78f.jsonl",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r03-2026082003-normal-control/trace.rlp.6b7563e23ca841ea9b8b9f1a4d5f02cf.jsonl",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r03-2026082003-normal-control/trace.rlp.afd0ed969ddc47ada6a32a836fdb11f9.jsonl",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r03-2026082003-normal-control/trace.rlp.e2510bf361e34e11a614a6345812d78f.jsonl",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r04-2026082004-fault/analysis.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r04-2026082004-fault/at_worker_failure_state.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r04-2026082004-fault/client_results.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r04-2026082004-fault/manifest.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r04-2026082004-fault/post_worker_resource_state.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r04-2026082004-fault/pre_worker_quiescence.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r04-2026082004-fault/trace.rlp-kv-recovery.2fcac267dc5f484d806e68a9b1797562.jsonl",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r04-2026082004-fault/trace.rlp-kv-recovery.930b428b100b4b0ebc6f7b3df89f7c79.jsonl",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r04-2026082004-fault/trace.rlp-kv-recovery.cf5eda0ed85c46fd9ffb4aa4f95b095e.jsonl",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r04-2026082004-fault/trace.rlp.2fcac267dc5f484d806e68a9b1797562.jsonl",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r04-2026082004-fault/trace.rlp.930b428b100b4b0ebc6f7b3df89f7c79.jsonl",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r04-2026082004-fault/trace.rlp.cf5eda0ed85c46fd9ffb4aa4f95b095e.jsonl",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r04-2026082004-fault/worker_exit.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r04-2026082004-fault/worker_failure/PID_030.pending-transfer-arm",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r04-2026082004-fault/worker_failure/PID_030.pending-transfer.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r04-2026082004-normal-control/analysis.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r04-2026082004-normal-control/client_results.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r04-2026082004-normal-control/manifest.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r04-2026082004-normal-control/post_final_quiescence.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r04-2026082004-normal-control/post_service_resource_state.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r04-2026082004-normal-control/pre_final_quiescence.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r04-2026082004-normal-control/trace.rlp-kv-recovery.11b46b4c8dbd48f7a3b891ef8e42e570.jsonl",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r04-2026082004-normal-control/trace.rlp-kv-recovery.9bb49e1f171e4d11ad9329bcd26a0793.jsonl",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r04-2026082004-normal-control/trace.rlp-kv-recovery.e6d3fb946bf14a5ea8db76957024cb43.jsonl",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r04-2026082004-normal-control/trace.rlp.11b46b4c8dbd48f7a3b891ef8e42e570.jsonl",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r04-2026082004-normal-control/trace.rlp.9bb49e1f171e4d11ad9329bcd26a0793.jsonl",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r04-2026082004-normal-control/trace.rlp.e6d3fb946bf14a5ea8db76957024cb43.jsonl",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r05-2026082005-fault/analysis.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r05-2026082005-fault/at_worker_failure_state.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r05-2026082005-fault/client_results.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r05-2026082005-fault/manifest.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r05-2026082005-fault/post_worker_resource_state.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r05-2026082005-fault/pre_worker_quiescence.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r05-2026082005-fault/trace.rlp-kv-recovery.46b4f055f22847b39f4909c7a709ea4d.jsonl",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r05-2026082005-fault/trace.rlp-kv-recovery.5dc9a01ddf624cfa98509a90fe68e962.jsonl",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r05-2026082005-fault/trace.rlp-kv-recovery.7a80095e43ce426cbdbf1a1d3e951b89.jsonl",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r05-2026082005-fault/trace.rlp.46b4f055f22847b39f4909c7a709ea4d.jsonl",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r05-2026082005-fault/trace.rlp.5dc9a01ddf624cfa98509a90fe68e962.jsonl",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r05-2026082005-fault/trace.rlp.7a80095e43ce426cbdbf1a1d3e951b89.jsonl",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r05-2026082005-fault/worker_exit.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r05-2026082005-fault/worker_failure/PID_033.pending-transfer-arm",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r05-2026082005-fault/worker_failure/PID_033.pending-transfer.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r05-2026082005-normal-control/analysis.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r05-2026082005-normal-control/client_results.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r05-2026082005-normal-control/manifest.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r05-2026082005-normal-control/post_final_quiescence.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r05-2026082005-normal-control/post_service_resource_state.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r05-2026082005-normal-control/pre_final_quiescence.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r05-2026082005-normal-control/trace.rlp-kv-recovery.23a7d84859ff4f0b8ea7f4189cdf6d98.jsonl",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r05-2026082005-normal-control/trace.rlp-kv-recovery.cbfde035e0ce491c8c4c2380550cb255.jsonl",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r05-2026082005-normal-control/trace.rlp-kv-recovery.e5c52db2c4da4efebd5f6e830c81c15f.jsonl",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r05-2026082005-normal-control/trace.rlp.23a7d84859ff4f0b8ea7f4189cdf6d98.jsonl",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r05-2026082005-normal-control/trace.rlp.cbfde035e0ce491c8c4c2380550cb255.jsonl",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r05-2026082005-normal-control/trace.rlp.e5c52db2c4da4efebd5f6e830c81c15f.jsonl",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r06-2026082006-fault/analysis.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r06-2026082006-fault/at_worker_failure_state.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r06-2026082006-fault/client_results.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r06-2026082006-fault/manifest.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r06-2026082006-fault/post_worker_resource_state.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r06-2026082006-fault/pre_worker_quiescence.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r06-2026082006-fault/trace.rlp-kv-recovery.228a55147493405b8aa87db554cd853c.jsonl",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r06-2026082006-fault/trace.rlp-kv-recovery.2498a02b86d54751a0fc9b9b430c9e5f.jsonl",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r06-2026082006-fault/trace.rlp-kv-recovery.a19c8b7a50e6413fa8036a41a85feb5c.jsonl",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r06-2026082006-fault/trace.rlp.228a55147493405b8aa87db554cd853c.jsonl",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r06-2026082006-fault/trace.rlp.2498a02b86d54751a0fc9b9b430c9e5f.jsonl",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r06-2026082006-fault/trace.rlp.a19c8b7a50e6413fa8036a41a85feb5c.jsonl",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r06-2026082006-fault/worker_exit.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r06-2026082006-fault/worker_failure/PID_042.pending-transfer-arm",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r06-2026082006-fault/worker_failure/PID_042.pending-transfer.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r06-2026082006-normal-control/analysis.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r06-2026082006-normal-control/client_results.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r06-2026082006-normal-control/manifest.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r06-2026082006-normal-control/post_final_quiescence.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r06-2026082006-normal-control/post_service_resource_state.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r06-2026082006-normal-control/pre_final_quiescence.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r06-2026082006-normal-control/trace.rlp-kv-recovery.27e4a1eb7eae43b29eee16c3085e4ef1.jsonl",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r06-2026082006-normal-control/trace.rlp-kv-recovery.46dd702ddf4842cba182384545b25237.jsonl",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r06-2026082006-normal-control/trace.rlp-kv-recovery.e9e4cc486cdb4b6ab7c40cd0e596a8a9.jsonl",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r06-2026082006-normal-control/trace.rlp.27e4a1eb7eae43b29eee16c3085e4ef1.jsonl",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r06-2026082006-normal-control/trace.rlp.46dd702ddf4842cba182384545b25237.jsonl",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r06-2026082006-normal-control/trace.rlp.e9e4cc486cdb4b6ab7c40cd0e596a8a9.jsonl",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r07-2026082007-fault/analysis.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r07-2026082007-fault/at_worker_failure_state.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r07-2026082007-fault/client_results.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r07-2026082007-fault/manifest.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r07-2026082007-fault/post_worker_resource_state.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r07-2026082007-fault/pre_worker_quiescence.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r07-2026082007-fault/trace.rlp-kv-recovery.9b84488a22ff46acb2bfbe2786cf7da4.jsonl",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r07-2026082007-fault/trace.rlp-kv-recovery.9dc561eda0c243968e811ce013573d0d.jsonl",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r07-2026082007-fault/trace.rlp-kv-recovery.c283692bb64147079caa445c2c1997ac.jsonl",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r07-2026082007-fault/trace.rlp.9b84488a22ff46acb2bfbe2786cf7da4.jsonl",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r07-2026082007-fault/trace.rlp.9dc561eda0c243968e811ce013573d0d.jsonl",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r07-2026082007-fault/trace.rlp.c283692bb64147079caa445c2c1997ac.jsonl",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r07-2026082007-fault/worker_exit.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r07-2026082007-fault/worker_failure/PID_045.pending-transfer-arm",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r07-2026082007-fault/worker_failure/PID_045.pending-transfer.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r07-2026082007-normal-control/analysis.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r07-2026082007-normal-control/client_results.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r07-2026082007-normal-control/manifest.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r07-2026082007-normal-control/post_final_quiescence.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r07-2026082007-normal-control/post_service_resource_state.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r07-2026082007-normal-control/pre_final_quiescence.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r07-2026082007-normal-control/trace.rlp-kv-recovery.137eaf461a9d45828129d1f12ed586cb.jsonl",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r07-2026082007-normal-control/trace.rlp-kv-recovery.3491e290f6b34fcda28d1745b9cc5460.jsonl",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r07-2026082007-normal-control/trace.rlp-kv-recovery.48bb3dcfcabc437086f0117e08671d50.jsonl",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r07-2026082007-normal-control/trace.rlp.137eaf461a9d45828129d1f12ed586cb.jsonl",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r07-2026082007-normal-control/trace.rlp.3491e290f6b34fcda28d1745b9cc5460.jsonl",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r07-2026082007-normal-control/trace.rlp.48bb3dcfcabc437086f0117e08671d50.jsonl",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r08-2026082008-fault/analysis.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r08-2026082008-fault/at_worker_failure_state.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r08-2026082008-fault/client_results.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r08-2026082008-fault/manifest.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r08-2026082008-fault/post_worker_resource_state.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r08-2026082008-fault/pre_worker_quiescence.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r08-2026082008-fault/trace.rlp-kv-recovery.b1f24f97979b440a88b463b4b1474a8f.jsonl",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r08-2026082008-fault/trace.rlp-kv-recovery.d61787ccbb1c427eab4a3159f88d88a4.jsonl",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r08-2026082008-fault/trace.rlp-kv-recovery.e1663be7e99c4155a7b212a45f89c5e4.jsonl",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r08-2026082008-fault/trace.rlp.b1f24f97979b440a88b463b4b1474a8f.jsonl",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r08-2026082008-fault/trace.rlp.d61787ccbb1c427eab4a3159f88d88a4.jsonl",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r08-2026082008-fault/trace.rlp.e1663be7e99c4155a7b212a45f89c5e4.jsonl",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r08-2026082008-fault/worker_exit.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r08-2026082008-fault/worker_failure/PID_054.pending-transfer-arm",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r08-2026082008-fault/worker_failure/PID_054.pending-transfer.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r08-2026082008-normal-control/analysis.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r08-2026082008-normal-control/client_results.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r08-2026082008-normal-control/manifest.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r08-2026082008-normal-control/post_final_quiescence.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r08-2026082008-normal-control/post_service_resource_state.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r08-2026082008-normal-control/pre_final_quiescence.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r08-2026082008-normal-control/trace.rlp-kv-recovery.0b0754de830f4bbcb5ef4d0dd9065725.jsonl",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r08-2026082008-normal-control/trace.rlp-kv-recovery.101fd7257fae494c874fa644dac101e7.jsonl",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r08-2026082008-normal-control/trace.rlp-kv-recovery.a196a89a3ce14b0c86e7192ebc3af759.jsonl",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r08-2026082008-normal-control/trace.rlp.0b0754de830f4bbcb5ef4d0dd9065725.jsonl",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r08-2026082008-normal-control/trace.rlp.101fd7257fae494c874fa644dac101e7.jsonl",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r08-2026082008-normal-control/trace.rlp.a196a89a3ce14b0c86e7192ebc3af759.jsonl",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r09-2026082009-fault/analysis.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r09-2026082009-fault/at_worker_failure_state.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r09-2026082009-fault/client_results.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r09-2026082009-fault/manifest.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r09-2026082009-fault/post_worker_resource_state.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r09-2026082009-fault/pre_worker_quiescence.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r09-2026082009-fault/trace.rlp-kv-recovery.3be36330c7584972b4b8205e4265daea.jsonl",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r09-2026082009-fault/trace.rlp-kv-recovery.85149c23650b4390a9db7bf8bd919ab8.jsonl",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r09-2026082009-fault/trace.rlp-kv-recovery.cab073c4b87747fe9206f3db7f46bd5c.jsonl",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r09-2026082009-fault/trace.rlp.3be36330c7584972b4b8205e4265daea.jsonl",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r09-2026082009-fault/trace.rlp.85149c23650b4390a9db7bf8bd919ab8.jsonl",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r09-2026082009-fault/trace.rlp.cab073c4b87747fe9206f3db7f46bd5c.jsonl",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r09-2026082009-fault/worker_exit.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r09-2026082009-fault/worker_failure/PID_057.pending-transfer-arm",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r09-2026082009-fault/worker_failure/PID_057.pending-transfer.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r09-2026082009-normal-control/analysis.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r09-2026082009-normal-control/client_results.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r09-2026082009-normal-control/manifest.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r09-2026082009-normal-control/post_final_quiescence.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r09-2026082009-normal-control/post_service_resource_state.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r09-2026082009-normal-control/pre_final_quiescence.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r09-2026082009-normal-control/trace.rlp-kv-recovery.6fdc8bdc926d452397ac9deda98d23b2.jsonl",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r09-2026082009-normal-control/trace.rlp-kv-recovery.8ff525b8830f44208316bb6ce9126d09.jsonl",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r09-2026082009-normal-control/trace.rlp-kv-recovery.dacadaf0760749c696058847c4ed0cc4.jsonl",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r09-2026082009-normal-control/trace.rlp.6fdc8bdc926d452397ac9deda98d23b2.jsonl",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r09-2026082009-normal-control/trace.rlp.8ff525b8830f44208316bb6ce9126d09.jsonl",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/r09-2026082009-normal-control/trace.rlp.dacadaf0760749c696058847c4ed0cc4.jsonl",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/redaction_manifest.json",
+            ".benchmarks/results/m0_issue19_public/20260822-sanitized-corrected-paired-10/summary.json"
+          ]
+        }
+      ],
+      "status": "archived"
+    }
+  ]
+}

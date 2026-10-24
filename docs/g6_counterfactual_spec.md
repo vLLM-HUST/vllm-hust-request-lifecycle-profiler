@@ -1,5 +1,9 @@
 # G6 Counterfactual Spec — minimal rank-one template (2026-08-11)
 
+Historical observations and the complete pre-migration text: [benchmark original](https://github.com/vLLM-HUST/vllm-hust-benchmark/blob/842fc4bc69978e50e3b776731a962bfcf33ffaf3/archive/mod-targeted-20261023/profiler-protocols/snapshot/docs/g6_counterfactual_spec.md).
+[Evidence and consumer map](protocol_evidence.md) distinguishes archived members,
+unrecovered inputs and newly generated outputs. Protocol values are not new measurements.
+
 > Gate: **G6 — counterfactual** (experiment_plan.md step 7). This is a
 > **development-level** counterfactual template and run; it is **NOT
 > blind-scored** and must not be relabeled as M0 blind-accuracy evidence
@@ -8,13 +12,11 @@
 
 ## 1. Rank-1 mechanism (from causal ranking evidence)
 
-The only mechanism with a reproducible, observable phase delta in the
-G4/G5 real-online runs is the **KV-recovery state machine, specifically the
-H2D restore path** (`preempt -> restore_start -> restore_done ->
-scheduler_wakeup -> admission -> first_prefill_or_decode`). Under the 8 GiB
-pressure workload, the request that is preempted and restored pays a recovery
-tail while the other requests finish faster (CPU-tier offload reduces their
-wait).
+The historical candidate was the KV-recovery H2D restore path
+(`preempt -> restore_start -> restore_done -> scheduler_wakeup -> admission ->
+first_prefill_or_decode`). See [the archived G6 record](g6_completion_record.md)
+for its measured motivation and outcome; this reusable template does not prove
+that it is the only causal mechanism or that a new run reproduces the finding.
 
 ## 2. Matched pair (only the rank-1 mechanism variable changes)
 
@@ -34,9 +36,10 @@ hardware, workload, and seed are identical.
 
 ## 3. Predicted phase delta
 
-- base: the recovered request's end-to-end time has a **recovery tail**;
-  empirically ~40 s (default cudagraph) over the non-recovered median.
-- head: no restore path, so **no tail** — all requests uniform.
+- base prediction: the recovered request has a recovery tail relative to
+  the non-recovered median; the historical observed magnitude is archive-only.
+- head prediction: removing the restore path removes that recovery tail.
+  Predictions must be checked, not treated as measured outcomes.
 
 ## 4. Pass / fail rule
 
@@ -55,3 +58,7 @@ max-minus-median over the 4 requests). Aggregate over ≥3 lifecycles:
 - Artifacts per run: `server.log`, `pressure_client.out`, trace shards.
 - To reuse: change the single mechanism variable only (mode), keep capacity,
   model, hardware, workload, seed fixed; run ≥3 lifecycles each side.
+
+The named server/client helpers are historical local consumers, not recovered
+executables in this checkout. Preserve the fixed pass/fail rule above; no new
+run or blind M0 result is asserted here.
