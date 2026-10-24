@@ -23,8 +23,11 @@ comparison remain incomplete, so the project status is `NOT_M0_PROVEN`.
 - Use the `vllm-request-lifecycle-profiler-exp` environment. Do not install
   project overlays into the shared `vllm-hust-dev` environment.
 - Use `feature/<project-or-purpose>` branches and ordinary Git commits.
-- Keep profiler code under `src/`, tests under `tests/`, probes under
-  `.benchmarks/`, and research artifacts under `paper/` or `docs/`.
+- Keep profiler code under `src/`, tests under `tests/`, probe code under
+  `.benchmarks/`, and research methods/build sources under `paper/` or `docs/`.
+  Raw measurements, logs and derived experimental outputs belong in
+  `vllm-hust-benchmark`, not in these source directories. Use the pinned external
+  inputs in `EVIDENCE.md`; ignored local generation outputs are not archival inputs.
 - Preserve the default disabled serving path. Serving callbacks must fail open;
   evidence validation and incomplete traces must fail closed.
 - Use the pinned `third_party/llm-serving-workloads` source for trusted runs.

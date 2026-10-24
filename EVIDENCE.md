@@ -70,3 +70,29 @@ The old M0 development validator now reads its concurrency CSV from this externa
 Its separate `/root/kv-recovery-service-g4/runs` inputs are not supplied by this capsule;
 the old G1/G2 preflight scripts likewise require their separately generated inputs.
 These historical local workflows were not executed or declared reproducible by this migration.
+
+## Claim ledger and research consumers
+
+The full numerical claim ledger is already preserved as `snapshot/docs/claim_ledger.md`
+in the [history attachment](https://github.com/vLLM-HUST/vllm-hust-benchmark/releases/download/evidence-mod-history-20261023-v1/profiler.tar.gz).
+No duplicate archive or new measurement is needed. The maintained
+[claim ledger](docs/claim_ledger.md) retains claim scopes and forbidden wording;
+its [legacy map](docs/claim_evidence_bindings.json) identifies archive-relative
+members and explicitly records paths absent from the three pinned capsules.
+Download links are capsule entrances, not assertions that every referenced raw
+trace exists. Summaries do not replace missing full traces.
+
+Research consumer boundaries:
+
+| Consumer | Input | Output / limitation |
+| --- | --- | --- |
+| Issue19 verifier | `BENCHMARK_EVIDENCE_ROOT` public export | Recomputes the scoped NO_GO; controlled raw source is separate |
+| Pair-plan, matrix and anomaly analyzers | `BENCHMARK_COLLECTION_ROOT` | New ignored local summaries; missing full trace fails rather than fabricating one |
+| Paper exporter | History + collection external roots; template fixtures | Derived local tables/figures/CSVs, not fresh measurements |
+| `top-tier-readiness` | Newly generated prerequisite outputs | Must not silently substitute old archived summaries; not an online qualification |
+| Historical G1/G4 workflows | Separate old local captures | Not supplied by these capsules; missing status retained |
+
+Tracked paper PDF/log/table/CSV projections and other mixed research documents
+still require a separate byte-preserving archive/consumer migration. They are not
+deleted by this claim-ledger change. Do not add new experimental outputs under
+`paper/`, `docs/` or `.benchmarks/`; publish them to benchmark with source bindings.
