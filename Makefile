@@ -95,12 +95,14 @@ shared-workloads-smoke:
 shared-workloads-test: test shared-workloads-smoke
 
 issue19-m0-preflight:
+	@test -n "$(ISSUE19_PREFLIGHT_OUTPUT)" || \
+		(printf '%s\n' 'Set ISSUE19_PREFLIGHT_OUTPUT to a new absolute external directory.' >&2; exit 2)
 	@test -n "$(ISSUE19_MODEL_PATH)" || \
 		(printf '%s\n' 'Set ISSUE19_MODEL_PATH to the local model directory.' >&2; exit 2)
 	PYTHONPATH=src $(ISSUE19_RUNTIME_PYTHON) -m vllm_request_lifecycle_profiler.issue19_m0 \
 		--runtime-python $(ISSUE19_RUNTIME_PYTHON) \
 		--model-path "$(ISSUE19_MODEL_PATH)" \
-		--output-dir .benchmarks/results/m0_issue19_preflight
+		--output-dir "$(ISSUE19_PREFLIGHT_OUTPUT)"
 
 issue19-public-evidence-verify:
 	@test -n "$(BENCHMARK_EVIDENCE_ROOT)" || (echo 'Fetch canonical evidence and set BENCHMARK_EVIDENCE_ROOT; see EVIDENCE.md'; exit 1)

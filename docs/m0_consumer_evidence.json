@@ -1,0 +1,41 @@
+{
+  "schema": "profiler-m0-consumers/v1",
+  "bindings": [
+    {
+      "legacy_path": ".benchmarks/results/m0_development_validation_20260811/validation.json",
+      "role": "historical-derived-output",
+      "matches": [],
+      "status": "not-in-four-pinned-capsules"
+    },
+    {
+      "legacy_path": ".benchmarks/results/m0_issue19_preflight/",
+      "role": "fresh-output-destination",
+      "matches": [],
+      "status": "output-not-archival-input"
+    },
+    {
+      "legacy_path": "/root/kv-recovery-service-g4/runs",
+      "role": "private-historical-input",
+      "matches": [],
+      "status": "not-in-four-pinned-capsules"
+    },
+    {
+      "legacy_path": ".benchmarks/results/npu6_runtime_hooks_concurrency_sweep/runtime_internal_spans.csv",
+      "role": "historical-input",
+      "matches": [
+        {
+          "capsule": "collection",
+          "members": [
+            {
+              "path": ".benchmarks/results/npu6_runtime_hooks_concurrency_sweep/runtime_internal_spans.csv",
+              "bytes": 5584,
+              "sha256": "e60492d514a5034e0fda20df206d5c8215f28587378a7ac54e381e29773aa311",
+              "git_blob": "b176672cefbb934f32d5ed379b88efcacefc9811"
+            }
+          ]
+        }
+      ],
+      "status": "archived"
+    }
+  ]
+}

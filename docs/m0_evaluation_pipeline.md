@@ -1,5 +1,9 @@
 # M0 Evaluation Pipeline (development-level, 2026-08-11)
 
+[Complete historical original](https://github.com/vLLM-HUST/vllm-hust-benchmark/blob/5a4439b91923c5a1c5cf9a1a1dac729a3f32846c/archive/mod-targeted-20261023/profiler-m0-consumers/snapshot/docs/m0_evaluation_pipeline.md).
+[Evidence and consumer map](m0_consumer_evidence.md). `NOT_M0_PROVEN`; no new
+experiment, historical-input recovery or current device readiness is implied.
+
 > Implements issue #1's first-stage evaluation machinery: normalize request
 > traces into a phase DAG, diff baseline vs anomaly on the critical path, rank
 > top-k mechanism candidates with confidence and unexplained residual, and
@@ -23,25 +27,33 @@
    threshold.
 7. **Score** (when ground truth is known) — top-1/top-3 match, MRR.
 
-## Development validation (NOT blind-scored)
+## Historical development validation (NOT blind-scored)
 
-Module: `src/vllm_request_lifecycle_profiler/m0_evaluation.py`
-Driver: `.benchmarks/run_m0_development_validation.py`
-Results: `.benchmarks/results/m0_development_validation_20260811/validation.json`
+The complete original above retains the four-case numerical table and dated
+test count. The old validation JSON and private G4/G6 input runs have not been
+matched in the pinned public capsules; the table is not a recovered raw file.
+The concurrency CSV is available through the exact [member map](m0_consumer_evidence.json).
 
-| case | baseline | anomaly | ground truth | top-1 | share | residual | verdict |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| A restore tail | tiering_disabled (no restore) | tiering_enabled (restore) | restore/wakeup | restore/wakeup | 1.000 | 0.000 | correct |
-| B concurrency-2 prefill tail | concurrency 1 | concurrency 2 | prefill | prefill | 0.912 | 0.087 | correct |
-| C no single root cause | synthetic | synthetic spread | (abstain) | — | — | 1.000 | abstained |
-| D low evidence | concurrency 1 | concurrency 3 | (abstain) | — | — | 1.000 | abstained |
+Module: `src/vllm_request_lifecycle_profiler/m0_evaluation.py`.
+Driver: `.benchmarks/run_m0_development_validation.py`.
+Unit tests: `tests/test_m0_evaluation.py` (current CI, not a dated count).
 
-Unit tests: `tests/test_m0_evaluation.py` (5 passed).
+The driver now requires explicit `--g4-runs-root`, `--collection-root` and
+`--output-dir`. Inputs must be external and present; output must be a new
+absolute external directory disjoint from inputs. Missing or ambiguous run
+prefixes and missing measured concurrency arms fail before writing a result.
+There is no fallback to old machine paths or the dated result directory.
+
+Case A retains a historical max-total heuristic linking a recovery span to a
+client row, not an exact request-identity join. Operator-provided private inputs
+are not authenticated by this driver. New outputs are labeled derived-artifact,
+NOT_M0_PROVEN and not blind-scored; they cannot replace the archived observations.
+No replay with the unavailable private inputs was performed in this migration.
 
 ## Boundary
 
-- Development-level only: ground truth is known and not hidden. It validates
-  that the pipeline can localize the two known anomalies and abstain correctly.
+- Development-level only: ground truth is known and not hidden. The archived record describes
+  localization of known anomalies and abstention, not a fresh validation result.
 - It does **not** establish blind accuracy/MRR/time-to-localize; that requires
   the separately frozen Team-A custody/reveal protocol with fresh opaque cases.
 - `time-to-localize` is currently represented by ground-truth rank (rank 1 ⇒
