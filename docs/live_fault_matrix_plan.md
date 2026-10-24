@@ -1,79 +1,42 @@
 # Live Fault Matrix Plan
 
-> **Priority correction (2026-08-03):** faculty comments on profiler issue #1
-> supersede the old “rerun concurrency-2 next” instruction. Preserve that
-> artifact as a development trigger. PR #4 reconciliation is now complete on
-> `feature/kv-recovery-integration`; next complete the versioned
-> KV-recovery/communication profile, controlled runtime-trace validation, and
-> the remaining G0-G3 gates in `experiment_plan.md`. The next matched candidate
-> is benchmark #134's fixed-8-GiB tiering/HBM-only comparison.
+[Complete historical original](https://github.com/vLLM-HUST/vllm-hust-benchmark/blob/76056993c6bdf615850d683e49c46febf0ce96d3/archive/mod-targeted-20261023/profiler-runbooks/snapshot/docs/live_fault_matrix_plan.md).
+[Archived inputs and consumer map](runbook_evidence.md) separates historical
+results, fresh output examples and unrecovered local traces. No new run is
+authorized or claimed by this document migration.
 
-The current artifact proves that lifecycle traces can be collected and that
-client-visible diagnosis changes under known slow-stream and decode-heavy
-faults. That is not yet enough for a systems-paper diagnosis claim. The next
-submission-critical milestone is a live fault matrix with ground-truth fault
-classes, raw-timer baselines, and explicit overhead measurements.
+This is a historical method plan, not current environment admission or a new
+execution queue. The active research direction and scoped Issue #19 `NO_GO`
+boundary are maintained in [next_agent_task.md](next_agent_task.md) and
+[blind_attribution_contract.md](blind_attribution_contract.md).
+Status remains `NOT_M0_PROVEN`.
 
-## Current Supported Evidence
+## Historical evidence boundary
 
-- Synthetic lifecycle attribution: 7/7 deterministic faults are classified
-  correctly in the no-NPU harness.
-- Client-observed NPU6 proxy traces: warmup-controlled shared workload runs
-  produce complete proxy lifecycle events and derived stage hypotheses.
-- Runtime hook coverage: the hook-enabled vLLM-HUST submodule records all nine
-  lifecycle stages on the NPU6 smoke workload with bounded smoke overhead.
-- Controlled slow-stream fault: the known client slow-read fault switches
-  client-visible diagnosis to `streaming`, while runtime hooks still record
-  complete chains.
-- Structured decode-heavy fault: the known decode-heavy workload switches
-  client-visible diagnosis to `decode`, while runtime hooks again record
-  complete chains.
-- Prompt-heavy low-output fault: the same runtime-entering workload with only
-  4 requested output tokens switches client-visible diagnosis to `prefill`,
-  with 8/8 measured success and complete runtime hook chains.
-- Concurrency-sensitive structured-agent sweep: the hook-enabled NPU6 service
-  succeeds for 27/27 measured requests across measured concurrency 1/2/3. It
-  exposes a non-monotonic prefill/TTFT boundary: concurrency 2 has 8/9
-  `prefill` diagnoses and TTFT p95 12299.08 ms, while concurrency 3 has 9/9
-  `prefill` diagnoses but TTFT p95 131.61 ms. Runtime hooks record 30/30
-  complete chains with no missing stages. Post-hoc internal span analysis
-  confirms that the concurrency-2 tail is inside the runtime prefill span:
-  runtime prefill p95 is 12261.98 ms at concurrency 2, versus 150.31 ms at
-  concurrency 1 and 106.94 ms at concurrency 3. The chain-level anomaly
-  artifact
-  `.benchmarks/results/npu6_runtime_hooks_concurrency_sweep/concurrency_anomaly_analysis/`
-  holds prompt tokens (2335), generation tokens (8), and cached-token ratio p50
-  (0.987) constant, and finds the only two >1 s runtime-prefill outliers in
-  concurrency 2.
-
-These results support trace feasibility and coverage during known faults. They
-do not yet prove internal-only causal diagnosis accuracy.
+The complete original records synthetic coverage, client-proxy observations,
+runtime-hook smoke, controlled faults and a concurrency-sensitive prefill
+anomaly. Numerical observations are archive-only. These support development
+trace feasibility, not internal-only causal accuracy or broad overhead claims.
+The [input map](runbook_evidence.md) links the existing raw-data capsule and
+exact members; an available summary does not recover an omitted raw trace.
 
 ## Missing Submission Gates
 
 ### Gate 1: Valid Prefill or KV-Pressure Fault
 
-The two long-context candidates in
-`.benchmarks/results/npu6_runtime_hooks_long_prefill_fault_smoke/` and
-`.benchmarks/results/npu6_runtime_hooks_decode_heavy_fault_smoke/` are invalid
-boundary evidence because requests failed before usable runtime attribution.
-The prompt-heavy low-output run now provides a valid prefill-dominant case that
-enters the runtime and produces successful measured requests. The concurrency
-sweep adds a concrete anomaly to explain: the concurrency-2 run produces a
-12.3 s TTFT/prefill tail that does not appear at concurrency 3, and internal
-runtime spans confirm the tail is in prefill under a fixed prompt/output/cache
-shape. The remaining gate is to split that prefill span into
-scheduler-to-prefill transition, KV allocation/cache pressure, graph capture or
-batch transition, and prefill kernel execution, rather than treating a coarse
-prefill span as KV proof.
+The historical long-context candidates remain invalid boundary evidence:
+requests failed before usable runtime attribution. The prompt-heavy case and
+concurrency sweep are separate development evidence, not replacements for
+blind evaluation. See the archived original and [input map](runbook_evidence.md)
+for the preserved cases. A coarse prefill tail is not KV-mechanism proof.
+The methodological gap is finer decomposition of scheduler-to-prefill,
+KV allocation/cache pressure, graph/batch transition and kernel execution.
 
 Required evidence:
 
-- Keep `.benchmarks/results/npu6_runtime_hooks_concurrency_sweep/` as the
-  candidate boundary evidence.
-- Keep `.benchmarks/results/npu6_runtime_hooks_concurrency_sweep/concurrency_anomaly_analysis/`
-  as the chain-level audit table for fixed token/cache shape and c=2-only
-  outliers.
+- Read the verified external concurrency-sweep inputs and chain-level audit
+  through [the exact member map](runbook_evidence.md), never this checkout's
+  `.benchmarks/results` directory.
 - Add finer internal span or counter analysis for the concurrency-2 tail:
   scheduler-to-prefill transition, prefill execution, KV allocation/cache
   pressure, graph capture or batch transition, and request-level token counts.
@@ -108,7 +71,7 @@ Required columns:
 
 ### Gate 3: Runtime Hook Overhead Beyond Smoke
 
-The current hook-disabled/enabled pair is a small smoke. Before broad overhead
+The historical hook-disabled/enabled pair is a small smoke. Before broad overhead
 claims, add at least one longer decode-heavy workload and one prompt-heavy
 workload.
 
@@ -137,7 +100,7 @@ Do not use these terms yet:
 - "broadly negligible overhead";
 - "time-to-root-cause reduction" unless a raw-log/manual baseline is measured.
 
-## Suggested Next NPU6 Run
+## Historical follow-up method (not execution authorization)
 
 Do not launch another coarse-prefill run yet. After G0-G2 admit the environment,
 run one minimal controlled pressure episode and split its chain into D2H/H2D

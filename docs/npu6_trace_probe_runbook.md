@@ -1,5 +1,10 @@
 # NPU6 Existing-Server Trace Probe Runbook
 
+[Complete historical original](https://github.com/vLLM-HUST/vllm-hust-benchmark/blob/76056993c6bdf615850d683e49c46febf0ce96d3/archive/mod-targeted-20261023/profiler-runbooks/snapshot/docs/npu6_trace_probe_runbook.md).
+[Archived inputs and consumer map](runbook_evidence.md) separates historical
+results, fresh output examples and unrecovered local traces. No new run is
+authorized or claimed by this document migration.
+
 This runbook prepares a read-only probe against an already running vLLM-HUST
 OpenAI-compatible server on NPU6. It does not start or stop services. If any
 required check fails, write `BLOCKED.txt` and do not switch devices.
@@ -38,87 +43,43 @@ export VLLM_RLP_ASCEND_RUNTIME_ROOT=/usr/local/Ascend/ascend-toolkit/latest
 # export VLLM_RLP_API_TOKEN=...  # only if the local endpoint requires it
 ```
 
-## Historical Managed Server Launch
+## Historical launch and hook identity
 
-The historical launch path used the vLLM-HUST dev-hub manager with this
-repository's non-secret profile. Preserve it for reproduction only:
-
-```bash
-cd /home/shuhao/vllm-request-lifecycle-profiler-plugin
-export VLLM_HUST_API_KEY='<secret from your local secret store>'
-make managed-start
-make managed-health
-```
-
-The profile is `.benchmarks/profiles/npu6_vllm_hust_trace.env`. It binds
-`VLLM_ENGINE_NPU_DEVICES=6`, `ASCEND_RT_VISIBLE_DEVICES=6`, port `18168`, and
-the default 7B model. It also points `PYTHONPATH` at this parent repository and
-its pinned `third_party/vllm-hust` submodule so hook-enabled evidence is
-reproducible from the optimization repository. The profile intentionally does
-not set `VLLM_RLP_TRACE_EXPORT_PATH`; hook-disabled mode is the default, and
-hook-enabled mode must pass the export path explicitly. Equivalent explicit
-command:
-
-```bash
-VLLM_ENGINE_ENV_FILE=$PWD/.benchmarks/profiles/npu6_vllm_hust_trace.env \
-  /home/shuhao/vllm-hust-dev-hub/manage.sh start
-```
-
-Do not use another NPU. If NPU6 is occupied by unrelated work, record a blocked
-run and stop. `make managed-stop`, `make managed-status`, and
-`make managed-logs` use the same profile.
-
-## Historical Pinned Runtime Hook Submodule
-
-The following reproduces old internal runtime-hook experiments. It is not the
-implementation base for the current KV-recovery assignment:
-
-```bash
-git submodule update --init --recursive third_party/vllm-hust
-git -C third_party/vllm-hust checkout feature/request-lifecycle-profiler-runtime-hooks-faculty
-git -C third_party/vllm-hust rev-parse HEAD
-```
-
-The expected hook carrier is commit
-`0daab7a300fb91efebd35b221b9a6f6c6d7486f8`. It imports the parent package's
-runtime hook bridge only when `VLLM_RLP_TRACE_EXPORT_PATH` is set. Before
-launching a hook-enabled service, install the parent repository into the
-project environment:
-
-```bash
-conda run --no-capture-output -n vllm-request-lifecycle-profiler-exp \
-  python -m pip install -e .
-```
-
-Hook-disabled mode leaves `VLLM_RLP_TRACE_EXPORT_PATH` unset. Hook-enabled mode
-sets it to a fresh JSONL path, for example:
-
-```bash
-export VLLM_RLP_TRACE_EXPORT_PATH=/home/shuhao/vllm-request-lifecycle-profiler-plugin/.benchmarks/results/npu6_runtime_hooks_enabled_smoke/runtime_trace.jsonl
-```
+The complete original above preserves the old dev-hub launch commands,
+machine-specific paths, profile, hook-carrier SHA and hook-enabled output
+example. Those recipes are historical context, not a supported launch base or
+authority to start, stop, reinstall or switch an existing service. Do not use
+the old carrier for current KV-recovery work. Runtime-hook output must use a
+fresh, run-owned external path; it must not overwrite downloaded evidence.
 
 Do not use non-serving import workarounds such as
-`TORCH_DEVICE_BACKEND_AUTOLOAD=0` for the measured service. Those are useful
-only for local syntax/import diagnostics outside the real Ascend runtime.
+`TORCH_DEVICE_BACKEND_AUTOLOAD=0` for a measured service. They are only useful
+for local syntax/import diagnostics outside the real Ascend runtime.
 
 ## Read-Only Preflight
 
-Run:
+This command is the legacy existing-server preflight, not the versioned
+whole-trace KV-recovery admission check. Use the actual authorized endpoint,
+served model and current run-owned trace, not an old temporary trace or an
+archived READY marker. Choose a new absolute output directory outside the
+checkout and outside every downloaded archive root:
 
 ```bash
+test ! -e "${PROBE_OUTPUT:?choose a new external output directory}" &&
 PYTHONPATH=src python3 .benchmarks/preflight_npu6_trace_probe.py \
-  --endpoint http://127.0.0.1:18168 \
-  --model-path /data/shared_models/Qwen2.5-7B-Instruct \
-  --trace-export-path /tmp/codex-vllm-request-lifecycle-profiler-npu6-trace.jsonl \
-  --api-token-env VLLM_HUST_API_KEY \
-  --output-dir .benchmarks/results/npu6_trace_probe_preflight
+  --endpoint "${VLLM_RLP_ENDPOINT:?set the authorized endpoint}" \
+  --model-path "${VLLM_RLP_MODEL_PATH:?set the served model}" \
+  --trace-export-path "${VLLM_RLP_TRACE_EXPORT_PATH:?set the current trace}" \
+  --api-token-env VLLM_RLP_API_TOKEN \
+  --output-dir "$PROBE_OUTPUT"
 ```
 
-or:
-
-```bash
-make npu6-trace-preflight
-```
+The script writes metadata and may replace readiness markers in its output
+directory; it is read-only with respect to the existing service, not the file
+system. Never point it at the verified historical preflight directory.
+The legacy `make npu6-trace-preflight` target retains a repo-local default;
+the explicit command above avoids that default for new work. No preflight or
+service command was executed as part of this document migration.
 
 The script checks:
 

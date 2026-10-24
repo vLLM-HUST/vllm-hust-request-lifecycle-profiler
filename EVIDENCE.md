@@ -1,5 +1,12 @@
 # Canonical historical data
 
+## Fault and probe runbooks
+
+[Runbook inputs and consumers](docs/runbook_evidence.md) links four complete
+originals, historical data members and explicitly classified fresh-output
+examples. `BENCHMARK_RUNBOOKS.json` pins their manifest and SHA256. Old service
+recipes and temporary trace paths do not authorize or prove a current run.
+
 ## Mixed protocols and implementation context
 
 [Protocol evidence and consumer map](docs/protocol_evidence.md) links five complete
