@@ -1,5 +1,13 @@
 # Canonical historical data
 
+## Top-level research notes
+
+[Research-note inputs and consumers](docs/notes_evidence.md) links the complete
+historical TOP_TIER/research/progress/findings/task-plan originals and their
+legacy data members. `BENCHMARK_NOTES.json` pins the manifest and SHA256.
+The recorded old PDF build digest differs from the known research-archive PDF;
+that older local copy is not declared recovered. No new build or run is implied.
+
 ## Fault and probe runbooks
 
 [Runbook inputs and consumers](docs/runbook_evidence.md) links four complete

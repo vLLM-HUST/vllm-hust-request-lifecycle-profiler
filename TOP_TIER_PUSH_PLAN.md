@@ -1,24 +1,29 @@
 # TOP_TIER_PUSH_PLAN
 
+[Complete historical original](https://github.com/vLLM-HUST/vllm-hust-benchmark/blob/c45a279dd2ee48c57a7cb27a0d7ad0666f25afd5/archive/mod-targeted-20261023/profiler-notes/snapshot/TOP_TIER_PUSH_PLAN.md).
+[Evidence and consumer map](docs/notes_evidence.md) distinguishes immutable
+historical records, current methods and missing local artifacts. This page
+does not claim a new experiment, build, visual review or device admission.
+
 ## Target Claim
 
 LLM serving optimization needs causal request lifecycle evidence, not only
 aggregate TTFT/TPOT numbers and scattered runtime logs.
 
-## Current State
+## Current claim boundary
 
-Follow `docs/next_agent_task.md` for the current NPU6 execution checklist. The
-first evidence gate is complete: the repo has a stable trace schema,
-synthetic-fault coverage, client-observed NPU6 traces, slow-stream
-client-visible diagnosis, and a pinned vLLM-HUST runtime hook carrier.
+Follow [the current research sequence](docs/next_agent_task.md) and
+[blind-attribution contract](docs/blind_attribution_contract.md), not an old
+completed checklist. Status remains `NOT_M0_PROVEN`; the scoped Issue #19
+mechanism `NO_GO` must not be rerun or retuned.
 
-The current runtime-hook gate is
-`.benchmarks/results/npu6_runtime_hook_pair_plan/summary.json`: hook-enabled
-and hook-disabled source runs are paired, every observed request chain has all
-nine lifecycle stages, and small-smoke latency overhead is bounded. This is the
-starting point for live fault attribution, not the final paper result.
+Historical trace capture, pair-plan observations and smoke overhead are
+preserved in the complete original and [exact input map](docs/notes_evidence.md).
+They are development evidence, not present-day readiness or broad overhead
+qualification. The pair-plan summary is a verified external input, not a
+tracked result in this source repository.
 
-## Next Push
+## Historical method checklist (not execution authorization)
 
 1. Run controlled NPU6 fault attribution one class at a time: slow streaming,
    long-prompt prefill pressure, decode-heavy output, KV-pressure boundary, and
@@ -48,5 +53,6 @@ or artifact contributions.
 This project is only ASPLOS-ready if causal lifecycle traces correctly
 attribute controlled faults, expose a non-obvious real serving bottleneck, and
 show why raw logs or simple timers would lead to weaker optimization decisions.
-The current repo satisfies the trace-capture readiness gate; the remaining
-top-tier gate is live controlled-fault accuracy plus a decision-impact story.
+Historical capture readiness is not the causal-evaluation gate. A fresh blind
+comparison, baseline advantage and validating counterfactuals remain necessary;
+the archived completed checklist does not establish those outcomes.
