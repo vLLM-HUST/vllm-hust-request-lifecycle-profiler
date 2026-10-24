@@ -18,6 +18,7 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any
 
+from vllm_request_lifecycle_profiler.evidence_paths import fresh_external_output
 from vllm_request_lifecycle_profiler.oasst1_workload import (
     DEFAULT_DATA_CACHE,
     DEFAULT_MAX_MODEL_LEN,
@@ -29,7 +30,6 @@ from vllm_request_lifecycle_profiler.oasst1_workload import (
 )
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-DEFAULT_OUTPUT_DIR = REPO_ROOT / ".benchmarks" / "results" / "m0_issue19_preflight"
 DEFAULT_RUNTIME = REPO_ROOT / "third_party" / "vllm-hust"
 DEFAULT_ASCEND = REPO_ROOT / "third_party" / "vllm-ascend-hust"
 DEFAULT_MODEL = (
@@ -912,7 +912,7 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--ascend", type=Path, default=DEFAULT_ASCEND)
     parser.add_argument("--runtime-python", type=Path, default=Path(sys.executable))
     parser.add_argument("--model-path", type=Path, default=DEFAULT_MODEL)
-    parser.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT_DIR)
+    parser.add_argument("--output-dir", type=Path, required=True)
     parser.add_argument(
         "--service-smoke-result",
         type=Path,
@@ -928,6 +928,20 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
 
 def main(argv: Sequence[str] | None = None) -> int:
     args = parse_args(argv)
+    args.output_dir = fresh_external_output(
+        args.output_dir,
+        inputs=tuple(
+            p
+            for p in (
+                args.runtime,
+                args.ascend,
+                args.model_path,
+                args.oasst1_data,
+                args.service_smoke_result,
+            )
+            if p is not None
+        ),
+    )
     repetitions = build_oasst1_repetitions(args.oasst1_data)
     projection = build_projection_manifest(repetitions)
     execution = build_execution_manifest(projection)
@@ -960,6 +974,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         readiness["blockers"].append("oasst1_context_gate_failed")
     service_smoke = inspect_service_smoke_result(args.service_smoke_result)
     finalize_readiness(readiness, service_smoke)
+    # Reserve only after inspection, but refuse a directory created in the meantime.
+    args.output_dir.mkdir(parents=True, exist_ok=False)
     write_preflight_outputs(
         args.output_dir,
         projection=projection,

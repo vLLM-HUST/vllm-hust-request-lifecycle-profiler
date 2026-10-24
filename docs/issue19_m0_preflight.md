@@ -1,5 +1,15 @@
 # Issue 19 M0 serving preflight
 
+[Complete historical original](https://github.com/vLLM-HUST/vllm-hust-benchmark/blob/5a4439b91923c5a1c5cf9a1a1dac729a3f32846c/archive/mod-targeted-20261023/profiler-m0-consumers/snapshot/docs/issue19_m0_preflight.md).
+[Evidence and consumer map](m0_consumer_evidence.md). `NOT_M0_PROVEN`; no new
+experiment, historical-input recovery or current device readiness is implied.
+
+This page documents the historical fixed specialty protocol, not a current
+execution request. The completed corrected Issue #19 mechanism is `NO_GO`;
+reconciliation remains disabled. See [the public evidence](issue19_public_evidence.md)
+for the decision and [benchmark inputs](../EVIDENCE.md) for the sanitized export.
+Version/capacity values below identify this protocol, not today's general host.
+
 The Issue #19 M0 runner must fail closed before it starts a service. Run:
 
 ```bash
@@ -13,7 +23,8 @@ uv pip install --python .venv-issue19/bin/python \
 VLLM_TARGET_DEVICE=empty SETUPTOOLS_SCM_PRETEND_VERSION=0.23.0 \
   uv pip install --python .venv-issue19/bin/python \
   --no-deps --no-build-isolation -e third_party/vllm-hust
-make issue19-m0-preflight ISSUE19_MODEL_PATH="$MODEL_DIR"
+make issue19-m0-preflight ISSUE19_MODEL_PATH="$MODEL_DIR" \
+  ISSUE19_PREFLIGHT_OUTPUT="${ISSUE19_PREFLIGHT_OUTPUT:?new absolute external directory}"
 ```
 
 The dedicated ignored environment inherits the host CANN/Torch-NPU stack,
@@ -24,7 +35,10 @@ prepends the two pinned submodules when it
 inspects module origins; it does not accept an ambient vLLM checkout.
 
 The command consumes the pinned OASST1 object and emits three local artifacts
-under the ignored `.benchmarks/results/m0_issue19_preflight/` directory:
+under the explicit new external `ISSUE19_PREFLIGHT_OUTPUT` directory. The old
+ignored directory in the original is an output destination, not an archived
+input. The CLI requires `--output-dir` and rejects existing/overlapping output
+paths before reading the workload or probing the environment:
 
 - `projection_manifest.json` contains the deterministic 10 × 64 request set;
 - `execution_manifest.json` fixes seeds `2026082000..2026082009`, all six
@@ -37,10 +51,9 @@ under the ignored `.benchmarks/results/m0_issue19_preflight/` directory:
 The corrected specialty target is BF16 Qwen2.5-14B on one 910B2 with
 `max_model_len=10880`, `kv_cache_memory_bytes=2147483648`, eager execution,
 and `OffloadingConnector + TieringOffloadingSpec` with 8 GiB of CPU capacity.
-The 2-GiB cache exposes exactly 10,880 block-aligned tokens for this model. The
-earlier 32K/2-GiB combination was not executable: a 32K admission requires
-6 GiB before any request can be served. This correction was made after a
-startup-only smoke and before treatment or M0 observations.
+The 2-GiB cache exposes exactly 10,880 block-aligned tokens for this model.
+The earlier capacity mismatch and startup-only smoke observations are retained
+in the complete original; they are not current preflight results.
 
 The static readiness gate also requires the profiler, runtime, and Ascend
 worktrees to be clean. This prevents a manifest from naming a commit that does
@@ -54,8 +67,8 @@ canonicalizes the two independently allocated tensors, and this probe remains
 fail-closed against regressions that reject the tuple or omit either component.
 
 Static admission and M0 admission are deliberately separate. With no static
-blockers, preflight writes `SMOKE_READY.txt`, which permits a loopback service
-smoke only. It writes `READY.txt` only after a separately supplied
+blockers, preflight writes `SMOKE_READY.txt`, which records static readiness for a separately authorized loopback service
+smoke only, not permission to rerun the completed NO_GO scenario. It writes `READY.txt` only after a separately supplied
 `--service-smoke-result` proves that the exact connector configuration reached
 HTTP health and produced a complete request-terminal and recovery trace with
 zero data loss/writer failures. Otherwise `M0_BLOCKED.txt` remains present.
@@ -85,5 +98,5 @@ fatal EngineCore cleanup invalidates still-open EngineCore leases before the
 observer is closed. The disabled path does not allocate the auxiliary lease
 map. Ascend retains the first-compute seam. None of these callbacks enables
 reconciliation or changes scheduling/transfer behavior. A successful
-preflight only authorizes the next service smoke; these artifacts remain
+preflight only records readiness for a separately authorized service smoke; these artifacts remain
 `smoke-only`, not real-online M0 or performance evidence.

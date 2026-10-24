@@ -5,23 +5,22 @@ Cases (NOT blind-scored; ground truth is known from prior analysis):
   B: concurrency-2 prefill tail (vs concurrency-1) -> prefill
   C: abstain negative case (no single root cause)
 """
+
 from __future__ import annotations
 
+import argparse
 import glob
 import json
-import os
 from pathlib import Path
 
+from vllm_request_lifecycle_profiler.evidence_paths import fresh_external_output
 from vllm_request_lifecycle_profiler.m0_evaluation import (
     RequestPhases,
     evaluate_case,
-    load_phase_rows_csv,
-    phases_from_kv_recovery_and_client,
     report_to_dict,
 )
 
-RUNS = Path("/root/kv-recovery-service-g4/runs")
-RES = Path(__file__).resolve().parents[1] / ".benchmarks/results"
+RUNS: Path
 
 
 def _client_totals(run_prefix: str) -> dict[str, float]:
@@ -63,7 +62,11 @@ def _kv_recovery_span_ms(run_prefix: str) -> dict[str, float]:
                     continue
                 if ev.get("record_type") != "recovery_event":
                     continue
-                req, stage, ts = ev.get("runtime_request_id"), ev.get("stage"), ev.get("timestamp_ns")
+                req, stage, ts = (
+                    ev.get("runtime_request_id"),
+                    ev.get("stage"),
+                    ev.get("timestamp_ns"),
+                )
                 if not req or not stage or not isinstance(ts, int):
                     continue
                 if stage == "preempt":
@@ -79,10 +82,6 @@ def case_a_rows(mode_prefix: str) -> list[RequestPhases]:
     spans = _kv_recovery_span_ms(mode_prefix)
     rows = []
     # if spans exist, the recovered request is the max-total one; assign recovery span
-    recovered = None
-    if spans:
-        # identify recovered request's label: the max total belongs to the recovered one
-        pass
     # Build per-request: recovered gets {kv_recovery: span, decode: total-span}
     # others get {decode: total}. Since client labels are req0..req3 and totals list is
     # in label order, use totals directly.
@@ -90,44 +89,114 @@ def case_a_rows(mode_prefix: str) -> list[RequestPhases]:
     for label, total in totals.items():
         if spans and label == max(totals, key=totals.get):
             span = next(iter(spans.values()), 0.0)
-            rows.append(RequestPhases(label, {"kv_recovery": span, "decode": max(0.0, total - span)}))
+            rows.append(
+                RequestPhases(
+                    label, {"kv_recovery": span, "decode": max(0.0, total - span)}
+                )
+            )
         else:
             rows.append(RequestPhases(label, {"decode": total}))
     return rows
 
 
-def run() -> None:
+def run(argv=None) -> None:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--g4-runs-root", type=Path, required=True)
+    parser.add_argument("--collection-root", type=Path, required=True)
+    parser.add_argument("--output-dir", type=Path, required=True)
+    args = parser.parse_args(argv)
+    global RUNS
+    RUNS = args.g4_runs_root.resolve()
+    collection = args.collection_root.resolve()
+    for original, resolved in (
+        (args.g4_runs_root, RUNS),
+        (args.collection_root, collection),
+    ):
+        if (
+            not original.is_absolute()
+            or not resolved.is_dir()
+            or resolved.is_relative_to(Path(__file__).resolve().parents[1])
+        ):
+            raise ValueError(
+                "input roots must be existing absolute external directories"
+            )
+    dest = fresh_external_output(args.output_dir, inputs=(RUNS, collection))
+    for prefix in (
+        "f4b1b083",
+        "0fe82cc1",
+        "d20f2126",
+        "eaa94f8b",
+        "73d47651",
+        "ababc337",
+        "7d36ef9f",
+        "c04e4681",
+        "b2e2a7cf",
+        "24b0508b",
+        "adf18208",
+        "fb81d458",
+    ):
+        matches = list(RUNS.glob(prefix + "*"))
+        if len(matches) != 1 or not (matches[0] / "pressure_client.out").is_file():
+            raise ValueError(f"missing or ambiguous historical run: {prefix}")
+        if not _client_totals(prefix + "*"):
+            raise ValueError(f"no parsed client requests: {prefix}")
+        if prefix in (
+            "7d36ef9f",
+            "c04e4681",
+            "b2e2a7cf",
+            "24b0508b",
+            "adf18208",
+            "fb81d458",
+        ) and not _kv_recovery_span_ms(prefix + "*"):
+            raise ValueError(f"missing recovery span: {prefix}")
     out = {}
 
     # ---- Case A: restore tail (G6 matched pair + G4 corroboration) ----
-    base = case_a_rows("f4b1b083*") + case_a_rows("0fe82cc1*") + case_a_rows("d20f2126*")
-    base += case_a_rows("eaa94f8b*") + case_a_rows("73d47651*") + case_a_rows("ababc337*")
-    anomaly = case_a_rows("7d36ef9f*") + case_a_rows("c04e4681*") + case_a_rows("b2e2a7cf*")
-    anomaly += case_a_rows("24b0508b*") + case_a_rows("adf18208*") + case_a_rows("fb81d458*")
-    rep_a = evaluate_case(base, anomaly, case_id="g4-g6_restore_tail", ground_truth="restore/wakeup")
+    base = (
+        case_a_rows("f4b1b083*") + case_a_rows("0fe82cc1*") + case_a_rows("d20f2126*")
+    )
+    base += (
+        case_a_rows("eaa94f8b*") + case_a_rows("73d47651*") + case_a_rows("ababc337*")
+    )
+    anomaly = (
+        case_a_rows("7d36ef9f*") + case_a_rows("c04e4681*") + case_a_rows("b2e2a7cf*")
+    )
+    anomaly += (
+        case_a_rows("24b0508b*") + case_a_rows("adf18208*") + case_a_rows("fb81d458*")
+    )
+    rep_a = evaluate_case(
+        base, anomaly, case_id="g4-g6_restore_tail", ground_truth="restore/wakeup"
+    )
     out["case_A_restore_tail"] = report_to_dict(rep_a)
 
     # ---- Case B: concurrency-2 prefill tail ----
-    collection = Path(os.environ["BENCHMARK_COLLECTION_ROOT"])
-    if not collection.is_absolute() or collection.resolve().is_relative_to(
-        Path(__file__).resolve().parents[1]
-    ):
-        raise ValueError("BENCHMARK_COLLECTION_ROOT must be outside the checkout")
-    csv_path = collection / ".benchmarks/results/npu6_runtime_hooks_concurrency_sweep/runtime_internal_spans.csv"
-    rows_all = load_phase_rows_csv(csv_path)
-    rows_measured = [r for r in rows_all if "warmup" not in str(r.request_id) or True]
+    csv_path = (
+        collection
+        / ".benchmarks/results/npu6_runtime_hooks_concurrency_sweep/runtime_internal_spans.csv"
+    )
     # filter by assigned_concurrency is not in the RequestPhases; reload with concurrency
     base_b, anomaly_b = [], []
     with open(csv_path, newline="", encoding="utf-8") as handle:
         import csv as _csv
+
         for rec in _csv.DictReader(handle):
             if rec.get("phase") != "measured":
                 continue
             phases = {}
-            for name in ("tokenization", "queueing", "prefill", "first_token_gap", "decode", "streaming", "cleanup"):
+            for name in (
+                "tokenization",
+                "queueing",
+                "prefill",
+                "first_token_gap",
+                "decode",
+                "streaming",
+                "cleanup",
+            ):
                 if rec.get(name):
                     try:
-                        phases[name if name != "first_token_gap" else "decode"] = float(rec[name])
+                        phases[name if name != "first_token_gap" else "decode"] = float(
+                            rec[name]
+                        )
                     except ValueError:
                         pass
             rp = RequestPhases(rec.get("chain_id", "?"), phases)
@@ -135,7 +204,11 @@ def run() -> None:
                 base_b.append(rp)
             elif rec.get("assigned_concurrency") == "2":
                 anomaly_b.append(rp)
-    rep_b = evaluate_case(base_b, anomaly_b, case_id="concurrency2_prefill_tail", ground_truth="prefill")
+    if not base_b or not anomaly_b:
+        raise ValueError("missing measured concurrency 1/2 inputs")
+    rep_b = evaluate_case(
+        base_b, anomaly_b, case_id="concurrency2_prefill_tail", ground_truth="prefill"
+    )
     out["case_B_concurrency2_prefill_tail"] = report_to_dict(rep_b)
 
     # ---- Case C: abstain (synthetic no-single-root-cause: deltas spread across phases) ----
@@ -149,8 +222,13 @@ def run() -> None:
         RequestPhases("s2", {"queueing": 130.0, "prefill": 230.0, "decode": 330.0}),
         RequestPhases("s3", {"queueing": 127.0, "prefill": 225.0, "decode": 325.0}),
     ]
-    rep_c = evaluate_case(synth_base, synth_anom, case_id="synthetic_no_single_root_cause",
-                          ground_truth=None, abstain_threshold_ms=1.0)
+    rep_c = evaluate_case(
+        synth_base,
+        synth_anom,
+        case_id="synthetic_no_single_root_cause",
+        ground_truth=None,
+        abstain_threshold_ms=1.0,
+    )
     out["case_C_abstain"] = report_to_dict(rep_c)
 
     # ---- Case D: abstain (concurrency-1 vs concurrency-3, low evidence) ----
@@ -158,14 +236,25 @@ def run() -> None:
     base_c, anomaly_c = [], []
     with open(csv_path, newline="", encoding="utf-8") as handle:
         import csv as _csv
+
         for rec in _csv.DictReader(handle):
             if rec.get("phase") != "measured":
                 continue
             phases = {}
-            for name in ("tokenization", "queueing", "prefill", "first_token_gap", "decode", "streaming", "cleanup"):
+            for name in (
+                "tokenization",
+                "queueing",
+                "prefill",
+                "first_token_gap",
+                "decode",
+                "streaming",
+                "cleanup",
+            ):
                 if rec.get(name):
                     try:
-                        phases[name if name != "first_token_gap" else "decode"] = float(rec[name])
+                        phases[name if name != "first_token_gap" else "decode"] = float(
+                            rec[name]
+                        )
                     except ValueError:
                         pass
             rp = RequestPhases(rec.get("chain_id", "?"), phases)
@@ -173,12 +262,27 @@ def run() -> None:
                 base_c.append(rp)
             elif rec.get("assigned_concurrency") == "3":
                 anomaly_c.append(rp)
-    rep_d = evaluate_case(base_c, anomaly_c, case_id="concurrency1_vs_3_low_evidence", ground_truth=None,
-                          abstain_threshold_ms=50.0)
+    if not base_c or not anomaly_c:
+        raise ValueError("missing measured concurrency 1/3 inputs")
+    rep_d = evaluate_case(
+        base_c,
+        anomaly_c,
+        case_id="concurrency1_vs_3_low_evidence",
+        ground_truth=None,
+        abstain_threshold_ms=50.0,
+    )
     out["case_D_concurrency1_vs_3_low_evidence"] = report_to_dict(rep_d)
 
-    dest = RES / "m0_development_validation_20260811"
-    dest.mkdir(parents=True, exist_ok=True)
+    out["_provenance"] = {
+        "evidence_kind": "derived-artifact",
+        "blind_scored": False,
+        "status": "NOT_M0_PROVEN",
+        "g4_inputs": str(RUNS),
+        "collection_inputs": str(collection),
+        "identity_limit": "Case A retains the historical max-total heuristic, not an exact request join",
+        "custody_limit": "Operator-supplied G4 inputs are not authenticated by this driver",
+    }
+    dest.mkdir(parents=True, exist_ok=False)
     (dest / "validation.json").write_text(json.dumps(out, indent=1), encoding="utf-8")
     print(json.dumps(out, indent=1))
 

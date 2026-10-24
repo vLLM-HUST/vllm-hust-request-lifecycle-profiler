@@ -43,15 +43,11 @@ and [public evidence](issue19_public_evidence.md); private logs remain withheld.
   was found there. Method/schema documents are not deleted for containing
   numerical protocol parameters. Other remaining documents need separate review.
 
-## Remaining mixed consumer queue
+## M0 consumer follow-up
 
-`docs/m0_evaluation_pipeline.md` still cites a dated development-validation
-output and an old unit-test count; its generator is
-`.benchmarks/run_m0_development_validation.py`. This needs a separate original
-snapshot and input/output classification, not an unverified recovery claim.
-`docs/issue19_m0_preflight.md` describes the ignored output directory produced
-by the Make preflight target; that path is a generation destination rather than
-proof of an archived result. No old preflight was rerun here.
+The former pipeline/preflight queue is now classified in
+[M0 consumer evidence](m0_consumer_evidence.md), including archived originals,
+unmatched private/derived inputs and explicit fresh-output contracts.
 
 No hardware run, paper compile, website release or asset deletion occurred.
 Missing G1/G4 inputs, old PDF identity and private raw logs are not recovered
