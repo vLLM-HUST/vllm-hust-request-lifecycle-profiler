@@ -30,7 +30,7 @@ jobs:
           BENCHMARK_HISTORY_ROOT: ${{ runner.temp }}/history-evidence
           BENCHMARK_COLLECTION_ROOT: ${{ runner.temp }}/collection-evidence
           VERIFY_PROTOCOL_ORIGINALS: '1'
-        run: python -m pytest -q -c /dev/null tests/test_claim_evidence_bindings.py tests/test_protocol_evidence.py
+        run: python -m pytest -q -c /dev/null tests/test_claim_evidence_bindings.py tests/test_protocol_evidence.py tests/test_runbook_evidence.py
       - name: Verify research archive and paper consumers
         env:
           BENCHMARK_RESEARCH_ROOT: ${{ runner.temp }}/research-evidence

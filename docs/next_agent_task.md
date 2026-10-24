@@ -1,5 +1,10 @@
 # Next work: execute the blind-attribution contract
 
+[Complete historical original](https://github.com/vLLM-HUST/vllm-hust-benchmark/blob/76056993c6bdf615850d683e49c46febf0ce96d3/archive/mod-targeted-20261023/profiler-runbooks/snapshot/docs/next_agent_task.md).
+[Archived inputs and consumer map](runbook_evidence.md) separates historical
+results, fresh output examples and unrecovered local traces. No new run is
+authorized or claimed by this document migration.
+
 ## Current status
 
 Profiler PR #17, vLLM-HUST PR #236, and vLLM-Ascend-HUST PR #216 are merged.
@@ -7,18 +12,20 @@ The runtime observation path and Issue #19 evidence harness are available.
 Development G1--G6 cases remain non-blind inputs and do not prove M0.
 
 Issue #19's corrected paired M0 is an evidence-valid, scoped mechanism
-`NO_GO`: resource pathology occurred in 1/10 repetitions and matched latency
-pathology in 0/10, below the preregistered 8/10 gate. Preserve the result and
-sanitized evidence. Do not rerun it, change its workload/capacity/gate, or
+`NO_GO`; the numerical decision and fixed gate remain in the
+[public evidence method and original](issue19_public_evidence.md). Preserve
+that scoped decision and its verified sanitized evidence. Do not rerun it, change its workload/capacity/gate, or
 implement the rejected reconciliation treatment.
 
 The durable boundary is:
 
 > Issue #19 mechanism `NO_GO` is not Request Lifecycle topic `NO_GO`.
 
-## Immediate local work
+## Research sequence (requires task-specific execution scope)
 
-1. Keep the Issue #19 scoped decision boundary unchanged.
+1. Keep the Issue #19 scoped decision boundary unchanged. Read
+   [the input/output consumer map](runbook_evidence.md); historical results are
+   external inputs, not current device admission or new output locations.
 2. Review and freeze `docs/blind_attribution_contract.md` before any opaque
    case or ground truth is revealed.
 3. Use the pinned `third_party/traceloom` structured SQLite evidence. Do not

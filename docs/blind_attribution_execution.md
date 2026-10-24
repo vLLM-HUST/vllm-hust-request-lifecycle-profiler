@@ -1,5 +1,10 @@
 # Blind-attribution local execution
 
+[Complete historical original](https://github.com/vLLM-HUST/vllm-hust-benchmark/blob/76056993c6bdf615850d683e49c46febf0ce96d3/archive/mod-targeted-20261023/profiler-runbooks/snapshot/docs/blind_attribution_execution.md).
+[Archived inputs and consumer map](runbook_evidence.md) separates historical
+results, fresh output examples and unrecovered local traces. No new run is
+authorized or claimed by this document migration.
+
 This slice implements only the public, diagnosis-side work that can be
 completed before NPU calibration and opaque-case access. It does not construct
 or inspect an opaque case and it does not make an M0 accuracy claim.
@@ -37,11 +42,13 @@ records the owners, edge kinds, span count, and TraceLoom-link count used for
 the ranking, so a longest stage or complete trace is not silently promoted to
 a causal conclusion.
 
-Run the public development fixture with a new output directory:
+Run the public development fixture only within an authorized task, with a new
+absolute output directory outside the checkout and all downloaded archive roots:
 
 ```bash
-python .benchmarks/run_blind_attribution_development.py \
-  --output .benchmarks/results/issue1_blind_attribution_development/local-01
+test ! -e "${DEVELOPMENT_OUTPUT:?choose a new external output directory}" &&
+PYTHONPATH=src python .benchmarks/run_blind_attribution_development.py \
+  --output "$DEVELOPMENT_OUTPUT"
 ```
 
 The command writes all five views and one timed result using exclusive-create
@@ -49,9 +56,11 @@ semantics. Reusing an output path fails instead of overwriting a pre-reveal
 result. These development files test the pipeline only and must not be counted
 as opaque accuracy, NPU calibration, or counterfactual evidence.
 
-The deferred work is unchanged: five matched no-intervention NPU calibration
-pairs, custody-provided opaque cases, pre-reveal method outputs, reveal,
-rank-one counterfactuals, the final score table, and any justified claim update.
+The historical public calibration is preserved below; it is not a fresh opaque
+case evaluation. Remaining blind work includes custody-provided opaque cases,
+pre-reveal method outputs, reveal, rank-one counterfactuals and the final score
+table. Check the applicability of the recorded calibration before any future
+authorized evaluation; its archival presence alone is not current admission.
 
 The exact public calibration target, workload order, scorer settings, and role
 isolation boundary are recorded in `blind_attribution_preblind_target.json`.
@@ -64,13 +73,15 @@ domain. The calibration contains no fault or case oracle.
 Run the fixed calibration with a local, non-repository output directory:
 
 ```bash
-python .benchmarks/run_preblind_noise_calibration.py \
+test ! -e "${LOCAL_OUTPUT_DIR:?choose a new external output directory}" &&
+PYTHONPATH=src python .benchmarks/run_preblind_noise_calibration.py \
   --device "$NPU_DEVICE" \
   --port "$SERVICE_PORT" \
   --output-dir "$LOCAL_OUTPUT_DIR"
 ```
 
-The completed public calibration summary is
-`.benchmarks/results/issue1_preblind_noise_calibration/summary.json`. Raw logs,
+The completed public calibration summary is a verified external input; its
+[exact member and raw archive](runbook_evidence.md#calibration-input) are in
+benchmark, not a local source file. Raw logs,
 process identifiers, device indices, service ports, and host paths remain in
 local custody and are not part of the public result.
