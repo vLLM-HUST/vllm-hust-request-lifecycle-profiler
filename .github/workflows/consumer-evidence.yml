@@ -24,3 +24,9 @@ jobs:
         run: python scripts/fetch_mod_consumer_evidence.py --config BENCHMARK_HISTORY.json --destination "$RUNNER_TEMP/history-evidence"
       - name: Verify remaining collection and every original member
         run: python scripts/fetch_mod_consumer_evidence.py --config BENCHMARK_COLLECTION.json --destination "$RUNNER_TEMP/collection-evidence"
+      - name: Check claim links and preserved limitations against verified originals
+        env:
+          BENCHMARK_EVIDENCE_ROOT: ${{ runner.temp }}/consumer-evidence
+          BENCHMARK_HISTORY_ROOT: ${{ runner.temp }}/history-evidence
+          BENCHMARK_COLLECTION_ROOT: ${{ runner.temp }}/collection-evidence
+        run: python -m pytest -q -c /dev/null tests/test_claim_evidence_bindings.py
