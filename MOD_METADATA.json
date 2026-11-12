@@ -20,8 +20,13 @@
   "mod_id": "request-lifecycle-profiler",
   "repository": "vllm-hust-request-lifecycle-profiler",
   "responsibility": {
-    "advisor_status": "unknown",
-    "advisors": [],
+    "advisor_status": "declared",
+    "advisors": [
+      {
+        "name": "Shuhao Zhang / 张书豪",
+        "relationship": "internal"
+      }
+    ],
     "maintainers": [
       {
         "github": "Remygred",
